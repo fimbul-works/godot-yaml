@@ -2,3 +2,6 @@
 	path = godot-cpp
 	url = https://github.com/godotengine/godot-cpp
 	branch = 4.2
+[submodule "rapidyaml"]
+	path = rapidyaml
+	url = https://github.com/biojppm/rapidyaml.git

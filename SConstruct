@@ -1,11 +1,6 @@
 #!/usr/bin/env python
 import os
-import sys
-
-# Use cache for faster build times
-os.environ['SCONS_CACHE'] = 'build/scons_cache'
-
-base_env = SConscript("godot-cpp/SConstruct")
+import subprocess
 
 # For reference:
 # - CCFLAGS are compilation flags shared between C and C++
@@ -15,57 +10,112 @@ base_env = SConscript("godot-cpp/SConstruct")
 # - CPPDEFINES are for pre-processor defines
 # - LINKFLAGS are for linking flags
 
-# Determine build target
-AddOption(
-    '--target',
-    dest='target',
-    type='string',
-    nargs=1,
-    action='store',
-    metavar='TARGET',
-    help='Specify the build target (debug or release)',
-    default='debug'
-)
+# Use cache for faster build times
+os.environ['SCONS_CACHE'] = 'build/scons_cache'
+
+base_env = SConscript('godot-cpp/SConstruct')
+
+def get_library_name(env):
+    platform = env.get('platform', 'unknown')
+    target = env.get('target', 'unknown')
+    arch = env.get('arch', 'unknown')
+
+    debug_or_release = 'release' if target == 'template_release' else 'debug'
+
+    if platform == 'windows':
+        return f'libgdyaml.windows.{target}.{arch}.dll'
+    elif platform in ['linux', 'android']:
+        return f'libgdyaml.{platform}.{target}.{arch}.so'
+    elif platform == 'macos':
+        return f"libgdyaml.{platform}.{target}.framework/gdyaml.{platform}.{target}"
+    elif platform == 'ios':
+        return f'libgdyaml.ios.{target}.xcframework'
+    else:
+        print(f'Unsupported platform: {platform}')
+        return f'libgdyaml.{platform}.{target}.{arch}'
 
 def setup_build_env(base_env):
     env = base_env.Clone()
 
-    # Get the target from command line option
-    target = GetOption('target')
-    env['target'] = f'template_{target}' if target != 'test' else 'test'
+    platform = env.get('platform', '')
+    is_release = env.get('target', '') == 'template_release'
 
-    is_release = target == "release"
-
-    if env.get('platform', '') == 'windows':
-        os.environ['godot_cpp_windows_use_dynamic_runtime'] = 'yes'
-        env.Append(CCFLAGS=['/EHsc', '/std:c++17'])
-    else:
-        env.Append(CCFLAGS=['-std=c++17'])
-
-    if is_release:
-        if env.get('platform', '') == 'windows':
-            env.Append(CCFLAGS=['/O2', '/GL'])
+    # Platform and release/debug flags
+    if platform == 'windows':
+        env.Append(CCFLAGS=['/std:c++17', '/EHsc'])
+        if is_release:
             env.Append(LINKFLAGS=['/LTCG'])
         else:
-            env.Append(CCFLAGS=['-O3', '-fomit-frame-pointer'])
+            env.Append(CCFLAGS=['/Z7'])
     else:
-        if env.get('platform', '') == 'windows':
-            env.Append(CCFLAGS=['/Z7', '/Od'])
-        else:
-            env.Append(CCFLAGS=['-g', '-O0'])
-        env.Append(CPPDEFINES=['GODOT_YAML_DEBUG'])
+        env.Append(CCFLAGS=['-std=c++17'])
+        # if is_release:
+        #     env.Append(CCFLAGS=['-fomit-frame-pointer'])
+        # else:
+        #     env.Append(CCFLAGS=['-g'])
 
-    env.Append(CPPPATH=["src"])
+    # Set debug flag
+    if is_release == False:
+        env.Append(CPPDEFINES=['GDYAML_DEBUG'])
 
+    env.Append(CPPPATH=['src'])
     return env
+
+def build_rapidyaml(env, variant_dir):
+    platform = env.get('platform', '')
+    target = env.get('target', '')
+
+    # Configure CMake
+    cmake_build_type = 'Release' if target == 'template_release' else 'Debug'
+    rapidyaml_build_dir = os.path.join(variant_dir, 'rapidyaml_build')
+    rapidyaml_install_dir = os.path.join(variant_dir, 'rapidyaml_install')
+
+    if not os.path.exists(rapidyaml_build_dir):
+        os.makedirs(rapidyaml_build_dir)
+
+    cmake_command = [
+        'cmake',
+        '-S', 'rapidyaml',
+        '-B', rapidyaml_build_dir,
+        f'-DCMAKE_INSTALL_PREFIX={rapidyaml_install_dir}',
+        f'-DCMAKE_BUILD_TYPE={cmake_build_type}',
+        '-DRYML_BUILD_TESTS=OFF',
+        '-DRYML_BUILD_TOOLS=OFF',
+        '-DRYML_DEFAULT_CALLBACK_USES_EXCEPTIONS=ON'
+    ]
+
+    # Godot uses the /MT runtime in both release and debug builds
+    if platform == 'windows':
+        cmake_command.append('-DCMAKE_CXX_FLAGS_DEBUG=/MT')
+        cmake_command.append('-DCMAKE_CXX_FLAGS_RELEASE=/MT')
+
+    # Run CMake
+    subprocess.run(cmake_command, check=True)
+    subprocess.run(['cmake', '--build', rapidyaml_build_dir, '--config', cmake_build_type], check=True)
+    subprocess.run(['cmake', '--install', rapidyaml_build_dir, '--config', cmake_build_type], check=True)
+
+    # Return the paths to the built library and include directory
+    lib_name = 'ryml.lib' if platform == 'windows' else 'libryml.a'
+
+    return {
+        'lib': os.path.join(rapidyaml_install_dir, 'lib', lib_name),
+        'include': os.path.join(rapidyaml_install_dir, 'include')
+    }
 
 def build_config(env, variant_dir):
     # Set up variant dir for our sources
     env.VariantDir(os.path.join(variant_dir, 'src'), 'src', duplicate=0)
 
+    # Build rapidyaml
+    rapidyaml = build_rapidyaml(env, variant_dir)
+
+    # Add rapidyaml to the environment
+    env.Append(CPPPATH=[rapidyaml['include']])
+    env.Append(LIBPATH=[os.path.dirname(rapidyaml['lib'])])
+    env.Append(LIBS=['ryml'])
+
     # Gather source files
     sources = Glob(os.path.join(variant_dir, 'src', '*.cpp'))
-#    sources += Glob(os.path.join(variant_dir, 'src', 'variants', '*.cpp'))
 
     # Set up output directories
     output_lib_dir = os.path.join(variant_dir, 'lib')
@@ -77,44 +127,25 @@ def build_config(env, variant_dir):
         source=sources
     )
 
-    # Copy the library to the demo directory
-    demo_dir = os.path.join('demo', 'addons', 'yaml', 'bin')
-    installed_lib = env.Install(demo_dir, library)
+    # Add dependency on rapidyaml
+    env.Depends(library, rapidyaml['lib'])
 
-    # Create an alias for the install target
+    # Install the built library to the bin directory
+    bin_dir = os.path.join('demo', 'addons', 'yaml', 'bin')
+    installed_lib = env.Install(bin_dir, library)
     env.Alias('install', installed_lib)
 
-    # Return both the library and the installed library
     return library, installed_lib
-
-def get_library_name(env):
-    platform = env.get("platform", "unknown")
-    target = env.get("target", "unknown")
-    arch = env.get("arch", "unknown")
-
-    if platform == "windows":
-        return f"libgdyaml.windows.{target}.{arch}.dll"
-    elif platform in ["linux", "android"]:
-        return f"libgdyaml.{platform}.{target}.{arch}.so"
-    elif platform == "macos":
-        return f"libgdyaml.macos.{target}.framework"
-    elif platform == "ios":
-        return f"libgdyaml.ios.{target}.xcframework"
-    else:
-        print(f"Unsupported platform: {platform}")
-        return f"libgdyaml.{platform}.{target}.{arch}"
 
 # Setup the build environment
 env = setup_build_env(base_env)
 
-# Determine the variant directory based on the target
-variant_dir = os.path.abspath(os.path.join('build', GetOption("target")))
-
-# Ensure the variant directory exists
+# Establish the variant directory based on the target
+variant_dir = os.path.abspath(os.path.join('build', env["target"]))
 if not os.path.exists(variant_dir):
     os.makedirs(variant_dir)
 
-# Set OBJPREFIX to place object files in the variant directory
+# OBJPREFIX placees object files in the variant directory
 env['OBJPREFIX'] = os.path.join(variant_dir, '')
 
 target = build_config(env, variant_dir)

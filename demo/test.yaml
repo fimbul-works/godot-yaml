@@ -1,0 +1,94 @@
+# Comprehensive YAML Example
+
+# Scalars
+string_value: "Hello, World!"
+unquoted_string: Hello World
+single_quoted: 'Hello, ''World'''
+folded_string: >
+  This is a long string
+  that will be folded
+  into a single line
+literal_string: |
+  This is a long string
+  that will preserve
+  newlines
+
+# Numeric types
+integer: 42
+float: 3.14159
+hex: 0xff
+octal: 0o700
+binary: 0b1010
+scientific_notation: 6.022e23
+infinity: .inf
+not_a_number: .nan
+
+# Boolean types
+boolean_true: true
+boolean_false: false
+
+# Null
+null_value: null
+null_value_2: ~
+
+# Dates and times
+date: 2023-04-01
+canonical_datetime: 2023-04-01T12:00:00Z
+iso8601_datetime: 2023-04-01t12:00:00.000-05:00
+
+# Collections
+## Lists
+
+fruits:
+- apple
+- banana
+- cherry
+
+nested_list:
+  - - nested
+	- items
+  - - more
+	- nested
+	- items
+
+## Flow style list
+flow_style_list: [1, 2, 3, 4, 5]
+
+## Dictionaries
+person:
+  name: John Doe
+  age: 30
+  occupation: Developer
+
+## Flow style dictionary
+flow_style_dict: {key1: value1, key2: value2}
+
+# Anchors and aliases
+anchor_example: &anchor_name
+  key1: value1
+  key2: value2
+
+alias_example: *anchor_name
+
+# Merge key
+base: &base
+  name: John Doe
+  age: 30
+
+merge_example:
+  <<: *base
+  occupation: Developer
+
+# Ordered maps
+ordered_map: !!omap
+  - key1: value1
+  - key2: value2
+
+# Binary data
+binary_data: !!binary |
+  R0lGODlhDAAMAIQAAP//9/X17unp5WZmZgAAAOfn515eXvPz7Y6OjuDg4J+fn5
+  OTk6enp56enmleECcgggoBADs=
+
+# Tags
+custom_tag: !my_custom_tag
+  key: value
