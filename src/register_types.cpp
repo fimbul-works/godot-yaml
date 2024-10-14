@@ -9,7 +9,7 @@
 using namespace godot;
 
 void initialize_yaml_module(ModuleInitializationLevel p_level) {
-	if (p_level != MODULE_INITIALIZATION_LEVEL_SCENE) {
+	if (p_level != MODULE_INITIALIZATION_LEVEL_EDITOR) {
 		return;
 	}
 
@@ -17,7 +17,7 @@ void initialize_yaml_module(ModuleInitializationLevel p_level) {
 }
 
 void uninitialize_yaml_module(ModuleInitializationLevel p_level) {
-	if (p_level != MODULE_INITIALIZATION_LEVEL_SCENE) {
+	if (p_level != MODULE_INITIALIZATION_LEVEL_EDITOR) {
 		return;
 	}
 }
@@ -29,7 +29,7 @@ GDExtensionBool GDE_EXPORT yaml_library_init(GDExtensionInterfaceGetProcAddress 
 
 	init_obj.register_initializer(initialize_yaml_module);
 	init_obj.register_terminator(uninitialize_yaml_module);
-	init_obj.set_minimum_library_initialization_level(MODULE_INITIALIZATION_LEVEL_SCENE);
+	init_obj.set_minimum_library_initialization_level(MODULE_INITIALIZATION_LEVEL_EDITOR);
 
 	return init_obj.init();
 }

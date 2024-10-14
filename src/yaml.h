@@ -1,12 +1,12 @@
 #ifndef GDEXAMPLE_H
 #define GDEXAMPLE_H
 
-#include <godot_cpp/classes/sprite2d.hpp>
+#include <godot_cpp/core/object.hpp>
 
 namespace godot {
 
-class YAML : public Sprite2D {
-	GDCLASS(YAML, Sprite2D)
+class YAML : public Object {
+	GDCLASS(YAML, Object)
 
 private:
 	double time_passed;
@@ -18,7 +18,7 @@ public:
 	YAML();
 	~YAML();
 
-	void _process(double delta) override;
+  String version();
 };
 
 }
