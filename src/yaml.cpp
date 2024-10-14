@@ -18,5 +18,10 @@ YAML::~YAML() {
 }
 
 String YAML::version() {
-  return String("Version " + String(GODOT_YAML_VERSION) + " (test)");
+  #ifdef GODOT_YAML_DEBUG
+  String target = "debug";
+  #else
+  String target = "release";
+  #endif
+  return String("Version " + String(GODOT_YAML_VERSION) + " (" + target +")");
 }
