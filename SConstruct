@@ -30,20 +30,18 @@ def setup_build_env(base_env):
     env = base_env.Clone()
 
     platform = env.get('platform', '')
-    is_release = env.get('target', '') == 'template_release'
+    is_debug = env.get('target', '') == 'template_release'
 
     # Platform and release/debug flags
     if platform == 'windows':
         env.Append(CCFLAGS=['/std:c++17', '/EHsc'])
-        if is_release:
-            env.Append(LINKFLAGS=['/LTCG'])
-        else:
+        if is_debug:
             env.Append(CCFLAGS=['/Z7'])
     else:
         env.Append(CCFLAGS=['-std=c++17'])
 
     # Set debug flag
-    if is_release == False:
+    if is_debug:
         env.Append(CPPDEFINES=['GDYAML_DEBUG'])
 
     env.Append(CPPPATH=['src'])
