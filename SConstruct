@@ -2,14 +2,6 @@
 import os
 import subprocess
 
-# For reference:
-# - CCFLAGS are compilation flags shared between C and C++
-# - CFLAGS are for C-specific compilation flags
-# - CXXFLAGS are for C++-specific compilation flags
-# - CPPFLAGS are for pre-processor flags
-# - CPPDEFINES are for pre-processor defines
-# - LINKFLAGS are for linking flags
-
 # Use cache for faster build times
 os.environ['SCONS_CACHE'] = 'build/scons_cache'
 
@@ -23,16 +15,16 @@ def get_library_name(env):
     debug_or_release = 'release' if target == 'template_release' else 'debug'
 
     if platform == 'windows':
-        return f'libgdyaml.windows.{target}.{arch}.dll'
+        return f'libgdyaml.windows.{debug_or_release}.{arch}.dll'
     elif platform in ['linux', 'android']:
-        return f'libgdyaml.{platform}.{target}.{arch}.so'
+        return f'libgdyaml.{platform}.{debug_or_release}.{arch}.so'
     elif platform == 'macos':
-        return f"libgdyaml.{platform}.{target}.framework/gdyaml.{platform}.{target}"
+        return f"libgdyaml.{platform}.{debug_or_release}.framework/gdyaml.{platform}.{debug_or_release}"
     elif platform == 'ios':
-        return f'libgdyaml.ios.{target}.xcframework'
+        return f'libgdyaml.ios.{debug_or_release}.xcframework'
     else:
         print(f'Unsupported platform: {platform}')
-        return f'libgdyaml.{platform}.{target}.{arch}'
+        return f'libgdyaml.{platform}.{debug_or_release}.{arch}'
 
 def setup_build_env(base_env):
     env = base_env.Clone()
@@ -49,10 +41,6 @@ def setup_build_env(base_env):
             env.Append(CCFLAGS=['/Z7'])
     else:
         env.Append(CCFLAGS=['-std=c++17'])
-        # if is_release:
-        #     env.Append(CCFLAGS=['-fomit-frame-pointer'])
-        # else:
-        #     env.Append(CCFLAGS=['-g'])
 
     # Set debug flag
     if is_release == False:
@@ -131,7 +119,7 @@ def build_config(env, variant_dir):
     env.Depends(library, rapidyaml['lib'])
 
     # Install the built library to the bin directory
-    bin_dir = os.path.join('demo', 'addons', 'yaml', 'bin')
+    bin_dir = os.path.join('project', 'addons', 'yaml', 'bin')
     installed_lib = env.Install(bin_dir, library)
     env.Alias('install', installed_lib)
 
