@@ -19,11 +19,10 @@ void YAML::emit_recursively(ryml::NodeRef& node, const Variant& v)
   auto it = type_to_tag.find(type);
   if (it != type_to_tag.end()) {
     const std::string& tag = it->second;
-    node.set_val_tag(tag.c_str());
-
-    auto emit_it = emit_handlers.find(tag);
-    if (emit_it != emit_handlers.end()) {
-      emit_it->second(node, v);
+    auto encoder_it = encoders.find(v.get_type());
+    if (encoder_it != encoders.end()) {
+      node.set_val_tag(tag.c_str());
+      encoder_it->second(node, v);
       return;
     }
   }

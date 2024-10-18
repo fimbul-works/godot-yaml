@@ -41,9 +41,8 @@ Variant YAML::yaml_to_variant(const ryml::ConstNodeRef& n)
 {
   if (n.has_val_tag()) {
     std::string tag = std::string(n.val_tag().str, n.val_tag().len);
-    UtilityFunctions::print("Node has tag: ", tag.c_str());
-    auto it = parse_handlers.find(tag);
-    if (it != parse_handlers.end()) {
+    auto it = decoders.find(tag);
+    if (it != decoders.end()) {
       return it->second(n);
     }
   }

@@ -1,19 +1,20 @@
 #ifndef COLOR_YAML_H
 #define COLOR_YAML_H
 
-#include "variants.h"
+#include "yaml_encoder.h"
 #include <godot_cpp/variant/color.hpp>
 
 namespace godot {
-namespace variants {
+namespace yaml {
 
   template <>
-  Color parse<Color>(const ryml::ConstNodeRef& node);
+  struct YAMLEncoder<Color> {
+    static void encode(ryml::NodeRef node, const Color& color);
+    static bool decode(const ryml::ConstNodeRef& node, Color& out_color);
+    static const char* get_tag() { return "!!Color"; }
+  };
 
-  template <>
-  void emit<Color>(ryml::NodeRef& node, const Color& color);
-
-} // namespace variants
+} // namespace yaml
 } // namespace godot
 
 #endif // COLOR_YAML_H

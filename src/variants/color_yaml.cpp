@@ -1,11 +1,12 @@
 #include "color_yaml.h"
 #include "util_numeric.h"
+
 #include <godot_cpp/variant/utility_functions.hpp>
 #include <iomanip>
 #include <sstream>
 
 namespace godot {
-namespace variants {
+namespace yaml {
 
   Color hex_to_color(const std::string& hex)
   {
@@ -39,35 +40,6 @@ namespace variants {
     return ss.str();
   }
 
-  template <>
-  Color parse<Color>(const ryml::ConstNodeRef& node)
-  {
-    if (node.is_keyval()) {
-      std::string hex_str = node_value_to_string(node);
-      return hex_to_color(hex_str);
-    } else if (node.is_map()) {
-      float r = string_to_float<float>(node["r"].val());
-      float g = string_to_float<float>(node["g"].val());
-      float b = string_to_float<float>(node["b"].val());
-      float a = node.has_child("a") ? string_to_float<float>(node["a"].val()) : 1.0f;
-      return Color(r, g, b, a);
-    } else if (node.is_seq() && (node.num_children() == 3 || node.num_children() == 4)) {
-      float r = string_to_float<float>(node[0].val());
-      float g = string_to_float<float>(node[1].val());
-      float b = string_to_float<float>(node[2].val());
-      float a = node.num_children() > 3 ? string_to_float<float>(node[3].val()) : 1.0f;
-      return Color(r, g, b, a);
-    } else {
-      UtilityFunctions::printerr("Invalid Color format: ", node_value_to_string(node).c_str());
-      return Color();
-    }
-  }
-
-  void emit_color_as_hex(ryml::NodeRef& node, const Color& color)
-  {
-    node << color_to_hex(color);
-  }
-
   void emit_color_as_flow(ryml::NodeRef& node, const Color& color)
   {
     node |= ryml::MAP;
@@ -80,11 +52,37 @@ namespace variants {
     }
   }
 
-  template <>
-  void emit<Color>(ryml::NodeRef& node, const Color& color)
+  void YAMLEncoder<Color>::encode(ryml::NodeRef node, const Color& color)
   {
+    // node << color_to_hex(color);
+    // OR
     emit_color_as_flow(node, color);
   }
 
-} // namespace variants
+  bool YAMLEncoder<Color>::decode(const ryml::ConstNodeRef& node, Color& out_color)
+  {
+    if (node.is_keyval() || node.has_val()) {
+      std::string hex_str(node.val().str, node.val().len);
+      out_color = hex_to_color(hex_str);
+      return true;
+    } else if (node.is_map()) {
+      float r = string_to_float<float>(node["r"].val());
+      float g = string_to_float<float>(node["g"].val());
+      float b = string_to_float<float>(node["b"].val());
+      float a = node.has_child("a") ? string_to_float<float>(node["a"].val()) : 1.0f;
+      out_color = Color(r, g, b, a);
+      return true;
+    } else if (node.is_seq() && (node.num_children() == 3 || node.num_children() == 4)) {
+      float r = string_to_float<float>(node[0].val());
+      float g = string_to_float<float>(node[1].val());
+      float b = string_to_float<float>(node[2].val());
+      float a = node.num_children() == 4 ? string_to_float<float>(node[3].val()) : 1.0f;
+      out_color = Color(r, g, b, a);
+      return true;
+    }
+    UtilityFunctions::printerr("Invalid Color format: ", String::utf8(node.val().str, node.val().len));
+    return false;
+  }
+
+} // namespace yaml
 } // namespace godot

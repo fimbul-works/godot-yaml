@@ -1,40 +1,34 @@
-#include "variants.h"
 #include "yaml.h"
 
 #include "variants/color_yaml.h"
 
 using namespace godot;
 
-void YAML::register_handlers()
+void YAML::register_types()
 {
-  add_variant_handler<Color>("!!Color");
+  register_type<Color>();
 }
 
 template <typename T>
-void YAML::add_variant_handler(const std::string& tag)
+void YAML::register_type()
 {
-  UtilityFunctions::print("Adding variant handler: ", String(tag.c_str()));
-
   Variant::Type type = Variant(T()).get_type();
+  const char* tag = yaml::YAMLEncoder<T>::get_tag();
+#ifdef GODOT_YAML_DEBUG
+  UtilityFunctions::print("Registered type: ", type_string(typeof(type)));
+#endif
+
   type_to_tag[type] = tag;
 
-  parse_handlers[tag] = [](const ryml::ConstNodeRef& node) -> Variant {
-    return variants::parse<T>(node);
+  decoders[tag] = [](const ryml::ConstNodeRef& node) -> Variant {
+    T value;
+    if (yaml::YAMLEncoder<T>::decode(node, value)) {
+      return Variant(value);
+    }
+    return Variant();
   };
 
-  emit_handlers[tag] = [](ryml::NodeRef& node, const Variant& v) {
-    variants::emit<T>(node, v);
+  encoders[type] = [](ryml::NodeRef& node, const Variant& v) {
+    yaml::YAMLEncoder<T>::encode(node, v.operator T());
   };
-}
-
-template <typename T>
-Variant YAML::parse_variant(const ryml::ConstNodeRef& node)
-{
-  return variants::parse<T>(node);
-}
-
-template <typename T>
-void YAML::emit_variant(ryml::NodeRef& node, const Variant& v)
-{
-  variants::emit<T>(node, v);
 }

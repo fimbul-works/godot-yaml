@@ -7,6 +7,8 @@
 #include <ryml.hpp>
 #include <ryml_std.hpp>
 
+#include "yaml_encoder.h"
+
 #include <functional>
 #include <memory>
 #include <string>
@@ -67,22 +69,16 @@ class YAML : public Object {
   private:
   void YAML::emit_recursively(ryml::NodeRef& node, const Variant& v);
 
-  // Godot variant handlers
+  // Godot type encoders
   private:
-  void register_handlers();
+  void register_types();
 
   template <typename T>
-  void add_variant_handler(const std::string& tag);
+  void register_type();
 
-  template <typename T>
-  Variant parse_variant(const ryml::ConstNodeRef& node);
-
-  template <typename T>
-  void emit_variant(ryml::NodeRef& node, const Variant& v);
-
+  std::unordered_map<std::string, std::function<Variant(const ryml::ConstNodeRef&)>> decoders;
+  std::unordered_map<Variant::Type, std::function<void(ryml::NodeRef&, const Variant&)>> encoders;
   std::unordered_map<Variant::Type, std::string> type_to_tag;
-  std::unordered_map<std::string, std::function<Variant(const ryml::ConstNodeRef&)>> parse_handlers;
-  std::unordered_map<std::string, std::function<void(ryml::NodeRef&, const Variant&)>> emit_handlers;
 };
 
 } // namespace godot
