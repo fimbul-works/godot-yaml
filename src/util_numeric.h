@@ -9,6 +9,8 @@
 #include <limits>
 #include <type_traits>
 
+namespace godot {
+
 template <typename T>
 T string_to_float(const ryml::csubstr& value)
 {
@@ -102,7 +104,7 @@ ryml::csubstr float_to_string(const T value)
 }
 
 template <typename T>
-ryml::csubstr int_to_string(const T value, const int base)
+ryml::csubstr int_to_string(const T value, const int base = 10)
 {
   static_assert(std::is_integral<T>::value, "Type must be integral");
 
@@ -164,5 +166,7 @@ T string_to_int(const godot::String& value)
 {
   return string_to_int<T>(ryml::to_csubstr(value.utf8().get_data()));
 }
+
+} // namespace godot
 
 #endif // UTIL_NUMERIC_H

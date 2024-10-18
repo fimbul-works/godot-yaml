@@ -8,19 +8,30 @@ func _ready():
 	# Getting version information
 	print(yaml.version())
 
-	# Parsing YAML
-	var start = Time.get_ticks_usec()
-	var dict = yaml.parse(yaml_input)
-	var elapsed = Time.get_ticks_usec() - start
-	print_rich("[b]Parsed data:[/b]\n", JSON.stringify(dict, "  ", false))
-	print_rich("[i]Parsing took %d microseconds[/i]\n" % elapsed)
+	## Parsing YAML
+	#var start = Time.get_ticks_usec()
+	#var dict = yaml.parse(yaml_input)
+	#var elapsed = Time.get_ticks_usec() - start
+	#print_rich("[b]Parsed data:[/b]\n", JSON.stringify(dict, "  ", false))
+	#print_rich("[i]Parsing took %d microseconds[/i]\n" % elapsed)
+#
+	## Stringifying to YAML
+	#start = Time.get_ticks_usec()
+	#var yaml_output = yaml.stringify(dict)
+	#elapsed = Time.get_ticks_usec() - start
+	#print_rich("[b]Stringified data:[/b]\n", yaml_output)
+	#print_rich("[i]Stringifying took %d microseconds[/i]\n" % elapsed)
 
-	# Stringifying to YAML
-	start = Time.get_ticks_usec()
-	var yaml_output = yaml.stringify(dict)
-	elapsed = Time.get_ticks_usec() - start
-	print_rich("[b]Stringified data:[/b]\n", yaml_output)
-	print_rich("[i]Stringifying took %d microseconds[/i]\n" % elapsed)
+	# Test variant
+	var color_str = yaml.stringify(Color(1, 0.5, 0.25))
+	print(Color(1, 0.5, 0.25))
+	print_rich("[b]Color as YAML:[/b]\n", color_str)
+	var color = yaml.parse(color_str)
+	print_rich("[b]Color from YAML:[/b]\n", color, "\ntype: ", type_string(typeof(color)))
+	color_str = yaml.stringify(color)
+	print_rich("[b]Color as YAML 2:[/b]\n", color_str)
+	color = yaml.parse(color_str)
+	print_rich("[b]Color from YAML 2:[/b]\n", color, "\ntype: ", type_string(typeof(color)))
 
 	# Remember to free the object after using it
 	yaml.free()

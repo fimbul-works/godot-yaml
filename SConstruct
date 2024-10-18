@@ -102,6 +102,7 @@ def build_config(env, variant_dir):
 
     # Gather source files
     sources = Glob(os.path.join(variant_dir, 'src', '*.cpp'))
+    sources += Glob(os.path.join(variant_dir, 'src', 'variants', '*.cpp'))
 
     # Set up output directories
     output_lib_dir = os.path.join(variant_dir, 'lib')

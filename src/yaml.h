@@ -7,10 +7,10 @@
 #include <ryml.hpp>
 #include <ryml_std.hpp>
 
-// #include <functional>
+#include <functional>
 #include <memory>
 #include <string>
-// #include <unordered_map>
+#include <unordered_map>
 
 namespace godot {
 
@@ -60,12 +60,29 @@ class YAML : public Object {
   std::unique_ptr<ryml::EventHandlerTree> m_evt_handler;
   std::unique_ptr<ryml::Parser> m_parser;
 
-  // YAM emitting
+  // YAML emitting
   public:
   String stringify(const Variant& input);
 
   private:
   void YAML::emit_recursively(ryml::NodeRef& node, const Variant& v);
+
+  // Godot variant handlers
+  private:
+  void register_handlers();
+
+  template <typename T>
+  void add_variant_handler(const std::string& tag);
+
+  template <typename T>
+  Variant parse_variant(const ryml::ConstNodeRef& node);
+
+  template <typename T>
+  void emit_variant(ryml::NodeRef& node, const Variant& v);
+
+  std::unordered_map<Variant::Type, std::string> type_to_tag;
+  std::unordered_map<std::string, std::function<Variant(const ryml::ConstNodeRef&)>> parse_handlers;
+  std::unordered_map<std::string, std::function<void(ryml::NodeRef&, const Variant&)>> emit_handlers;
 };
 
 } // namespace godot

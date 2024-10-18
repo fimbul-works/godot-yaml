@@ -24,6 +24,7 @@ YAML::YAML() :
 {
   try {
     ryml::set_callbacks(m_callbacks);
+    register_handlers();
   } catch (const std::exception& e) {
     godot::UtilityFunctions::printerr("Godot YAML initialization failed: ", e.what());
   } catch (...) {

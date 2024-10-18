@@ -10,8 +10,10 @@ Variant YAML::parse(const String& input)
   error = "";
 
   try {
-    std::string yaml = std::string(input.utf8().get_data());
-    ryml::parse_in_place(m_parser.get(), ryml::to_substr(yaml), m_tree);
+    m_tree.clear();
+    // m_tree.reserve(256);
+    // m_parser.get()->reserve_stack(20);
+    ryml::parse_in_arena(m_parser.get(), input.utf8().get_data(), &m_tree);
 
     if (m_tree.empty()) {
       error = "empty YAML document";
@@ -37,6 +39,15 @@ Variant YAML::parse(const String& input)
 
 Variant YAML::yaml_to_variant(const ryml::ConstNodeRef& n)
 {
+  if (n.has_val_tag()) {
+    std::string tag = std::string(n.val_tag().str, n.val_tag().len);
+    UtilityFunctions::print("Node has tag: ", tag.c_str());
+    auto it = parse_handlers.find(tag);
+    if (it != parse_handlers.end()) {
+      return it->second(n);
+    }
+  }
+
   if (n.is_keyval()) {
     return parse_value(n);
   } else if (n.is_map()) {

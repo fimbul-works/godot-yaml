@@ -1,7 +1,6 @@
 #include "yaml.h"
 
-// #include "ryml_extras.h"
-#include "util_emit.h"
+#include "util_numeric.h"
 
 using namespace godot;
 
@@ -15,6 +14,20 @@ String YAML::stringify(const Variant& input)
 
 void YAML::emit_recursively(ryml::NodeRef& node, const Variant& v)
 {
+  Variant::Type type = v.get_type();
+
+  auto it = type_to_tag.find(type);
+  if (it != type_to_tag.end()) {
+    const std::string& tag = it->second;
+    node.set_val_tag(tag.c_str());
+
+    auto emit_it = emit_handlers.find(tag);
+    if (emit_it != emit_handlers.end()) {
+      emit_it->second(node, v);
+      return;
+    }
+  }
+
   switch (v.get_type()) {
     case Variant::NIL: {
       ryml::csubstr null = {};
@@ -27,11 +40,11 @@ void YAML::emit_recursively(ryml::NodeRef& node, const Variant& v)
       break;
 
     case Variant::INT:
-      node << (int64_t)v;
+      node << int_to_string((int64_t)v);
       break;
 
     case Variant::FLOAT:
-      emit_float(node, (double)v);
+      node << float_to_string((double)v);
       break;
 
     case Variant::STRING: {
