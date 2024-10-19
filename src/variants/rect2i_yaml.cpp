@@ -10,7 +10,7 @@ Rect2iYAMLEncoder::Rect2iYAMLEncoder(YAML* yaml) :
 
 const char* Rect2iYAMLEncoder::get_tag() const
 {
-  return "!!Rect2i";
+  return "Rect2i";
 }
 
 void Rect2iYAMLEncoder::encode(ryml::NodeRef& node, const Variant& v) const
@@ -22,20 +22,17 @@ void Rect2iYAMLEncoder::encode(ryml::NodeRef& node, const Variant& v) const
 Variant Rect2iYAMLEncoder::decode(const ryml::ConstNodeRef& node) const
 {
   if (node.is_map() && node.has_child("position") && node.has_child("size")) {
-    const Vector2iYAMLEncoder* vector2i_encoder = static_cast<const Vector2iYAMLEncoder*>(m_yaml->get_encoder(Variant::VECTOR2I));
-    if (!vector2i_encoder) {
-      UtilityFunctions::printerr("Vector2i encoder not found");
-      return Variant();
+    const Vector2iYAMLEncoder* vec_encoder = static_cast<const Vector2iYAMLEncoder*>(m_yaml->get_encoder(Variant::VECTOR2I));
+    if (!vec_encoder) {
+      throw YAMLException("Vector2i encoder not found");
     }
 
-    Vector2i position = vector2i_encoder->decode(node["position"]).operator Vector2i();
-    Vector2i size = vector2i_encoder->decode(node["size"]).operator Vector2i();
+    Vector2i position = vec_encoder->decode(node["position"]).operator Vector2i();
+    Vector2i size = vec_encoder->decode(node["size"]).operator Vector2i();
 
     return Rect2i(position, size);
   }
-
-  UtilityFunctions::printerr("Invalid Rect2i format");
-  return Variant();
+  throw YAMLException("invalid Rect2i format - " + String::utf8(node.val().str, node.val().len));
 }
 
 bool Rect2iYAMLEncoder::set_format(const String& format_str)
@@ -45,19 +42,18 @@ bool Rect2iYAMLEncoder::set_format(const String& format_str)
 
 void Rect2iYAMLEncoder::emit_as_map(ryml::NodeRef& node, const Rect2i& rect) const
 {
-  const Vector2iYAMLEncoder* vector2i_encoder = static_cast<const Vector2iYAMLEncoder*>(m_yaml->get_encoder(Variant::VECTOR2I));
-  if (!vector2i_encoder) {
-    UtilityFunctions::printerr("Vector2i encoder not found");
-    return;
+  const Vector2iYAMLEncoder* vec_encoder = static_cast<const Vector2iYAMLEncoder*>(m_yaml->get_encoder(Variant::VECTOR2I));
+  if (!vec_encoder) {
+    throw YAMLException("Vector2i encoder not found");
   }
 
   node |= ryml::MAP;
 
   ryml::NodeRef position_node = node["position"];
-  vector2i_encoder->encode(position_node, rect.position);
+  vec_encoder->encode(position_node, rect.position);
 
   ryml::NodeRef size_node = node["size"];
-  vector2i_encoder->encode(size_node, rect.size);
+  vec_encoder->encode(size_node, rect.size);
 
   node["position"] |= ryml::FLOW_SL;
   node["size"] |= ryml::FLOW_SL;

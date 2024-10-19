@@ -24,9 +24,9 @@ YAML::YAML() :
     ryml::set_callbacks(m_callbacks);
     register_type_encoders();
   } catch (const std::exception& e) {
-    godot::UtilityFunctions::printerr("Godot YAML initialization failed: ", e.what());
+    godot::UtilityFunctions::printerr("YAML initialization failed: ", e.what());
   } catch (...) {
-    godot::UtilityFunctions::printerr("Godot YAML initialization failed: unknown error");
+    godot::UtilityFunctions::printerr("YAML initialization failed: unknown error");
   }
 }
 

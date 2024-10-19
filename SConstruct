@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import os
 import subprocess
+import shutil
 
 # Use cache for faster build times
 os.environ['SCONS_CACHE'] = 'build/scons_cache'
@@ -88,17 +89,34 @@ def build_rapidyaml(env, variant_dir):
         'include': os.path.join(rapidyaml_install_dir, 'include')
     }
 
+def clean_rapidyaml(env, variant_dir):
+    rapidyaml_build_dir = os.path.join(variant_dir, 'rapidyaml_build')
+    rapidyaml_install_dir = os.path.join(variant_dir, 'rapidyaml_install')
+
+    # Remove build directory
+    if os.path.exists(rapidyaml_build_dir):
+        shutil.rmtree(rapidyaml_build_dir)
+
+    # Remove install directory
+    if os.path.exists(rapidyaml_install_dir):
+        shutil.rmtree(rapidyaml_install_dir)
+
+    print("Cleaned RapidYAML build directories")
+
 def build_config(env, variant_dir):
     # Set up variant dir for our sources
     env.VariantDir(os.path.join(variant_dir, 'src'), 'src', duplicate=0)
 
-    # Build rapidyaml
-    rapidyaml = build_rapidyaml(env, variant_dir)
-
-    # Add rapidyaml to the environment
-    env.Append(CPPPATH=[rapidyaml['include']])
-    env.Append(LIBPATH=[os.path.dirname(rapidyaml['lib'])])
-    env.Append(LIBS=['ryml'])
+    # Handle rapidyaml
+    if env.GetOption('clean'):
+        clean_rapidyaml(env, variant_dir)
+        rapidyaml = None
+    else:
+        rapidyaml = build_rapidyaml(env, variant_dir)
+        # Add rapidyaml to the environment
+        env.Append(CPPPATH=[rapidyaml['include']])
+        env.Append(LIBPATH=[os.path.dirname(rapidyaml['lib'])])
+        env.Append(LIBS=['ryml'])
 
     # Gather source files
     sources = Glob(os.path.join(variant_dir, 'src', '*.cpp'))
@@ -115,7 +133,8 @@ def build_config(env, variant_dir):
     )
 
     # Add dependency on rapidyaml
-    env.Depends(library, rapidyaml['lib'])
+    if not env.GetOption('clean') and rapidyaml:
+        env.Depends(library, rapidyaml['lib'])
 
     # Install the built library to the bin directory
     bin_dir = os.path.join('project', 'addons', 'yaml', 'bin')

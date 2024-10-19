@@ -20,6 +20,7 @@ class Rect2YAMLEncoder : public IYAMLEncoder {
 
   private:
   void emit_as_map(ryml::NodeRef& node, const Rect2& rect) const;
+
   YAML* m_yaml;
 };
 

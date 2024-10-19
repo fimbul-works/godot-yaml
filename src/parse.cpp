@@ -11,8 +11,6 @@ Variant YAML::parse(const String& input)
 
   try {
     m_tree.clear();
-    // m_tree.reserve(256);
-    // m_parser.get()->reserve_stack(20);
     ryml::parse_in_arena(m_parser.get(), input.utf8().get_data(), &m_tree);
 
     if (m_tree.empty()) {
@@ -43,7 +41,7 @@ Variant YAML::yaml_to_variant(const ryml::ConstNodeRef& n)
     std::string tag = std::string(n.val_tag().str, n.val_tag().len);
     for (const auto& [type, encoder_ptr] : type_encoders) {
       const IYAMLEncoder* encoder = encoder_ptr.get();
-      if (tag == encoder->get_tag()) {
+      if (has_matching_tag(n, encoder)) {
         return encoder->decode(n);
       }
     }

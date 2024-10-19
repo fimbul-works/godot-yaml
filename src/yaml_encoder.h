@@ -7,6 +7,7 @@
 namespace godot {
 
 struct IYAMLEncoder {
+  public:
   virtual const char* get_tag() const = 0;
 
   virtual void encode(ryml::NodeRef& node, const Variant& v) const = 0;

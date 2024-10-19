@@ -9,7 +9,7 @@ using namespace godot;
 
 const char* ColorYAMLEncoder::get_tag() const
 {
-  return "!!Color";
+  return "Color";
 }
 
 void ColorYAMLEncoder::encode(ryml::NodeRef& node, const Variant& v) const
@@ -46,8 +46,7 @@ Variant ColorYAMLEncoder::decode(const ryml::ConstNodeRef& node) const
     float a = node.num_children() == 4 ? string_to_float<float>(node[3].val()) : 1.0f;
     return Color(r, g, b, a);
   }
-  UtilityFunctions::printerr("Invalid Color format: ", String::utf8(node.val().str, node.val().len));
-  return Variant();
+  throw YAMLException("invalid Color format - " + String::utf8(node.val().str, node.val().len));
 }
 
 bool ColorYAMLEncoder::set_format(const String& format_str)
@@ -59,7 +58,7 @@ bool ColorYAMLEncoder::set_format(const String& format_str)
   } else if (format_str == "sequence") {
     format = Format::SEQUENCE;
   } else {
-    UtilityFunctions::printerr("Invalid format for Color: ", format_str);
+    UtilityFunctions::printerr("YAML error: invalid format for Color - ", format_str);
     return false;
   }
   return true;
@@ -69,8 +68,7 @@ Color ColorYAMLEncoder::hex_to_color(const std::string& hex) const
 {
   // #RRGGBB or #RRGGBBAA
   if (hex.at(0) != '#' || (hex.length() != 7 && hex.length() != 9)) {
-    UtilityFunctions::printerr("Invalid Color format: ", hex.c_str());
-    return Color();
+    throw YAMLException("invalid Color format - " + hex);
   }
 
   int r = std::stoi(hex.substr(1, 2), nullptr, 16);

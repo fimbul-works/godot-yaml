@@ -78,6 +78,12 @@ class YAML : public Object {
   void register_type_encoders();
 
   std::unordered_map<Variant::Type, std::unique_ptr<IYAMLEncoder>> type_encoders;
+
+  static const char* TAG_PREFIX;
+
+  std::string get_full_tag(const IYAMLEncoder* encoder) const;
+  bool has_matching_tag(const ryml::ConstNodeRef& node, const IYAMLEncoder* encoder) const;
+  void set_node_tag(ryml::NodeRef& node, const IYAMLEncoder* encoder) const;
 };
 
 } // namespace godot

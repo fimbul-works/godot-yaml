@@ -19,7 +19,7 @@ void YAML::emit_recursively(ryml::NodeRef& node, const Variant& v)
   auto it = type_encoders.find(type);
   if (it != type_encoders.end()) {
     const IYAMLEncoder* encoder = it->second.get();
-    node.set_val_tag(encoder->get_tag());
+    set_node_tag(node, encoder);
     encoder->encode(node, v);
     return;
   }
@@ -75,7 +75,6 @@ void YAML::emit_recursively(ryml::NodeRef& node, const Variant& v)
     }
 
     default:
-      UtilityFunctions::printerr("Unsupported type: ", v.get_type_name(v.get_type()));
-      break;
+      throw YAMLException("unsupportd type - " + v.get_type_name(v.get_type()));
   }
 }

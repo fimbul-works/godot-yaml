@@ -12,6 +12,7 @@ class Vector3YAMLEncoder : public IYAMLEncoder {
     SEQUENCE
   };
 
+  public:
   const char* get_tag() const override;
 
   void encode(ryml::NodeRef& node, const Variant& v) const override;

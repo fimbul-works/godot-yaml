@@ -9,7 +9,7 @@ using namespace godot;
 
 const char* Vector3YAMLEncoder::get_tag() const
 {
-  return "!!Vector3";
+  return "Vector3";
 }
 
 void Vector3YAMLEncoder::encode(ryml::NodeRef& node, const Variant& v) const
@@ -38,8 +38,7 @@ Variant Vector3YAMLEncoder::decode(const ryml::ConstNodeRef& node) const
     real_t z = string_to_float<real_t>(node[2].val());
     return Vector3(x, y, z);
   }
-  UtilityFunctions::printerr("Invalid Vector3 format: ", String::utf8(node.val().str, node.val().len));
-  return Variant();
+  throw YAMLException("invalid Vector3 format - " + String::utf8(node.val().str, node.val().len));
 }
 
 bool Vector3YAMLEncoder::set_format(const String& format_str)
@@ -49,7 +48,7 @@ bool Vector3YAMLEncoder::set_format(const String& format_str)
   } else if (format_str == "sequence") {
     format = Format::SEQUENCE;
   } else {
-    UtilityFunctions::printerr("Invalid format for Vector3: ", format_str);
+    UtilityFunctions::printerr("YAML error: invalid format for Vector3 - ", format_str);
     return false;
   }
   return true;
