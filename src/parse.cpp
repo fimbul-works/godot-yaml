@@ -41,9 +41,11 @@ Variant YAML::yaml_to_variant(const ryml::ConstNodeRef& n)
 {
   if (n.has_val_tag()) {
     std::string tag = std::string(n.val_tag().str, n.val_tag().len);
-    auto it = decoders.find(tag);
-    if (it != decoders.end()) {
-      return it->second(n);
+    for (const auto& [type, encoder_ptr] : type_encoders) {
+      const IYAMLEncoder* encoder = encoder_ptr.get();
+      if (tag == encoder->get_tag()) {
+        return encoder->decode(n);
+      }
     }
   }
 

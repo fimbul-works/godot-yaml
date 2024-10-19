@@ -1,13 +1,13 @@
 #ifndef YAML_H
 #define YAML_H
 
+#include "yaml_encoder.h"
+
 #include <godot_cpp/core/object.hpp>
 #include <godot_cpp/variant/utility_functions.hpp>
 #include <godot_cpp/variant/variant.hpp>
 #include <ryml.hpp>
 #include <ryml_std.hpp>
-
-#include "yaml_encoder.h"
 
 #include <functional>
 #include <memory>
@@ -69,16 +69,15 @@ class YAML : public Object {
   private:
   void YAML::emit_recursively(ryml::NodeRef& node, const Variant& v);
 
-  // Godot type encoders
+  // YAML encoders
+  public:
+  const IYAMLEncoder* get_encoder(Variant::Type type) const;
+  bool set_format(Variant::Type type, const String& format);
+
   private:
-  void register_types();
+  void register_type_encoders();
 
-  template <typename T>
-  void register_type();
-
-  std::unordered_map<std::string, std::function<Variant(const ryml::ConstNodeRef&)>> decoders;
-  std::unordered_map<Variant::Type, std::function<void(ryml::NodeRef&, const Variant&)>> encoders;
-  std::unordered_map<Variant::Type, std::string> type_to_tag;
+  std::unordered_map<Variant::Type, std::unique_ptr<IYAMLEncoder>> type_encoders;
 };
 
 } // namespace godot

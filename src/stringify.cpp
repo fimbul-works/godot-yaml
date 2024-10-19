@@ -16,15 +16,12 @@ void YAML::emit_recursively(ryml::NodeRef& node, const Variant& v)
 {
   Variant::Type type = v.get_type();
 
-  auto it = type_to_tag.find(type);
-  if (it != type_to_tag.end()) {
-    const std::string& tag = it->second;
-    auto encoder_it = encoders.find(v.get_type());
-    if (encoder_it != encoders.end()) {
-      node.set_val_tag(tag.c_str());
-      encoder_it->second(node, v);
-      return;
-    }
+  auto it = type_encoders.find(type);
+  if (it != type_encoders.end()) {
+    const IYAMLEncoder* encoder = it->second.get();
+    node.set_val_tag(encoder->get_tag());
+    encoder->encode(node, v);
+    return;
   }
 
   switch (v.get_type()) {

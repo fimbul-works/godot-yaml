@@ -30,7 +30,7 @@ def setup_build_env(base_env):
     env = base_env.Clone()
 
     platform = env.get('platform', '')
-    is_debug = env.get('target', '') == 'template_release'
+    is_debug = env.get('target', '') != 'template_release'
 
     # Platform and release/debug flags
     if platform == 'windows':
@@ -42,7 +42,7 @@ def setup_build_env(base_env):
 
     # Set debug flag
     if is_debug:
-        env.Append(CPPDEFINES=['GDYAML_DEBUG'])
+        env.Append(CPPDEFINES=['GODOT_YAML_DEBUG'])
 
     env.Append(CPPPATH=['src'])
     return env

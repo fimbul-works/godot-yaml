@@ -5,16 +5,18 @@
 #include <ryml.hpp>
 
 namespace godot {
-namespace yaml {
 
-  template <typename T>
-  struct YAMLEncoder {
-    static void encode(ryml::NodeRef node, const T& value);
-    static bool decode(const ryml::ConstNodeRef& node, T& out_value);
-    static const char* get_tag();
-  };
+struct IYAMLEncoder {
+  virtual const char* get_tag() const = 0;
 
-} // namespace yaml
+  virtual void encode(ryml::NodeRef& node, const Variant& v) const = 0;
+  virtual Variant decode(const ryml::ConstNodeRef& node) const = 0;
+
+  virtual bool set_format(const String& format) = 0;
+
+  virtual ~IYAMLEncoder() = default;
+};
+
 } // namespace godot
 
 #endif // YAML_ENCODER_H

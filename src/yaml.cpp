@@ -1,7 +1,5 @@
 #include "yaml.h"
 
-// #include "ryml_extras.h"
-
 #include <godot_cpp/core/class_db.hpp>
 
 #include "version.h"
@@ -24,7 +22,7 @@ YAML::YAML() :
 {
   try {
     ryml::set_callbacks(m_callbacks);
-    register_types();
+    register_type_encoders();
   } catch (const std::exception& e) {
     godot::UtilityFunctions::printerr("Godot YAML initialization failed: ", e.what());
   } catch (...) {
