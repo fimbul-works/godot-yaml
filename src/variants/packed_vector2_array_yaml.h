@@ -1,15 +1,13 @@
-#ifndef RECT2_YAML_H
-#define RECT2_YAML_H
+#ifndef PACKED_VECTOR2_ARRAY_YAML_H
+#define PACKED_VECTOR2_ARRAY_YAML_H
 
 #include "vector2_yaml.h"
-#include "yaml.h"
+#include "yaml_encoder.h"
 
 namespace godot {
 
-class Rect2YAMLEncoder : public IYAMLEncoder {
+class PackedVector2ArrayYAMLEncoder : public IYAMLEncoder {
   public:
-  Rect2YAMLEncoder();
-
   const char* get_tag() const override;
 
   void encode(ryml::NodeRef& node, const Variant& v) const override;
@@ -17,12 +15,9 @@ class Rect2YAMLEncoder : public IYAMLEncoder {
 
   bool set_format(const String& format_str) override;
 
-  private:
-  void emit_as_map(ryml::NodeRef& node, const Rect2& rect) const;
-
-  Vector2YAMLEncoder vec2_encoder;
+  Vector2YAMLEncoder vec_encoder;
 };
 
 } // namespace godot
 
-#endif // RECT2_YAML_H
+#endif // PACKED_VECTOR2_ARRAY_YAML_H

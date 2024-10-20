@@ -2,13 +2,13 @@
 #define COLOR_YAML_H
 
 #include "yaml_encoder.h"
-#include <godot_cpp/variant/color.hpp>
 
 namespace godot {
 
 class ColorYAMLEncoder : public IYAMLEncoder {
   enum class Format {
     HEX,
+    HEX_STRING,
     FLOW_MAP,
     SEQUENCE
   };
@@ -22,12 +22,12 @@ class ColorYAMLEncoder : public IYAMLEncoder {
   bool set_format(const String& format_str) override;
 
   private:
-  Format format = Format::HEX;
-
   Color hex_to_color(const std::string& hex) const;
-  std::string color_to_hex(const Color& color) const;
+  std::string ColorYAMLEncoder::color_to_hex(const Color& color, const char* prefix) const;
   void emit_as_flow(ryml::NodeRef& node, const Color& color) const;
   void emit_as_sequence(ryml::NodeRef& node, const Color& color) const;
+
+  Format format = Format::HEX;
 };
 
 } // namespace godot

@@ -2,7 +2,6 @@
 #define VECTOR4I_YAML_H
 
 #include "yaml_encoder.h"
-#include <godot_cpp/variant/vector2i.hpp>
 
 namespace godot {
 

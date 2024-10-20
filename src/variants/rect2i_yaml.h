@@ -1,15 +1,14 @@
 #ifndef RECT2I_YAML_H
 #define RECT2I_YAML_H
 
+#include "vector2i_yaml.h"
 #include "yaml.h"
-#include "yaml_encoder.h"
-#include <godot_cpp/variant/rect2i.hpp>
 
 namespace godot {
 
 class Rect2iYAMLEncoder : public IYAMLEncoder {
   public:
-  Rect2iYAMLEncoder(YAML* yaml);
+  Rect2iYAMLEncoder();
 
   const char* get_tag() const override;
 
@@ -21,7 +20,7 @@ class Rect2iYAMLEncoder : public IYAMLEncoder {
   private:
   void emit_as_map(ryml::NodeRef& node, const Rect2i& rect) const;
 
-  YAML* m_yaml;
+  Vector2iYAMLEncoder vec2i_encoder;
 };
 
 } // namespace godot

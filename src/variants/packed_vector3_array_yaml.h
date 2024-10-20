@@ -1,15 +1,13 @@
-#ifndef BASIS_YAML_H
-#define BASIS_YAML_H
+#ifndef PACKED_VECTOR3_ARRAY_YAML_H
+#define PACKED_VECTOR3_ARRAY_YAML_H
 
 #include "vector3_yaml.h"
-#include "yaml.h"
+#include "yaml_encoder.h"
 
 namespace godot {
 
-class BasisYAMLEncoder : public IYAMLEncoder {
+class PackedVector3ArrayYAMLEncoder : public IYAMLEncoder {
   public:
-  BasisYAMLEncoder();
-
   const char* get_tag() const override;
 
   void encode(ryml::NodeRef& node, const Variant& v) const override;
@@ -17,12 +15,9 @@ class BasisYAMLEncoder : public IYAMLEncoder {
 
   bool set_format(const String& format_str) override;
 
-  private:
-  void emit_as_map(ryml::NodeRef& node, const Basis& basis) const;
-
-  Vector3YAMLEncoder vec3_encoder;
+  Vector3YAMLEncoder vec_encoder;
 };
 
 } // namespace godot
 
-#endif // BASIS_YAML_H
+#endif // PACKED_VECTOR3_ARRAY_YAML_H

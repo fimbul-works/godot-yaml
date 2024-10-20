@@ -2,13 +2,18 @@
 
 Godot YAML is a GDExtension for Godot 4.2.2 and higher that adds YAML parsing and stringification capabilities to your Godot projects. This extension wraps the [Rapid YAML](https://github.com/biojppm/rapidyaml) library, providing an easy-to-use interface for working with YAML in Godot.
 
-It currently has support for Windows, but should compile on other platforms.
+It currently has support for Windows, but should compile fine on other platforms.
 
 ## Features
 
 - Parse YAML strings into Godot Dictionaries
 - Stringify Godot Dictionaries into YAML format
 - Supports Godot 4.2.2 and higher
+
+## Known Issues
+
+- Stringifying/parsing the `Callable` variant is not supported
+- Parsing floating point values can sometimes have slight variance in the output
 
 ## Installation
 

@@ -1,15 +1,13 @@
-#ifndef AABB_YAML_H
-#define AABB_YAML_H
+#ifndef PACKED_COLOR_ARRAY_YAML_H
+#define PACKED_COLOR_ARRAY_YAML_H
 
-#include "vector3_yaml.h"
-#include "yaml.h"
+#include "color_yaml.h"
+#include "yaml_encoder.h"
 
 namespace godot {
 
-class AABBYAMLEncoder : public IYAMLEncoder {
+class PackedColorArrayYAMLEncoder : public IYAMLEncoder {
   public:
-  AABBYAMLEncoder();
-
   const char* get_tag() const override;
 
   void encode(ryml::NodeRef& node, const Variant& v) const override;
@@ -17,12 +15,9 @@ class AABBYAMLEncoder : public IYAMLEncoder {
 
   bool set_format(const String& format_str) override;
 
-  private:
-  void emit_as_map(ryml::NodeRef& node, const AABB& aabb) const;
-
-  Vector3YAMLEncoder vec3_encoder;
+  ColorYAMLEncoder color_encoder;
 };
 
 } // namespace godot
 
-#endif // AABB_YAML_H
+#endif // PACKED_COLOR_ARRAY_YAML_H

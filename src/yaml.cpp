@@ -12,6 +12,7 @@ void YAML::_bind_methods()
   ClassDB::bind_method(D_METHOD("parse", "input"), &YAML::parse);
   ClassDB::bind_method(D_METHOD("stringify", "input"), &YAML::stringify);
   ClassDB::bind_method(D_METHOD("get_error"), &YAML::get_error);
+  ClassDB::bind_method(D_METHOD("set_format", "type", "format"), &YAML::set_format);
 }
 
 YAML::YAML() :
