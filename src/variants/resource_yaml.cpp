@@ -8,15 +8,16 @@
 
 using namespace godot;
 
-ResourceYAMLEncoder::ResourceYAMLEncoder(YAML* yaml)
-{
-  m_yaml = yaml;
-}
+ResourceYAMLEncoder::ResourceYAMLEncoder(YAML* yaml) :
+        YAMLEncoder(yaml) { }
 
-void ResourceYAMLEncoder::encode(ryml::NodeRef& node, const Ref<Resource>& r) const
+void ResourceYAMLEncoder::encode(ryml::NodeRef& node, const Variant& v) const
 {
-  if (r.is_valid()) {
+  Resource* r = Object::cast_to<Resource>(v);
+  if (r) {
     node << r->get_path().utf8().get_data();
+  } else {
+    throw YAMLException("invalid Resource");
   }
 }
 

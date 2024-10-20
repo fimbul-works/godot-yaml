@@ -7,7 +7,7 @@ namespace godot {
 
 class PackedInt64ArrayYAMLEncoder : public YAMLEncoder {
   public:
-  DEFINE_YAML_TAG("PackedInt64Array")
+  DEFINE_YAML_TAG("PackedInt64Array", Variant::PACKED_INT64_ARRAY)
 
   PackedInt64ArrayYAMLEncoder(YAML* yaml);
 

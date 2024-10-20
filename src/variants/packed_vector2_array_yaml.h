@@ -8,7 +8,7 @@ namespace godot {
 
 class PackedVector2ArrayYAMLEncoder : public YAMLEncoder {
   public:
-  DEFINE_YAML_TAG("PackedVector2Array")
+  DEFINE_YAML_TAG("PackedVector2Array", Variant::PACKED_VECTOR2_ARRAY)
 
   PackedVector2ArrayYAMLEncoder(YAML* yaml);
   ~PackedVector2ArrayYAMLEncoder();

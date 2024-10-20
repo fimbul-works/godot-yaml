@@ -7,7 +7,7 @@ namespace godot {
 
 class PackedStringArrayYAMLEncoder : public YAMLEncoder {
   public:
-  DEFINE_YAML_TAG("PackedStringArray")
+  DEFINE_YAML_TAG("PackedStringArray", Variant::PACKED_STRING_ARRAY)
 
   PackedStringArrayYAMLEncoder(YAML* yaml);
 

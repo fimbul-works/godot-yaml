@@ -9,7 +9,7 @@ namespace godot {
 
 class BasisYAMLEncoder : public YAMLEncoder {
   public:
-  DEFINE_YAML_TAG("Basis")
+  DEFINE_YAML_TAG("Basis", Variant::BASIS)
 
   BasisYAMLEncoder(YAML* yaml);
   ~BasisYAMLEncoder();

@@ -12,7 +12,7 @@ class PackedByteArrayYAMLEncoder : public YAMLEncoder {
   };
 
   public:
-  DEFINE_YAML_TAG("PackedByteArray")
+  DEFINE_YAML_TAG("PackedByteArray", Variant::PACKED_BYTE_ARRAY)
 
   PackedByteArrayYAMLEncoder(YAML* yaml);
 

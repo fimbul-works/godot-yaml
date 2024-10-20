@@ -13,7 +13,7 @@ class Vector2YAMLEncoder : public YAMLEncoder {
   };
 
   public:
-  DEFINE_YAML_TAG("Vector2")
+  DEFINE_YAML_TAG("Vector2", Variant::VECTOR2)
 
   Vector2YAMLEncoder(YAML* yaml);
 

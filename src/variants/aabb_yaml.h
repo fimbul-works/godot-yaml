@@ -9,7 +9,7 @@ namespace godot {
 
 class AABBYAMLEncoder : public YAMLEncoder {
   public:
-  DEFINE_YAML_TAG("AABB")
+  DEFINE_YAML_TAG("AABB", Variant::AABB)
 
   AABBYAMLEncoder(YAML* yaml);
   ~AABBYAMLEncoder();

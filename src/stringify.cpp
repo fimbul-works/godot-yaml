@@ -81,24 +81,38 @@ void YAML::emit_recursively(ryml::NodeRef& node, const Variant& v)
       UtilityFunctions::push_warning("YAML warning: Callable cannot be stringified");
       break;
     case Variant::OBJECT: {
-      // Handle Resources
-      Resource* r = Object::cast_to<Resource>(v);
-      if (r) {
+      if (Object::cast_to<Resource>(v)) {
         node.set_val_tag(ryml::to_csubstr(resource_encoder->get_tag()));
-        resource_encoder->encode(node, r);
-        return;
+        resource_encoder->encode(node, v);
+        break;
       }
-      UtilityFunctions::push_warning("YAML warning: Object cannot be stringified ");
+      UtilityFunctions::push_warning("YAML warning: Object cannot be stringified");
       break;
     }
     default:
-      auto it = type_encoders.find(type);
-      if (it != type_encoders.end()) {
-        const YAMLEncoder* encoder = it->second.get();
-        node.set_val_tag(ryml::to_csubstr(encoder->get_tag()));
-        encoder->encode(node, v);
+      auto it = type_to_encoder.find(type);
+      if (it != type_to_encoder.end()) {
+        const char* full_tag = it->second->get_full_tag();
+        if (full_tag == nullptr || full_tag[0] == '\0') {
+          UtilityFunctions::printerr("Error: Empty or null tag for type ", Variant::get_type_name(type));
+          return;
+        }
+
+        node.set_val_tag(ryml::to_csubstr(full_tag));
+
+        try {
+          it->second->encode(node, v);
+        } catch (const std::exception& e) {
+          UtilityFunctions::printerr("Error encoding type ", Variant::get_type_name(type), ": ", e.what());
+        }
         return;
       }
-      throw YAMLException("unsupportd type - " + v.get_type_name(v.get_type()));
+      // auto it = type_to_encoder.find(type);
+      // if (it != type_to_encoder.end()) {
+      //   node.set_val_tag(ryml::to_csubstr(it->second->get_tag()));
+      //   it->second->encode(node, v);
+      //   return;
+      // }
+      throw YAMLException("Unsupported type " + v.get_type_name(v.get_type()));
   }
 }

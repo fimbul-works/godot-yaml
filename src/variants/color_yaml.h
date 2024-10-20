@@ -14,7 +14,7 @@ class ColorYAMLEncoder : public YAMLEncoder {
   };
 
   public:
-  DEFINE_YAML_TAG("Color")
+  DEFINE_YAML_TAG("Color", Variant::COLOR)
 
   ColorYAMLEncoder(YAML* yaml);
 

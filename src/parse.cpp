@@ -46,11 +46,9 @@ Variant YAML::yaml_to_variant(const ryml::ConstNodeRef& n)
     }
 
     // Look up other Variants
-    for (const auto& [type, encoder_ptr] : type_encoders) {
-      const YAMLEncoder* encoder = encoder_ptr.get();
-      if (tag == encoder->get_full_tag()) {
-        return encoder->decode(n);
-      }
+    auto it = tag_to_encoder.find(tag);
+    if (it != tag_to_encoder.end()) {
+      return it->second->decode(n);
     }
   }
 

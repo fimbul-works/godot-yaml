@@ -8,7 +8,7 @@ namespace godot {
 
 class ProjectionYAMLEncoder : public YAMLEncoder {
   public:
-  DEFINE_YAML_TAG("Projection")
+  DEFINE_YAML_TAG("Projection", Variant::PROJECTION)
 
   ProjectionYAMLEncoder(YAML* yaml);
   ~ProjectionYAMLEncoder();

@@ -7,7 +7,7 @@ namespace godot {
 
 class PackedFloat32ArrayYAMLEncoder : public YAMLEncoder {
   public:
-  DEFINE_YAML_TAG("PackedFloat32Array")
+  DEFINE_YAML_TAG("PackedFloat32Array", Variant::PACKED_FLOAT32_ARRAY)
 
   PackedFloat32ArrayYAMLEncoder(YAML* yaml);
 

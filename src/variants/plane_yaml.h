@@ -8,7 +8,7 @@ namespace godot {
 
 class PlaneYAMLEncoder : public YAMLEncoder {
   public:
-  DEFINE_YAML_TAG("Plane")
+  DEFINE_YAML_TAG("Plane", Variant::PLANE)
 
   PlaneYAMLEncoder(YAML* yaml);
   ~PlaneYAMLEncoder();

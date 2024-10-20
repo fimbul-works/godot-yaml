@@ -8,7 +8,7 @@ namespace godot {
 
 class PackedColorArrayYAMLEncoder : public YAMLEncoder {
   public:
-  DEFINE_YAML_TAG("PackedColorArray")
+  DEFINE_YAML_TAG("PackedColorArray", Variant::PACKED_COLOR_ARRAY)
 
   PackedColorArrayYAMLEncoder(YAML* yaml);
   ~PackedColorArrayYAMLEncoder();

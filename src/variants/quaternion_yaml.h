@@ -12,7 +12,7 @@ class QuaternionYAMLEncoder : public YAMLEncoder {
   };
 
   public:
-  DEFINE_YAML_TAG("Quaternion")
+  DEFINE_YAML_TAG("Quaternion", Variant::QUATERNION)
 
   QuaternionYAMLEncoder(YAML* yaml);
 

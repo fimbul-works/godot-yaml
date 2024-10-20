@@ -75,13 +75,14 @@ class YAML : public Object {
 
   // YAML encoders
   public:
-  const YAMLEncoder* get_encoder(Variant::Type type) const;
   bool set_format(Variant::Type type, const String& format);
 
   private:
+  void register_encoder(std::unique_ptr<YAMLEncoder> encoder);
   void register_type_encoders();
 
-  std::unordered_map<Variant::Type, std::unique_ptr<YAMLEncoder>> type_encoders;
+  std::unordered_map<std::string, YAMLEncoder*> tag_to_encoder;
+  std::unordered_map<Variant::Type, std::unique_ptr<YAMLEncoder>> type_to_encoder;
   ResourceYAMLEncoder* resource_encoder;
 };
 

@@ -8,7 +8,7 @@ namespace godot {
 
 class Rect2iYAMLEncoder : public YAMLEncoder {
   public:
-  DEFINE_YAML_TAG("Rect2i")
+  DEFINE_YAML_TAG("Rect2i", Variant::RECT2I)
 
   Rect2iYAMLEncoder(YAML* yaml);
   ~Rect2iYAMLEncoder();

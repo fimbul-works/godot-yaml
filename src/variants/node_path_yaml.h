@@ -7,7 +7,7 @@ namespace godot {
 
 class NodePathYAMLEncoder : public YAMLEncoder {
   public:
-  DEFINE_YAML_TAG("NodePath")
+  DEFINE_YAML_TAG("NodePath", Variant::NODE_PATH)
 
   NodePathYAMLEncoder(YAML* yaml);
 
