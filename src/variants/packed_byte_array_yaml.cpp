@@ -9,10 +9,8 @@
 
 using namespace godot;
 
-const char* PackedByteArrayYAMLEncoder::get_tag() const
-{
-  return "PackedByteArray";
-}
+PackedByteArrayYAMLEncoder::PackedByteArrayYAMLEncoder(YAML* yaml) :
+        YAMLEncoder(yaml) { }
 
 void PackedByteArrayYAMLEncoder::encode(ryml::NodeRef& node, const Variant& v) const
 {
@@ -29,7 +27,7 @@ void PackedByteArrayYAMLEncoder::encode(ryml::NodeRef& node, const Variant& v) c
 
 Variant PackedByteArrayYAMLEncoder::decode(const ryml::ConstNodeRef& node) const
 {
-  if (node.has_val()) {
+  if (node.has_val() && !node.val_is_null()) {
     String data = String::utf8(node.val().str, node.val().len);
     if (is_hex(data)) {
       PackedByteArray array = PackedByteArray();

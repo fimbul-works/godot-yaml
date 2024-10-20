@@ -1,14 +1,13 @@
 #include "packed_int32_array_yaml.h"
 #include "util_numeric.h"
+#include "yaml.h"
 
 #include <godot_cpp/variant/utility_functions.hpp>
 
 using namespace godot;
 
-const char* PackedInt32ArrayYAMLEncoder::get_tag() const
-{
-  return "PackedInt32Array";
-}
+PackedInt32ArrayYAMLEncoder::PackedInt32ArrayYAMLEncoder(YAML* yaml) :
+        YAMLEncoder(yaml) { }
 
 void PackedInt32ArrayYAMLEncoder::encode(ryml::NodeRef& node, const Variant& v) const
 {

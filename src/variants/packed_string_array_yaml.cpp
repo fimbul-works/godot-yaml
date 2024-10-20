@@ -1,14 +1,12 @@
 #include "packed_string_array_yaml.h"
-#include "util_numeric.h"
+#include "yaml.h"
 
 #include <godot_cpp/variant/utility_functions.hpp>
 
 using namespace godot;
 
-const char* PackedStringArrayYAMLEncoder::get_tag() const
-{
-  return "PackedStringArray";
-}
+PackedStringArrayYAMLEncoder::PackedStringArrayYAMLEncoder(YAML* yaml) :
+        YAMLEncoder(yaml) { }
 
 void PackedStringArrayYAMLEncoder::encode(ryml::NodeRef& node, const Variant& v) const
 {

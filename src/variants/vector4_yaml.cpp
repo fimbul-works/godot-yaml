@@ -5,10 +5,8 @@
 
 using namespace godot;
 
-const char* Vector4YAMLEncoder::get_tag() const
-{
-  return "Vector4";
-}
+Vector4YAMLEncoder::Vector4YAMLEncoder(YAML* yaml) :
+        YAMLEncoder(yaml) { }
 
 void Vector4YAMLEncoder::encode(ryml::NodeRef& node, const Variant& v) const
 {

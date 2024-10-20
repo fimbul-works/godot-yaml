@@ -6,10 +6,8 @@
 
 using namespace godot;
 
-const char* PackedFloat32ArrayYAMLEncoder::get_tag() const
-{
-  return "PackedFloat32Array";
-}
+PackedFloat32ArrayYAMLEncoder::PackedFloat32ArrayYAMLEncoder(YAML* yaml) :
+        YAMLEncoder(yaml) { }
 
 void PackedFloat32ArrayYAMLEncoder::encode(ryml::NodeRef& node, const Variant& v) const
 {

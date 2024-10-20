@@ -3,14 +3,16 @@
 
 #include "vector3_yaml.h"
 #include "yaml.h"
+#include "yaml_encoder.h"
 
 namespace godot {
 
-class BasisYAMLEncoder : public IYAMLEncoder {
+class BasisYAMLEncoder : public YAMLEncoder {
   public:
-  BasisYAMLEncoder();
+  DEFINE_YAML_TAG("Basis")
 
-  const char* get_tag() const override;
+  BasisYAMLEncoder(YAML* yaml);
+  ~BasisYAMLEncoder();
 
   void encode(ryml::NodeRef& node, const Variant& v) const override;
   Variant decode(const ryml::ConstNodeRef& node) const override;
@@ -20,7 +22,7 @@ class BasisYAMLEncoder : public IYAMLEncoder {
   private:
   void emit_as_map(ryml::NodeRef& node, const Basis& basis) const;
 
-  Vector3YAMLEncoder vec3_encoder;
+  Vector3YAMLEncoder* vec_encoder;
 };
 
 } // namespace godot

@@ -5,14 +5,16 @@
 
 namespace godot {
 
-class PackedByteArrayYAMLEncoder : public IYAMLEncoder {
+class PackedByteArrayYAMLEncoder : public YAMLEncoder {
   enum class Format {
     HEX,
     BASE64
   };
 
   public:
-  const char* get_tag() const override;
+  DEFINE_YAML_TAG("PackedByteArray")
+
+  PackedByteArrayYAMLEncoder(YAML* yaml);
 
   void encode(ryml::NodeRef& node, const Variant& v) const override;
   Variant decode(const ryml::ConstNodeRef& node) const override;

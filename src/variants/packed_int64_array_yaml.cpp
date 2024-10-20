@@ -1,21 +1,20 @@
 #include "packed_int64_array_yaml.h"
 #include "util_numeric.h"
+#include "yaml.h"
 
 #include <godot_cpp/variant/utility_functions.hpp>
 
 using namespace godot;
 
-const char* PackedInt64ArrayYAMLEncoder::get_tag() const
-{
-  return "PackedInt64Array";
-}
+PackedInt64ArrayYAMLEncoder::PackedInt64ArrayYAMLEncoder(YAML* yaml) :
+        YAMLEncoder(yaml) { }
 
 void PackedInt64ArrayYAMLEncoder::encode(ryml::NodeRef& node, const Variant& v) const
 {
   PackedInt64Array array = v.operator PackedInt64Array();
   node |= ryml::SEQ;
-  for (const auto& f : array) {
-    node.append_child() << int_to_string(f);
+  for (const auto& i : array) {
+    node.append_child() << int_to_string(i);
   }
 }
 

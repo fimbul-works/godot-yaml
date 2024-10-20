@@ -5,10 +5,8 @@
 
 using namespace godot;
 
-const char* NodePathYAMLEncoder::get_tag() const
-{
-  return "NodePath";
-}
+NodePathYAMLEncoder::NodePathYAMLEncoder(YAML* yaml) :
+        YAMLEncoder(yaml) { }
 
 void NodePathYAMLEncoder::encode(ryml::NodeRef& node, const Variant& v) const
 {
@@ -18,7 +16,7 @@ void NodePathYAMLEncoder::encode(ryml::NodeRef& node, const Variant& v) const
 
 Variant NodePathYAMLEncoder::decode(const ryml::ConstNodeRef& node) const
 {
-  if (node.has_val()) {
+  if (node.has_val() && !node.val_is_null()) {
     return NodePath(String::utf8(node.val().str, node.val().len));
   }
   throw YAMLException("invalid NodePath format - " + String::utf8(node.val().str, node.val().len));

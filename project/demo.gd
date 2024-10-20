@@ -26,7 +26,7 @@ func _ready():
 	var dict = {
 		"aabb": AABB(Vector3(0, 1, 2), Vector3(3, 4, 5)),
 		"basis": Basis(Vector3(6, 7, 8), Vector3(9, 10, 11), Vector3(12, 13, 14)),
-		"callable": Callable(_callable_method),
+		"callable": Callable(_callable_method), # Callable will be ignored, but will raise a warning
 		"color": Color(1, 0.5, 0.25),
 		"node_path": NodePath("root/Demo"),
 		"packed_byte_array": Marshalls.base64_to_raw("aGVsbG8gd29ybGQ="),
@@ -38,8 +38,12 @@ func _ready():
 		"packed_string_array": PackedStringArray(["hello", "world", "this has\na new line"]),
 		"packed_vector2_array": PackedVector2Array([Vector2(6, 7), Vector2(9, 10), Vector2(12, 13)]),
 		"packed_vector3_array": PackedVector3Array([Vector3(42.0, 1337.1337, -666.0), Vector3(1, 0.5, 0.25), Vector3(0, 1, 2)]),
+		"plane": Plane(Vector3(0, 1, 2), 123),
+		"projection": Projection(Vector4(0, 1, 2, 3), Vector4(4, 5, 6, 7), Vector4(8, 9, 10, 11), Vector4(12, 13, 14, 15)),
+		"quaternion": Quaternion(0, 1, 2, 3),
 		"rect2": Rect2(1, 2, 3, 4),
 		"rect2i": Rect2i(5, 6, 7, 8),
+		"resource": ResourceLoader.load("res://test_resource.tres"),
 		"vector2": Vector2(9, 10),
 		"vector2i": Vector2i(11, 12),
 		"vector3": Vector3(13, 14, 15),
@@ -63,9 +67,8 @@ func _ready():
 
 	var dict_str = yaml.stringify(dict)
 	print_rich("[b]Variants as YAML:[/b]\n", dict_str)
-	dict = yaml.parse(dict_str)
-	print_rich("[b]Variants from YAML:[/b]\n", dict)
-	print(type_string(typeof(dict["rect2"])))
+	var parsed_dict = yaml.parse(dict_str)
+	print_rich("[b]Variants from YAML:[/b]\n", parsed_dict)
 
 func _callable_method():
 	pass

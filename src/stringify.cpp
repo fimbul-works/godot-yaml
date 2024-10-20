@@ -1,6 +1,8 @@
+#include "util_numeric.h"
 #include "yaml.h"
 
-#include "util_numeric.h"
+#include <godot_cpp/classes/ref.hpp>
+#include <godot_cpp/classes/resource.hpp>
 
 using namespace godot;
 
@@ -78,11 +80,22 @@ void YAML::emit_recursively(ryml::NodeRef& node, const Variant& v)
     case Variant::CALLABLE:
       UtilityFunctions::push_warning("YAML warning: Callable cannot be stringified");
       break;
+    case Variant::OBJECT: {
+      // Handle Resources
+      Resource* r = Object::cast_to<Resource>(v);
+      if (r) {
+        node.set_val_tag(ryml::to_csubstr(resource_encoder->get_tag()));
+        resource_encoder->encode(node, r);
+        return;
+      }
+      UtilityFunctions::push_warning("YAML warning: Object cannot be stringified ");
+      break;
+    }
     default:
       auto it = type_encoders.find(type);
       if (it != type_encoders.end()) {
-        const IYAMLEncoder* encoder = it->second.get();
-        set_node_tag(node, encoder);
+        const YAMLEncoder* encoder = it->second.get();
+        node.set_val_tag(ryml::to_csubstr(encoder->get_tag()));
         encoder->encode(node, v);
         return;
       }

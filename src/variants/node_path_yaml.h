@@ -5,9 +5,11 @@
 
 namespace godot {
 
-class NodePathYAMLEncoder : public IYAMLEncoder {
+class NodePathYAMLEncoder : public YAMLEncoder {
   public:
-  const char* get_tag() const override;
+  DEFINE_YAML_TAG("NodePath")
+
+  NodePathYAMLEncoder(YAML* yaml);
 
   void encode(ryml::NodeRef& node, const Variant& v) const override;
   Variant decode(const ryml::ConstNodeRef& node) const override;

@@ -1,14 +1,13 @@
 #include "packed_float64_array_yaml.h"
 #include "util_numeric.h"
+#include "yaml.h"
 
 #include <godot_cpp/variant/utility_functions.hpp>
 
 using namespace godot;
 
-const char* PackedFloat64ArrayYAMLEncoder::get_tag() const
-{
-  return "PackedFloat64Array";
-}
+PackedFloat64ArrayYAMLEncoder::PackedFloat64ArrayYAMLEncoder(YAML* yaml) :
+        YAMLEncoder(yaml) { }
 
 void PackedFloat64ArrayYAMLEncoder::encode(ryml::NodeRef& node, const Variant& v) const
 {

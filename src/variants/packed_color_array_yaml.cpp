@@ -5,9 +5,16 @@
 
 using namespace godot;
 
-const char* PackedColorArrayYAMLEncoder::get_tag() const
+PackedColorArrayYAMLEncoder::PackedColorArrayYAMLEncoder(YAML* yaml) :
+        YAMLEncoder(yaml)
 {
-  return "PackedColorArray";
+  color_encoder = new ColorYAMLEncoder(yaml);
+  color_encoder->set_format("flow");
+}
+
+PackedColorArrayYAMLEncoder::~PackedColorArrayYAMLEncoder()
+{
+  delete color_encoder;
 }
 
 void PackedColorArrayYAMLEncoder::encode(ryml::NodeRef& node, const Variant& v) const
@@ -16,7 +23,7 @@ void PackedColorArrayYAMLEncoder::encode(ryml::NodeRef& node, const Variant& v) 
   node |= ryml::SEQ;
   for (const auto& color : array) {
     ryml::NodeRef color_node = node.append_child();
-    color_encoder.encode(color_node, color);
+    color_encoder->encode(color_node, color);
   }
 }
 
@@ -27,7 +34,7 @@ Variant PackedColorArrayYAMLEncoder::decode(const ryml::ConstNodeRef& node) cons
     int size = node.num_children();
     array.resize(size);
     for (int i = 0; i < size; ++i) {
-      array[i] = color_encoder.decode(node.child(i));
+      array[i] = color_encoder->decode(node.child(i));
     }
     return array;
   }
@@ -36,5 +43,5 @@ Variant PackedColorArrayYAMLEncoder::decode(const ryml::ConstNodeRef& node) cons
 
 bool PackedColorArrayYAMLEncoder::set_format(const String& format_str)
 {
-  return color_encoder.set_format(format_str);
+  return color_encoder->set_format(format_str);
 }

@@ -5,9 +5,16 @@
 
 using namespace godot;
 
-const char* PackedVector3ArrayYAMLEncoder::get_tag() const
+PackedVector3ArrayYAMLEncoder::PackedVector3ArrayYAMLEncoder(YAML* yaml) :
+        YAMLEncoder(yaml)
 {
-  return "PackedVector3Array";
+  vec_encoder = new Vector3YAMLEncoder(yaml);
+  vec_encoder->set_format("flow");
+}
+
+PackedVector3ArrayYAMLEncoder::~PackedVector3ArrayYAMLEncoder()
+{
+  delete vec_encoder;
 }
 
 void PackedVector3ArrayYAMLEncoder::encode(ryml::NodeRef& node, const Variant& v) const
@@ -16,7 +23,7 @@ void PackedVector3ArrayYAMLEncoder::encode(ryml::NodeRef& node, const Variant& v
   node |= ryml::SEQ;
   for (const auto& color : array) {
     ryml::NodeRef color_node = node.append_child();
-    vec_encoder.encode(color_node, color);
+    vec_encoder->encode(color_node, color);
   }
 }
 
@@ -27,7 +34,7 @@ Variant PackedVector3ArrayYAMLEncoder::decode(const ryml::ConstNodeRef& node) co
     int size = node.num_children();
     array.resize(size);
     for (int i = 0; i < size; ++i) {
-      array[i] = vec_encoder.decode(node.child(i));
+      array[i] = vec_encoder->decode(node.child(i));
     }
     return array;
   }
@@ -36,5 +43,5 @@ Variant PackedVector3ArrayYAMLEncoder::decode(const ryml::ConstNodeRef& node) co
 
 bool PackedVector3ArrayYAMLEncoder::set_format(const String& format_str)
 {
-  return vec_encoder.set_format(format_str);
+  return vec_encoder->set_format(format_str);
 }

@@ -1,18 +1,21 @@
 #ifndef VECTOR3I_YAML_H
 #define VECTOR3I_YAML_H
 
+#include "yaml.h"
 #include "yaml_encoder.h"
 
 namespace godot {
 
-class Vector3iYAMLEncoder : public IYAMLEncoder {
+class Vector3iYAMLEncoder : public YAMLEncoder {
   enum class Format {
     FLOW_MAP,
     SEQUENCE
   };
 
   public:
-  const char* get_tag() const override;
+  DEFINE_YAML_TAG("Vector3i")
+
+  Vector3iYAMLEncoder(YAML* yaml);
 
   void encode(ryml::NodeRef& node, const Variant& v) const override;
   Variant decode(const ryml::ConstNodeRef& node) const override;

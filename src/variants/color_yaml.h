@@ -5,7 +5,7 @@
 
 namespace godot {
 
-class ColorYAMLEncoder : public IYAMLEncoder {
+class ColorYAMLEncoder : public YAMLEncoder {
   enum class Format {
     HEX,
     HEX_STRING,
@@ -14,7 +14,9 @@ class ColorYAMLEncoder : public IYAMLEncoder {
   };
 
   public:
-  const char* get_tag() const override;
+  DEFINE_YAML_TAG("Color")
+
+  ColorYAMLEncoder(YAML* yaml);
 
   void encode(ryml::NodeRef& node, const Variant& v) const override;
   Variant decode(const ryml::ConstNodeRef& node) const override;

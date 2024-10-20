@@ -1,18 +1,17 @@
-#ifndef AABB_YAML_H
-#define AABB_YAML_H
+#ifndef PLANE_YAML_H
+#define PLANE_YAML_H
 
 #include "vector3_yaml.h"
 #include "yaml.h"
-#include "yaml_encoder.h"
 
 namespace godot {
 
-class AABBYAMLEncoder : public YAMLEncoder {
+class PlaneYAMLEncoder : public YAMLEncoder {
   public:
-  DEFINE_YAML_TAG("AABB")
+  DEFINE_YAML_TAG("Plane")
 
-  AABBYAMLEncoder(YAML* yaml);
-  ~AABBYAMLEncoder();
+  PlaneYAMLEncoder(YAML* yaml);
+  ~PlaneYAMLEncoder();
 
   void encode(ryml::NodeRef& node, const Variant& v) const override;
   Variant decode(const ryml::ConstNodeRef& node) const override;
@@ -20,11 +19,11 @@ class AABBYAMLEncoder : public YAMLEncoder {
   bool set_format(const String& format_str) override;
 
   private:
-  void emit_as_map(ryml::NodeRef& node, const AABB& aabb) const;
+  void emit_as_map(ryml::NodeRef& node, const Plane& aabb) const;
 
   Vector3YAMLEncoder* vec_encoder;
 };
 
 } // namespace godot
 
-#endif // AABB_YAML_H
+#endif // PLANE_YAML_H

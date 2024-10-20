@@ -1,4 +1,5 @@
 #include "yaml.h"
+#include "variants/resource_yaml.h"
 
 #include <godot_cpp/core/class_db.hpp>
 
@@ -23,16 +24,20 @@ YAML::YAML() :
 {
   try {
     ryml::set_callbacks(m_callbacks);
+    resource_encoder = new ResourceYAMLEncoder(this);
     register_type_encoders();
   } catch (const std::exception& e) {
-    godot::UtilityFunctions::printerr("YAML initialization failed: ", e.what());
+    godot::UtilityFunctions::printerr("YAML initialization error: ", e.what());
   } catch (...) {
-    godot::UtilityFunctions::printerr("YAML initialization failed: unknown error");
+    godot::UtilityFunctions::printerr("YAML initialization error: Unknown error");
   }
 }
 
 YAML::~YAML()
 {
+  if (resource_encoder) {
+    delete resource_encoder;
+  }
   ryml::reset_callbacks();
 }
 

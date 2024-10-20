@@ -8,10 +8,8 @@
 
 using namespace godot;
 
-const char* ColorYAMLEncoder::get_tag() const
-{
-  return "Color";
-}
+ColorYAMLEncoder::ColorYAMLEncoder(YAML* yaml) :
+        YAMLEncoder(yaml) { }
 
 void ColorYAMLEncoder::encode(ryml::NodeRef& node, const Variant& v) const
 {
@@ -34,7 +32,7 @@ void ColorYAMLEncoder::encode(ryml::NodeRef& node, const Variant& v) const
 
 Variant ColorYAMLEncoder::decode(const ryml::ConstNodeRef& node) const
 {
-  if (node.has_val()) {
+  if (node.has_val() && !node.val_is_null()) {
     std::string hex_str(node.val().str, node.val().len);
     return hex_to_color(hex_str);
   } else if (node.is_map()) {

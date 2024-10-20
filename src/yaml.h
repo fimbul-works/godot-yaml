@@ -1,6 +1,7 @@
 #ifndef YAML_H
 #define YAML_H
 
+#include "variants/resource_yaml.h"
 #include "yaml_encoder.h"
 
 #include <godot_cpp/core/object.hpp>
@@ -15,6 +16,9 @@
 #include <unordered_map>
 
 namespace godot {
+
+class YAMLEncoder;
+class ResourceYAMLEncoder;
 
 class YAMLException : public std::runtime_error {
   public:
@@ -71,19 +75,14 @@ class YAML : public Object {
 
   // YAML encoders
   public:
-  const IYAMLEncoder* get_encoder(Variant::Type type) const;
+  const YAMLEncoder* get_encoder(Variant::Type type) const;
   bool set_format(Variant::Type type, const String& format);
 
   private:
   void register_type_encoders();
 
-  std::unordered_map<Variant::Type, std::unique_ptr<IYAMLEncoder>> type_encoders;
-
-  static const char* TAG_PREFIX;
-
-  std::string get_full_tag(const IYAMLEncoder* encoder) const;
-  bool has_matching_tag(const ryml::ConstNodeRef& node, const IYAMLEncoder* encoder) const;
-  void set_node_tag(ryml::NodeRef& node, const IYAMLEncoder* encoder) const;
+  std::unordered_map<Variant::Type, std::unique_ptr<YAMLEncoder>> type_encoders;
+  ResourceYAMLEncoder* resource_encoder;
 };
 
 } // namespace godot

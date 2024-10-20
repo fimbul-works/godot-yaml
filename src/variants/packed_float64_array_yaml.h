@@ -5,9 +5,11 @@
 
 namespace godot {
 
-class PackedFloat64ArrayYAMLEncoder : public IYAMLEncoder {
+class PackedFloat64ArrayYAMLEncoder : public YAMLEncoder {
   public:
-  const char* get_tag() const override;
+  DEFINE_YAML_TAG("PackedFloat64Array")
+
+  PackedFloat64ArrayYAMLEncoder(YAML* yaml);
 
   void encode(ryml::NodeRef& node, const Variant& v) const override;
   Variant decode(const ryml::ConstNodeRef& node) const override;

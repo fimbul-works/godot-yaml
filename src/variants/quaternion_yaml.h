@@ -1,21 +1,20 @@
-#ifndef VECTOR3_YAML_H
-#define VECTOR3_YAML_H
+#ifndef QUATERNION_YAML_H
+#define QUATERNION_YAML_H
 
-#include "yaml.h"
 #include "yaml_encoder.h"
 
 namespace godot {
 
-class Vector3YAMLEncoder : public YAMLEncoder {
+class QuaternionYAMLEncoder : public YAMLEncoder {
   enum class Format {
     FLOW_MAP,
     SEQUENCE
   };
 
   public:
-  DEFINE_YAML_TAG("Vector3")
+  DEFINE_YAML_TAG("Quaternion")
 
-  Vector3YAMLEncoder(YAML* yaml);
+  QuaternionYAMLEncoder(YAML* yaml);
 
   void encode(ryml::NodeRef& node, const Variant& v) const override;
   Variant decode(const ryml::ConstNodeRef& node) const override;
@@ -25,10 +24,10 @@ class Vector3YAMLEncoder : public YAMLEncoder {
   private:
   Format format = Format::FLOW_MAP;
 
-  void emit_as_flow(ryml::NodeRef& node, const Vector3& vec) const;
-  void emit_as_sequence(ryml::NodeRef& node, const Vector3& vec) const;
+  void emit_as_flow(ryml::NodeRef& node, const Quaternion& vec) const;
+  void emit_as_sequence(ryml::NodeRef& node, const Quaternion& vec) const;
 };
 
 } // namespace godot
 
-#endif // VECTOR3_YAML_H
+#endif // QUATERNION_YAML_H
