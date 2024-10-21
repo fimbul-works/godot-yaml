@@ -3,8 +3,6 @@
 #include "yaml.h"
 
 #include <godot_cpp/variant/utility_functions.hpp>
-#include <iomanip>
-#include <sstream>
 
 using namespace godot;
 
@@ -90,18 +88,14 @@ Color ColorYAMLEncoder::hex_to_color(const std::string& hex) const
 
 std::string ColorYAMLEncoder::color_to_hex(const Color& color, const char* prefix) const
 {
-  std::stringstream ss;
-
-  ss << prefix
-     << std::setfill('0') << std::setw(2) << std::hex << int(color.r * 255)
-     << std::setfill('0') << std::setw(2) << std::hex << int(color.g * 255)
-     << std::setfill('0') << std::setw(2) << std::hex << int(color.b * 255);
-
+  char buffer[11]; // prefix(2) + RRGGBBAA(8) + null terminator(1)
   if (color.a < 1.0f) {
-    ss << std::setfill('0') << std::setw(2) << std::hex << int(color.a * 255);
+    int length = snprintf(buffer, sizeof(buffer), "%s%02X%02X%02X%02X", prefix, int(color.r * 255), int(color.g * 255), int(color.b * 255), int(color.a * 255));
+    return std::string(buffer, length);
+  } else {
+    int length = snprintf(buffer, sizeof(buffer), "%s%02X%02X%02X", prefix, int(color.r * 255), int(color.g * 255), int(color.b * 255));
+    return std::string(buffer, length);
   }
-
-  return ss.str();
 }
 
 void ColorYAMLEncoder::emit_as_flow(ryml::NodeRef& node, const Color& color) const

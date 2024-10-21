@@ -29,7 +29,7 @@ Variant Vector4YAMLEncoder::decode(const ryml::ConstNodeRef& node) const
     real_t z = string_to_float<real_t>(node["z"].val());
     real_t w = string_to_float<real_t>(node["w"].val());
     return Vector4(x, y, z, w);
-  } else if (node.is_seq() && node.num_children() == 2) {
+  } else if (node.is_seq() && node.num_children() == 4) {
     real_t x = string_to_float<real_t>(node[0].val());
     real_t y = string_to_float<real_t>(node[1].val());
     real_t z = string_to_float<real_t>(node[2].val());

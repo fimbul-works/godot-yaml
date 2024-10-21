@@ -29,7 +29,7 @@ Variant Vector4iYAMLEncoder::decode(const ryml::ConstNodeRef& node) const
     int32_t z = string_to_int<int32_t>(node["z"].val());
     int32_t w = string_to_int<int32_t>(node["w"].val());
     return Vector4i(x, y, z, w);
-  } else if (node.is_seq() && node.num_children() == 2) {
+  } else if (node.is_seq() && node.num_children() == 4) {
     int32_t x = string_to_int<int32_t>(node[0].val());
     int32_t y = string_to_int<int32_t>(node[1].val());
     int32_t z = string_to_int<int32_t>(node[2].val());

@@ -20,11 +20,11 @@ YAML::YAML() :
         m_callbacks(nullptr, nullptr, nullptr, &YAML::error_callback),
         m_tree(m_callbacks),
         m_evt_handler(std::make_unique<ryml::EventHandlerTree>(m_callbacks)),
-        m_parser(std::make_unique<ryml::Parser>(m_evt_handler.get(), ryml::ParserOptions().locations(true)))
+        m_parser(std::make_unique<ryml::Parser>(m_evt_handler.get(), ryml::ParserOptions().locations(true))),
+        resource_encoder(std::make_unique<ResourceYAMLEncoder>(this))
 {
   try {
     ryml::set_callbacks(m_callbacks);
-    resource_encoder = new ResourceYAMLEncoder(this);
     register_type_encoders();
   } catch (const std::exception& e) {
     godot::UtilityFunctions::printerr("YAML initialization error: ", e.what());
@@ -35,9 +35,6 @@ YAML::YAML() :
 
 YAML::~YAML()
 {
-  if (resource_encoder) {
-    delete resource_encoder;
-  }
   ryml::reset_callbacks();
 }
 

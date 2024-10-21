@@ -83,7 +83,7 @@ class YAML : public Object {
 
   std::unordered_map<std::string, YAMLEncoder*> tag_to_encoder;
   std::unordered_map<Variant::Type, std::unique_ptr<YAMLEncoder>> type_to_encoder;
-  ResourceYAMLEncoder* resource_encoder;
+  std::unique_ptr<ResourceYAMLEncoder> resource_encoder;
 };
 
 } // namespace godot

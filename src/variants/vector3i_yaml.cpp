@@ -28,7 +28,7 @@ Variant Vector3iYAMLEncoder::decode(const ryml::ConstNodeRef& node) const
     int32_t y = string_to_int<int32_t>(node["y"].val());
     int32_t z = string_to_int<int32_t>(node["z"].val());
     return Vector3i(x, y, z);
-  } else if (node.is_seq() && node.num_children() == 2) {
+  } else if (node.is_seq() && node.num_children() == 3) {
     int32_t x = string_to_int<int32_t>(node[0].val());
     int32_t y = string_to_int<int32_t>(node[1].val());
     int32_t z = string_to_int<int32_t>(node[2].val());

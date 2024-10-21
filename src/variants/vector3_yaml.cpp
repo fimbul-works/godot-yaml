@@ -28,7 +28,7 @@ Variant Vector3YAMLEncoder::decode(const ryml::ConstNodeRef& node) const
     real_t y = string_to_float<real_t>(node["y"].val());
     real_t z = string_to_float<real_t>(node["z"].val());
     return Vector3(x, y, z);
-  } else if (node.is_seq() && node.num_children() == 2) {
+  } else if (node.is_seq() && node.num_children() == 3) {
     real_t x = string_to_float<real_t>(node[0].val());
     real_t y = string_to_float<real_t>(node[1].val());
     real_t z = string_to_float<real_t>(node[2].val());

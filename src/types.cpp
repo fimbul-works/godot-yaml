@@ -61,7 +61,7 @@ void YAML::register_type_encoders()
   register_encoder(std::make_unique<Vector4YAMLEncoder>(this));
   register_encoder(std::make_unique<Vector4iYAMLEncoder>(this));
 
-  tag_to_encoder[resource_encoder->get_full_tag()] = resource_encoder;
+  tag_to_encoder[resource_encoder->get_full_tag()] = resource_encoder.get();
 }
 
 bool YAML::set_format(Variant::Type type, const String& format)
