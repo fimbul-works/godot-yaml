@@ -26,4 +26,4 @@ class ProjectionYAMLEncoder : public YAMLEncoder {
 
 } // namespace godot
 
-#endif // BASIS_YAML_H
+#endif // PROJECTION_YAML_H

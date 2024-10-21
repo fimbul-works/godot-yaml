@@ -18,6 +18,9 @@
 #include "variants/quaternion_yaml.h"
 #include "variants/rect2_yaml.h"
 #include "variants/rect2i_yaml.h"
+#include "variants/string_name_yaml.h"
+#include "variants/transform2d_yaml.h"
+#include "variants/transform3d_yaml.h"
 #include "variants/vector2_yaml.h"
 #include "variants/vector2i_yaml.h"
 #include "variants/vector3_yaml.h"
@@ -54,6 +57,9 @@ void YAML::register_type_encoders()
   register_encoder(std::make_unique<QuaternionYAMLEncoder>(this));
   register_encoder(std::make_unique<Rect2YAMLEncoder>(this));
   register_encoder(std::make_unique<Rect2iYAMLEncoder>(this));
+  register_encoder(std::make_unique<StringNameYAMLEncoder>(this));
+  register_encoder(std::make_unique<Transform2DYAMLEncoder>(this));
+  register_encoder(std::make_unique<Transform3DYAMLEncoder>(this));
   register_encoder(std::make_unique<Vector2YAMLEncoder>(this));
   register_encoder(std::make_unique<Vector2iYAMLEncoder>(this));
   register_encoder(std::make_unique<Vector3YAMLEncoder>(this));
