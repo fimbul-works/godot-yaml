@@ -9,10 +9,10 @@
 
 using namespace godot;
 
-PackedByteArrayYAMLEncoder::PackedByteArrayYAMLEncoder(YAML* yaml) :
-        YAMLEncoder(yaml) { }
+PackedByteArrayVariantConverter::PackedByteArrayVariantConverter(YAML* yaml) :
+        VariantConverter(yaml) { }
 
-void PackedByteArrayYAMLEncoder::encode(ryml::NodeRef& node, const Variant& v) const
+void PackedByteArrayVariantConverter::encode(ryml::NodeRef& node, const Variant& v) const
 {
   PackedByteArray array = v.operator PackedByteArray();
   switch (format) {
@@ -25,7 +25,7 @@ void PackedByteArrayYAMLEncoder::encode(ryml::NodeRef& node, const Variant& v) c
   }
 }
 
-Variant PackedByteArrayYAMLEncoder::decode(const ryml::ConstNodeRef& node) const
+Variant PackedByteArrayVariantConverter::decode(const ryml::ConstNodeRef& node) const
 {
   if (node.has_val() && !node.val_is_null()) {
     String data = String::utf8(node.val().str, node.val().len);
@@ -45,7 +45,7 @@ Variant PackedByteArrayYAMLEncoder::decode(const ryml::ConstNodeRef& node) const
   throw YAMLException("invalid PackedByteArray format - " + String::utf8(node.val().str, node.val().len));
 }
 
-bool PackedByteArrayYAMLEncoder::set_format(const String& format_str)
+bool PackedByteArrayVariantConverter::set_format(const String& format_str)
 {
   if (format_str == "hex") {
     format = Format::HEX;
@@ -55,7 +55,7 @@ bool PackedByteArrayYAMLEncoder::set_format(const String& format_str)
   return true;
 }
 
-void PackedByteArrayYAMLEncoder::emit_as_hex(ryml::NodeRef& node, const PackedByteArray& array) const
+void PackedByteArrayVariantConverter::emit_as_hex(ryml::NodeRef& node, const PackedByteArray& array) const
 {
   std::stringstream ss;
   for (int i = 0; i < array.size(); ++i) {
@@ -64,13 +64,13 @@ void PackedByteArrayYAMLEncoder::emit_as_hex(ryml::NodeRef& node, const PackedBy
   node << ss.str();
 }
 
-void PackedByteArrayYAMLEncoder::emit_as_base64(ryml::NodeRef& node, const PackedByteArray& array) const
+void PackedByteArrayVariantConverter::emit_as_base64(ryml::NodeRef& node, const PackedByteArray& array) const
 {
   String base64 = Marshalls::get_singleton()->raw_to_base64(array);
   node << ryml::csubstr(base64.utf8().get_data());
 }
 
-bool PackedByteArrayYAMLEncoder::is_hex(const String& s) const
+bool PackedByteArrayVariantConverter::is_hex(const String& s) const
 {
   if (s.length() % 2 != 0) {
     return false;

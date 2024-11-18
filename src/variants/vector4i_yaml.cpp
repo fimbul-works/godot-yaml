@@ -5,10 +5,10 @@
 
 using namespace godot;
 
-Vector4iYAMLEncoder::Vector4iYAMLEncoder(YAML* yaml) :
-        YAMLEncoder(yaml) { }
+Vector4iVariantConverter::Vector4iVariantConverter(YAML* yaml) :
+        VariantConverter(yaml) { }
 
-void Vector4iYAMLEncoder::encode(ryml::NodeRef& node, const Variant& v) const
+void Vector4iVariantConverter::encode(ryml::NodeRef& node, const Variant& v) const
 {
   Vector4i vec = v.operator Vector4i();
   switch (format) {
@@ -21,7 +21,7 @@ void Vector4iYAMLEncoder::encode(ryml::NodeRef& node, const Variant& v) const
   }
 }
 
-Variant Vector4iYAMLEncoder::decode(const ryml::ConstNodeRef& node) const
+Variant Vector4iVariantConverter::decode(const ryml::ConstNodeRef& node) const
 {
   if (node.is_map()) {
     int32_t x = string_to_int<int32_t>(node["x"].val());
@@ -39,7 +39,7 @@ Variant Vector4iYAMLEncoder::decode(const ryml::ConstNodeRef& node) const
   throw YAMLException("invalid Vector4i format - " + String::utf8(node.val().str, node.val().len));
 }
 
-bool Vector4iYAMLEncoder::set_format(const String& format_str)
+bool Vector4iVariantConverter::set_format(const String& format_str)
 {
   if (format_str == "flow") {
     format = Format::FLOW_MAP;
@@ -52,7 +52,7 @@ bool Vector4iYAMLEncoder::set_format(const String& format_str)
   return true;
 }
 
-void Vector4iYAMLEncoder::emit_as_flow(ryml::NodeRef& node, const Vector4i& vec) const
+void Vector4iVariantConverter::emit_as_flow(ryml::NodeRef& node, const Vector4i& vec) const
 {
   node |= ryml::MAP;
   node |= ryml::FLOW_SL;
@@ -62,7 +62,7 @@ void Vector4iYAMLEncoder::emit_as_flow(ryml::NodeRef& node, const Vector4i& vec)
   node["w"] << int_to_string(vec.w);
 }
 
-void Vector4iYAMLEncoder::emit_as_sequence(ryml::NodeRef& node, const Vector4i& vec) const
+void Vector4iVariantConverter::emit_as_sequence(ryml::NodeRef& node, const Vector4i& vec) const
 {
   node |= ryml::SEQ;
   node |= ryml::FLOW_SL;

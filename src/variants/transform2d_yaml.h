@@ -6,12 +6,12 @@
 
 namespace godot {
 
-class Transform2DYAMLEncoder : public YAMLEncoder {
+class Transform2DVariantConverter : public VariantConverter {
   public:
   DEFINE_YAML_TAG("Transform2D", Variant::TRANSFORM2D)
 
-  Transform2DYAMLEncoder(YAML* yaml);
-  ~Transform2DYAMLEncoder();
+  Transform2DVariantConverter(YAML* yaml);
+  ~Transform2DVariantConverter();
 
   void encode(ryml::NodeRef& node, const Variant& v) const override;
   Variant decode(const ryml::ConstNodeRef& node) const override;
@@ -21,7 +21,7 @@ class Transform2DYAMLEncoder : public YAMLEncoder {
   private:
   void emit_as_map(ryml::NodeRef& node, const Transform2D& transform) const;
 
-  Vector2YAMLEncoder* vec_encoder;
+  Vector2VariantConverter* vec_encoder;
 };
 
 } // namespace godot

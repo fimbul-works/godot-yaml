@@ -15,11 +15,11 @@ namespace godot {
 
 class YAML;
 
-class YAMLEncoder {
+class VariantConverter {
   public:
-  YAMLEncoder(YAML* yaml) :
+  VariantConverter(YAML* yaml) :
           m_yaml(yaml) { };
-  virtual ~YAMLEncoder() = default;
+  virtual ~VariantConverter() = default;
 
   virtual const char* get_tag() const = 0;
   virtual const char* get_full_tag() const = 0;

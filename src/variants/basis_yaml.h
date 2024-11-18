@@ -7,12 +7,12 @@
 
 namespace godot {
 
-class BasisYAMLEncoder : public YAMLEncoder {
+class BasisVariantConverter : public VariantConverter {
   public:
   DEFINE_YAML_TAG("Basis", Variant::BASIS)
 
-  BasisYAMLEncoder(YAML* yaml);
-  ~BasisYAMLEncoder();
+  BasisVariantConverter(YAML* yaml);
+  ~BasisVariantConverter();
 
   void encode(ryml::NodeRef& node, const Variant& v) const override;
   Variant decode(const ryml::ConstNodeRef& node) const override;
@@ -22,7 +22,7 @@ class BasisYAMLEncoder : public YAMLEncoder {
   private:
   void emit_as_map(ryml::NodeRef& node, const Basis& basis) const;
 
-  Vector3YAMLEncoder* vec_encoder;
+  Vector3VariantConverter* vec_encoder;
 };
 
 } // namespace godot

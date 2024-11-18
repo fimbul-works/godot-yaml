@@ -5,11 +5,11 @@
 
 namespace godot {
 
-class PackedInt32ArrayYAMLEncoder : public YAMLEncoder {
+class PackedInt32ArrayVariantConverter : public VariantConverter {
   public:
   DEFINE_YAML_TAG("PackedInt32Array", Variant::PACKED_INT32_ARRAY)
 
-  PackedInt32ArrayYAMLEncoder(YAML* yaml);
+  PackedInt32ArrayVariantConverter(YAML* yaml);
 
   void encode(ryml::NodeRef& node, const Variant& v) const override;
   Variant decode(const ryml::ConstNodeRef& node) const override;

@@ -5,10 +5,10 @@
 
 using namespace godot;
 
-PackedStringArrayYAMLEncoder::PackedStringArrayYAMLEncoder(YAML* yaml) :
-        YAMLEncoder(yaml) { }
+PackedStringArrayVariantConverter::PackedStringArrayVariantConverter(YAML* yaml) :
+        VariantConverter(yaml) { }
 
-void PackedStringArrayYAMLEncoder::encode(ryml::NodeRef& node, const Variant& v) const
+void PackedStringArrayVariantConverter::encode(ryml::NodeRef& node, const Variant& v) const
 {
   PackedStringArray array = v.operator PackedStringArray();
   node |= ryml::SEQ;
@@ -17,7 +17,7 @@ void PackedStringArrayYAMLEncoder::encode(ryml::NodeRef& node, const Variant& v)
   }
 }
 
-Variant PackedStringArrayYAMLEncoder::decode(const ryml::ConstNodeRef& node) const
+Variant PackedStringArrayVariantConverter::decode(const ryml::ConstNodeRef& node) const
 {
   if (node.is_seq()) {
     PackedStringArray array = PackedStringArray();
@@ -31,7 +31,7 @@ Variant PackedStringArrayYAMLEncoder::decode(const ryml::ConstNodeRef& node) con
   throw YAMLException("invalid PackedStringArray format - " + String::utf8(node.val().str, node.val().len));
 }
 
-bool PackedStringArrayYAMLEncoder::set_format(const String& format_str)
+bool PackedStringArrayVariantConverter::set_format(const String& format_str)
 {
   return true;
 }

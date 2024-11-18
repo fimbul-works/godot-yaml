@@ -8,11 +8,11 @@
 
 namespace godot {
 
-class ResourceYAMLEncoder : public YAMLEncoder {
+class ResourceVariantConverter : public VariantConverter {
   public:
   DEFINE_YAML_TAG("Resource", Variant::OBJECT)
 
-  ResourceYAMLEncoder(YAML* yaml);
+  ResourceVariantConverter(YAML* yaml);
 
   void encode(ryml::NodeRef& node, const Variant& v) const;
   Variant decode(const ryml::ConstNodeRef& node) const;

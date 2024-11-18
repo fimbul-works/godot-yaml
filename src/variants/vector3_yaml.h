@@ -6,7 +6,7 @@
 
 namespace godot {
 
-class Vector3YAMLEncoder : public YAMLEncoder {
+class Vector3VariantConverter : public VariantConverter {
   enum class Format {
     FLOW_MAP,
     SEQUENCE
@@ -15,7 +15,7 @@ class Vector3YAMLEncoder : public YAMLEncoder {
   public:
   DEFINE_YAML_TAG("Vector3", Variant::VECTOR3)
 
-  Vector3YAMLEncoder(YAML* yaml);
+  Vector3VariantConverter(YAML* yaml);
 
   void encode(ryml::NodeRef& node, const Variant& v) const override;
   Variant decode(const ryml::ConstNodeRef& node) const override;

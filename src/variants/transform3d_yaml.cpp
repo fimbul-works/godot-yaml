@@ -5,25 +5,25 @@
 
 using namespace godot;
 
-Transform3DYAMLEncoder::Transform3DYAMLEncoder(YAML* yaml) :
-        YAMLEncoder(yaml)
+Transform3DVariantConverter::Transform3DVariantConverter(YAML* yaml) :
+        VariantConverter(yaml)
 {
-  vec_encoder = new Vector3YAMLEncoder(yaml);
+  vec_encoder = new Vector3VariantConverter(yaml);
   vec_encoder->set_format("flow");
 }
 
-Transform3DYAMLEncoder::~Transform3DYAMLEncoder()
+Transform3DVariantConverter::~Transform3DVariantConverter()
 {
   delete vec_encoder;
 }
 
-void Transform3DYAMLEncoder::encode(ryml::NodeRef& node, const Variant& v) const
+void Transform3DVariantConverter::encode(ryml::NodeRef& node, const Variant& v) const
 {
   Transform3D basis = v.operator Transform3D();
   emit_as_map(node, basis);
 }
 
-Variant Transform3DYAMLEncoder::decode(const ryml::ConstNodeRef& node) const
+Variant Transform3DVariantConverter::decode(const ryml::ConstNodeRef& node) const
 {
   if (node.is_map() && node.has_child("x") && node.has_child("y") && node.has_child("z") && node.has_child("origin")) {
     Vector3 x = vec_encoder->decode(node["x"]).operator Vector3();
@@ -35,12 +35,12 @@ Variant Transform3DYAMLEncoder::decode(const ryml::ConstNodeRef& node) const
   throw YAMLException("invalid Transform3D format " + String::utf8(node.val().str, node.val().len));
 }
 
-bool Transform3DYAMLEncoder::set_format(const String& format_str)
+bool Transform3DVariantConverter::set_format(const String& format_str)
 {
   return vec_encoder->set_format(format_str);
 }
 
-void Transform3DYAMLEncoder::emit_as_map(ryml::NodeRef& node, const Transform3D& transform) const
+void Transform3DVariantConverter::emit_as_map(ryml::NodeRef& node, const Transform3D& transform) const
 {
   node |= ryml::MAP;
 

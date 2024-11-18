@@ -5,7 +5,7 @@
 
 namespace godot {
 
-class PackedByteArrayYAMLEncoder : public YAMLEncoder {
+class PackedByteArrayVariantConverter : public VariantConverter {
   enum class Format {
     HEX,
     BASE64
@@ -14,7 +14,7 @@ class PackedByteArrayYAMLEncoder : public YAMLEncoder {
   public:
   DEFINE_YAML_TAG("PackedByteArray", Variant::PACKED_BYTE_ARRAY)
 
-  PackedByteArrayYAMLEncoder(YAML* yaml);
+  PackedByteArrayVariantConverter(YAML* yaml);
 
   void encode(ryml::NodeRef& node, const Variant& v) const override;
   Variant decode(const ryml::ConstNodeRef& node) const override;

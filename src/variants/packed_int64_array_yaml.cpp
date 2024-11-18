@@ -6,10 +6,10 @@
 
 using namespace godot;
 
-PackedInt64ArrayYAMLEncoder::PackedInt64ArrayYAMLEncoder(YAML* yaml) :
-        YAMLEncoder(yaml) { }
+PackedInt64ArrayVariantConverter::PackedInt64ArrayVariantConverter(YAML* yaml) :
+        VariantConverter(yaml) { }
 
-void PackedInt64ArrayYAMLEncoder::encode(ryml::NodeRef& node, const Variant& v) const
+void PackedInt64ArrayVariantConverter::encode(ryml::NodeRef& node, const Variant& v) const
 {
   PackedInt64Array array = v.operator PackedInt64Array();
   node |= ryml::SEQ;
@@ -18,7 +18,7 @@ void PackedInt64ArrayYAMLEncoder::encode(ryml::NodeRef& node, const Variant& v) 
   }
 }
 
-Variant PackedInt64ArrayYAMLEncoder::decode(const ryml::ConstNodeRef& node) const
+Variant PackedInt64ArrayVariantConverter::decode(const ryml::ConstNodeRef& node) const
 {
   if (node.is_seq()) {
     PackedInt64Array array = PackedInt64Array();
@@ -32,7 +32,7 @@ Variant PackedInt64ArrayYAMLEncoder::decode(const ryml::ConstNodeRef& node) cons
   throw YAMLException("invalid PackedInt64Array format - " + String::utf8(node.val().str, node.val().len));
 }
 
-bool PackedInt64ArrayYAMLEncoder::set_format(const String& format_str)
+bool PackedInt64ArrayVariantConverter::set_format(const String& format_str)
 {
   return true;
 }

@@ -5,11 +5,11 @@
 
 namespace godot {
 
-class StringNameYAMLEncoder : public YAMLEncoder {
+class StringNameVariantConverter : public VariantConverter {
   public:
   DEFINE_YAML_TAG("StringName", Variant::STRING_NAME)
 
-  StringNameYAMLEncoder(YAML* yaml);
+  StringNameVariantConverter(YAML* yaml);
 
   void encode(ryml::NodeRef& node, const Variant& v) const override;
   Variant decode(const ryml::ConstNodeRef& node) const override;

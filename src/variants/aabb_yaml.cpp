@@ -5,25 +5,25 @@
 
 using namespace godot;
 
-AABBYAMLEncoder::AABBYAMLEncoder(YAML* yaml) :
-        YAMLEncoder(yaml)
+AABBVariantConverter::AABBVariantConverter(YAML* yaml) :
+        VariantConverter(yaml)
 {
-  vec_encoder = new Vector3YAMLEncoder(yaml);
+  vec_encoder = new Vector3VariantConverter(yaml);
   vec_encoder->set_format("flow");
 }
 
-AABBYAMLEncoder::~AABBYAMLEncoder()
+AABBVariantConverter::~AABBVariantConverter()
 {
   delete vec_encoder;
 }
 
-void AABBYAMLEncoder::encode(ryml::NodeRef& node, const Variant& v) const
+void AABBVariantConverter::encode(ryml::NodeRef& node, const Variant& v) const
 {
   AABB aabb = v.operator godot::AABB();
   emit_as_map(node, aabb);
 }
 
-Variant AABBYAMLEncoder::decode(const ryml::ConstNodeRef& node) const
+Variant AABBVariantConverter::decode(const ryml::ConstNodeRef& node) const
 {
   if (node.is_map() && node.has_child("position") && node.has_child("size")) {
     Vector3 position = vec_encoder->decode(node["position"]).operator Vector3();
@@ -33,12 +33,12 @@ Variant AABBYAMLEncoder::decode(const ryml::ConstNodeRef& node) const
   throw YAMLException("invalid AABB format - " + String::utf8(node.val().str, node.val().len));
 }
 
-bool AABBYAMLEncoder::set_format(const String& format_str)
+bool AABBVariantConverter::set_format(const String& format_str)
 {
   return vec_encoder->set_format(format_str);
 }
 
-void AABBYAMLEncoder::emit_as_map(ryml::NodeRef& node, const AABB& rect) const
+void AABBVariantConverter::emit_as_map(ryml::NodeRef& node, const AABB& rect) const
 {
   node |= ryml::MAP;
 

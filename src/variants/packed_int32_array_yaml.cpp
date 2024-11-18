@@ -6,10 +6,10 @@
 
 using namespace godot;
 
-PackedInt32ArrayYAMLEncoder::PackedInt32ArrayYAMLEncoder(YAML* yaml) :
-        YAMLEncoder(yaml) { }
+PackedInt32ArrayVariantConverter::PackedInt32ArrayVariantConverter(YAML* yaml) :
+        VariantConverter(yaml) { }
 
-void PackedInt32ArrayYAMLEncoder::encode(ryml::NodeRef& node, const Variant& v) const
+void PackedInt32ArrayVariantConverter::encode(ryml::NodeRef& node, const Variant& v) const
 {
   PackedInt32Array array = v.operator PackedInt32Array();
   node |= ryml::SEQ;
@@ -18,7 +18,7 @@ void PackedInt32ArrayYAMLEncoder::encode(ryml::NodeRef& node, const Variant& v) 
   }
 }
 
-Variant PackedInt32ArrayYAMLEncoder::decode(const ryml::ConstNodeRef& node) const
+Variant PackedInt32ArrayVariantConverter::decode(const ryml::ConstNodeRef& node) const
 {
   if (node.is_seq()) {
     PackedInt32Array array = PackedInt32Array();
@@ -32,7 +32,7 @@ Variant PackedInt32ArrayYAMLEncoder::decode(const ryml::ConstNodeRef& node) cons
   throw YAMLException("invalid PackedInt32Array format - " + String::utf8(node.val().str, node.val().len));
 }
 
-bool PackedInt32ArrayYAMLEncoder::set_format(const String& format_str)
+bool PackedInt32ArrayVariantConverter::set_format(const String& format_str)
 {
   return true;
 }

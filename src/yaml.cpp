@@ -21,7 +21,7 @@ YAML::YAML() :
         m_tree(m_callbacks),
         m_evt_handler(std::make_unique<ryml::EventHandlerTree>(m_callbacks)),
         m_parser(std::make_unique<ryml::Parser>(m_evt_handler.get(), ryml::ParserOptions().locations(true))),
-        resource_encoder(std::make_unique<ResourceYAMLEncoder>(this))
+        resource_encoder(std::make_unique<ResourceVariantConverter>(this))
 {
   try {
     ryml::set_callbacks(m_callbacks);

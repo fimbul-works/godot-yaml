@@ -6,12 +6,12 @@
 
 namespace godot {
 
-class Rect2YAMLEncoder : public YAMLEncoder {
+class Rect2VariantConverter : public VariantConverter {
   public:
   DEFINE_YAML_TAG("Rect2", Variant::RECT2)
 
-  Rect2YAMLEncoder(YAML* yaml);
-  ~Rect2YAMLEncoder();
+  Rect2VariantConverter(YAML* yaml);
+  ~Rect2VariantConverter();
 
   void encode(ryml::NodeRef& node, const Variant& v) const override;
   Variant decode(const ryml::ConstNodeRef& node) const override;
@@ -21,7 +21,7 @@ class Rect2YAMLEncoder : public YAMLEncoder {
   private:
   void emit_as_map(ryml::NodeRef& node, const Rect2& rect) const;
 
-  Vector2YAMLEncoder* vec_encoder;
+  Vector2VariantConverter* vec_encoder;
 };
 
 } // namespace godot

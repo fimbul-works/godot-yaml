@@ -6,10 +6,10 @@
 
 using namespace godot;
 
-PackedFloat64ArrayYAMLEncoder::PackedFloat64ArrayYAMLEncoder(YAML* yaml) :
-        YAMLEncoder(yaml) { }
+PackedFloat64ArrayVariantConverter::PackedFloat64ArrayVariantConverter(YAML* yaml) :
+        VariantConverter(yaml) { }
 
-void PackedFloat64ArrayYAMLEncoder::encode(ryml::NodeRef& node, const Variant& v) const
+void PackedFloat64ArrayVariantConverter::encode(ryml::NodeRef& node, const Variant& v) const
 {
   PackedFloat64Array array = v.operator PackedFloat64Array();
   node |= ryml::SEQ;
@@ -18,7 +18,7 @@ void PackedFloat64ArrayYAMLEncoder::encode(ryml::NodeRef& node, const Variant& v
   }
 }
 
-Variant PackedFloat64ArrayYAMLEncoder::decode(const ryml::ConstNodeRef& node) const
+Variant PackedFloat64ArrayVariantConverter::decode(const ryml::ConstNodeRef& node) const
 {
   if (node.is_seq()) {
     PackedFloat64Array array = PackedFloat64Array();
@@ -32,7 +32,7 @@ Variant PackedFloat64ArrayYAMLEncoder::decode(const ryml::ConstNodeRef& node) co
   throw YAMLException("invalid PackedFloat64Array format - " + String::utf8(node.val().str, node.val().len));
 }
 
-bool PackedFloat64ArrayYAMLEncoder::set_format(const String& format_str)
+bool PackedFloat64ArrayVariantConverter::set_format(const String& format_str)
 {
   return true;
 }

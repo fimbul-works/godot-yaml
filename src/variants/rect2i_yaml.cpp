@@ -5,25 +5,25 @@
 
 using namespace godot;
 
-Rect2iYAMLEncoder::Rect2iYAMLEncoder(YAML* yaml) :
-        YAMLEncoder(yaml)
+Rect2iVariantConverter::Rect2iVariantConverter(YAML* yaml) :
+        VariantConverter(yaml)
 {
-  vec_encoder = new Vector2iYAMLEncoder(yaml);
+  vec_encoder = new Vector2iVariantConverter(yaml);
   vec_encoder->set_format("flow");
 }
 
-Rect2iYAMLEncoder::~Rect2iYAMLEncoder()
+Rect2iVariantConverter::~Rect2iVariantConverter()
 {
   delete vec_encoder;
 }
 
-void Rect2iYAMLEncoder::encode(ryml::NodeRef& node, const Variant& v) const
+void Rect2iVariantConverter::encode(ryml::NodeRef& node, const Variant& v) const
 {
   Rect2i rect = v.operator Rect2i();
   emit_as_map(node, rect);
 }
 
-Variant Rect2iYAMLEncoder::decode(const ryml::ConstNodeRef& node) const
+Variant Rect2iVariantConverter::decode(const ryml::ConstNodeRef& node) const
 {
   if (node.is_map() && node.has_child("position") && node.has_child("size")) {
     Vector2i position = vec_encoder->decode(node["position"]).operator Vector2i();
@@ -33,12 +33,12 @@ Variant Rect2iYAMLEncoder::decode(const ryml::ConstNodeRef& node) const
   throw YAMLException("invalid Rect2i format - " + String::utf8(node.val().str, node.val().len));
 }
 
-bool Rect2iYAMLEncoder::set_format(const String& format_str)
+bool Rect2iVariantConverter::set_format(const String& format_str)
 {
   return vec_encoder->set_format(format_str);
 }
 
-void Rect2iYAMLEncoder::emit_as_map(ryml::NodeRef& node, const Rect2i& rect) const
+void Rect2iVariantConverter::emit_as_map(ryml::NodeRef& node, const Rect2i& rect) const
 {
   node |= ryml::MAP;
 

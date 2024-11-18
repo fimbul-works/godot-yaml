@@ -6,19 +6,19 @@
 
 namespace godot {
 
-class PackedColorArrayYAMLEncoder : public YAMLEncoder {
+class PackedColorArrayVariantConverter : public VariantConverter {
   public:
   DEFINE_YAML_TAG("PackedColorArray", Variant::PACKED_COLOR_ARRAY)
 
-  PackedColorArrayYAMLEncoder(YAML* yaml);
-  ~PackedColorArrayYAMLEncoder();
+  PackedColorArrayVariantConverter(YAML* yaml);
+  ~PackedColorArrayVariantConverter();
 
   void encode(ryml::NodeRef& node, const Variant& v) const override;
   Variant decode(const ryml::ConstNodeRef& node) const override;
 
   bool set_format(const String& format_str) override;
 
-  ColorYAMLEncoder* color_encoder;
+  ColorVariantConverter* color_encoder;
 };
 
 } // namespace godot

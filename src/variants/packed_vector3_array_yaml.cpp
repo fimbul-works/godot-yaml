@@ -5,19 +5,19 @@
 
 using namespace godot;
 
-PackedVector3ArrayYAMLEncoder::PackedVector3ArrayYAMLEncoder(YAML* yaml) :
-        YAMLEncoder(yaml)
+PackedVector3ArrayVariantConverter::PackedVector3ArrayVariantConverter(YAML* yaml) :
+        VariantConverter(yaml)
 {
-  vec_encoder = new Vector3YAMLEncoder(yaml);
+  vec_encoder = new Vector3VariantConverter(yaml);
   vec_encoder->set_format("flow");
 }
 
-PackedVector3ArrayYAMLEncoder::~PackedVector3ArrayYAMLEncoder()
+PackedVector3ArrayVariantConverter::~PackedVector3ArrayVariantConverter()
 {
   delete vec_encoder;
 }
 
-void PackedVector3ArrayYAMLEncoder::encode(ryml::NodeRef& node, const Variant& v) const
+void PackedVector3ArrayVariantConverter::encode(ryml::NodeRef& node, const Variant& v) const
 {
   PackedVector3Array array = v.operator PackedVector3Array();
   node |= ryml::SEQ;
@@ -27,7 +27,7 @@ void PackedVector3ArrayYAMLEncoder::encode(ryml::NodeRef& node, const Variant& v
   }
 }
 
-Variant PackedVector3ArrayYAMLEncoder::decode(const ryml::ConstNodeRef& node) const
+Variant PackedVector3ArrayVariantConverter::decode(const ryml::ConstNodeRef& node) const
 {
   if (node.is_seq()) {
     PackedVector3Array array = PackedVector3Array();
@@ -41,7 +41,7 @@ Variant PackedVector3ArrayYAMLEncoder::decode(const ryml::ConstNodeRef& node) co
   throw YAMLException("invalid PackedVector3Array format - " + String::utf8(node.val().str, node.val().len));
 }
 
-bool PackedVector3ArrayYAMLEncoder::set_format(const String& format_str)
+bool PackedVector3ArrayVariantConverter::set_format(const String& format_str)
 {
   return vec_encoder->set_format(format_str);
 }

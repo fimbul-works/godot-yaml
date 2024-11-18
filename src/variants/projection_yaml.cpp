@@ -5,25 +5,25 @@
 
 using namespace godot;
 
-ProjectionYAMLEncoder::ProjectionYAMLEncoder(YAML* yaml) :
-        YAMLEncoder(yaml)
+ProjectionVariantConverter::ProjectionVariantConverter(YAML* yaml) :
+        VariantConverter(yaml)
 {
-  vec_encoder = new Vector4YAMLEncoder(yaml);
+  vec_encoder = new Vector4VariantConverter(yaml);
   vec_encoder->set_format("flow");
 }
 
-ProjectionYAMLEncoder::~ProjectionYAMLEncoder()
+ProjectionVariantConverter::~ProjectionVariantConverter()
 {
   delete vec_encoder;
 }
 
-void ProjectionYAMLEncoder::encode(ryml::NodeRef& node, const Variant& v) const
+void ProjectionVariantConverter::encode(ryml::NodeRef& node, const Variant& v) const
 {
   Projection basis = v.operator Projection();
   emit_as_map(node, basis);
 }
 
-Variant ProjectionYAMLEncoder::decode(const ryml::ConstNodeRef& node) const
+Variant ProjectionVariantConverter::decode(const ryml::ConstNodeRef& node) const
 {
   if (node.is_map() && node.has_child("x") && node.has_child("y") && node.has_child("z") && node.has_child("w")) {
     Vector4 x = vec_encoder->decode(node["x"]).operator Vector4();
@@ -35,12 +35,12 @@ Variant ProjectionYAMLEncoder::decode(const ryml::ConstNodeRef& node) const
   throw YAMLException("invalid Projection format - " + String::utf8(node.val().str, node.val().len));
 }
 
-bool ProjectionYAMLEncoder::set_format(const String& format_str)
+bool ProjectionVariantConverter::set_format(const String& format_str)
 {
   return vec_encoder->set_format(format_str);
 }
 
-void ProjectionYAMLEncoder::emit_as_map(ryml::NodeRef& node, const Projection& projection) const
+void ProjectionVariantConverter::emit_as_map(ryml::NodeRef& node, const Projection& projection) const
 {
   node |= ryml::MAP;
 

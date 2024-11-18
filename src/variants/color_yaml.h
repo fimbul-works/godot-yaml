@@ -5,7 +5,7 @@
 
 namespace godot {
 
-class ColorYAMLEncoder : public YAMLEncoder {
+class ColorVariantConverter : public VariantConverter {
   enum class Format {
     HEX,
     HEX_STRING,
@@ -16,7 +16,7 @@ class ColorYAMLEncoder : public YAMLEncoder {
   public:
   DEFINE_YAML_TAG("Color", Variant::COLOR)
 
-  ColorYAMLEncoder(YAML* yaml);
+  ColorVariantConverter(YAML* yaml);
 
   void encode(ryml::NodeRef& node, const Variant& v) const override;
   Variant decode(const ryml::ConstNodeRef& node) const override;
@@ -25,7 +25,7 @@ class ColorYAMLEncoder : public YAMLEncoder {
 
   private:
   Color hex_to_color(const std::string& hex) const;
-  std::string ColorYAMLEncoder::color_to_hex(const Color& color, const char* prefix) const;
+  std::string ColorVariantConverter::color_to_hex(const Color& color, const char* prefix) const;
   void emit_as_flow(ryml::NodeRef& node, const Color& color) const;
   void emit_as_sequence(ryml::NodeRef& node, const Color& color) const;
 

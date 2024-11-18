@@ -7,12 +7,12 @@
 
 namespace godot {
 
-class AABBYAMLEncoder : public YAMLEncoder {
+class AABBVariantConverter : public VariantConverter {
   public:
   DEFINE_YAML_TAG("AABB", Variant::AABB)
 
-  AABBYAMLEncoder(YAML* yaml);
-  ~AABBYAMLEncoder();
+  AABBVariantConverter(YAML* yaml);
+  ~AABBVariantConverter();
 
   void encode(ryml::NodeRef& node, const Variant& v) const override;
   Variant decode(const ryml::ConstNodeRef& node) const override;
@@ -22,7 +22,7 @@ class AABBYAMLEncoder : public YAMLEncoder {
   private:
   void emit_as_map(ryml::NodeRef& node, const AABB& aabb) const;
 
-  Vector3YAMLEncoder* vec_encoder;
+  Vector3VariantConverter* vec_encoder;
 };
 
 } // namespace godot

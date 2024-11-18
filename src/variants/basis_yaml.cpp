@@ -5,25 +5,25 @@
 
 using namespace godot;
 
-BasisYAMLEncoder::BasisYAMLEncoder(YAML* yaml) :
-        YAMLEncoder(yaml)
+BasisVariantConverter::BasisVariantConverter(YAML* yaml) :
+        VariantConverter(yaml)
 {
-  vec_encoder = new Vector3YAMLEncoder(yaml);
+  vec_encoder = new Vector3VariantConverter(yaml);
   vec_encoder->set_format("flow");
 }
 
-BasisYAMLEncoder::~BasisYAMLEncoder()
+BasisVariantConverter::~BasisVariantConverter()
 {
   delete vec_encoder;
 }
 
-void BasisYAMLEncoder::encode(ryml::NodeRef& node, const Variant& v) const
+void BasisVariantConverter::encode(ryml::NodeRef& node, const Variant& v) const
 {
   Basis basis = v.operator Basis();
   emit_as_map(node, basis);
 }
 
-Variant BasisYAMLEncoder::decode(const ryml::ConstNodeRef& node) const
+Variant BasisVariantConverter::decode(const ryml::ConstNodeRef& node) const
 {
   if (node.is_map() && node.has_child("x") && node.has_child("y") && node.has_child("z")) {
     Vector3 x = vec_encoder->decode(node["x"]).operator Vector3();
@@ -34,12 +34,12 @@ Variant BasisYAMLEncoder::decode(const ryml::ConstNodeRef& node) const
   throw YAMLException("invalid Basis format - " + String::utf8(node.val().str, node.val().len));
 }
 
-bool BasisYAMLEncoder::set_format(const String& format_str)
+bool BasisVariantConverter::set_format(const String& format_str)
 {
   return vec_encoder->set_format(format_str);
 }
 
-void BasisYAMLEncoder::emit_as_map(ryml::NodeRef& node, const Basis& basis) const
+void BasisVariantConverter::emit_as_map(ryml::NodeRef& node, const Basis& basis) const
 {
   node |= ryml::MAP;
 

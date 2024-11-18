@@ -5,7 +5,7 @@
 
 namespace godot {
 
-class QuaternionYAMLEncoder : public YAMLEncoder {
+class QuaternionVariantConverter : public VariantConverter {
   enum class Format {
     FLOW_MAP,
     SEQUENCE
@@ -14,7 +14,7 @@ class QuaternionYAMLEncoder : public YAMLEncoder {
   public:
   DEFINE_YAML_TAG("Quaternion", Variant::QUATERNION)
 
-  QuaternionYAMLEncoder(YAML* yaml);
+  QuaternionVariantConverter(YAML* yaml);
 
   void encode(ryml::NodeRef& node, const Variant& v) const override;
   Variant decode(const ryml::ConstNodeRef& node) const override;

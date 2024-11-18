@@ -30,7 +30,7 @@
 
 using namespace godot;
 
-void YAML::register_encoder(std::unique_ptr<YAMLEncoder> encoder)
+void YAML::register_encoder(std::unique_ptr<VariantConverter> encoder)
 {
   tag_to_encoder[encoder->get_full_tag()] = encoder.get();
   type_to_encoder[encoder->get_type()] = std::move(encoder);
@@ -38,34 +38,34 @@ void YAML::register_encoder(std::unique_ptr<YAMLEncoder> encoder)
 
 void YAML::register_type_encoders()
 {
-  register_encoder(std::make_unique<AABBYAMLEncoder>(this));
-  register_encoder(std::make_unique<AABBYAMLEncoder>(this));
-  register_encoder(std::make_unique<BasisYAMLEncoder>(this));
-  register_encoder(std::make_unique<ColorYAMLEncoder>(this));
-  register_encoder(std::make_unique<NodePathYAMLEncoder>(this));
-  register_encoder(std::make_unique<PackedByteArrayYAMLEncoder>(this));
-  register_encoder(std::make_unique<PackedColorArrayYAMLEncoder>(this));
-  register_encoder(std::make_unique<PackedFloat32ArrayYAMLEncoder>(this));
-  register_encoder(std::make_unique<PackedFloat64ArrayYAMLEncoder>(this));
-  register_encoder(std::make_unique<PackedInt32ArrayYAMLEncoder>(this));
-  register_encoder(std::make_unique<PackedInt64ArrayYAMLEncoder>(this));
-  register_encoder(std::make_unique<PackedStringArrayYAMLEncoder>(this));
-  register_encoder(std::make_unique<PackedVector2ArrayYAMLEncoder>(this));
-  register_encoder(std::make_unique<PackedVector3ArrayYAMLEncoder>(this));
-  register_encoder(std::make_unique<PlaneYAMLEncoder>(this));
-  register_encoder(std::make_unique<ProjectionYAMLEncoder>(this));
-  register_encoder(std::make_unique<QuaternionYAMLEncoder>(this));
-  register_encoder(std::make_unique<Rect2YAMLEncoder>(this));
-  register_encoder(std::make_unique<Rect2iYAMLEncoder>(this));
-  register_encoder(std::make_unique<StringNameYAMLEncoder>(this));
-  register_encoder(std::make_unique<Transform2DYAMLEncoder>(this));
-  register_encoder(std::make_unique<Transform3DYAMLEncoder>(this));
-  register_encoder(std::make_unique<Vector2YAMLEncoder>(this));
-  register_encoder(std::make_unique<Vector2iYAMLEncoder>(this));
-  register_encoder(std::make_unique<Vector3YAMLEncoder>(this));
-  register_encoder(std::make_unique<Vector3iYAMLEncoder>(this));
-  register_encoder(std::make_unique<Vector4YAMLEncoder>(this));
-  register_encoder(std::make_unique<Vector4iYAMLEncoder>(this));
+  register_encoder(std::make_unique<AABBVariantConverter>(this));
+  register_encoder(std::make_unique<AABBVariantConverter>(this));
+  register_encoder(std::make_unique<BasisVariantConverter>(this));
+  register_encoder(std::make_unique<ColorVariantConverter>(this));
+  register_encoder(std::make_unique<NodePathVariantConverter>(this));
+  register_encoder(std::make_unique<PackedByteArrayVariantConverter>(this));
+  register_encoder(std::make_unique<PackedColorArrayVariantConverter>(this));
+  register_encoder(std::make_unique<PackedFloat32ArrayVariantConverter>(this));
+  register_encoder(std::make_unique<PackedFloat64ArrayVariantConverter>(this));
+  register_encoder(std::make_unique<PackedInt32ArrayVariantConverter>(this));
+  register_encoder(std::make_unique<PackedInt64ArrayVariantConverter>(this));
+  register_encoder(std::make_unique<PackedStringArrayVariantConverter>(this));
+  register_encoder(std::make_unique<PackedVector2ArrayVariantConverter>(this));
+  register_encoder(std::make_unique<PackedVector3ArrayVariantConverter>(this));
+  register_encoder(std::make_unique<PlaneVariantConverter>(this));
+  register_encoder(std::make_unique<ProjectionVariantConverter>(this));
+  register_encoder(std::make_unique<QuaternionVariantConverter>(this));
+  register_encoder(std::make_unique<Rect2VariantConverter>(this));
+  register_encoder(std::make_unique<Rect2iVariantConverter>(this));
+  register_encoder(std::make_unique<StringNameVariantConverter>(this));
+  register_encoder(std::make_unique<Transform2DVariantConverter>(this));
+  register_encoder(std::make_unique<Transform3DVariantConverter>(this));
+  register_encoder(std::make_unique<Vector2VariantConverter>(this));
+  register_encoder(std::make_unique<Vector2iVariantConverter>(this));
+  register_encoder(std::make_unique<Vector3VariantConverter>(this));
+  register_encoder(std::make_unique<Vector3iVariantConverter>(this));
+  register_encoder(std::make_unique<Vector4VariantConverter>(this));
+  register_encoder(std::make_unique<Vector4iVariantConverter>(this));
 
   tag_to_encoder[resource_encoder->get_full_tag()] = resource_encoder.get();
 }

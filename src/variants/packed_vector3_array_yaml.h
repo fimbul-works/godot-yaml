@@ -6,19 +6,19 @@
 
 namespace godot {
 
-class PackedVector3ArrayYAMLEncoder : public YAMLEncoder {
+class PackedVector3ArrayVariantConverter : public VariantConverter {
   public:
   DEFINE_YAML_TAG("PackedVector3Array", Variant::PACKED_VECTOR3_ARRAY)
 
-  PackedVector3ArrayYAMLEncoder(YAML* yaml);
-  ~PackedVector3ArrayYAMLEncoder();
+  PackedVector3ArrayVariantConverter(YAML* yaml);
+  ~PackedVector3ArrayVariantConverter();
 
   void encode(ryml::NodeRef& node, const Variant& v) const override;
   Variant decode(const ryml::ConstNodeRef& node) const override;
 
   bool set_format(const String& format_str) override;
 
-  Vector3YAMLEncoder* vec_encoder;
+  Vector3VariantConverter* vec_encoder;
 };
 
 } // namespace godot

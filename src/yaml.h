@@ -17,8 +17,8 @@
 
 namespace godot {
 
-class YAMLEncoder;
-class ResourceYAMLEncoder;
+class VariantConverter;
+class ResourceVariantConverter;
 
 class YAMLException : public std::runtime_error {
   public:
@@ -78,12 +78,12 @@ class YAML : public Object {
   bool set_format(Variant::Type type, const String& format);
 
   private:
-  void register_encoder(std::unique_ptr<YAMLEncoder> encoder);
+  void register_encoder(std::unique_ptr<VariantConverter> encoder);
   void register_type_encoders();
 
-  std::unordered_map<std::string, YAMLEncoder*> tag_to_encoder;
-  std::unordered_map<Variant::Type, std::unique_ptr<YAMLEncoder>> type_to_encoder;
-  std::unique_ptr<ResourceYAMLEncoder> resource_encoder;
+  std::unordered_map<std::string, VariantConverter*> tag_to_encoder;
+  std::unordered_map<Variant::Type, std::unique_ptr<VariantConverter>> type_to_encoder;
+  std::unique_ptr<ResourceVariantConverter> resource_encoder;
 };
 
 } // namespace godot

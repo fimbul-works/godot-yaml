@@ -5,10 +5,10 @@
 
 using namespace godot;
 
-QuaternionYAMLEncoder::QuaternionYAMLEncoder(YAML* yaml) :
-        YAMLEncoder(yaml) { }
+QuaternionVariantConverter::QuaternionVariantConverter(YAML* yaml) :
+        VariantConverter(yaml) { }
 
-void QuaternionYAMLEncoder::encode(ryml::NodeRef& node, const Variant& v) const
+void QuaternionVariantConverter::encode(ryml::NodeRef& node, const Variant& v) const
 {
   Quaternion vec = v.operator Quaternion();
   switch (format) {
@@ -21,7 +21,7 @@ void QuaternionYAMLEncoder::encode(ryml::NodeRef& node, const Variant& v) const
   }
 }
 
-Variant QuaternionYAMLEncoder::decode(const ryml::ConstNodeRef& node) const
+Variant QuaternionVariantConverter::decode(const ryml::ConstNodeRef& node) const
 {
   if (node.is_map()) {
     real_t x = string_to_float<real_t>(node["x"].val());
@@ -39,7 +39,7 @@ Variant QuaternionYAMLEncoder::decode(const ryml::ConstNodeRef& node) const
   throw YAMLException("invalid Quaternion format - " + String::utf8(node.val().str, node.val().len));
 }
 
-bool QuaternionYAMLEncoder::set_format(const String& format_str)
+bool QuaternionVariantConverter::set_format(const String& format_str)
 {
   if (format_str == "flow") {
     format = Format::FLOW_MAP;
@@ -52,7 +52,7 @@ bool QuaternionYAMLEncoder::set_format(const String& format_str)
   return true;
 }
 
-void QuaternionYAMLEncoder::emit_as_flow(ryml::NodeRef& node, const Quaternion& vec) const
+void QuaternionVariantConverter::emit_as_flow(ryml::NodeRef& node, const Quaternion& vec) const
 {
   node |= ryml::MAP;
   node |= ryml::FLOW_SL;
@@ -62,7 +62,7 @@ void QuaternionYAMLEncoder::emit_as_flow(ryml::NodeRef& node, const Quaternion& 
   node["w"] << float_to_string(vec.w);
 }
 
-void QuaternionYAMLEncoder::emit_as_sequence(ryml::NodeRef& node, const Quaternion& vec) const
+void QuaternionVariantConverter::emit_as_sequence(ryml::NodeRef& node, const Quaternion& vec) const
 {
   node |= ryml::SEQ;
   node |= ryml::FLOW_SL;

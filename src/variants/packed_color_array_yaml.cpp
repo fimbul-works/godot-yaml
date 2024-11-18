@@ -5,19 +5,19 @@
 
 using namespace godot;
 
-PackedColorArrayYAMLEncoder::PackedColorArrayYAMLEncoder(YAML* yaml) :
-        YAMLEncoder(yaml)
+PackedColorArrayVariantConverter::PackedColorArrayVariantConverter(YAML* yaml) :
+        VariantConverter(yaml)
 {
-  color_encoder = new ColorYAMLEncoder(yaml);
+  color_encoder = new ColorVariantConverter(yaml);
   color_encoder->set_format("flow");
 }
 
-PackedColorArrayYAMLEncoder::~PackedColorArrayYAMLEncoder()
+PackedColorArrayVariantConverter::~PackedColorArrayVariantConverter()
 {
   delete color_encoder;
 }
 
-void PackedColorArrayYAMLEncoder::encode(ryml::NodeRef& node, const Variant& v) const
+void PackedColorArrayVariantConverter::encode(ryml::NodeRef& node, const Variant& v) const
 {
   PackedColorArray array = v.operator PackedColorArray();
   node |= ryml::SEQ;
@@ -27,7 +27,7 @@ void PackedColorArrayYAMLEncoder::encode(ryml::NodeRef& node, const Variant& v) 
   }
 }
 
-Variant PackedColorArrayYAMLEncoder::decode(const ryml::ConstNodeRef& node) const
+Variant PackedColorArrayVariantConverter::decode(const ryml::ConstNodeRef& node) const
 {
   if (node.is_seq()) {
     PackedColorArray array = PackedColorArray();
@@ -41,7 +41,7 @@ Variant PackedColorArrayYAMLEncoder::decode(const ryml::ConstNodeRef& node) cons
   throw YAMLException("invalid PackedColorArray format - " + String::utf8(node.val().str, node.val().len));
 }
 
-bool PackedColorArrayYAMLEncoder::set_format(const String& format_str)
+bool PackedColorArrayVariantConverter::set_format(const String& format_str)
 {
   return color_encoder->set_format(format_str);
 }

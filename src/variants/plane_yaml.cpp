@@ -6,25 +6,25 @@
 
 using namespace godot;
 
-PlaneYAMLEncoder::PlaneYAMLEncoder(YAML* yaml) :
-        YAMLEncoder(yaml)
+PlaneVariantConverter::PlaneVariantConverter(YAML* yaml) :
+        VariantConverter(yaml)
 {
-  vec_encoder = new Vector3YAMLEncoder(yaml);
+  vec_encoder = new Vector3VariantConverter(yaml);
   vec_encoder->set_format("flow");
 }
 
-PlaneYAMLEncoder::~PlaneYAMLEncoder()
+PlaneVariantConverter::~PlaneVariantConverter()
 {
   delete vec_encoder;
 }
 
-void PlaneYAMLEncoder::encode(ryml::NodeRef& node, const Variant& v) const
+void PlaneVariantConverter::encode(ryml::NodeRef& node, const Variant& v) const
 {
   Plane plane = v.operator godot::Plane();
   emit_as_map(node, plane);
 }
 
-Variant PlaneYAMLEncoder::decode(const ryml::ConstNodeRef& node) const
+Variant PlaneVariantConverter::decode(const ryml::ConstNodeRef& node) const
 {
   if (node.is_map() && node.has_child("normal") && node.has_child("d")) {
     Vector3 normal = vec_encoder->decode(node["normal"]).operator Vector3();
@@ -34,12 +34,12 @@ Variant PlaneYAMLEncoder::decode(const ryml::ConstNodeRef& node) const
   throw YAMLException("invalid Plane format - " + String::utf8(node.val().str, node.val().len));
 }
 
-bool PlaneYAMLEncoder::set_format(const String& format_str)
+bool PlaneVariantConverter::set_format(const String& format_str)
 {
   return vec_encoder->set_format(format_str);
 }
 
-void PlaneYAMLEncoder::emit_as_map(ryml::NodeRef& node, const Plane& plane) const
+void PlaneVariantConverter::emit_as_map(ryml::NodeRef& node, const Plane& plane) const
 {
   node |= ryml::MAP;
 

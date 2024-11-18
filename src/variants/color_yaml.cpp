@@ -6,10 +6,10 @@
 
 using namespace godot;
 
-ColorYAMLEncoder::ColorYAMLEncoder(YAML* yaml) :
-        YAMLEncoder(yaml) { }
+ColorVariantConverter::ColorVariantConverter(YAML* yaml) :
+        VariantConverter(yaml) { }
 
-void ColorYAMLEncoder::encode(ryml::NodeRef& node, const Variant& v) const
+void ColorVariantConverter::encode(ryml::NodeRef& node, const Variant& v) const
 {
   Color color = v.operator Color();
   switch (format) {
@@ -28,7 +28,7 @@ void ColorYAMLEncoder::encode(ryml::NodeRef& node, const Variant& v) const
   }
 }
 
-Variant ColorYAMLEncoder::decode(const ryml::ConstNodeRef& node) const
+Variant ColorVariantConverter::decode(const ryml::ConstNodeRef& node) const
 {
   if (node.has_val() && !node.val_is_null()) {
     std::string hex_str(node.val().str, node.val().len);
@@ -49,7 +49,7 @@ Variant ColorYAMLEncoder::decode(const ryml::ConstNodeRef& node) const
   throw YAMLException("invalid Color format - " + String::utf8(node.val().str, node.val().len));
 }
 
-bool ColorYAMLEncoder::set_format(const String& format_str)
+bool ColorVariantConverter::set_format(const String& format_str)
 {
   if (format_str == "hex") {
     format = Format::HEX;
@@ -66,7 +66,7 @@ bool ColorYAMLEncoder::set_format(const String& format_str)
   return true;
 }
 
-Color ColorYAMLEncoder::hex_to_color(const std::string& hex) const
+Color ColorVariantConverter::hex_to_color(const std::string& hex) const
 {
   if (hex.at(0) == '#' && (hex.length() == 7 || hex.length() == 9)) {
     // #RRGGBB or #RRGGBBAA
@@ -86,7 +86,7 @@ Color ColorYAMLEncoder::hex_to_color(const std::string& hex) const
   throw YAMLException("invalid Color format - " + hex);
 }
 
-std::string ColorYAMLEncoder::color_to_hex(const Color& color, const char* prefix) const
+std::string ColorVariantConverter::color_to_hex(const Color& color, const char* prefix) const
 {
   char buffer[11]; // prefix(2) + RRGGBBAA(8) + null terminator(1)
   if (color.a < 1.0f) {
@@ -98,7 +98,7 @@ std::string ColorYAMLEncoder::color_to_hex(const Color& color, const char* prefi
   }
 }
 
-void ColorYAMLEncoder::emit_as_flow(ryml::NodeRef& node, const Color& color) const
+void ColorVariantConverter::emit_as_flow(ryml::NodeRef& node, const Color& color) const
 {
   node |= ryml::MAP;
   node |= ryml::FLOW_SL;
@@ -110,7 +110,7 @@ void ColorYAMLEncoder::emit_as_flow(ryml::NodeRef& node, const Color& color) con
   }
 }
 
-void ColorYAMLEncoder::emit_as_sequence(ryml::NodeRef& node, const Color& color) const
+void ColorVariantConverter::emit_as_sequence(ryml::NodeRef& node, const Color& color) const
 {
   node |= ryml::SEQ;
   node |= ryml::FLOW_SL;

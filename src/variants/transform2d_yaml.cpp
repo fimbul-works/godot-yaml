@@ -5,25 +5,25 @@
 
 using namespace godot;
 
-Transform2DYAMLEncoder::Transform2DYAMLEncoder(YAML* yaml) :
-        YAMLEncoder(yaml)
+Transform2DVariantConverter::Transform2DVariantConverter(YAML* yaml) :
+        VariantConverter(yaml)
 {
-  vec_encoder = new Vector2YAMLEncoder(yaml);
+  vec_encoder = new Vector2VariantConverter(yaml);
   vec_encoder->set_format("flow");
 }
 
-Transform2DYAMLEncoder::~Transform2DYAMLEncoder()
+Transform2DVariantConverter::~Transform2DVariantConverter()
 {
   delete vec_encoder;
 }
 
-void Transform2DYAMLEncoder::encode(ryml::NodeRef& node, const Variant& v) const
+void Transform2DVariantConverter::encode(ryml::NodeRef& node, const Variant& v) const
 {
   Transform2D basis = v.operator Transform2D();
   emit_as_map(node, basis);
 }
 
-Variant Transform2DYAMLEncoder::decode(const ryml::ConstNodeRef& node) const
+Variant Transform2DVariantConverter::decode(const ryml::ConstNodeRef& node) const
 {
   if (node.is_map() && node.has_child("x") && node.has_child("y") && node.has_child("z")) {
     Vector2 x = vec_encoder->decode(node["x"]).operator Vector2();
@@ -34,12 +34,12 @@ Variant Transform2DYAMLEncoder::decode(const ryml::ConstNodeRef& node) const
   throw YAMLException("invalid Transform2D format - " + String::utf8(node.val().str, node.val().len));
 }
 
-bool Transform2DYAMLEncoder::set_format(const String& format_str)
+bool Transform2DVariantConverter::set_format(const String& format_str)
 {
   return vec_encoder->set_format(format_str);
 }
 
-void Transform2DYAMLEncoder::emit_as_map(ryml::NodeRef& node, const Transform2D& transform) const
+void Transform2DVariantConverter::emit_as_map(ryml::NodeRef& node, const Transform2D& transform) const
 {
   node |= ryml::MAP;
 

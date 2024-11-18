@@ -9,10 +9,10 @@
 
 using namespace godot;
 
-ResourceYAMLEncoder::ResourceYAMLEncoder(YAML* yaml) :
-        YAMLEncoder(yaml) { }
+ResourceVariantConverter::ResourceVariantConverter(YAML* yaml) :
+        VariantConverter(yaml) { }
 
-void ResourceYAMLEncoder::encode(ryml::NodeRef& node, const Variant& v) const
+void ResourceVariantConverter::encode(ryml::NodeRef& node, const Variant& v) const
 {
   Resource* r = Object::cast_to<Resource>(v);
   if (r) {
@@ -22,7 +22,7 @@ void ResourceYAMLEncoder::encode(ryml::NodeRef& node, const Variant& v) const
   }
 }
 
-Variant ResourceYAMLEncoder::decode(const ryml::ConstNodeRef& node) const
+Variant ResourceVariantConverter::decode(const ryml::ConstNodeRef& node) const
 {
   if (node.has_val() && !node.val_is_null()) {
     String path = String::utf8(node.val().str, node.val().len).simplify_path();
@@ -44,7 +44,7 @@ Variant ResourceYAMLEncoder::decode(const ryml::ConstNodeRef& node) const
   throw YAMLException("invalid Resource format - " + String::utf8(node.val().str, node.val().len));
 }
 
-bool ResourceYAMLEncoder::set_format(const String& format_str)
+bool ResourceVariantConverter::set_format(const String& format_str)
 {
   return true;
 }
