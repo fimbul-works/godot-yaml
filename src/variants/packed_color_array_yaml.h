@@ -1,8 +1,8 @@
 #ifndef PACKED_COLOR_ARRAY_YAML_H
 #define PACKED_COLOR_ARRAY_YAML_H
 
+#include "../variant_converter.h"
 #include "color_yaml.h"
-#include "yaml_encoder.h"
 
 namespace godot {
 
@@ -15,9 +15,9 @@ class PackedColorArrayVariantConverter : public VariantConverter {
 
   void encode(ryml::NodeRef& node, const Variant& v) const override;
   Variant decode(const ryml::ConstNodeRef& node) const override;
+  bool set_format(const String& format) override;
 
-  bool set_format(const String& format_str) override;
-
+  private:
   ColorVariantConverter* color_encoder;
 };
 

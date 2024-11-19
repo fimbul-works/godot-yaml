@@ -1,8 +1,8 @@
 #ifndef PLANE_YAML_H
 #define PLANE_YAML_H
 
+#include "../variant_converter.h"
 #include "vector3_yaml.h"
-#include "yaml.h"
 
 namespace godot {
 
@@ -15,12 +15,10 @@ class PlaneVariantConverter : public VariantConverter {
 
   void encode(ryml::NodeRef& node, const Variant& v) const override;
   Variant decode(const ryml::ConstNodeRef& node) const override;
-
-  bool set_format(const String& format_str) override;
+  bool set_format(const String& format) override;
 
   private:
-  void emit_as_map(ryml::NodeRef& node, const Plane& aabb) const;
-
+  void emit_as_map(ryml::NodeRef& node, const Plane& plane) const;
   Vector3VariantConverter* vec_encoder;
 };
 

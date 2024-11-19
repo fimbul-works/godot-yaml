@@ -1,14 +1,14 @@
 #ifndef QUATERNION_YAML_H
 #define QUATERNION_YAML_H
 
-#include "yaml_encoder.h"
+#include "../variant_converter.h"
 
 namespace godot {
 
 class QuaternionVariantConverter : public VariantConverter {
   enum class Format {
-    FLOW_MAP,
-    SEQUENCE
+    FLOW_MAP, // {x: 0, y: 0, z: 0, w: 1}
+    SEQUENCE // [0, 0, 0, 1]
   };
 
   public:
@@ -18,14 +18,13 @@ class QuaternionVariantConverter : public VariantConverter {
 
   void encode(ryml::NodeRef& node, const Variant& v) const override;
   Variant decode(const ryml::ConstNodeRef& node) const override;
-
-  bool set_format(const String& format_str) override;
+  bool set_format(const String& format) override;
 
   private:
   Format format = Format::FLOW_MAP;
 
-  void emit_as_flow(ryml::NodeRef& node, const Quaternion& vec) const;
-  void emit_as_sequence(ryml::NodeRef& node, const Quaternion& vec) const;
+  void emit_as_flow(ryml::NodeRef& node, const Quaternion& quat) const;
+  void emit_as_sequence(ryml::NodeRef& node, const Quaternion& quat) const;
 };
 
 } // namespace godot

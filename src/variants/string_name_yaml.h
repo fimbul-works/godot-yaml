@@ -1,7 +1,7 @@
 #ifndef STRING_NAME_YAML_H
 #define STRING_NAME_YAML_H
 
-#include "yaml_encoder.h"
+#include "../variant_converter.h"
 
 namespace godot {
 
@@ -13,8 +13,7 @@ class StringNameVariantConverter : public VariantConverter {
 
   void encode(ryml::NodeRef& node, const Variant& v) const override;
   Variant decode(const ryml::ConstNodeRef& node) const override;
-
-  bool set_format(const String& format_str) override;
+  bool set_format(const String& format) override;
 };
 
 } // namespace godot

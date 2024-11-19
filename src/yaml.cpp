@@ -1,8 +1,4 @@
 #include "yaml.h"
-#include "variants/resource_yaml.h"
-
-#include <godot_cpp/core/class_db.hpp>
-
 #include "version.h"
 
 using namespace godot;
@@ -11,31 +7,20 @@ void YAML::_bind_methods()
 {
   ClassDB::bind_method(D_METHOD("version"), &YAML::version);
   ClassDB::bind_method(D_METHOD("parse", "input"), &YAML::parse);
-  ClassDB::bind_method(D_METHOD("stringify", "input"), &YAML::stringify);
-  ClassDB::bind_method(D_METHOD("get_error"), &YAML::get_error);
-  ClassDB::bind_method(D_METHOD("set_format", "type", "format"), &YAML::set_format);
+  ClassDB::bind_method(D_METHOD("emit", "input"), &YAML::emit);
+  ClassDB::bind_method(D_METHOD("create_parser"), &YAML::create_parser);
+  ClassDB::bind_method(D_METHOD("create_emitter"), &YAML::create_emitter);
 }
 
-YAML::YAML() :
-        m_callbacks(nullptr, nullptr, nullptr, &YAML::error_callback),
-        m_tree(m_callbacks),
-        m_evt_handler(std::make_unique<ryml::EventHandlerTree>(m_callbacks)),
-        m_parser(std::make_unique<ryml::Parser>(m_evt_handler.get(), ryml::ParserOptions().locations(true))),
-        resource_encoder(std::make_unique<ResourceVariantConverter>(this))
+YAML::YAML()
 {
-  try {
-    ryml::set_callbacks(m_callbacks);
-    register_type_encoders();
-  } catch (const std::exception& e) {
-    godot::UtilityFunctions::printerr("YAML initialization error: ", e.what());
-  } catch (...) {
-    godot::UtilityFunctions::printerr("YAML initialization error: Unknown error");
-  }
+  // Create default parser and emitter instances
+  default_parser = create_parser();
+  default_emitter = create_emitter();
 }
 
 YAML::~YAML()
 {
-  ryml::reset_callbacks();
 }
 
 String YAML::version()
@@ -46,4 +31,28 @@ String YAML::version()
   String target = "release";
 #endif
   return String("Version " + String(GODOT_YAML_VERSION) + " (" + target + ")");
+}
+
+Ref<YAMLResult> YAML::parse(const String& input)
+{
+  return default_parser->parse(input);
+}
+
+Ref<YAMLResult> YAML::emit(const Variant& input)
+{
+  return default_emitter->emit(input);
+}
+
+Ref<YAMLParser> YAML::create_parser() const
+{
+  Ref<YAMLParser> parser;
+  parser.instantiate();
+  return parser;
+}
+
+Ref<YAMLEmitter> YAML::create_emitter() const
+{
+  Ref<YAMLEmitter> emitter;
+  emitter.instantiate();
+  return emitter;
 }

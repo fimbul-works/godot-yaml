@@ -1,5 +1,5 @@
-#ifndef YAML_ENCODER_H
-#define YAML_ENCODER_H
+#ifndef VARIANT_CONVERTER_H
+#define VARIANT_CONVERTER_H
 
 #include <godot_cpp/variant/variant.hpp>
 #include <ryml.hpp>
@@ -18,16 +18,19 @@ class YAML;
 class VariantConverter {
   public:
   VariantConverter(YAML* yaml) :
-          m_yaml(yaml) { };
+          m_yaml(yaml) { }
   virtual ~VariantConverter() = default;
 
+  // Tag identification
   virtual const char* get_tag() const = 0;
   virtual const char* get_full_tag() const = 0;
   virtual const Variant::Type get_type() const = 0;
 
+  // Conversion methods
   virtual void encode(ryml::NodeRef& node, const Variant& v) const = 0;
   virtual Variant decode(const ryml::ConstNodeRef& node) const = 0;
 
+  // Format configuration
   virtual bool set_format(const String& format) = 0;
 
   protected:
@@ -36,4 +39,4 @@ class VariantConverter {
 
 } // namespace godot
 
-#endif // YAML_ENCODER_H
+#endif // VARIANT_CONVERTER_H

@@ -1,8 +1,8 @@
 #ifndef RECT2I_YAML_H
 #define RECT2I_YAML_H
 
+#include "../variant_converter.h"
 #include "vector2i_yaml.h"
-#include "yaml.h"
 
 namespace godot {
 
@@ -15,12 +15,10 @@ class Rect2iVariantConverter : public VariantConverter {
 
   void encode(ryml::NodeRef& node, const Variant& v) const override;
   Variant decode(const ryml::ConstNodeRef& node) const override;
-
-  bool set_format(const String& format_str) override;
+  bool set_format(const String& format) override;
 
   private:
   void emit_as_map(ryml::NodeRef& node, const Rect2i& rect) const;
-
   Vector2iVariantConverter* vec_encoder;
 };
 

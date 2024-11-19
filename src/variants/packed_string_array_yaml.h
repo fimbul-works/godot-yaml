@@ -1,7 +1,7 @@
 #ifndef PACKED_STRING_ARRAY_YAML_H
 #define PACKED_STRING_ARRAY_YAML_H
 
-#include "yaml_encoder.h"
+#include "../variant_converter.h"
 
 namespace godot {
 
@@ -13,8 +13,10 @@ class PackedStringArrayVariantConverter : public VariantConverter {
 
   void encode(ryml::NodeRef& node, const Variant& v) const override;
   Variant decode(const ryml::ConstNodeRef& node) const override;
+  bool set_format(const String& format) override;
 
-  bool set_format(const String& format_str) override;
+  private:
+  void emit_as_sequence(ryml::NodeRef& node, const PackedStringArray& array) const;
 };
 
 } // namespace godot
