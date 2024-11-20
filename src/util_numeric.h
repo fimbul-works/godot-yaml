@@ -2,6 +2,7 @@
 #define UTIL_NUMERIC_H
 
 #include "yaml.h"
+#include "yaml_exception.h"
 
 #include <c4/format.hpp>
 

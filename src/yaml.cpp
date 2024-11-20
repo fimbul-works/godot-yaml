@@ -10,18 +10,21 @@ void YAML::_bind_methods()
   ClassDB::bind_method(D_METHOD("emit", "input"), &YAML::emit);
   ClassDB::bind_method(D_METHOD("create_parser"), &YAML::create_parser);
   ClassDB::bind_method(D_METHOD("create_emitter"), &YAML::create_emitter);
+  ClassDB::bind_method(D_METHOD("set_format", "type", "format"), &YAML::set_format);
+  ClassDB::bind_method(D_METHOD("get_format", "type"), &YAML::get_format);
 }
 
 YAML::YAML()
 {
+  // Register all variant converters first
+  register_type_converters();
+
   // Create default parser and emitter instances
   default_parser = create_parser();
   default_emitter = create_emitter();
 }
 
-YAML::~YAML()
-{
-}
+YAML::~YAML() = default;
 
 String YAML::version()
 {
@@ -55,4 +58,32 @@ Ref<YAMLEmitter> YAML::create_emitter() const
   Ref<YAMLEmitter> emitter;
   emitter.instantiate();
   return emitter;
+}
+
+bool YAML::set_format(Variant::Type type, const String& format)
+{
+  return default_emitter->set_format(type, format);
+}
+
+String YAML::get_format(Variant::Type type) const
+{
+  return default_emitter->get_format(type);
+}
+
+const VariantConverter* YAML::get_converter_by_tag(const String& tag) const
+{
+  auto it = tag_to_converter.find(tag);
+  return it != tag_to_converter.end() ? it->second : nullptr;
+}
+
+const VariantConverter* YAML::get_converter_by_type(Variant::Type type) const
+{
+  auto it = type_to_converter.find(type);
+  return it != type_to_converter.end() ? it->second.get() : nullptr;
+}
+
+void YAML::register_converter(std::unique_ptr<VariantConverter> converter)
+{
+  tag_to_converter[converter->get_full_tag()] = converter.get();
+  type_to_converter[converter->get_type()] = std::move(converter);
 }

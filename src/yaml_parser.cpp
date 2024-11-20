@@ -10,12 +10,12 @@ void YAMLParser::_bind_methods()
 
 YAMLParser::YAMLParser()
 {
-  m_parser = std::make_unique<ryml::Parser>();
-
   // Set up error callback
   ryml::Callbacks callbacks;
   callbacks.m_error = error_callback;
   callbacks.m_user_data = this;
+
+  m_parser = std::make_unique<ryml::Parser>();
   ryml::set_callbacks(callbacks);
 }
 

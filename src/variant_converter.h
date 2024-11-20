@@ -4,6 +4,16 @@
 #include <godot_cpp/variant/variant.hpp>
 #include <ryml.hpp>
 
+namespace std {
+template <>
+struct hash<godot::String> {
+  size_t operator()(const godot::String& str) const
+  {
+    return str.hash();
+  }
+};
+}
+
 #define DEFINE_YAML_TAG(TAG_VALUE, VARIANT_TYPE)                 \
   static constexpr const char* TAG = TAG_VALUE;                  \
   static constexpr const char* FULL_TAG = "!" TAG_VALUE;         \
