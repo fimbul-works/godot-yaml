@@ -9,7 +9,16 @@ template <>
 struct hash<godot::String> {
   size_t operator()(const godot::String& str) const
   {
+    // Use Godot's built-in hash function
     return str.hash();
+  }
+};
+
+template <>
+struct equal_to<godot::String> {
+  bool operator()(const godot::String& lhs, const godot::String& rhs) const
+  {
+    return lhs == rhs;
   }
 };
 }

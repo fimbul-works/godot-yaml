@@ -10,13 +10,19 @@ void YAMLParser::_bind_methods()
 
 YAMLParser::YAMLParser()
 {
-  // Set up error callback
-  ryml::Callbacks callbacks;
-  callbacks.m_error = error_callback;
-  callbacks.m_user_data = this;
+  // Set up callbacks and error handling
+  m_callbacks.m_error = error_callback;
+  m_callbacks.m_user_data = this;
 
-  m_parser = std::make_unique<ryml::Parser>();
-  ryml::set_callbacks(callbacks);
+  // Initialize event handler with callbacks
+  m_evt_handler = std::make_unique<ryml::EventHandlerTree>(m_callbacks);
+
+  // Create parser with location tracking enabled
+  m_parser = std::make_unique<ryml::Parser>(m_evt_handler.get(),
+          ryml::ParserOptions().locations(true));
+
+  // Set callbacks for the tree
+  ryml::set_callbacks(m_callbacks);
 }
 
 YAMLParser::~YAMLParser() = default;

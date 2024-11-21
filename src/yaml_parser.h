@@ -30,6 +30,12 @@ class YAMLParser : public RefCounted {
   static void error_callback(const char* msg, size_t len, ryml::Location loc, void* user_data);
   Ref<YAMLResult> current_result;
 
+  // YAML parsing state
+  ryml::Callbacks m_callbacks;
+  ryml::Tree m_tree;
+  std::unique_ptr<ryml::EventHandlerTree> m_evt_handler;
+  std::unique_ptr<ryml::Parser> m_parser;
+
   // YAML parsing helpers
   Variant yaml_to_variant(const ryml::ConstNodeRef& node);
   Variant parse_map(const ryml::ConstNodeRef& node);
@@ -38,10 +44,6 @@ class YAMLParser : public RefCounted {
   Variant parse_value(const ryml::ConstNodeRef& node);
   std::optional<Variant> parse_special_value(const String& str_val);
   std::optional<Variant> parse_numeric_value(const String& str_val, const ryml::csubstr& val);
-
-  // YAML parsing state
-  ryml::Tree m_tree;
-  std::unique_ptr<ryml::Parser> m_parser;
 };
 
 } // namespace godot

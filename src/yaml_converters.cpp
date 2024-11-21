@@ -35,37 +35,37 @@ namespace godot {
 void YAML::register_type_converters()
 {
   // Initialize resource converter first
-  resource_converter = std::make_unique<ResourceVariantConverter>();
+  resource_converter = std::make_unique<ResourceVariantConverter>(this);
   tag_to_converter[resource_converter->get_full_tag()] = resource_converter.get();
 
   // Register all variant converters
-  register_converter(std::make_unique<AABBVariantConverter>());
-  register_converter(std::make_unique<BasisVariantConverter>());
-  register_converter(std::make_unique<ColorVariantConverter>());
-  register_converter(std::make_unique<NodePathVariantConverter>());
-  register_converter(std::make_unique<PackedByteArrayVariantConverter>());
-  register_converter(std::make_unique<PackedColorArrayVariantConverter>());
-  register_converter(std::make_unique<PackedFloat32ArrayVariantConverter>());
-  register_converter(std::make_unique<PackedFloat64ArrayVariantConverter>());
-  register_converter(std::make_unique<PackedInt32ArrayVariantConverter>());
-  register_converter(std::make_unique<PackedInt64ArrayVariantConverter>());
-  register_converter(std::make_unique<PackedStringArrayVariantConverter>());
-  register_converter(std::make_unique<PackedVector2ArrayVariantConverter>());
-  register_converter(std::make_unique<PackedVector3ArrayVariantConverter>());
-  register_converter(std::make_unique<PlaneVariantConverter>());
-  register_converter(std::make_unique<ProjectionVariantConverter>());
-  register_converter(std::make_unique<QuaternionVariantConverter>());
-  register_converter(std::make_unique<Rect2VariantConverter>());
-  register_converter(std::make_unique<Rect2iVariantConverter>());
-  register_converter(std::make_unique<StringNameVariantConverter>());
-  register_converter(std::make_unique<Transform2DVariantConverter>());
-  register_converter(std::make_unique<Transform3DVariantConverter>());
-  register_converter(std::make_unique<Vector2VariantConverter>());
-  register_converter(std::make_unique<Vector2iVariantConverter>());
-  register_converter(std::make_unique<Vector3VariantConverter>());
-  register_converter(std::make_unique<Vector3iVariantConverter>());
-  register_converter(std::make_unique<Vector4VariantConverter>());
-  register_converter(std::make_unique<Vector4iVariantConverter>());
+  register_converter(std::make_unique<AABBVariantConverter>(this));
+  register_converter(std::make_unique<BasisVariantConverter>(this));
+  register_converter(std::make_unique<ColorVariantConverter>(this));
+  register_converter(std::make_unique<NodePathVariantConverter>(this));
+  register_converter(std::make_unique<PackedByteArrayVariantConverter>(this));
+  register_converter(std::make_unique<PackedColorArrayVariantConverter>(this));
+  register_converter(std::make_unique<PackedFloat32ArrayVariantConverter>(this));
+  register_converter(std::make_unique<PackedFloat64ArrayVariantConverter>(this));
+  register_converter(std::make_unique<PackedInt32ArrayVariantConverter>(this));
+  register_converter(std::make_unique<PackedInt64ArrayVariantConverter>(this));
+  register_converter(std::make_unique<PackedStringArrayVariantConverter>(this));
+  register_converter(std::make_unique<PackedVector2ArrayVariantConverter>(this));
+  register_converter(std::make_unique<PackedVector3ArrayVariantConverter>(this));
+  register_converter(std::make_unique<PlaneVariantConverter>(this));
+  register_converter(std::make_unique<ProjectionVariantConverter>(this));
+  register_converter(std::make_unique<QuaternionVariantConverter>(this));
+  register_converter(std::make_unique<Rect2VariantConverter>(this));
+  register_converter(std::make_unique<Rect2iVariantConverter>(this));
+  register_converter(std::make_unique<StringNameVariantConverter>(this));
+  register_converter(std::make_unique<Transform2DVariantConverter>(this));
+  register_converter(std::make_unique<Transform3DVariantConverter>(this));
+  register_converter(std::make_unique<Vector2VariantConverter>(this));
+  register_converter(std::make_unique<Vector2iVariantConverter>(this));
+  register_converter(std::make_unique<Vector3VariantConverter>(this));
+  register_converter(std::make_unique<Vector3iVariantConverter>(this));
+  register_converter(std::make_unique<Vector4VariantConverter>(this));
+  register_converter(std::make_unique<Vector4iVariantConverter>(this));
 }
 
 } // namespace godot

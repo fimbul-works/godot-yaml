@@ -1,11 +1,14 @@
 #include "yaml.h"
 #include "version.h"
 
+#include <gdextension_interface.h>
+#include <godot_cpp/core/defs.hpp>
+#include <godot_cpp/godot.hpp>
+
 using namespace godot;
 
 void YAML::_bind_methods()
 {
-  ClassDB::bind_method(D_METHOD("version"), &YAML::version);
   ClassDB::bind_method(D_METHOD("parse", "input"), &YAML::parse);
   ClassDB::bind_method(D_METHOD("emit", "input"), &YAML::emit);
   ClassDB::bind_method(D_METHOD("create_parser"), &YAML::create_parser);
@@ -70,6 +73,13 @@ String YAML::get_format(Variant::Type type) const
   return default_emitter->get_format(type);
 }
 
+void YAML::register_converter(std::unique_ptr<VariantConverter> converter)
+{
+  String tag_str = String(converter->get_full_tag());
+  tag_to_converter[tag_str] = converter.get();
+  type_to_converter[converter->get_type()] = std::move(converter);
+}
+
 const VariantConverter* YAML::get_converter_by_tag(const String& tag) const
 {
   auto it = tag_to_converter.find(tag);
@@ -80,10 +90,4 @@ const VariantConverter* YAML::get_converter_by_type(Variant::Type type) const
 {
   auto it = type_to_converter.find(type);
   return it != type_to_converter.end() ? it->second.get() : nullptr;
-}
-
-void YAML::register_converter(std::unique_ptr<VariantConverter> converter)
-{
-  tag_to_converter[converter->get_full_tag()] = converter.get();
-  type_to_converter[converter->get_type()] = std::move(converter);
 }

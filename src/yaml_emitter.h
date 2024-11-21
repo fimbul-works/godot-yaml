@@ -5,9 +5,11 @@
 #include <godot_cpp/classes/ref_counted.hpp>
 #include <godot_cpp/core/class_db.hpp>
 #include <godot_cpp/variant/utility_functions.hpp>
+#include <ryml.hpp>
+#include <ryml_std.hpp>
+
 #include <memory>
 #include <mutex>
-#include <ryml.hpp>
 #include <unordered_map>
 
 namespace godot {
@@ -24,11 +26,6 @@ class YAMLEmitter : public RefCounted {
 
   // Instance-specific formats
   std::unordered_map<Variant::Type, String> instance_formats;
-
-  // Variant converters
-  std::unordered_map<String, VariantConverter*> tag_to_converter;
-  std::unordered_map<Variant::Type, std::unique_ptr<VariantConverter>> type_to_converter;
-  std::unique_ptr<VariantConverter> resource_converter;
 
   protected:
   static void _bind_methods();
