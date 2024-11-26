@@ -11,22 +11,18 @@
 namespace godot {
 
 class YAML : public Object {
-  GDCLASS(YAML, Object)
+  GDCLASS(YAML, Object);
 
   protected:
   static void _bind_methods();
-  // Keep protected so class cannot be initialized
-  YAML();
-  ~YAML();
+  // Keep constructor/destructor protected for proper GDExtension lifecycle
+  YAML() { }
+  ~YAML() { }
 
   public:
   static String version();
-
-  // For custom parser/emitter instances
   static Ref<YAMLParser> create_parser();
   static Ref<YAMLEmitter> create_emitter();
-
-  // Shorthand methods
   static Ref<YAMLResult> parse(const String& input);
   static Ref<YAMLResult> emit(const Variant& input, const Ref<YAMLFormat>& format);
 };

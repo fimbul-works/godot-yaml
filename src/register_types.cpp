@@ -20,6 +20,7 @@ void initialize_yaml_module(ModuleInitializationLevel p_level)
 
   VariantConverterRegistry::initialize_registry();
 
+  //ClassDB::register_class<YAML>();
   GDREGISTER_CLASS(YAMLResult);
   GDREGISTER_CLASS(YAMLFormat);
   GDREGISTER_CLASS(YAMLParser);

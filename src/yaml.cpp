@@ -10,19 +10,12 @@ using namespace godot;
 void YAML::_bind_methods()
 {
   ClassDB::bind_static_method("YAML", D_METHOD("version"), &YAML::version);
-
   ClassDB::bind_static_method("YAML", D_METHOD("create_parser"), &YAML::create_parser);
   ClassDB::bind_static_method("YAML", D_METHOD("create_emitter"), &YAML::create_emitter);
-
   ClassDB::bind_static_method("YAML", D_METHOD("parse", "input"), &YAML::parse);
   ClassDB::bind_static_method("YAML", D_METHOD("emit", "input", "format"), &YAML::emit,
           DEFVAL(YAMLFormat::create_default()));
 }
-
-YAML::YAML() :
-        Object() { };
-
-YAML::~YAML() { };
 
 String YAML::version()
 {

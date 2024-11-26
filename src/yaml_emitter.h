@@ -40,12 +40,12 @@ class YAMLEmitter : public RefCounted {
   Ref<YAMLFormat> default_format;
 
   // String handling utilities
-  bool needs_block_style(const String& str) const
+  inline bool needs_block_style(const String& str) const
   {
     return str.contains("\n") || str.contains("\"") || str.begins_with(" ") || str.ends_with(" ") || str.begins_with("#");
   }
 
-  bool is_multiline(const String& str) const
+  inline bool is_multiline(const String& str) const
   {
     return str.contains("\n");
   }

@@ -134,21 +134,6 @@ void YAMLEmitter::emit_array(ryml::NodeRef& node, const Array& array, const YAML
     return;
   }
 
-  // Use flow style for simple value arrays
-  bool use_flow = true;
-  for (int i = 0; i < array.size(); i++) {
-    const Variant& value = array[i];
-    Variant::Type type = value.get_type();
-    if (type == Variant::ARRAY || type == Variant::DICTIONARY || (type == Variant::STRING && is_multiline(value))) {
-      use_flow = false;
-      break;
-    }
-  }
-
-  if (use_flow) {
-    node |= ryml::FLOW_SL;
-  }
-
   for (int i = 0; i < array.size(); i++) {
     emit_value(node.append_child(), array[i], format);
   }
@@ -162,22 +147,7 @@ void YAMLEmitter::emit_dictionary(ryml::NodeRef& node, const Dictionary& dict, c
     return;
   }
 
-  // Use flow style for simple value dictionaries
-  bool use_flow = true;
   Array keys = dict.keys();
-  for (int i = 0; i < keys.size(); i++) {
-    const Variant& value = dict[keys[i]];
-    Variant::Type type = value.get_type();
-    if (type == Variant::ARRAY || type == Variant::DICTIONARY || (type == Variant::STRING && is_multiline(value))) {
-      use_flow = false;
-      break;
-    }
-  }
-
-  if (use_flow) {
-    node |= ryml::FLOW_SL;
-  }
-
   for (int i = 0; i < keys.size(); i++) {
     const Variant& key = keys[i];
     ryml::csubstr key_str;
