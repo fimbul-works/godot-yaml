@@ -67,7 +67,7 @@ Variant Transform3DVariantConverter::decode(const ryml::ConstNodeRef& node) cons
   } catch (const YAMLException&) {
     throw;
   } catch (const std::exception& e) {
-    throw YAMLException(String("Failed to decode Transform3D: ") + e.what());
+    throw YAMLException::create_decode_error("Transform3D", e.what());
   }
 }
 

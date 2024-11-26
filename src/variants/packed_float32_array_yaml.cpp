@@ -45,7 +45,7 @@ Variant PackedFloat32ArrayVariantConverter::decode(const ryml::ConstNodeRef& nod
     try {
       array.set(i, string_to_float<float>(node[i].val()));
     } catch (const std::exception& e) {
-      throw YAMLException(String("Failed to decode float at index ") + String::num_uint64(i) + ": " + e.what());
+      throw YAMLException::create_decode_error(String("float at index " + String::num_uint64(i)).utf8().get_data(), e.what());
     }
   }
 

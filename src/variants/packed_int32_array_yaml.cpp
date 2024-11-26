@@ -45,7 +45,7 @@ Variant PackedInt32ArrayVariantConverter::decode(const ryml::ConstNodeRef& node)
     try {
       array.set(i, string_to_int<int32_t>(node[i].val()));
     } catch (const std::exception& e) {
-      throw YAMLException(String("Failed to decode integer at index ") + String::num_uint64(i) + ": " + e.what());
+      throw YAMLException::create_decode_error(String("integer at index " + String::num_uint64(i)).utf8().get_data(), e.what());
     }
   }
 

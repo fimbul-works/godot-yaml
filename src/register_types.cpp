@@ -14,23 +14,32 @@ namespace godot {
 
 void initialize_yaml_module(ModuleInitializationLevel p_level)
 {
-  if (p_level != MODULE_INITIALIZATION_LEVEL_EDITOR) {
+  if (p_level != MODULE_INITIALIZATION_LEVEL_SCENE) {
     return;
   }
 
   VariantConverterRegistry::initialize_registry();
 
-  //ClassDB::register_class<YAML>();
-  GDREGISTER_CLASS(YAMLResult);
-  GDREGISTER_CLASS(YAMLFormat);
-  GDREGISTER_CLASS(YAMLParser);
-  GDREGISTER_CLASS(YAMLEmitter);
-  GDREGISTER_CLASS(YAML);
+  if (!ClassDB::is_class_enabled("YAMLResult")) {
+    GDREGISTER_CLASS(YAMLResult);
+  }
+  if (!ClassDB::is_class_enabled("YAMLFormat")) {
+    GDREGISTER_CLASS(YAMLFormat);
+  }
+  if (!ClassDB::is_class_enabled("YAMLParser")) {
+    GDREGISTER_CLASS(YAMLParser);
+  }
+  if (!ClassDB::is_class_enabled("YAMLEmitter")) {
+    GDREGISTER_CLASS(YAMLEmitter);
+  }
+  if (!ClassDB::is_class_enabled("YAML")) {
+    GDREGISTER_CLASS(YAML);
+  }
 }
 
 void uninitialize_yaml_module(ModuleInitializationLevel p_level)
 {
-  if (p_level != MODULE_INITIALIZATION_LEVEL_EDITOR) {
+  if (p_level != MODULE_INITIALIZATION_LEVEL_SCENE) {
     return;
   }
 
@@ -48,7 +57,7 @@ GDExtensionBool GDE_EXPORT yaml_library_init(GDExtensionInterfaceGetProcAddress 
 
   init_obj.register_initializer(godot::initialize_yaml_module);
   init_obj.register_terminator(godot::uninitialize_yaml_module);
-  init_obj.set_minimum_library_initialization_level(godot::MODULE_INITIALIZATION_LEVEL_EDITOR);
+  init_obj.set_minimum_library_initialization_level(godot::MODULE_INITIALIZATION_LEVEL_SCENE);
 
   return init_obj.init();
 }

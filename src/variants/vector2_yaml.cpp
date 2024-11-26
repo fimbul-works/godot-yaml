@@ -48,7 +48,7 @@ Variant Vector2VariantConverter::decode(const ryml::ConstNodeRef& node) const
   } catch (const YAMLException&) {
     throw;
   } catch (const std::exception& e) {
-    throw YAMLException(String("Failed to decode Vector2: ") + e.what());
+    throw YAMLException::create_decode_error("Vector2", e.what());
   }
 }
 

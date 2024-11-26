@@ -67,7 +67,7 @@ Variant PackedByteArrayVariantConverter::decode(const ryml::ConstNodeRef& node) 
       return Marshalls::get_singleton()->base64_to_raw(String::utf8(result.cleaned.c_str()));
     }
   } catch (const std::exception& e) {
-    throw YAMLException(String("Failed to decode PackedByteArray: ") + e.what());
+    throw YAMLException::create_decode_error("PackedByteArray", e.what());
   }
 }
 

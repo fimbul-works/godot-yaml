@@ -69,7 +69,7 @@ Variant Transform2DVariantConverter::decode(const ryml::ConstNodeRef& node) cons
   } catch (const YAMLException&) {
     throw;
   } catch (const std::exception& e) {
-    throw YAMLException(String("Failed to decode Transform2D: ") + e.what());
+    throw YAMLException::create_decode_error("Transform2D", e.what());
   }
 }
 

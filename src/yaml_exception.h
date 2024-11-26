@@ -41,6 +41,11 @@ class YAMLException : public std::runtime_error {
     return YAMLException(String(type_name) + " sequence must have " + String::num_int64(expected_length) + " elements");
   }
 
+  static YAMLException create_decode_error(const char* type_name, const char* details)
+  {
+    return YAMLException(String("Failed to decode ") + type_name + ": " + details);
+  }
+
   private:
   String godot_message; // Store Godot String to avoid reconversion
 };

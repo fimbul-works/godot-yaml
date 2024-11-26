@@ -36,7 +36,7 @@ Variant NodePathVariantConverter::decode(const ryml::ConstNodeRef& node) const
   } catch (const YAMLException&) {
     throw;
   } catch (const std::exception& e) {
-    throw YAMLException(String("Failed to decode NodePath: ") + e.what());
+    throw YAMLException::create_decode_error("NodePath", e.what());
   }
 }
 

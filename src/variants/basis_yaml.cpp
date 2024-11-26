@@ -67,7 +67,7 @@ Variant BasisVariantConverter::decode(const ryml::ConstNodeRef& node) const
   } catch (const YAMLException&) {
     throw; // Re-throw YAML exceptions
   } catch (const std::exception& e) {
-    throw YAMLException(String("Failed to decode Basis: ") + e.what());
+    throw YAMLException::create_decode_error("Basis", e.what());
   }
 }
 

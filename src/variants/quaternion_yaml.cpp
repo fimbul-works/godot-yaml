@@ -79,7 +79,7 @@ Variant QuaternionVariantConverter::decode(const ryml::ConstNodeRef& node) const
   } catch (const YAMLException&) {
     throw;
   } catch (const std::exception& e) {
-    throw YAMLException(String("Failed to decode Quaternion: ") + e.what());
+    throw YAMLException::create_decode_error("Quaternion", e.what());
   }
 }
 

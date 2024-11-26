@@ -79,7 +79,7 @@ Variant Rect2VariantConverter::decode(const ryml::ConstNodeRef& node) const
   } catch (const YAMLException&) {
     throw;
   } catch (const std::exception& e) {
-    throw YAMLException(String("Failed to decode Rect2: ") + e.what());
+    throw YAMLException::create_decode_error("Rect2", e.what());
   }
 }
 
