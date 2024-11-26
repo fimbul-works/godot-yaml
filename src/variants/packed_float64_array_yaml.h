@@ -5,18 +5,22 @@
 
 namespace godot {
 
+/**
+ * YAML converter for PackedFloat64Array type.
+ * Represents arrays of 64-bit floating point numbers as a sequence.
+ * Handles special values like infinity and NaN.
+ * Empty arrays are represented as empty sequences.
+ * Example: [1.0, -2.5, .inf, -.inf, .nan]
+ */
 class PackedFloat64ArrayVariantConverter : public VariantConverter {
   public:
   DEFINE_YAML_TAG("PackedFloat64Array", Variant::PACKED_FLOAT64_ARRAY)
 
-  PackedFloat64ArrayVariantConverter(YAML* yaml);
-
-  void encode(ryml::NodeRef& node, const Variant& v) const override;
+  void encode(ryml::NodeRef& node, const Variant& v, const YAMLFormat::View& format) const override;
   Variant decode(const ryml::ConstNodeRef& node) const override;
-  bool set_format(const String& format) override;
 
   private:
-  void emit_as_sequence(ryml::NodeRef& node, const PackedFloat64Array& array) const;
+  void emit_as_sequence(ryml::NodeRef& node, const PackedFloat64Array& array, const YAMLFormat::View& format) const;
 };
 
 } // namespace godot

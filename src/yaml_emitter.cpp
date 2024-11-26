@@ -1,210 +1,213 @@
 #include "yaml_emitter.h"
 #include "util_numeric.h"
-#include "yaml_result.h"
+#include "util_string.h"
+#include <godot_cpp/variant/utility_functions.hpp>
 
 using namespace godot;
 
-// Initialize static members
-std::unordered_map<Variant::Type, String> YAMLEmitter::default_formats;
-std::mutex YAMLEmitter::default_formats_mutex;
-
 void YAMLEmitter::_bind_methods()
 {
-  ClassDB::bind_method(D_METHOD("emit", "input"), &YAMLEmitter::emit);
-  ClassDB::bind_method(D_METHOD("set_format", "type", "format"), &YAMLEmitter::set_format);
-  ClassDB::bind_method(D_METHOD("get_format", "type"), &YAMLEmitter::get_format);
-  ClassDB::bind_method(D_METHOD("reset_formats"), &YAMLEmitter::reset_formats);
-
-  ClassDB::bind_static_method("YAMLEmitter", D_METHOD("set_default_format", "type", "format"), &YAMLEmitter::set_default_format);
-  ClassDB::bind_static_method("YAMLEmitter", D_METHOD("get_default_format", "type"), &YAMLEmitter::get_default_format);
-  ClassDB::bind_static_method("YAMLEmitter", D_METHOD("reset_default_formats"), &YAMLEmitter::reset_default_formats);
+  ClassDB::bind_method(D_METHOD("emit", "input", "format"), &YAMLEmitter::emit,
+          DEFVAL(YAMLFormat::create_default()));
+  ClassDB::bind_method(D_METHOD("set_default_format", "format"), &YAMLEmitter::set_default_format);
+  ClassDB::bind_method(D_METHOD("get_default_format"), &YAMLEmitter::get_default_format);
 }
 
 YAMLEmitter::YAMLEmitter()
 {
-  // Copy current default formats to instance formats
-  std::lock_guard<std::mutex> lock(default_formats_mutex);
-  instance_formats = default_formats;
+  default_format = YAMLFormat::create_default();
 }
 
-YAMLEmitter::~YAMLEmitter()
+YAMLEmitter::YAMLEmitter(const Ref<YAMLFormat>& format)
 {
+  default_format = format.is_valid() ? format : YAMLFormat::create_default();
 }
 
-Ref<YAMLResult> YAMLEmitter::emit(const Variant& input)
+YAMLEmitter::~YAMLEmitter() = default;
+
+void YAMLEmitter::set_default_format(const Ref<YAMLFormat>& format)
 {
-  Ref<YAMLResult> result;
-  result.instantiate();
+  default_format = format.is_valid() ? format : YAMLFormat::create_default();
+}
+
+Ref<YAMLFormat> YAMLEmitter::get_default_format() const
+{
+  return default_format;
+}
+
+Ref<YAMLResult> YAMLEmitter::emit(const Variant& input, const Ref<YAMLFormat>& format)
+{
+  std::lock_guard<std::mutex> lock(emit_mutex);
 
   try {
     ryml::Tree tree;
-    emit_recursively(tree.rootref(), input, result);
+    emit_value(tree.rootref(), input,
+            format.is_valid() ? format->get_view() : default_format->get_view());
 
-    if (result->has_error()) {
-      return result;
-    }
-
-    if (tree.arena().empty()) {
-      set_error(result, "Empty document");
-      return result;
-    }
-
-    // Generate YAML string
-    std::string str_result = ryml::emitrs_yaml<std::string>(tree);
-    result->data = String::utf8(str_result.c_str(), str_result.length());
-    return result;
+    std::string yaml_str = ryml::emitrs_yaml<std::string>(tree);
+    return YAMLResult::success(String::utf8(yaml_str.c_str(), yaml_str.length()));
 
   } catch (const std::exception& e) {
-    set_error(result, String("Emission error: ") + e.what());
-    return result;
-  } catch (...) {
-    set_error(result, "Unknown emission error");
-    return result;
+    return YAMLResult::error(e.what());
   }
 }
 
-void YAMLEmitter::emit_recursively(ryml::NodeRef& node, const Variant& v, Ref<YAMLResult>& result)
+void YAMLEmitter::emit_value(ryml::NodeRef& node, const Variant& value, const YAMLFormat::View& format)
 {
-  switch (v.get_type()) {
-    case Variant::NIL: {
-      ryml::csubstr null = {};
-      node << null;
+  // First try to emit as a tagged type if we have a converter
+  if (const auto* converter = get_converter_for_type(value.get_type())) {
+    emit_tagged_value(node, value, format);
+    return;
+  }
+
+  // Otherwise emit based on variant type
+  switch (value.get_type()) {
+    case Variant::NIL:
+      emit_nil(node);
       break;
-    }
+
     case Variant::BOOL:
-      node << ((bool)v ? "true" : "false");
+      emit_bool(node, value);
       break;
+
     case Variant::INT:
     case Variant::FLOAT:
-      emit_number(node, v);
+      emit_number(node, value);
       break;
-    case Variant::STRING: {
-      String str = v;
-      emit_string(node, str);
+
+    case Variant::STRING:
+      emit_string(node, value);
       break;
-    }
+
     case Variant::ARRAY:
-      emit_array(node, v, result);
+      emit_array(node, value, format);
       break;
+
     case Variant::DICTIONARY:
-      emit_map(node, v, result);
+      emit_dictionary(node, value, format);
       break;
-    default: {
-      String type_name = Variant::get_type_name(v.get_type());
-      set_error(result, vformat("Unsupported type: %s", type_name));
-    }
+
+    default:
+      String type_name = Variant::get_type_name(value.get_type());
+      current_result = YAMLResult::error(vformat("Unsupported type: %s", type_name));
   }
 }
 
-void YAMLEmitter::emit_map(ryml::NodeRef& node, const Dictionary& dict, Ref<YAMLResult>& result)
+void YAMLEmitter::emit_nil(ryml::NodeRef& node)
 {
-  node |= ryml::MAP;
-  Array keys = dict.keys();
+  ryml::csubstr null = {};
+  node << null;
+}
 
-  for (int i = 0; i < keys.size(); ++i) {
-    const Variant& key = keys[i];
-    String key_str;
+void YAMLEmitter::emit_bool(ryml::NodeRef& node, bool value)
+{
+  node << (value ? "true" : "false");
+}
 
-    // Convert key to string
-    if (key.get_type() == Variant::STRING) {
-      key_str = key;
-    } else {
-      key_str = String(key);
-    }
-
-    CharString key_utf8 = key_str.utf8();
-    ryml::csubstr key_csubstr(key_utf8.get_data(), key_utf8.length());
-
-    ryml::NodeRef child = node.append_child();
-    child << ryml::key(key_csubstr);
-    emit_recursively(child, dict[key], result);
-
-    if (result->has_error()) {
-      return;
-    }
+void YAMLEmitter::emit_number(ryml::NodeRef& node, const Variant& value)
+{
+  if (value.get_type() == Variant::INT) {
+    node << int_to_string((int64_t)value);
+  } else {
+    node << float_to_string((double)value);
   }
 }
 
-void YAMLEmitter::emit_array(ryml::NodeRef& node, const Array& arr, Ref<YAMLResult>& result)
+void YAMLEmitter::emit_string(ryml::NodeRef& node, const String& value)
+{
+  if (value.is_empty()) {
+    node << ryml::csubstr {};
+    return;
+  }
+
+  if (needs_block_style(value)) {
+    node |= ryml::BLOCK;
+  }
+  node << to_ryml_str(value);
+}
+
+void YAMLEmitter::emit_array(ryml::NodeRef& node, const Array& array, const YAMLFormat::View& format)
 {
   node |= ryml::SEQ;
 
-  for (int i = 0; i < arr.size(); ++i) {
-    emit_recursively(node.append_child(), arr[i], result);
-    if (result->has_error()) {
-      return;
+  if (array.size() == 0) {
+    return;
+  }
+
+  // Use flow style for simple value arrays
+  bool use_flow = true;
+  for (int i = 0; i < array.size(); i++) {
+    const Variant& value = array[i];
+    Variant::Type type = value.get_type();
+    if (type == Variant::ARRAY || type == Variant::DICTIONARY || (type == Variant::STRING && is_multiline(value))) {
+      use_flow = false;
+      break;
     }
   }
-}
 
-void YAMLEmitter::emit_string(ryml::NodeRef& node, const String& str)
-{
-  CharString utf8 = str.utf8();
-  node << ryml::csubstr(utf8.get_data(), utf8.length());
-}
+  if (use_flow) {
+    node |= ryml::FLOW_SL;
+  }
 
-void YAMLEmitter::emit_number(ryml::NodeRef& node, const Variant& v)
-{
-  if (v.get_type() == Variant::INT) {
-    node << int_to_string((int64_t)v);
-  } else {
-    node << float_to_string((double)v);
+  for (int i = 0; i < array.size(); i++) {
+    emit_value(node.append_child(), array[i], format);
   }
 }
 
-void YAMLEmitter::set_error(Ref<YAMLResult>& result, const String& error, int line, int column)
+void YAMLEmitter::emit_dictionary(ryml::NodeRef& node, const Dictionary& dict, const YAMLFormat::View& format)
 {
-  result->set_error(error, line, column);
-}
+  node |= ryml::MAP;
 
-bool YAMLEmitter::set_format(Variant::Type type, const String& format)
-{
-  if (format.is_empty()) {
-    instance_formats.erase(type);
-  } else {
-    instance_formats[type] = format;
+  if (dict.size() == 0) {
+    return;
   }
-  return true;
-}
 
-String YAMLEmitter::get_format(Variant::Type type) const
-{
-  auto it = instance_formats.find(type);
-  if (it != instance_formats.end()) {
-    return it->second;
+  // Use flow style for simple value dictionaries
+  bool use_flow = true;
+  Array keys = dict.keys();
+  for (int i = 0; i < keys.size(); i++) {
+    const Variant& value = dict[keys[i]];
+    Variant::Type type = value.get_type();
+    if (type == Variant::ARRAY || type == Variant::DICTIONARY || (type == Variant::STRING && is_multiline(value))) {
+      use_flow = false;
+      break;
+    }
   }
-  return String();
-}
 
-void YAMLEmitter::reset_formats()
-{
-  std::lock_guard<std::mutex> lock(default_formats_mutex);
-  instance_formats = default_formats;
-}
-
-bool YAMLEmitter::set_default_format(Variant::Type type, const String& format)
-{
-  std::lock_guard<std::mutex> lock(default_formats_mutex);
-  if (format.is_empty()) {
-    default_formats.erase(type);
-  } else {
-    default_formats[type] = format;
+  if (use_flow) {
+    node |= ryml::FLOW_SL;
   }
-  return true;
-}
 
-String YAMLEmitter::get_default_format(Variant::Type type)
-{
-  std::lock_guard<std::mutex> lock(default_formats_mutex);
-  auto it = default_formats.find(type);
-  if (it != default_formats.end()) {
-    return it->second;
+  for (int i = 0; i < keys.size(); i++) {
+    const Variant& key = keys[i];
+    ryml::csubstr key_str;
+
+    // Convert key to string efficiently
+    if (key.get_type() == Variant::STRING) {
+      key_str = to_ryml_str(key);
+    } else {
+      key_str = to_ryml_str(String(key));
+    }
+
+    ryml::NodeRef child = node.append_child();
+    child << ryml::key(key_str);
+    emit_value(child, dict[key], format);
   }
-  return String();
 }
 
-void YAMLEmitter::reset_default_formats()
+void YAMLEmitter::emit_tagged_value(ryml::NodeRef& node, const Variant& value, const YAMLFormat::View& format)
 {
-  std::lock_guard<std::mutex> lock(default_formats_mutex);
-  default_formats.clear();
+  const auto* converter = get_converter_for_type(value.get_type());
+  if (!converter) {
+    return;
+  }
+
+  // Set the tag using direct cstring
+  node.set_val_tag(ryml::to_csubstr(converter->get_full_tag()));
+  converter->encode(node, value, format);
+}
+
+const VariantConverter* YAMLEmitter::get_converter_for_type(Variant::Type type) const
+{
+  return VariantConverterRegistry::get_converter(type);
 }

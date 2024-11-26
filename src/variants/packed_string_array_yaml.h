@@ -5,18 +5,27 @@
 
 namespace godot {
 
+/**
+ * YAML converter for PackedStringArray type.
+ * Handles arrays of strings, supporting:
+ * - Empty strings
+ * - Multi-line strings
+ * - Strings with special characters
+ * Empty arrays are represented as empty sequences.
+ * Examples:
+ * - ["a", "b", "c"]
+ * - ["", "non-empty", "multi\nline"]
+ */
 class PackedStringArrayVariantConverter : public VariantConverter {
   public:
   DEFINE_YAML_TAG("PackedStringArray", Variant::PACKED_STRING_ARRAY)
 
-  PackedStringArrayVariantConverter(YAML* yaml);
-
-  void encode(ryml::NodeRef& node, const Variant& v) const override;
+  void encode(ryml::NodeRef& node, const Variant& v, const YAMLFormat::View& format) const override;
   Variant decode(const ryml::ConstNodeRef& node) const override;
-  bool set_format(const String& format) override;
 
   private:
-  void emit_as_sequence(ryml::NodeRef& node, const PackedStringArray& array) const;
+  void emit_as_sequence(ryml::NodeRef& node, const PackedStringArray& array, const YAMLFormat::View& format) const;
+  bool needs_block_style(const String& str) const;
 };
 
 } // namespace godot

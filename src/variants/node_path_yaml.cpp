@@ -3,42 +3,49 @@
 
 using namespace godot;
 
-NodePathVariantConverter::NodePathVariantConverter(YAML* yaml) :
-        VariantConverter(yaml) { }
-
-void NodePathVariantConverter::encode(ryml::NodeRef& node, const Variant& v) const
+void NodePathVariantConverter::encode(ryml::NodeRef& node, const Variant& v, const YAMLFormat::View& format) const
 {
-  NodePath node_path = v.operator NodePath();
-  String path = String(node_path.get_concatenated_names());
-  if (path.is_empty()) {
+  const NodePath path = v.operator NodePath();
+  emit_as_string(node, path);
+}
+
+void NodePathVariantConverter::emit_as_string(ryml::NodeRef& node, const NodePath& path) const
+{
+  String str = String(path);
+  if (str.is_empty()) {
     // Empty node path is represented as null
     ryml::csubstr null = {};
     node << null;
   } else {
-    node << path.utf8().get_data();
+    node << str.utf8().get_data();
   }
 }
 
 Variant NodePathVariantConverter::decode(const ryml::ConstNodeRef& node) const
 {
-  if (node.val_is_null()) {
-    return NodePath(); // Return empty NodePath
-  }
-
-  if (!node.has_val()) {
-    throw YAMLException::create_invalid_format("NodePath");
-  }
-
-  String path = String::utf8(node.val().str, node.val().len);
   try {
-    return NodePath(path);
+    if (node.val_is_null()) {
+      return NodePath(); // Return empty NodePath
+    }
+
+    if (!node.has_val()) {
+      throw YAMLException::create_invalid_format("NodePath");
+    }
+
+    return decode_from_string(node.val());
+  } catch (const YAMLException&) {
+    throw;
   } catch (const std::exception& e) {
-    throw YAMLException(String("Failed to create NodePath: ") + e.what());
+    throw YAMLException(String("Failed to decode NodePath: ") + e.what());
   }
 }
 
-bool NodePathVariantConverter::set_format(const String& format)
+Variant NodePathVariantConverter::decode_from_string(const ryml::csubstr& val) const
 {
-  // NodePath only supports a single format (string)
-  return true;
+  try {
+    String path_str = String::utf8(val.str, val.len);
+    return NodePath(path_str);
+  } catch (const std::exception& e) {
+    throw YAMLException(String("Invalid NodePath format: ") + e.what());
+  }
 }

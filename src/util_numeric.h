@@ -5,6 +5,7 @@
 #include "yaml_exception.h"
 
 #include <c4/format.hpp>
+#include <ryml.hpp>
 
 #include <charconv>
 #include <limits>

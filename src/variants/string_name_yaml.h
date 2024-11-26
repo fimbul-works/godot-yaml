@@ -5,15 +5,21 @@
 
 namespace godot {
 
+/**
+ * YAML converter for StringName type.
+ * StringName is represented as a plain string in YAML.
+ * Empty StringName values are represented as null.
+ */
 class StringNameVariantConverter : public VariantConverter {
   public:
   DEFINE_YAML_TAG("StringName", Variant::STRING_NAME)
 
-  StringNameVariantConverter(YAML* yaml);
-
-  void encode(ryml::NodeRef& node, const Variant& v) const override;
+  void encode(ryml::NodeRef& node, const Variant& v, const YAMLFormat::View& format) const override;
   Variant decode(const ryml::ConstNodeRef& node) const override;
-  bool set_format(const String& format) override;
+
+  private:
+  void emit_as_string(ryml::NodeRef& node, const StringName& str) const;
+  Variant decode_from_string(const ryml::csubstr& val) const;
 };
 
 } // namespace godot

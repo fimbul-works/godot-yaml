@@ -3,44 +3,49 @@
 
 using namespace godot;
 
-StringNameVariantConverter::StringNameVariantConverter(YAML* yaml) :
-        VariantConverter(yaml) { }
-
-void StringNameVariantConverter::encode(ryml::NodeRef& node, const Variant& v) const
+void StringNameVariantConverter::encode(ryml::NodeRef& node, const Variant& v, const YAMLFormat::View& format) const
 {
-  StringName str_name = v.operator StringName();
+  const StringName str = v.operator StringName();
+  emit_as_string(node, str);
+}
 
-  // Convert to string first to handle empty StringName properly
-  String str = String(str_name);
-  if (str.is_empty()) {
+void StringNameVariantConverter::emit_as_string(ryml::NodeRef& node, const StringName& str) const
+{
+  String string_val = String(str);
+  if (string_val.is_empty()) {
     // Empty StringName is represented as null
     ryml::csubstr null = {};
     node << null;
   } else {
-    node << str.utf8().get_data();
+    node << string_val.utf8().get_data();
   }
 }
 
 Variant StringNameVariantConverter::decode(const ryml::ConstNodeRef& node) const
 {
-  if (node.val_is_null()) {
-    return StringName(); // Return empty StringName
-  }
-
-  if (!node.has_val()) {
-    throw YAMLException::create_invalid_format("StringName");
-  }
-
   try {
-    String str = String::utf8(node.val().str, node.val().len);
-    return StringName(str);
+    if (node.val_is_null()) {
+      return StringName(); // Return empty StringName
+    }
+
+    if (!node.has_val()) {
+      throw YAMLException::create_invalid_format("StringName");
+    }
+
+    return decode_from_string(node.val());
+  } catch (const YAMLException&) {
+    throw;
   } catch (const std::exception& e) {
     throw YAMLException(String("Failed to decode StringName: ") + e.what());
   }
 }
 
-bool StringNameVariantConverter::set_format(const String& format_str)
+Variant StringNameVariantConverter::decode_from_string(const ryml::csubstr& val) const
 {
-  // StringName only supports a single string format
-  return true;
+  try {
+    String string_val = String::utf8(val.str, val.len);
+    return StringName(string_val);
+  } catch (const std::exception& e) {
+    throw YAMLException(String("Invalid StringName format: ") + e.what());
+  }
 }

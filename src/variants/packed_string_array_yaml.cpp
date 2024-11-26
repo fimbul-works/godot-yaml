@@ -3,16 +3,16 @@
 
 using namespace godot;
 
-PackedStringArrayVariantConverter::PackedStringArrayVariantConverter(YAML* yaml) :
-        VariantConverter(yaml) { }
-
-void PackedStringArrayVariantConverter::encode(ryml::NodeRef& node, const Variant& v) const
+void PackedStringArrayVariantConverter::encode(ryml::NodeRef& node, const Variant& v, const YAMLFormat::View& format) const
 {
-  PackedStringArray array = v.operator PackedStringArray();
-  emit_as_sequence(node, array);
+  const PackedStringArray array = v.operator PackedStringArray();
+  emit_as_sequence(node, array, format);
 }
 
-void PackedStringArrayVariantConverter::emit_as_sequence(ryml::NodeRef& node, const PackedStringArray& array) const
+void PackedStringArrayVariantConverter::emit_as_sequence(
+        ryml::NodeRef& node,
+        const PackedStringArray& array,
+        const YAMLFormat::View& format) const
 {
   node |= ryml::SEQ;
 
@@ -20,8 +20,20 @@ void PackedStringArrayVariantConverter::emit_as_sequence(ryml::NodeRef& node, co
     return; // Empty sequence
   }
 
-  // Note: We don't use FLOW_SL for strings by default as they might contain newlines
-  // or be more readable in block format
+  // Check if any string needs block style
+  bool needs_block = false;
+  if (format.get_format(Variant::PACKED_STRING_ARRAY) != YAMLFormat::FLOW_MAP) {
+    for (int i = 0; i < array.size(); ++i) {
+      if (needs_block_style(array[i])) {
+        needs_block = true;
+        break;
+      }
+    }
+  }
+
+  if (!needs_block) {
+    node |= ryml::FLOW_SL;
+  }
 
   for (int i = 0; i < array.size(); ++i) {
     const String& str = array[i];
@@ -31,7 +43,12 @@ void PackedStringArrayVariantConverter::emit_as_sequence(ryml::NodeRef& node, co
       ryml::csubstr empty = {};
       child << empty;
     } else {
-      node.append_child() << str.utf8().get_data();
+      // Use block style for strings with newlines or if requested
+      ryml::NodeRef child = node.append_child();
+      if (needs_block_style(str)) {
+        child |= ryml::BLOCK;
+      }
+      child << str.utf8().get_data();
     }
   }
 }
@@ -42,28 +59,27 @@ Variant PackedStringArrayVariantConverter::decode(const ryml::ConstNodeRef& node
     throw YAMLException::create_invalid_format("PackedStringArray");
   }
 
+  const size_t size = node.num_children();
   PackedStringArray array;
-  int size = node.num_children();
   array.resize(size);
 
-  for (int i = 0; i < size; ++i) {
+  for (size_t i = 0; i < size; ++i) {
     try {
       const ryml::ConstNodeRef& child = node[i];
       if (child.val_is_null() || !child.has_val()) {
-        array.set(i, String()); // Empty string
+        array.set(i, String());
       } else {
-        array.set(i, String::utf8(child.val().str, child.val().len));
+        array.set(i, from_ryml_str(child.val()));
       }
     } catch (const std::exception& e) {
-      throw YAMLException(String("Failed to decode string at index ") + String::num_int64(i) + ": " + e.what());
+      throw YAMLException(String("Failed to decode string at index ") + String::num_uint64(i) + ": " + e.what());
     }
   }
 
   return array;
 }
 
-bool PackedStringArrayVariantConverter::set_format(const String& format_str)
+bool PackedStringArrayVariantConverter::needs_block_style(const String& str) const
 {
-  // PackedStringArray only supports sequence format
-  return true;
+  return str.contains("\n") || str.contains("\"") || str.begins_with(" ") || str.ends_with(" ") || str.begins_with("#");
 }

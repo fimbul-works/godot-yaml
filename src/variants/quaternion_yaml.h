@@ -5,26 +5,30 @@
 
 namespace godot {
 
+/**
+ * YAML converter for Quaternion type.
+ * Supports the following formats:
+ * - Map: {x: 0, y: 0, z: 0, w: 1}
+ * - Sequence: [x, y, z, w]
+ * - Axis-Angle map: {axis: {x: 1, y: 0, z: 0}, angle: 1.5708}
+ */
 class QuaternionVariantConverter : public VariantConverter {
-  enum class Format {
-    FLOW_MAP, // {x: 0, y: 0, z: 0, w: 1}
-    SEQUENCE // [0, 0, 0, 1]
-  };
-
   public:
   DEFINE_YAML_TAG("Quaternion", Variant::QUATERNION)
 
-  QuaternionVariantConverter(YAML* yaml);
-
-  void encode(ryml::NodeRef& node, const Variant& v) const override;
+  void encode(ryml::NodeRef& node, const Variant& v, const YAMLFormat::View& format) const override;
   Variant decode(const ryml::ConstNodeRef& node) const override;
-  bool set_format(const String& format) override;
 
   private:
-  Format format = Format::FLOW_MAP;
+  void emit_as_map(ryml::NodeRef& node, const Quaternion& quat, const YAMLFormat::View& format) const;
+  void emit_as_sequence(ryml::NodeRef& node, const Quaternion& quat, const YAMLFormat::View& format) const;
+  void emit_as_axis_angle(ryml::NodeRef& node, const Quaternion& quat, const YAMLFormat::View& format) const;
 
-  void emit_as_flow(ryml::NodeRef& node, const Quaternion& quat) const;
-  void emit_as_sequence(ryml::NodeRef& node, const Quaternion& quat) const;
+  Variant decode_from_map(const ryml::ConstNodeRef& node) const;
+  Variant decode_from_sequence(const ryml::ConstNodeRef& node) const;
+  Variant decode_from_axis_angle(const ryml::ConstNodeRef& node) const;
+
+  const VariantConverter* get_vec3_converter() const;
 };
 
 } // namespace godot

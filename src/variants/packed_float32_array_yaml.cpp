@@ -4,16 +4,16 @@
 
 using namespace godot;
 
-PackedFloat32ArrayVariantConverter::PackedFloat32ArrayVariantConverter(YAML* yaml) :
-        VariantConverter(yaml) { }
-
-void PackedFloat32ArrayVariantConverter::encode(ryml::NodeRef& node, const Variant& v) const
+void PackedFloat32ArrayVariantConverter::encode(ryml::NodeRef& node, const Variant& v, const YAMLFormat::View& format) const
 {
-  PackedFloat32Array array = v.operator PackedFloat32Array();
-  emit_as_sequence(node, array);
+  const PackedFloat32Array array = v.operator PackedFloat32Array();
+  emit_as_sequence(node, array, format);
 }
 
-void PackedFloat32ArrayVariantConverter::emit_as_sequence(ryml::NodeRef& node, const PackedFloat32Array& array) const
+void PackedFloat32ArrayVariantConverter::emit_as_sequence(
+        ryml::NodeRef& node,
+        const PackedFloat32Array& array,
+        const YAMLFormat::View& format) const
 {
   node |= ryml::SEQ;
 
@@ -21,7 +21,10 @@ void PackedFloat32ArrayVariantConverter::emit_as_sequence(ryml::NodeRef& node, c
     return; // Empty sequence
   }
 
-  node |= ryml::FLOW_SL;
+  // Use flow style for arrays (inline [x, y, z] format)
+  if (format.get_format(Variant::PACKED_FLOAT32_ARRAY) != YAMLFormat::BLOCK_MAP) {
+    node |= ryml::FLOW_SL;
+  }
 
   for (int i = 0; i < array.size(); ++i) {
     node.append_child() << float_to_string(array[i]);
@@ -34,23 +37,17 @@ Variant PackedFloat32ArrayVariantConverter::decode(const ryml::ConstNodeRef& nod
     throw YAMLException::create_invalid_format("PackedFloat32Array");
   }
 
+  const size_t size = node.num_children();
   PackedFloat32Array array;
-  int size = node.num_children();
   array.resize(size);
 
-  for (int i = 0; i < size; ++i) {
+  for (size_t i = 0; i < size; ++i) {
     try {
       array.set(i, string_to_float<float>(node[i].val()));
     } catch (const std::exception& e) {
-      throw YAMLException(String("Failed to decode float at index ") + String::num_int64(i) + ": " + e.what());
+      throw YAMLException(String("Failed to decode float at index ") + String::num_uint64(i) + ": " + e.what());
     }
   }
 
   return array;
-}
-
-bool PackedFloat32ArrayVariantConverter::set_format(const String& format_str)
-{
-  // PackedFloat32Array only supports sequence format
-  return true;
 }

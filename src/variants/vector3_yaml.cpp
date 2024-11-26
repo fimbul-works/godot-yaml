@@ -1,42 +1,29 @@
 #include "vector3_yaml.h"
 #include "../util_numeric.h"
+#include "../yaml_exception.h"
 
 using namespace godot;
 
-Vector3VariantConverter::Vector3VariantConverter(YAML* yaml) :
-        VariantConverter(yaml) { }
-
-void Vector3VariantConverter::encode(ryml::NodeRef& node, const Variant& v) const
+void Vector3VariantConverter::encode(ryml::NodeRef& node, const Variant& v, const YAMLFormat::View& format) const
 {
-  Vector3 vec = v.operator Vector3();
-  switch (format) {
-    case Format::FLOW_MAP:
-      emit_as_flow(node, vec);
-      break;
-    case Format::BLOCK_MAP:
-      emit_as_block(node, vec);
-      break;
-    case Format::SEQUENCE:
+  const Vector3 vec = v.operator Vector3();
+
+  switch (format.get_format(Variant::VECTOR3)) {
+    case YAMLFormat::SEQUENCE:
       emit_as_sequence(node, vec);
       break;
-    case Format::INLINE:
-      emit_as_inline(node, vec);
+    case YAMLFormat::BLOCK_MAP:
+    case YAMLFormat::FLOW_MAP:
+    default:
+      emit_as_map(node, vec);
       break;
   }
 }
 
-void Vector3VariantConverter::emit_as_flow(ryml::NodeRef& node, const Vector3& vec) const
+void Vector3VariantConverter::emit_as_map(ryml::NodeRef& node, const Vector3& vec) const
 {
   node |= ryml::MAP;
   node |= ryml::FLOW_SL;
-  node["x"] << float_to_string(vec.x);
-  node["y"] << float_to_string(vec.y);
-  node["z"] << float_to_string(vec.z);
-}
-
-void Vector3VariantConverter::emit_as_block(ryml::NodeRef& node, const Vector3& vec) const
-{
-  node |= ryml::MAP;
   node["x"] << float_to_string(vec.x);
   node["y"] << float_to_string(vec.y);
   node["z"] << float_to_string(vec.z);
@@ -51,100 +38,42 @@ void Vector3VariantConverter::emit_as_sequence(ryml::NodeRef& node, const Vector
   node.append_child() << float_to_string(vec.z);
 }
 
-void Vector3VariantConverter::emit_as_inline(ryml::NodeRef& node, const Vector3& vec) const
-{
-  static thread_local char buf[256]; // Generous buffer size
-  size_t len = ryml::format(buf, "({}, {}, {})",
-          float_to_string(vec.x),
-          float_to_string(vec.y),
-          float_to_string(vec.z));
-  node << ryml::csubstr(buf, len);
-}
-
 Variant Vector3VariantConverter::decode(const ryml::ConstNodeRef& node) const
 {
   try {
     if (node.is_map()) {
-      return decode_map(node);
+      return decode_from_map(node);
     } else if (node.is_seq()) {
-      return decode_sequence(node);
-    } else if (node.has_val()) {
-      return decode_inline(node.val());
+      return decode_from_sequence(node);
     }
     throw YAMLException::create_invalid_format("Vector3");
   } catch (const YAMLException&) {
-    throw; // Re-throw YAML exceptions
+    throw;
   } catch (const std::exception& e) {
     throw YAMLException(String("Failed to decode Vector3: ") + e.what());
   }
 }
 
-Variant Vector3VariantConverter::decode_map(const ryml::ConstNodeRef& node) const
+Variant Vector3VariantConverter::decode_from_map(const ryml::ConstNodeRef& node) const
 {
   if (!node.has_child("x") || !node.has_child("y") || !node.has_child("z")) {
     throw YAMLException::create_missing_field("Vector3", "x, y, z");
   }
 
-  real_t x = string_to_float<real_t>(node["x"].val());
-  real_t y = string_to_float<real_t>(node["y"].val());
-  real_t z = string_to_float<real_t>(node["z"].val());
-  return Vector3(x, y, z);
+  return Vector3(
+          string_to_float<real_t>(node["x"].val()),
+          string_to_float<real_t>(node["y"].val()),
+          string_to_float<real_t>(node["z"].val()));
 }
 
-Variant Vector3VariantConverter::decode_sequence(const ryml::ConstNodeRef& node) const
+Variant Vector3VariantConverter::decode_from_sequence(const ryml::ConstNodeRef& node) const
 {
   if (node.num_children() != 3) {
     throw YAMLException::create_invalid_sequence_length("Vector3", 3);
   }
 
-  real_t x = string_to_float<real_t>(node[0].val());
-  real_t y = string_to_float<real_t>(node[1].val());
-  real_t z = string_to_float<real_t>(node[2].val());
-  return Vector3(x, y, z);
-}
-
-Variant Vector3VariantConverter::decode_inline(const ryml::csubstr& val) const
-{
-  // Parse "(x, y, z)" format
-  std::string str(val.str, val.len);
-  if (str.length() < 7 || str[0] != '(' || str[str.length() - 1] != ')') { // Minimum "(0,0,0)"
-    throw YAMLException("Invalid inline Vector3 format - expected (x, y, z)");
-  }
-
-  // Remove parentheses and find commas
-  str = str.substr(1, str.length() - 2);
-  size_t first_comma = str.find(',');
-  if (first_comma == std::string::npos) {
-    throw YAMLException("Invalid inline Vector3 format - missing first comma");
-  }
-
-  size_t second_comma = str.find(',', first_comma + 1);
-  if (second_comma == std::string::npos) {
-    throw YAMLException("Invalid inline Vector3 format - missing second comma");
-  }
-
-  try {
-    real_t x = string_to_float<real_t>(str.substr(0, first_comma));
-    real_t y = string_to_float<real_t>(str.substr(first_comma + 1, second_comma - first_comma - 1));
-    real_t z = string_to_float<real_t>(str.substr(second_comma + 1));
-    return Vector3(x, y, z);
-  } catch (const std::exception& e) {
-    throw YAMLException(String("Failed to parse Vector3 components: ") + e.what());
-  }
-}
-
-bool Vector3VariantConverter::set_format(const String& format_str)
-{
-  if (format_str == "flow") {
-    format = Format::FLOW_MAP;
-  } else if (format_str == "block") {
-    format = Format::BLOCK_MAP;
-  } else if (format_str == "sequence") {
-    format = Format::SEQUENCE;
-  } else if (format_str == "inline") {
-    format = Format::INLINE;
-  } else {
-    return false;
-  }
-  return true;
+  return Vector3(
+          string_to_float<real_t>(node[0].val()),
+          string_to_float<real_t>(node[1].val()),
+          string_to_float<real_t>(node[2].val()));
 }

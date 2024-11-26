@@ -1,72 +1,111 @@
 #include "transform2d_yaml.h"
+#include "../variant_converter_registry.h"
 #include "../yaml_exception.h"
 
 using namespace godot;
 
-Transform2DVariantConverter::Transform2DVariantConverter(YAML* yaml) :
-        VariantConverter(yaml)
+void Transform2DVariantConverter::encode(ryml::NodeRef& node, const Variant& v, const YAMLFormat::View& format) const
 {
-  vec_encoder = new Vector2VariantConverter(yaml);
-  vec_encoder->set_format("flow"); // Use flow format for Vector2 components
+  const Transform2D transform = v.operator Transform2D();
+
+  switch (format.get_format(Variant::TRANSFORM2D)) {
+    case YAMLFormat::SEQUENCE:
+      emit_as_sequence(node, transform, format);
+      break;
+    case YAMLFormat::BLOCK_MAP:
+    case YAMLFormat::FLOW_MAP:
+    default:
+      emit_as_map(node, transform, format);
+      break;
+  }
 }
 
-Transform2DVariantConverter::~Transform2DVariantConverter()
-{
-  delete vec_encoder;
-}
-
-void Transform2DVariantConverter::encode(ryml::NodeRef& node, const Variant& v) const
-{
-  Transform2D transform = v.operator Transform2D();
-  emit_as_map(node, transform);
-}
-
-void Transform2DVariantConverter::emit_as_map(ryml::NodeRef& node, const Transform2D& transform) const
+void Transform2DVariantConverter::emit_as_map(ryml::NodeRef& node, const Transform2D& transform, const YAMLFormat::View& format) const
 {
   node |= ryml::MAP;
   node |= ryml::FLOW_SL;
 
+  const auto* vec2_converter = get_vec2_converter();
+
   // Encode the matrix columns (x, y components)
   ryml::NodeRef x_node = node["x"];
-  vec_encoder->encode(x_node, transform.columns[0]);
+  vec2_converter->encode(x_node, transform.columns[0], format);
 
   ryml::NodeRef y_node = node["y"];
-  vec_encoder->encode(y_node, transform.columns[1]);
+  vec2_converter->encode(y_node, transform.columns[1], format);
 
   // Encode the origin/translation component
   ryml::NodeRef origin_node = node["origin"];
-  vec_encoder->encode(origin_node, transform.columns[2]);
+  vec2_converter->encode(origin_node, transform.columns[2], format);
+}
+
+void Transform2DVariantConverter::emit_as_sequence(ryml::NodeRef& node, const Transform2D& transform, const YAMLFormat::View& format) const
+{
+  node |= ryml::SEQ;
+  node |= ryml::FLOW_SL;
+
+  const auto* vec2_converter = get_vec2_converter();
+
+  // Encode columns in order: x, y, origin
+  ryml::NodeRef x_node = node.append_child();
+  vec2_converter->encode(x_node, transform.columns[0], format);
+
+  ryml::NodeRef y_node = node.append_child();
+  vec2_converter->encode(y_node, transform.columns[1], format);
+
+  ryml::NodeRef origin_node = node.append_child();
+  vec2_converter->encode(origin_node, transform.columns[2], format);
 }
 
 Variant Transform2DVariantConverter::decode(const ryml::ConstNodeRef& node) const
 {
-  if (!node.is_map()) {
-    throw YAMLException::create_invalid_format("Transform2D");
-  }
-
-  // Check for required components
-  const char* required_fields[] = { "x", "y", "origin" };
-  for (const char* field : required_fields) {
-    if (!node.has_child(field)) {
-      throw YAMLException::create_missing_field("Transform2D", field);
-    }
-  }
-
   try {
-    // Decode each component
-    Vector2 x = vec_encoder->decode(node["x"]);
-    Vector2 y = vec_encoder->decode(node["y"]);
-    Vector2 origin = vec_encoder->decode(node["origin"]);
-
-    // Construct the Transform2D
-    return Transform2D(x, y, origin);
+    if (node.is_map()) {
+      return decode_from_map(node);
+    } else if (node.is_seq()) {
+      return decode_from_sequence(node);
+    }
+    throw YAMLException::create_invalid_format("Transform2D");
+  } catch (const YAMLException&) {
+    throw;
   } catch (const std::exception& e) {
     throw YAMLException(String("Failed to decode Transform2D: ") + e.what());
   }
 }
 
-bool Transform2DVariantConverter::set_format(const String& format_str)
+Variant Transform2DVariantConverter::decode_from_map(const ryml::ConstNodeRef& node) const
 {
-  // Format setting is delegated to the Vector2 encoder
-  return vec_encoder->set_format(format_str);
+  if (!node.has_child("x") || !node.has_child("y") || !node.has_child("origin")) {
+    throw YAMLException::create_missing_field("Transform2D", "x, y, origin");
+  }
+
+  const auto* vec2_converter = get_vec2_converter();
+  Vector2 x = vec2_converter->decode(node["x"]).operator Vector2();
+  Vector2 y = vec2_converter->decode(node["y"]).operator Vector2();
+  Vector2 origin = vec2_converter->decode(node["origin"]).operator Vector2();
+
+  return Transform2D(x, y, origin);
+}
+
+Variant Transform2DVariantConverter::decode_from_sequence(const ryml::ConstNodeRef& node) const
+{
+  if (node.num_children() != 3) {
+    throw YAMLException::create_invalid_sequence_length("Transform2D", 3);
+  }
+
+  const auto* vec2_converter = get_vec2_converter();
+  Vector2 x = vec2_converter->decode(node[0]).operator Vector2();
+  Vector2 y = vec2_converter->decode(node[1]).operator Vector2();
+  Vector2 origin = vec2_converter->decode(node[2]).operator Vector2();
+
+  return Transform2D(x, y, origin);
+}
+
+const VariantConverter* Transform2DVariantConverter::get_vec2_converter() const
+{
+  const auto* converter = VariantConverterRegistry::get_converter(Variant::VECTOR2);
+  if (!converter) {
+    throw YAMLException("Vector2 converter not found in registry");
+  }
+  return converter;
 }

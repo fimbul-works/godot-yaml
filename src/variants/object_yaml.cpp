@@ -1,4 +1,4 @@
-#include "resource_yaml.h"
+#include "object_yaml.h"
 #include "../yaml_exception.h"
 #include <godot_cpp/classes/project_settings.hpp>
 #include <godot_cpp/classes/resource.hpp>
@@ -6,10 +6,7 @@
 
 using namespace godot;
 
-ResourceVariantConverter::ResourceVariantConverter(YAML* yaml) :
-        VariantConverter(yaml) { }
-
-void ResourceVariantConverter::encode(ryml::NodeRef& node, const Variant& v) const
+void ObjectVariantConverter::encode(ryml::NodeRef& node, const Variant& v, const YAMLFormat::View& format) const
 {
   Object* obj = v.operator Object*();
   Resource* res = Object::cast_to<Resource>(obj);
@@ -26,7 +23,7 @@ void ResourceVariantConverter::encode(ryml::NodeRef& node, const Variant& v) con
   node << path.utf8().get_data();
 }
 
-Variant ResourceVariantConverter::decode(const ryml::ConstNodeRef& node) const
+Variant ObjectVariantConverter::decode(const ryml::ConstNodeRef& node) const
 {
   if (!node.has_val() || node.val_is_null()) {
     throw YAMLException::create_invalid_format("Resource");
@@ -45,13 +42,7 @@ Variant ResourceVariantConverter::decode(const ryml::ConstNodeRef& node) const
   return resource;
 }
 
-bool ResourceVariantConverter::set_format(const String& format_str)
-{
-  // Resource only supports path format
-  return true;
-}
-
-bool ResourceVariantConverter::validate_path(const String& path) const
+bool ObjectVariantConverter::validate_path(const String& path) const
 {
   // Basic path validation
   if (path.is_empty()) {
@@ -64,6 +55,5 @@ bool ResourceVariantConverter::validate_path(const String& path) const
     return false;
   }
 
-  // You might want to add more validation here later
   return true;
 }

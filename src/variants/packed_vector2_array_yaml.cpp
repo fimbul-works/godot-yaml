@@ -1,24 +1,12 @@
 #include "packed_vector2_array_yaml.h"
+#include "../variant_converter_registry.h"
 #include "../yaml_exception.h"
 
 using namespace godot;
 
-PackedVector2ArrayVariantConverter::PackedVector2ArrayVariantConverter(YAML* yaml) :
-        VariantConverter(yaml)
+void PackedVector2ArrayVariantConverter::encode(ryml::NodeRef& node, const Variant& v, const YAMLFormat::View& format) const
 {
-  vec_encoder = new Vector2VariantConverter(yaml);
-  vec_encoder->set_format("flow"); // Use flow format for Vector2 components
-}
-
-PackedVector2ArrayVariantConverter::~PackedVector2ArrayVariantConverter()
-{
-  delete vec_encoder;
-}
-
-void PackedVector2ArrayVariantConverter::encode(ryml::NodeRef& node, const Variant& v) const
-{
-  PackedVector2Array array = v.operator PackedVector2Array();
-
+  const PackedVector2Array array = v.operator PackedVector2Array();
   node |= ryml::SEQ;
 
   if (array.size() == 0) {
@@ -26,10 +14,11 @@ void PackedVector2ArrayVariantConverter::encode(ryml::NodeRef& node, const Varia
   }
 
   node |= ryml::FLOW_SL;
+  const auto* vec2_converter = get_vec2_converter();
 
   for (int i = 0; i < array.size(); ++i) {
     ryml::NodeRef vec_node = node.append_child();
-    vec_encoder->encode(vec_node, array[i]);
+    vec2_converter->encode(vec_node, array[i], format);
   }
 }
 
@@ -40,23 +29,30 @@ Variant PackedVector2ArrayVariantConverter::decode(const ryml::ConstNodeRef& nod
   }
 
   PackedVector2Array array;
-  int size = node.num_children();
+  const size_t size = node.num_children();
   array.resize(size);
 
-  for (int i = 0; i < size; ++i) {
-    try {
-      Vector2 vec = vec_encoder->decode(node[i]);
-      array.set(i, vec);
-    } catch (const std::exception& e) {
-      throw YAMLException(String("Failed to decode Vector2 at index ") + String::num_int64(i) + ": " + e.what());
+  if (size > 0) {
+    const auto* vec2_converter = get_vec2_converter();
+
+    for (size_t i = 0; i < size; ++i) {
+      try {
+        Vector2 vec2 = vec2_converter->decode(node[i]);
+        array.set(i, vec2);
+      } catch (const std::exception& e) {
+        throw YAMLException(String("Failed to decode Vector2 at index ") + String::num_uint64(i) + ": " + e.what());
+      }
     }
   }
 
   return array;
 }
 
-bool PackedVector2ArrayVariantConverter::set_format(const String& format_str)
+const VariantConverter* PackedVector2ArrayVariantConverter::get_vec2_converter() const
 {
-  // Format setting is delegated to the Vector2 encoder
-  return vec_encoder->set_format(format_str);
+  const auto* converter = VariantConverterRegistry::get_converter(Variant::VECTOR2);
+  if (!converter) {
+    throw YAMLException("Vector2 converter not found in registry");
+  }
+  return converter;
 }

@@ -1,24 +1,12 @@
 #include "packed_vector3_array_yaml.h"
+#include "../variant_converter_registry.h"
 #include "../yaml_exception.h"
 
 using namespace godot;
 
-PackedVector3ArrayVariantConverter::PackedVector3ArrayVariantConverter(YAML* yaml) :
-        VariantConverter(yaml)
+void PackedVector3ArrayVariantConverter::encode(ryml::NodeRef& node, const Variant& v, const YAMLFormat::View& format) const
 {
-  vec_encoder = new Vector3VariantConverter(yaml);
-  vec_encoder->set_format("flow"); // Use flow format for Vector3 components
-}
-
-PackedVector3ArrayVariantConverter::~PackedVector3ArrayVariantConverter()
-{
-  delete vec_encoder;
-}
-
-void PackedVector3ArrayVariantConverter::encode(ryml::NodeRef& node, const Variant& v) const
-{
-  PackedVector3Array array = v.operator PackedVector3Array();
-
+  const PackedVector3Array array = v.operator PackedVector3Array();
   node |= ryml::SEQ;
 
   if (array.size() == 0) {
@@ -26,10 +14,11 @@ void PackedVector3ArrayVariantConverter::encode(ryml::NodeRef& node, const Varia
   }
 
   node |= ryml::FLOW_SL;
+  const auto* vec3_converter = get_vec3_converter();
 
   for (int i = 0; i < array.size(); ++i) {
     ryml::NodeRef vec_node = node.append_child();
-    vec_encoder->encode(vec_node, array[i]);
+    vec3_converter->encode(vec_node, array[i], format);
   }
 }
 
@@ -40,23 +29,30 @@ Variant PackedVector3ArrayVariantConverter::decode(const ryml::ConstNodeRef& nod
   }
 
   PackedVector3Array array;
-  int size = node.num_children();
+  const size_t size = node.num_children();
   array.resize(size);
 
-  for (int i = 0; i < size; ++i) {
-    try {
-      Vector3 vec = vec_encoder->decode(node[i]);
-      array.set(i, vec);
-    } catch (const std::exception& e) {
-      throw YAMLException(String("Failed to decode Vector3 at index ") + String::num_int64(i) + ": " + e.what());
+  if (size > 0) {
+    const auto* vec3_converter = get_vec3_converter();
+
+    for (size_t i = 0; i < size; ++i) {
+      try {
+        Vector3 vec3 = vec3_converter->decode(node[i]);
+        array.set(i, vec3);
+      } catch (const std::exception& e) {
+        throw YAMLException(String("Failed to decode Vector3 at index ") + String::num_uint64(i) + ": " + e.what());
+      }
     }
   }
 
   return array;
 }
 
-bool PackedVector3ArrayVariantConverter::set_format(const String& format_str)
+const VariantConverter* PackedVector3ArrayVariantConverter::get_vec3_converter() const
 {
-  // Format setting is delegated to the Vector3 encoder
-  return vec_encoder->set_format(format_str);
+  const auto* converter = VariantConverterRegistry::get_converter(Variant::VECTOR3);
+  if (!converter) {
+    throw YAMLException("Vector3 converter not found in registry");
+  }
+  return converter;
 }

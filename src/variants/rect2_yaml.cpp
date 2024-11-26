@@ -1,61 +1,129 @@
 #include "rect2_yaml.h"
+#include "../util_numeric.h"
+#include "../variant_converter_registry.h"
 #include "../yaml_exception.h"
 
 using namespace godot;
 
-Rect2VariantConverter::Rect2VariantConverter(YAML* yaml) :
-        VariantConverter(yaml)
+void Rect2VariantConverter::encode(ryml::NodeRef& node, const Variant& v, const YAMLFormat::View& format) const
 {
-  vec_encoder = new Vector2VariantConverter(yaml);
-  vec_encoder->set_format("flow");
+  const Rect2 rect = v.operator Rect2();
+
+  switch (format.get_format(Variant::RECT2)) {
+    case YAMLFormat::SEQUENCE:
+      emit_as_sequence(node, rect, format);
+      break;
+    case YAMLFormat::CUSTOM_1: // Expanded format
+      emit_as_expanded(node, rect);
+      break;
+    case YAMLFormat::BLOCK_MAP:
+    case YAMLFormat::FLOW_MAP:
+    default:
+      emit_as_map(node, rect, format);
+      break;
+  }
 }
 
-Rect2VariantConverter::~Rect2VariantConverter()
-{
-  delete vec_encoder;
-}
-
-void Rect2VariantConverter::encode(ryml::NodeRef& node, const Variant& v) const
-{
-  Rect2 rect = v.operator Rect2();
-  emit_as_map(node, rect);
-}
-
-void Rect2VariantConverter::emit_as_map(ryml::NodeRef& node, const Rect2& rect) const
+void Rect2VariantConverter::emit_as_map(ryml::NodeRef& node, const Rect2& rect, const YAMLFormat::View& format) const
 {
   node |= ryml::MAP;
   node |= ryml::FLOW_SL;
 
-  ryml::NodeRef position_node = node["position"];
-  vec_encoder->encode(position_node, rect.position);
+  const auto* vec2_converter = get_vec2_converter();
+
+  ryml::NodeRef pos_node = node["position"];
+  vec2_converter->encode(pos_node, rect.position, format);
 
   ryml::NodeRef size_node = node["size"];
-  vec_encoder->encode(size_node, rect.size);
+  vec2_converter->encode(size_node, rect.size, format);
+}
+
+void Rect2VariantConverter::emit_as_sequence(ryml::NodeRef& node, const Rect2& rect, const YAMLFormat::View& format) const
+{
+  node |= ryml::SEQ;
+  node |= ryml::FLOW_SL;
+
+  const auto* vec2_converter = get_vec2_converter();
+
+  ryml::NodeRef pos_node = node.append_child();
+  vec2_converter->encode(pos_node, rect.position, format);
+
+  ryml::NodeRef size_node = node.append_child();
+  vec2_converter->encode(size_node, rect.size, format);
+}
+
+void Rect2VariantConverter::emit_as_expanded(ryml::NodeRef& node, const Rect2& rect) const
+{
+  node |= ryml::MAP;
+  node |= ryml::FLOW_SL;
+
+  node["x"] << float_to_string(rect.position.x);
+  node["y"] << float_to_string(rect.position.y);
+  node["w"] << float_to_string(rect.size.x);
+  node["h"] << float_to_string(rect.size.y);
 }
 
 Variant Rect2VariantConverter::decode(const ryml::ConstNodeRef& node) const
 {
-  if (!node.is_map()) {
-    throw YAMLException::create_invalid_format("Rect2");
-  }
-
-  if (!node.has_child("position")) {
-    throw YAMLException::create_missing_field("Rect2", "position");
-  }
-  if (!node.has_child("size")) {
-    throw YAMLException::create_missing_field("Rect2", "size");
-  }
-
   try {
-    Vector2 position = vec_encoder->decode(node["position"]);
-    Vector2 size = vec_encoder->decode(node["size"]);
-    return Rect2(position, size);
+    if (node.is_map()) {
+      // Check for expanded format first
+      if (node.has_child("x") && node.has_child("y") && node.has_child("w") && node.has_child("h")) {
+        return decode_from_expanded(node);
+      }
+      return decode_from_map(node);
+    } else if (node.is_seq()) {
+      return decode_from_sequence(node);
+    }
+    throw YAMLException::create_invalid_format("Rect2");
+  } catch (const YAMLException&) {
+    throw;
   } catch (const std::exception& e) {
     throw YAMLException(String("Failed to decode Rect2: ") + e.what());
   }
 }
 
-bool Rect2VariantConverter::set_format(const String& format_str)
+Variant Rect2VariantConverter::decode_from_map(const ryml::ConstNodeRef& node) const
 {
-  return vec_encoder->set_format(format_str);
+  if (!node.has_child("position") || !node.has_child("size")) {
+    throw YAMLException::create_missing_field("Rect2", "position, size");
+  }
+
+  const auto* vec2_converter = get_vec2_converter();
+  Vector2 position = vec2_converter->decode(node["position"]).operator Vector2();
+  Vector2 size = vec2_converter->decode(node["size"]).operator Vector2();
+
+  return Rect2(position, size);
+}
+
+Variant Rect2VariantConverter::decode_from_sequence(const ryml::ConstNodeRef& node) const
+{
+  if (node.num_children() != 2) {
+    throw YAMLException::create_invalid_sequence_length("Rect2", 2);
+  }
+
+  const auto* vec2_converter = get_vec2_converter();
+  Vector2 position = vec2_converter->decode(node[0]).operator Vector2();
+  Vector2 size = vec2_converter->decode(node[1]).operator Vector2();
+
+  return Rect2(position, size);
+}
+
+Variant Rect2VariantConverter::decode_from_expanded(const ryml::ConstNodeRef& node) const
+{
+  real_t x = string_to_float<real_t>(node["x"].val());
+  real_t y = string_to_float<real_t>(node["y"].val());
+  real_t w = string_to_float<real_t>(node["w"].val());
+  real_t h = string_to_float<real_t>(node["h"].val());
+
+  return Rect2(x, y, w, h);
+}
+
+const VariantConverter* Rect2VariantConverter::get_vec2_converter() const
+{
+  const auto* converter = VariantConverterRegistry::get_converter(Variant::VECTOR2);
+  if (!converter) {
+    throw YAMLException("Vector2 converter not found in registry");
+  }
+  return converter;
 }

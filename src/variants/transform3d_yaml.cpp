@@ -1,109 +1,125 @@
 #include "transform3d_yaml.h"
+#include "../variant_converter_registry.h"
 #include "../yaml_exception.h"
 
 using namespace godot;
 
-Transform3DVariantConverter::Transform3DVariantConverter(YAML* yaml) :
-        VariantConverter(yaml)
+void Transform3DVariantConverter::encode(ryml::NodeRef& node, const Variant& v, const YAMLFormat::View& format) const
 {
-  vec_encoder = new Vector3VariantConverter(yaml);
-  vec_encoder->set_format("flow"); // Use flow format for Vector3 components
-}
+  const Transform3D transform = v.operator Transform3D();
 
-Transform3DVariantConverter::~Transform3DVariantConverter()
-{
-  delete vec_encoder;
-}
-
-void Transform3DVariantConverter::encode(ryml::NodeRef& node, const Variant& v) const
-{
-  Transform3D transform = v.operator Transform3D();
-  switch (format) {
-    case Format::FLOW_MAP:
-      emit_as_flow(node, transform);
+  switch (format.get_format(Variant::TRANSFORM3D)) {
+    case YAMLFormat::SEQUENCE:
+      emit_as_sequence(node, transform, format);
       break;
-    case Format::BLOCK_MAP:
-      emit_as_block(node, transform);
+    case YAMLFormat::BLOCK_MAP:
+    case YAMLFormat::FLOW_MAP:
+    default:
+      emit_as_map(node, transform, format);
       break;
   }
+}
+
+void Transform3DVariantConverter::emit_as_map(ryml::NodeRef& node, const Transform3D& transform, const YAMLFormat::View& format) const
+{
+  node |= ryml::MAP;
+  node |= ryml::FLOW_SL;
+
+  const auto* basis_converter = get_basis_converter();
+  const auto* vec3_converter = get_vec3_converter();
+
+  // Encode basis
+  ryml::NodeRef basis_node = node["basis"];
+  basis_converter->encode(basis_node, transform.basis, format);
+
+  // Encode origin
+  ryml::NodeRef origin_node = node["origin"];
+  vec3_converter->encode(origin_node, transform.origin, format);
+}
+
+void Transform3DVariantConverter::emit_as_sequence(ryml::NodeRef& node, const Transform3D& transform, const YAMLFormat::View& format) const
+{
+  node |= ryml::SEQ;
+  node |= ryml::FLOW_SL;
+
+  const auto* vec3_converter = get_vec3_converter();
+
+  // Encode basis columns
+  for (int i = 0; i < 3; i++) {
+    ryml::NodeRef col_node = node.append_child();
+    vec3_converter->encode(col_node, transform.basis.rows[i], format);
+  }
+
+  // Encode origin
+  ryml::NodeRef origin_node = node.append_child();
+  vec3_converter->encode(origin_node, transform.origin, format);
 }
 
 Variant Transform3DVariantConverter::decode(const ryml::ConstNodeRef& node) const
 {
-  if (!node.is_map()) {
-    throw YAMLException::create_invalid_format("Transform3D");
-  }
-
-  // Check for required components
-  const char* required_fields[] = { "x", "y", "z", "origin" };
-  for (const char* field : required_fields) {
-    if (!node.has_child(field)) {
-      throw YAMLException::create_missing_field("Transform3D", field);
-    }
-  }
-
   try {
-    // Decode each component
-    Vector3 x = vec_encoder->decode(node["x"]);
-    Vector3 y = vec_encoder->decode(node["y"]);
-    Vector3 z = vec_encoder->decode(node["z"]);
-    Vector3 origin = vec_encoder->decode(node["origin"]);
-
-    // Construct the Transform3D
-    Basis basis(x, y, z);
-    return Transform3D(basis, origin);
+    if (node.is_map()) {
+      return decode_from_map(node);
+    } else if (node.is_seq()) {
+      return decode_from_sequence(node);
+    }
+    throw YAMLException::create_invalid_format("Transform3D");
+  } catch (const YAMLException&) {
+    throw;
   } catch (const std::exception& e) {
     throw YAMLException(String("Failed to decode Transform3D: ") + e.what());
   }
 }
 
-bool Transform3DVariantConverter::set_format(const String& format_str)
+Variant Transform3DVariantConverter::decode_from_map(const ryml::ConstNodeRef& node) const
 {
-  if (format_str == "flow") {
-    format = Format::FLOW_MAP;
-    return true;
-  } else if (format_str == "block") {
-    format = Format::BLOCK_MAP;
-    return true;
+  if (!node.has_child("basis") || !node.has_child("origin")) {
+    throw YAMLException::create_missing_field("Transform3D", "basis, origin");
   }
-  return false;
+
+  const auto* basis_converter = get_basis_converter();
+  const auto* vec3_converter = get_vec3_converter();
+
+  Basis basis = basis_converter->decode(node["basis"]).operator Basis();
+  Vector3 origin = vec3_converter->decode(node["origin"]).operator Vector3();
+
+  return Transform3D(basis, origin);
 }
 
-void Transform3DVariantConverter::emit_as_flow(ryml::NodeRef& node, const Transform3D& transform) const
+Variant Transform3DVariantConverter::decode_from_sequence(const ryml::ConstNodeRef& node) const
 {
-  node |= ryml::MAP;
-  node |= ryml::FLOW_SL;
+  if (node.num_children() != 4) {
+    throw YAMLException::create_invalid_sequence_length("Transform3D", 4);
+  }
 
-  // Encode basis columns
-  ryml::NodeRef x_node = node["x"];
-  vec_encoder->encode(x_node, transform.basis.get_column(0));
+  const auto* vec3_converter = get_vec3_converter();
+  Basis basis;
 
-  ryml::NodeRef y_node = node["y"];
-  vec_encoder->encode(y_node, transform.basis.get_column(1));
+  // Read basis columns
+  for (int i = 0; i < 3; i++) {
+    basis.rows[i] = vec3_converter->decode(node[i]).operator Vector3();
+  }
 
-  ryml::NodeRef z_node = node["z"];
-  vec_encoder->encode(z_node, transform.basis.get_column(2));
+  // Read origin
+  Vector3 origin = vec3_converter->decode(node[3]).operator Vector3();
 
-  // Encode origin
-  ryml::NodeRef origin_node = node["origin"];
-  vec_encoder->encode(origin_node, transform.origin);
+  return Transform3D(basis, origin);
 }
 
-void Transform3DVariantConverter::emit_as_block(ryml::NodeRef& node, const Transform3D& transform) const
+const VariantConverter* Transform3DVariantConverter::get_vec3_converter() const
 {
-  node |= ryml::MAP;
+  const auto* converter = VariantConverterRegistry::get_converter(Variant::VECTOR3);
+  if (!converter) {
+    throw YAMLException("Vector3 converter not found in registry");
+  }
+  return converter;
+}
 
-  // Encode basis columns (without FLOW_SL for block format)
-  ryml::NodeRef x_node = node["x"];
-  vec_encoder->encode(x_node, transform.basis.get_column(0));
-
-  ryml::NodeRef y_node = node["y"];
-  vec_encoder->encode(y_node, transform.basis.get_column(1));
-
-  ryml::NodeRef z_node = node["z"];
-  vec_encoder->encode(z_node, transform.basis.get_column(2));
-
-  // Encode origin
-  ryml::NodeRef origin_node = node["origin"];
-  vec_encoder->encode(origin_node, transform.origin);
+const VariantConverter* Transform3DVariantConverter::get_basis_converter() const
+{
+  const auto* converter = VariantConverterRegistry::get_converter(Variant::BASIS);
+  if (!converter) {
+    throw YAMLException("Basis converter not found in registry");
+  }
+  return converter;
 }

@@ -1,6 +1,7 @@
 #ifndef YAML_EXCEPTION_H
 #define YAML_EXCEPTION_H
 
+#include "util_string.h"
 #include <godot_cpp/variant/string.hpp>
 #include <stdexcept>
 
@@ -8,17 +9,23 @@ namespace godot {
 
 class YAMLException : public std::runtime_error {
   public:
-  // Constructor overloads
-  explicit YAMLException(const String& msg) :
-          std::runtime_error(msg.utf8().get_data()) { }
+  // Constructor overloads that minimize conversions
+  explicit YAMLException(const char* msg) :
+          std::runtime_error(msg),
+          godot_message(msg) { }
 
-  explicit YAMLException(const std::string& what_arg) :
-          std::runtime_error(what_arg) { }
+  explicit YAMLException(std::string msg) :
+          std::runtime_error(msg),
+          godot_message(msg.c_str()) { }
 
-  explicit YAMLException(const char* what_arg) :
-          std::runtime_error(what_arg) { }
+  explicit YAMLException(String msg) :
+          std::runtime_error(msg.utf8().get_data()),
+          godot_message(std::move(msg)) { }
 
-  // Utility methods for common error patterns
+  // Get the Godot String version without conversion
+  const String& get_godot_message() const { return godot_message; }
+
+  // Utility methods that avoid string conversions
   static YAMLException create_invalid_format(const char* type_name)
   {
     return YAMLException(String("Invalid ") + type_name + " format");
@@ -33,6 +40,9 @@ class YAMLException : public std::runtime_error {
   {
     return YAMLException(String(type_name) + " sequence must have " + String::num_int64(expected_length) + " elements");
   }
+
+  private:
+  String godot_message; // Store Godot String to avoid reconversion
 };
 
 } // namespace godot

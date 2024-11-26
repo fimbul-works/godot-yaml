@@ -1,60 +1,66 @@
 #ifndef YAML_EMITTER_H
 #define YAML_EMITTER_H
 
-#include "variant_converter.h"
+#include "variant_converter_registry.h"
+#include "yaml_format.h"
+#include "yaml_result.h"
+
 #include <godot_cpp/classes/ref_counted.hpp>
 #include <godot_cpp/core/class_db.hpp>
-#include <godot_cpp/variant/utility_functions.hpp>
 #include <ryml.hpp>
-#include <ryml_std.hpp>
 
 #include <memory>
 #include <mutex>
-#include <unordered_map>
 
 namespace godot {
 
-class YAMLResult;
-
 class YAMLEmitter : public RefCounted {
   GDCLASS(YAMLEmitter, RefCounted)
-
-  private:
-  // Static default formats with thread safety
-  static std::unordered_map<Variant::Type, String> default_formats;
-  static std::mutex default_formats_mutex;
-
-  // Instance-specific formats
-  std::unordered_map<Variant::Type, String> instance_formats;
 
   protected:
   static void _bind_methods();
 
   public:
   YAMLEmitter();
-  ~YAMLEmitter();
+  explicit YAMLEmitter(const Ref<YAMLFormat>& default_format);
+  virtual ~YAMLEmitter();
 
-  // Main emitting function
-  Ref<YAMLResult> emit(const Variant& input);
+  Ref<YAMLResult> emit(const Variant& input, const Ref<YAMLFormat>& format = YAMLFormat::create_default());
 
-  // Instance format configuration
-  bool set_format(Variant::Type type, const String& format);
-  String get_format(Variant::Type type) const;
-  void reset_formats(); // Reset to default formats
-
-  // Static format configuration
-  static bool set_default_format(Variant::Type type, const String& format);
-  static String get_default_format(Variant::Type type);
-  static void reset_default_formats();
+  // Format management
+  void set_default_format(const Ref<YAMLFormat>& format);
+  Ref<YAMLFormat> get_default_format() const;
 
   private:
-  // Internal emission helpers
-  void emit_recursively(ryml::NodeRef& node, const Variant& v, Ref<YAMLResult>& result);
-  void emit_map(ryml::NodeRef& node, const Dictionary& dict, Ref<YAMLResult>& result);
-  void emit_array(ryml::NodeRef& node, const Array& arr, Ref<YAMLResult>& result);
-  void emit_string(ryml::NodeRef& node, const String& str);
-  void emit_number(ryml::NodeRef& node, const Variant& v);
-  void set_error(Ref<YAMLResult>& result, const String& error, int line = -1, int column = -1);
+  // Thread safety
+  std::mutex emit_mutex;
+
+  // State management
+  Ref<YAMLResult> current_result;
+  Ref<YAMLFormat> default_format;
+
+  // String handling utilities
+  bool needs_block_style(const String& str) const
+  {
+    return str.contains("\n") || str.contains("\"") || str.begins_with(" ") || str.ends_with(" ") || str.begins_with("#");
+  }
+
+  bool is_multiline(const String& str) const
+  {
+    return str.contains("\n");
+  }
+
+  // Core emission methods using immutable View - declarations only
+  void emit_value(ryml::NodeRef& node, const Variant& value, const YAMLFormat::View& format);
+  void emit_nil(ryml::NodeRef& node);
+  void emit_bool(ryml::NodeRef& node, bool value);
+  void emit_number(ryml::NodeRef& node, const Variant& value);
+  void emit_string(ryml::NodeRef& node, const String& value);
+  void emit_array(ryml::NodeRef& node, const Array& array, const YAMLFormat::View& format);
+  void emit_dictionary(ryml::NodeRef& node, const Dictionary& dict, const YAMLFormat::View& format);
+  void emit_tagged_value(ryml::NodeRef& node, const Variant& value, const YAMLFormat::View& format);
+
+  const VariantConverter* get_converter_for_type(Variant::Type type) const;
 };
 
 } // namespace godot

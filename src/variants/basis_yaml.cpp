@@ -1,66 +1,109 @@
 #include "basis_yaml.h"
+#include "../variant_converter_registry.h"
 #include "../yaml_exception.h"
 
 using namespace godot;
 
-BasisVariantConverter::BasisVariantConverter(YAML* yaml) :
-        VariantConverter(yaml)
+void BasisVariantConverter::encode(ryml::NodeRef& node, const Variant& v, const YAMLFormat::View& format) const
 {
-  vec_encoder = new Vector3VariantConverter(yaml);
-  vec_encoder->set_format("flow"); // Always use flow format for the Vector3 columns
-}
+  const Basis basis = v.operator Basis();
 
-BasisVariantConverter::~BasisVariantConverter()
-{
-  delete vec_encoder;
-}
-
-void BasisVariantConverter::encode(ryml::NodeRef& node, const Variant& v) const
-{
-  Basis basis = v.operator Basis();
-  emit_as_map(node, basis);
-}
-
-Variant BasisVariantConverter::decode(const ryml::ConstNodeRef& node) const
-{
-  if (!node.is_map()) {
-    throw YAMLException::create_invalid_format("Basis");
+  // Check format and use appropriate encoding method
+  switch (format.get_format(Variant::BASIS)) {
+    case YAMLFormat::SEQUENCE:
+      emit_as_sequence(node, basis, format);
+      break;
+    case YAMLFormat::BLOCK_MAP:
+    case YAMLFormat::FLOW_MAP:
+    default:
+      emit_as_map(node, basis, format);
+      break;
   }
-
-  if (!node.has_child("x")) {
-    throw YAMLException::create_missing_field("Basis", "x");
-  }
-  if (!node.has_child("y")) {
-    throw YAMLException::create_missing_field("Basis", "y");
-  }
-  if (!node.has_child("z")) {
-    throw YAMLException::create_missing_field("Basis", "z");
-  }
-
-  Vector3 x = vec_encoder->decode(node["x"]).operator Vector3();
-  Vector3 y = vec_encoder->decode(node["y"]).operator Vector3();
-  Vector3 z = vec_encoder->decode(node["z"]).operator Vector3();
-
-  return Basis(x, y, z);
 }
 
-bool BasisVariantConverter::set_format(const String& format)
-{
-  // Basis only supports one format (map), but we delegate format setting to the Vector3 encoder
-  return vec_encoder->set_format(format);
-}
-
-void BasisVariantConverter::emit_as_map(ryml::NodeRef& node, const Basis& basis) const
+void BasisVariantConverter::emit_as_map(ryml::NodeRef& node, const Basis& basis, const YAMLFormat::View& format) const
 {
   node |= ryml::MAP;
   node |= ryml::FLOW_SL;
 
+  const auto* vec3_converter = get_vec3_converter();
+
   ryml::NodeRef x_node = node["x"];
-  vec_encoder->encode(x_node, basis.get_column(0));
+  vec3_converter->encode(x_node, basis.get_column(0), format);
 
   ryml::NodeRef y_node = node["y"];
-  vec_encoder->encode(y_node, basis.get_column(1));
+  vec3_converter->encode(y_node, basis.get_column(1), format);
 
   ryml::NodeRef z_node = node["z"];
-  vec_encoder->encode(z_node, basis.get_column(2));
+  vec3_converter->encode(z_node, basis.get_column(2), format);
+}
+
+void BasisVariantConverter::emit_as_sequence(ryml::NodeRef& node, const Basis& basis, const YAMLFormat::View& format) const
+{
+  node |= ryml::SEQ;
+  node |= ryml::FLOW_SL;
+
+  const auto* vec3_converter = get_vec3_converter();
+
+  ryml::NodeRef x_node = node.append_child();
+  vec3_converter->encode(x_node, basis.get_column(0), format);
+
+  ryml::NodeRef y_node = node.append_child();
+  vec3_converter->encode(y_node, basis.get_column(1), format);
+
+  ryml::NodeRef z_node = node.append_child();
+  vec3_converter->encode(z_node, basis.get_column(2), format);
+}
+
+Variant BasisVariantConverter::decode(const ryml::ConstNodeRef& node) const
+{
+  try {
+    if (node.is_map()) {
+      return decode_from_map(node);
+    } else if (node.is_seq()) {
+      return decode_from_sequence(node);
+    }
+    throw YAMLException::create_invalid_format("Basis");
+  } catch (const YAMLException&) {
+    throw; // Re-throw YAML exceptions
+  } catch (const std::exception& e) {
+    throw YAMLException(String("Failed to decode Basis: ") + e.what());
+  }
+}
+
+Variant BasisVariantConverter::decode_from_map(const ryml::ConstNodeRef& node) const
+{
+  if (!node.has_child("x") || !node.has_child("y") || !node.has_child("z")) {
+    throw YAMLException::create_missing_field("Basis", "x, y, z");
+  }
+
+  const auto* vec3_converter = get_vec3_converter();
+  Vector3 x = vec3_converter->decode(node["x"]).operator Vector3();
+  Vector3 y = vec3_converter->decode(node["y"]).operator Vector3();
+  Vector3 z = vec3_converter->decode(node["z"]).operator Vector3();
+
+  return Basis(x, y, z);
+}
+
+Variant BasisVariantConverter::decode_from_sequence(const ryml::ConstNodeRef& node) const
+{
+  if (node.num_children() != 3) {
+    throw YAMLException::create_invalid_sequence_length("Basis", 3);
+  }
+
+  const auto* vec3_converter = get_vec3_converter();
+  Vector3 x = vec3_converter->decode(node[0]).operator Vector3();
+  Vector3 y = vec3_converter->decode(node[1]).operator Vector3();
+  Vector3 z = vec3_converter->decode(node[2]).operator Vector3();
+
+  return Basis(x, y, z);
+}
+
+const VariantConverter* BasisVariantConverter::get_vec3_converter() const
+{
+  const auto* vec3_converter = VariantConverterRegistry::get_converter(Variant::VECTOR3);
+  if (!vec3_converter) {
+    throw YAMLException("Vector3 converter not found in registry");
+  }
+  return vec3_converter;
 }

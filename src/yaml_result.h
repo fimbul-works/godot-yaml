@@ -1,3 +1,4 @@
+// yaml_result.h
 #ifndef YAML_RESULT_H
 #define YAML_RESULT_H
 
@@ -5,39 +6,39 @@
 #include <godot_cpp/core/class_db.hpp>
 #include <godot_cpp/variant/variant.hpp>
 
-#include <memory>
-#include <mutex>
-#include <optional>
-#include <string>
-
 namespace godot {
-
-class YAMLParser;
 
 class YAMLResult : public RefCounted {
   GDCLASS(YAMLResult, RefCounted)
-
-  friend class YAMLParser; // Allow YAMLParser to access private members
-  friend class YAMLEmitter; // Allow YAMLEmitter to access private members
 
   protected:
   static void _bind_methods();
 
   public:
-  YAMLResult();
+  // Default constructor that creates an empty successful result
+  YAMLResult() :
+          data(Variant()), error_message(""), error_line(-1), error_column(-1) { }
 
-  void reset();
-  void set_error(const String& msg, int line = -1, int column = -1);
-  bool has_error() const;
+  // Static factory methods
+  static Ref<YAMLResult> success(const Variant& data);
+  static Ref<YAMLResult> error(const String& msg, int line = -1, int column = -1);
+
+  // Immutable accessors
+  bool has_error() const { return !error_message.is_empty(); }
   String get_error() const;
-  Variant get_data() const;
+  Variant get_data() const { return data; }
+  int get_error_line() const { return error_line; }
+  int get_error_column() const { return error_column; }
 
   private:
-  mutable std::mutex mutex;
-  String error_message;
-  int error_line;
-  int error_column;
-  Variant data;
+  // Private constructor to enforce factory method usage
+  YAMLResult(const Variant& data_, const String& error_ = "", int line = -1, int col = -1);
+
+  // Immutable state
+  const Variant data;
+  const String error_message;
+  const int error_line;
+  const int error_column;
 };
 
 } // namespace godot

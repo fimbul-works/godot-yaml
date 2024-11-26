@@ -1,36 +1,24 @@
 #include "packed_color_array_yaml.h"
+#include "../variant_converter_registry.h"
 #include "../yaml_exception.h"
 
 using namespace godot;
 
-PackedColorArrayVariantConverter::PackedColorArrayVariantConverter(YAML* yaml) :
-        VariantConverter(yaml)
+void PackedColorArrayVariantConverter::encode(ryml::NodeRef& node, const Variant& v, const YAMLFormat::View& format) const
 {
-  color_encoder = new ColorVariantConverter(yaml);
-  color_encoder->set_format("flow"); // Use flow format for individual colors
-}
-
-PackedColorArrayVariantConverter::~PackedColorArrayVariantConverter()
-{
-  delete color_encoder;
-}
-
-void PackedColorArrayVariantConverter::encode(ryml::NodeRef& node, const Variant& v) const
-{
-  PackedColorArray array = v.operator PackedColorArray();
+  const PackedColorArray array = v.operator PackedColorArray();
+  node |= ryml::SEQ;
 
   if (array.size() == 0) {
-    // Empty array is represented as empty sequence
-    node |= ryml::SEQ;
-    return;
+    return; // Empty sequence
   }
 
-  node |= ryml::SEQ;
   node |= ryml::FLOW_SL;
+  const auto* color_converter = get_color_converter();
 
   for (int i = 0; i < array.size(); ++i) {
     ryml::NodeRef color_node = node.append_child();
-    color_encoder->encode(color_node, array[i]);
+    color_converter->encode(color_node, array[i], format);
   }
 }
 
@@ -41,23 +29,30 @@ Variant PackedColorArrayVariantConverter::decode(const ryml::ConstNodeRef& node)
   }
 
   PackedColorArray array;
-  int size = node.num_children();
+  const size_t size = node.num_children();
   array.resize(size);
 
-  for (int i = 0; i < size; ++i) {
-    try {
-      Color color = color_encoder->decode(node[i]);
-      array.set(i, color);
-    } catch (const std::exception& e) {
-      throw YAMLException(String("Failed to decode color at index ") + String::num_int64(i) + ": " + e.what());
+  if (size > 0) {
+    const auto* color_converter = get_color_converter();
+
+    for (size_t i = 0; i < size; ++i) {
+      try {
+        Color color = color_converter->decode(node[i]);
+        array.set(i, color);
+      } catch (const std::exception& e) {
+        throw YAMLException(String("Failed to decode color at index ") + String::num_uint64(i) + ": " + e.what());
+      }
     }
   }
 
   return array;
 }
 
-bool PackedColorArrayVariantConverter::set_format(const String& format_str)
+const VariantConverter* PackedColorArrayVariantConverter::get_color_converter() const
 {
-  // Format setting is delegated to the color encoder
-  return color_encoder->set_format(format_str);
+  const auto* converter = VariantConverterRegistry::get_converter(Variant::COLOR);
+  if (!converter) {
+    throw YAMLException("Color converter not found in registry");
+  }
+  return converter;
 }

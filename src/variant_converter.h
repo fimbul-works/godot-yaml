@@ -1,27 +1,10 @@
 #ifndef VARIANT_CONVERTER_H
 #define VARIANT_CONVERTER_H
 
+#include "yaml_format.h"
+
 #include <godot_cpp/variant/variant.hpp>
 #include <ryml.hpp>
-
-namespace std {
-template <>
-struct hash<godot::String> {
-  size_t operator()(const godot::String& str) const
-  {
-    // Use Godot's built-in hash function
-    return str.hash();
-  }
-};
-
-template <>
-struct equal_to<godot::String> {
-  bool operator()(const godot::String& lhs, const godot::String& rhs) const
-  {
-    return lhs == rhs;
-  }
-};
-}
 
 #define DEFINE_YAML_TAG(TAG_VALUE, VARIANT_TYPE)                 \
   static constexpr const char* TAG = TAG_VALUE;                  \
@@ -32,12 +15,8 @@ struct equal_to<godot::String> {
 
 namespace godot {
 
-class YAML;
-
 class VariantConverter {
   public:
-  VariantConverter(YAML* yaml) :
-          m_yaml(yaml) { }
   virtual ~VariantConverter() = default;
 
   // Tag identification
@@ -45,15 +24,17 @@ class VariantConverter {
   virtual const char* get_full_tag() const = 0;
   virtual const Variant::Type get_type() const = 0;
 
-  // Conversion methods
-  virtual void encode(ryml::NodeRef& node, const Variant& v) const = 0;
+  // Pure virtual encode method that derived classes must implement
+  virtual void encode(ryml::NodeRef& node, const Variant& v, const YAMLFormat::View& format) const = 0;
+
+  // Non-virtual format overload that converts to view
+  void encode(ryml::NodeRef& node, const Variant& v, const YAMLFormat& format) const
+  {
+    encode(node, v, format.get_view());
+  }
+
+  // Pure virtual decode method
   virtual Variant decode(const ryml::ConstNodeRef& node) const = 0;
-
-  // Format configuration
-  virtual bool set_format(const String& format) = 0;
-
-  protected:
-  YAML* m_yaml;
 };
 
 } // namespace godot
