@@ -1,5 +1,5 @@
 #include "variant_converter_registry.h"
-#include "yaml_exception.h"
+#include "exception.h"
 
 #include "variants/aabb_yaml.h"
 #include "variants/basis_yaml.h"

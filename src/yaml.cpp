@@ -1,7 +1,7 @@
 #include "yaml.h"
-#include "yaml_emitter.h"
-#include "yaml_parser.h"
-#include "yaml_result.h"
+#include "emitter.h"
+#include "parser.h"
+#include "result.h"
 
 #include "version.h"
 

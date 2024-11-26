@@ -1,9 +1,9 @@
 #ifndef YAML_EMITTER_H
 #define YAML_EMITTER_H
 
+#include "format.h"
+#include "result.h"
 #include "variant_converter_registry.h"
-#include "yaml_format.h"
-#include "yaml_result.h"
 
 #include <godot_cpp/classes/ref_counted.hpp>
 #include <godot_cpp/core/class_db.hpp>

@@ -1,6 +1,6 @@
 #include "vector3_yaml.h"
+#include "../exception.h"
 #include "../util_numeric.h"
-#include "../yaml_exception.h"
 
 using namespace godot;
 

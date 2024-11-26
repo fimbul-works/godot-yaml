@@ -1,8 +1,8 @@
 #ifndef UTIL_NUMERIC_H
 #define UTIL_NUMERIC_H
 
+#include "exception.h"
 #include "yaml.h"
-#include "yaml_exception.h"
 
 #include <c4/format.hpp>
 #include <ryml.hpp>

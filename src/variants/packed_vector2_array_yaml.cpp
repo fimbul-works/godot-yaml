@@ -1,6 +1,6 @@
 #include "packed_vector2_array_yaml.h"
+#include "../exception.h"
 #include "../variant_converter_registry.h"
-#include "../yaml_exception.h"
 
 using namespace godot;
 

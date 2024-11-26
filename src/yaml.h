@@ -1,17 +1,17 @@
 #ifndef YAML_H
 #define YAML_H
 
-#include "yaml_emitter.h"
-#include "yaml_format.h"
-#include "yaml_parser.h"
-#include "yaml_result.h"
+#include "emitter.h"
+#include "format.h"
+#include "parser.h"
+#include "result.h"
 
 #include <godot_cpp/core/class_db.hpp>
 
 namespace godot {
 
-class YAML : public Object {
-  GDCLASS(YAML, Object);
+class YAML : public RefCounted {
+  GDCLASS(YAML, RefCounted);
 
   protected:
   static void _bind_methods();

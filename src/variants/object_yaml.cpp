@@ -1,5 +1,5 @@
 #include "object_yaml.h"
-#include "../yaml_exception.h"
+#include "../exception.h"
 #include <godot_cpp/classes/project_settings.hpp>
 #include <godot_cpp/classes/resource.hpp>
 #include <godot_cpp/classes/resource_loader.hpp>

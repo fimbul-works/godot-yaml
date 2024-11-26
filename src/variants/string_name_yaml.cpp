@@ -1,5 +1,5 @@
 #include "string_name_yaml.h"
-#include "../yaml_exception.h"
+#include "../exception.h"
 
 using namespace godot;
 

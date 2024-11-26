@@ -1,10 +1,10 @@
 #include "register_types.h"
 
+#include "emitter.h"
+#include "parser.h"
+#include "result.h"
 #include "variant_converter_registry.h"
 #include "yaml.h"
-#include "yaml_emitter.h"
-#include "yaml_parser.h"
-#include "yaml_result.h"
 
 #include <gdextension_interface.h>
 #include <godot_cpp/core/defs.hpp>
@@ -20,19 +20,19 @@ void initialize_yaml_module(ModuleInitializationLevel p_level)
 
   VariantConverterRegistry::initialize_registry();
 
-  if (!ClassDB::is_class_enabled("YAMLResult")) {
+  if (!ClassDB::class_exists("YAMLResult")) {
     GDREGISTER_CLASS(YAMLResult);
   }
-  if (!ClassDB::is_class_enabled("YAMLFormat")) {
-    GDREGISTER_CLASS(YAMLFormat);
-  }
-  if (!ClassDB::is_class_enabled("YAMLParser")) {
+  if (!ClassDB::class_exists("YAMLParser")) {
     GDREGISTER_CLASS(YAMLParser);
   }
-  if (!ClassDB::is_class_enabled("YAMLEmitter")) {
+  if (!ClassDB::class_exists("YAMLFormat")) {
+    GDREGISTER_CLASS(YAMLFormat);
+  }
+  if (!ClassDB::class_exists("YAMLEmitter")) {
     GDREGISTER_CLASS(YAMLEmitter);
   }
-  if (!ClassDB::is_class_enabled("YAML")) {
+  if (!ClassDB::class_exists("YAML")) {
     GDREGISTER_CLASS(YAML);
   }
 }

@@ -1,6 +1,6 @@
 #include "packed_byte_array_yaml.h"
+#include "../exception.h"
 #include "../util_string.h"
-#include "../yaml_exception.h"
 
 #include <godot_cpp/classes/marshalls.hpp>
 

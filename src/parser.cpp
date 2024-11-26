@@ -1,66 +1,99 @@
-#include "yaml_parser.h"
+#include "parser.h"
 #include "util_numeric.h"
 
 #include <godot_cpp/variant/utility_functions.hpp>
 
 using namespace godot;
 
+thread_local YAMLParser::ParserInstance YAMLParser::t_parser_instance;
+
 void YAMLParser::_bind_methods()
 {
   ClassDB::bind_method(D_METHOD("parse", "input"), &YAMLParser::parse);
 }
 
-YAMLParser::YAMLParser()
+YAMLParser::YAMLParser() = default;
+YAMLParser::~YAMLParser() = default;
+
+Ref<YAMLResult> YAMLParser::parse(const String& input)
+{
+  try {
+    auto& instance = t_parser_instance;
+    instance.current_result = YAMLResult::success(Variant());
+    instance.m_tree.clear();
+
+    ryml::parse_in_arena(
+            instance.m_parser.get(),
+            input.utf8().get_data(),
+            &instance.m_tree);
+
+    if (instance.m_tree.empty()) {
+      return YAMLResult::error("Empty YAML document");
+    }
+
+    instance.m_tree.resolve();
+
+    if (!instance.current_result->has_error()) {
+      instance.current_result = YAMLResult::success(
+              instance.process_node(instance.m_tree.rootref()));
+    }
+
+    return instance.current_result;
+
+  } catch (const YAMLException& e) {
+    return YAMLResult::error(e.what());
+  } catch (const std::exception& e) {
+    return YAMLResult::error(e.what());
+  } catch (...) {
+    return YAMLResult::error("Unknown error occurred during parsing");
+  }
+}
+
+YAMLParser::ParserInstance::ParserInstance()
 {
   m_callbacks.m_error = error_callback;
   m_callbacks.m_user_data = this;
   m_evt_handler = std::make_unique<ryml::EventHandlerTree>(m_callbacks);
-  m_parser = std::make_unique<ryml::Parser>(m_evt_handler.get(),
-          ryml::ParserOptions().locations(true));
-  ryml::set_callbacks(m_callbacks);
+  m_parser = std::make_unique<ryml::Parser>(m_evt_handler.get(), ryml::ParserOptions().locations(true));
 }
 
-YAMLParser::~YAMLParser() = default;
+YAMLParser::ParserInstance::~ParserInstance() = default;
 
-void YAMLParser::error_callback(const char* msg, size_t len, ryml::Location loc, void* user_data)
+void YAMLParser::ParserInstance::error_callback(const char* msg, size_t len, ryml::Location loc, void* user_data)
 {
-  auto* parser = static_cast<YAMLParser*>(user_data);
-  if (!parser) {
-    return;
+  ryml::csubstr error_msg(msg, len);
+
+  // Strip "ERROR: " prefix if available
+  const ryml::csubstr strip_error_prefix = "ERROR: ";
+  if (error_msg.begins_with(strip_error_prefix)) {
+    error_msg = error_msg.sub(strip_error_prefix.len);
   }
 
-  std::lock_guard<std::mutex> lock(parser->parse_mutex);
-  parser->current_result = YAMLResult::error(String::utf8(msg, len), loc.line, loc.col);
-}
-
-Ref<YAMLResult> YAMLParser::parse(const String& input)
-{
-  std::lock_guard<std::mutex> lock(parse_mutex);
-
-  current_result = YAMLResult::success(Variant());
-
-  try {
-    m_tree.clear();
-    ryml::parse_in_arena(m_parser.get(), input.utf8().get_data(), &m_tree);
-
-    if (m_tree.empty()) {
-      return YAMLResult::error("Empty YAML document");
-    }
-
-    m_tree.resolve();
-
-    if (!current_result->has_error()) {
-      current_result = YAMLResult::success(process_node(m_tree.rootref()));
-    }
-
-    return current_result;
-
-  } catch (const std::exception& e) {
-    return YAMLResult::error(e.what());
+  // RapidYAML does not like complex keys
+  if (error_msg.begins_with("ryml trees cannot handle containers as keys")) {
+    error_msg = ryml::to_csubstr("unsupported complex key");
   }
+
+  // Only return the first line, which has the relevent error message
+  size_t newline_pos = error_msg.find('\n');
+  if (newline_pos != ryml::substr::npos) {
+    error_msg = error_msg.sub(0, newline_pos);
+  }
+
+  // Attempt to retrieve parser instance
+  auto* instance = static_cast<ParserInstance*>(user_data);
+  if (!instance) {
+    throw YAMLException(String::utf8(error_msg.str, error_msg.len));
+  }
+
+  // Set the error object
+  instance->current_result = YAMLResult::error(String::utf8(error_msg.str, error_msg.len), loc.line, loc.col);
+
+  // Error handler MUST throw!
+  throw YAMLException(instance->current_result->get_error());
 }
 
-Variant YAMLParser::process_node(const ryml::ConstNodeRef& node) const
+Variant YAMLParser::ParserInstance::process_node(const ryml::ConstNodeRef& node) const
 {
   try {
     // First check for tagged values
@@ -88,7 +121,7 @@ Variant YAMLParser::process_node(const ryml::ConstNodeRef& node) const
   }
 }
 
-Variant YAMLParser::process_map(const ryml::ConstNodeRef& node) const
+Variant YAMLParser::ParserInstance::process_map(const ryml::ConstNodeRef& node) const
 {
   Dictionary dict;
 
@@ -109,7 +142,7 @@ Variant YAMLParser::process_map(const ryml::ConstNodeRef& node) const
   return dict;
 }
 
-Variant YAMLParser::process_sequence(const ryml::ConstNodeRef& node) const
+Variant YAMLParser::ParserInstance::process_sequence(const ryml::ConstNodeRef& node) const
 {
   Array arr;
 
@@ -124,7 +157,7 @@ Variant YAMLParser::process_sequence(const ryml::ConstNodeRef& node) const
   return arr;
 }
 
-Variant YAMLParser::process_key(const ryml::ConstNodeRef& node) const
+Variant YAMLParser::ParserInstance::process_key(const ryml::ConstNodeRef& node) const
 {
   if (!node.has_key()) {
     return Variant();
@@ -132,7 +165,7 @@ Variant YAMLParser::process_key(const ryml::ConstNodeRef& node) const
   return String::utf8(node.key().str, node.key().len);
 }
 
-Variant YAMLParser::process_value(const ryml::ConstNodeRef& node) const
+Variant YAMLParser::ParserInstance::process_value(const ryml::ConstNodeRef& node) const
 {
   // Handle null/empty values
   if (!node.has_val() || node.val().empty() || node.val_is_null()) {
@@ -161,7 +194,7 @@ Variant YAMLParser::process_value(const ryml::ConstNodeRef& node) const
   }
 }
 
-std::optional<Variant> YAMLParser::try_parse_special_value(const String& str_val) const
+std::optional<Variant> YAMLParser::ParserInstance::try_parse_special_value(const String& str_val) const
 {
   // Boolean values
   if (str_val == "true")
@@ -184,7 +217,7 @@ std::optional<Variant> YAMLParser::try_parse_special_value(const String& str_val
   return std::nullopt;
 }
 
-std::optional<Variant> YAMLParser::try_parse_numeric_value(const String& str_val, const ryml::csubstr& val) const
+std::optional<Variant> YAMLParser::ParserInstance::try_parse_numeric_value(const String& str_val, const ryml::csubstr& val) const
 {
   // Handle different integer formats
   if (str_val.begins_with("0b") || str_val.begins_with("0B") || // Binary
@@ -219,7 +252,7 @@ std::optional<Variant> YAMLParser::try_parse_numeric_value(const String& str_val
   return std::nullopt;
 }
 
-std::optional<Variant> YAMLParser::try_parse_tagged_value(const ryml::ConstNodeRef& node) const
+std::optional<Variant> YAMLParser::ParserInstance::try_parse_tagged_value(const ryml::ConstNodeRef& node) const
 {
   String tag = extract_tag(node);
   if (tag.is_empty()) {
@@ -234,7 +267,7 @@ std::optional<Variant> YAMLParser::try_parse_tagged_value(const ryml::ConstNodeR
   return converter->decode(node);
 }
 
-String YAMLParser::extract_tag(const ryml::ConstNodeRef& node) const
+String YAMLParser::ParserInstance::extract_tag(const ryml::ConstNodeRef& node) const
 {
   if (!node.has_val_tag()) {
     return String();

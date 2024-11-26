@@ -1,6 +1,6 @@
 #include "packed_int64_array_yaml.h"
+#include "../exception.h"
 #include "../util_numeric.h"
-#include "../yaml_exception.h"
 
 using namespace godot;
 
