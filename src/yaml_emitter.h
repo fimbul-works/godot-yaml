@@ -39,17 +39,6 @@ class YAMLEmitter : public RefCounted {
   Ref<YAMLResult> current_result;
   Ref<YAMLFormat> default_format;
 
-  // String handling utilities
-  inline bool needs_block_style(const String& str) const
-  {
-    return str.contains("\n") || str.contains("\"") || str.begins_with(" ") || str.ends_with(" ") || str.begins_with("#");
-  }
-
-  inline bool is_multiline(const String& str) const
-  {
-    return str.contains("\n");
-  }
-
   // Core emission methods using immutable View - declarations only
   void emit_value(ryml::NodeRef& node, const Variant& value, const YAMLFormat::View& format);
   void emit_nil(ryml::NodeRef& node);
@@ -59,8 +48,6 @@ class YAMLEmitter : public RefCounted {
   void emit_array(ryml::NodeRef& node, const Array& array, const YAMLFormat::View& format);
   void emit_dictionary(ryml::NodeRef& node, const Dictionary& dict, const YAMLFormat::View& format);
   void emit_tagged_value(ryml::NodeRef& node, const Variant& value, const YAMLFormat::View& format);
-
-  const VariantConverter* get_converter_for_type(Variant::Type type) const;
 };
 
 } // namespace godot

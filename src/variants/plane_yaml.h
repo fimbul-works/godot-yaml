@@ -24,7 +24,6 @@ class PlaneVariantConverter : public VariantConverter {
   void emit_as_sequence(ryml::NodeRef& node, const Plane& plane, const YAMLFormat::View& format) const;
   Variant decode_from_map(const ryml::ConstNodeRef& node) const;
   Variant decode_from_sequence(const ryml::ConstNodeRef& node) const;
-  const VariantConverter* get_vec3_converter() const;
 };
 
 } // namespace godot

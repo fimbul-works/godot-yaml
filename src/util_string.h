@@ -26,17 +26,14 @@ inline String from_ryml_str(const ryml::csubstr& str)
   return String::utf8(str.str, str.len);
 }
 
-// String format checks used in multiple converters
-inline bool needs_block_style(const ryml::csubstr& str)
+inline bool needs_block_style(const String& str)
 {
-  // Convert only once for checking multiple conditions
-  String godot_str = from_ryml_str(str);
-  return godot_str.contains("\n") || godot_str.contains("\"") || godot_str.begins_with(" ") || godot_str.ends_with(" ") || godot_str.begins_with("#");
+  return str.contains("\n") || str.contains("\"") || str.begins_with(" ") || str.ends_with(" ") || str.begins_with("#");
 }
 
-inline bool is_multiline(const ryml::csubstr& str)
+inline bool needs_block_style(const ryml::csubstr& str)
 {
-  return str.first('\n') != ryml::csubstr::npos;
+  return needs_block_style(from_ryml_str(str));
 }
 
 } // namespace godot

@@ -14,7 +14,7 @@ void PackedColorArrayVariantConverter::encode(ryml::NodeRef& node, const Variant
   }
 
   node |= ryml::FLOW_SL;
-  const auto* color_converter = get_color_converter();
+  const auto* color_converter = VariantConverterRegistry::get_converter(Variant::COLOR);
 
   for (int i = 0; i < array.size(); ++i) {
     ryml::NodeRef color_node = node.append_child();
@@ -33,7 +33,7 @@ Variant PackedColorArrayVariantConverter::decode(const ryml::ConstNodeRef& node)
   array.resize(size);
 
   if (size > 0) {
-    const auto* color_converter = get_color_converter();
+    const auto* color_converter = VariantConverterRegistry::get_converter(Variant::COLOR);
 
     for (size_t i = 0; i < size; ++i) {
       try {
@@ -46,13 +46,4 @@ Variant PackedColorArrayVariantConverter::decode(const ryml::ConstNodeRef& node)
   }
 
   return array;
-}
-
-const VariantConverter* PackedColorArrayVariantConverter::get_color_converter() const
-{
-  const auto* converter = VariantConverterRegistry::get_converter(Variant::COLOR);
-  if (!converter) {
-    throw YAMLException("Color converter not found in registry");
-  }
-  return converter;
 }

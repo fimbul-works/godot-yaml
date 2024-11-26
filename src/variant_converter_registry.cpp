@@ -1,4 +1,5 @@
 #include "variant_converter_registry.h"
+#include "yaml_exception.h"
 
 #include "variants/aabb_yaml.h"
 #include "variants/basis_yaml.h"
@@ -48,7 +49,10 @@ const VariantConverter* VariantConverterRegistry::get_converter(Variant::Type ty
   }
 
   auto it = s_type_to_converter.find(type);
-  return it != s_type_to_converter.end() ? it->second.get() : nullptr;
+  if (it == s_type_to_converter.end()) {
+    throw YAMLException(String("No converter found for type: ") + Variant::get_type_name(type));
+  }
+  return it->second.get();
 }
 
 const VariantConverter* VariantConverterRegistry::get_converter_by_tag(const String& tag)
@@ -62,6 +66,15 @@ const VariantConverter* VariantConverterRegistry::get_converter_by_tag(const Str
 
   auto it = s_tag_to_converter.find(tag);
   return it != s_tag_to_converter.end() ? it->second : nullptr;
+}
+
+template <Variant::Type T>
+static const VariantConverter* get_converter_checked(const char* type_name)
+{
+  if (!has_converter(T)) {
+    throw YAMLException(String(type_name) + " converter not found in registry");
+  }
+  return get_converter(T);
 }
 
 void VariantConverterRegistry::register_converter(std::unique_ptr<VariantConverter> converter)

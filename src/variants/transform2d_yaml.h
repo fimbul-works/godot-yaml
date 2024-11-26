@@ -24,8 +24,6 @@ class Transform2DVariantConverter : public VariantConverter {
 
   Variant decode_from_map(const ryml::ConstNodeRef& node) const;
   Variant decode_from_sequence(const ryml::ConstNodeRef& node) const;
-
-  const VariantConverter* get_vec2_converter() const;
 };
 
 } // namespace godot

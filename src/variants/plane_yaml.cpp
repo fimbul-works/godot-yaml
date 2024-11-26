@@ -27,7 +27,7 @@ void PlaneVariantConverter::emit_as_map(ryml::NodeRef& node, const Plane& plane,
   node |= ryml::MAP;
   node |= ryml::FLOW_SL;
 
-  const auto* vec3_converter = get_vec3_converter();
+  const auto* vec3_converter = VariantConverterRegistry::get_converter(Variant::VECTOR3);
 
   ryml::NodeRef normal_node = node["normal"];
   vec3_converter->encode(normal_node, plane.normal, format);
@@ -40,7 +40,7 @@ void PlaneVariantConverter::emit_as_sequence(ryml::NodeRef& node, const Plane& p
   node |= ryml::SEQ;
   node |= ryml::FLOW_SL;
 
-  const auto* vec3_converter = get_vec3_converter();
+  const auto* vec3_converter = VariantConverterRegistry::get_converter(Variant::VECTOR3);
 
   ryml::NodeRef normal_node = node.append_child();
   vec3_converter->encode(normal_node, plane.normal, format);
@@ -70,7 +70,7 @@ Variant PlaneVariantConverter::decode_from_map(const ryml::ConstNodeRef& node) c
     throw YAMLException::create_missing_field("Plane", "normal, d");
   }
 
-  const auto* vec3_converter = get_vec3_converter();
+  const auto* vec3_converter = VariantConverterRegistry::get_converter(Variant::VECTOR3);
   Vector3 normal = vec3_converter->decode(node["normal"]).operator Vector3();
   real_t d = string_to_float<real_t>(node["d"].val());
 
@@ -83,18 +83,9 @@ Variant PlaneVariantConverter::decode_from_sequence(const ryml::ConstNodeRef& no
     throw YAMLException::create_invalid_sequence_length("Plane", 2);
   }
 
-  const auto* vec3_converter = get_vec3_converter();
+  const auto* vec3_converter = VariantConverterRegistry::get_converter(Variant::VECTOR3);
   Vector3 normal = vec3_converter->decode(node[0]).operator Vector3();
   real_t d = string_to_float<real_t>(node[1].val());
 
   return Plane(normal, d);
-}
-
-const VariantConverter* PlaneVariantConverter::get_vec3_converter() const
-{
-  const auto* converter = VariantConverterRegistry::get_converter(Variant::VECTOR3);
-  if (!converter) {
-    throw YAMLException("Vector3 converter not found in registry");
-  }
-  return converter;
 }

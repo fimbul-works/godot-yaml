@@ -26,7 +26,7 @@ void BasisVariantConverter::emit_as_map(ryml::NodeRef& node, const Basis& basis,
   node |= ryml::MAP;
   node |= ryml::FLOW_SL;
 
-  const auto* vec3_converter = get_vec3_converter();
+  const auto* vec3_converter = VariantConverterRegistry::get_converter(Variant::VECTOR3);
 
   ryml::NodeRef x_node = node["x"];
   vec3_converter->encode(x_node, basis.get_column(0), format);
@@ -43,7 +43,7 @@ void BasisVariantConverter::emit_as_sequence(ryml::NodeRef& node, const Basis& b
   node |= ryml::SEQ;
   node |= ryml::FLOW_SL;
 
-  const auto* vec3_converter = get_vec3_converter();
+  const auto* vec3_converter = VariantConverterRegistry::get_converter(Variant::VECTOR3);
 
   ryml::NodeRef x_node = node.append_child();
   vec3_converter->encode(x_node, basis.get_column(0), format);
@@ -77,7 +77,7 @@ Variant BasisVariantConverter::decode_from_map(const ryml::ConstNodeRef& node) c
     throw YAMLException::create_missing_field("Basis", "x, y, z");
   }
 
-  const auto* vec3_converter = get_vec3_converter();
+  const auto* vec3_converter = VariantConverterRegistry::get_converter(Variant::VECTOR3);
   Vector3 x = vec3_converter->decode(node["x"]).operator Vector3();
   Vector3 y = vec3_converter->decode(node["y"]).operator Vector3();
   Vector3 z = vec3_converter->decode(node["z"]).operator Vector3();
@@ -91,19 +91,10 @@ Variant BasisVariantConverter::decode_from_sequence(const ryml::ConstNodeRef& no
     throw YAMLException::create_invalid_sequence_length("Basis", 3);
   }
 
-  const auto* vec3_converter = get_vec3_converter();
+  const auto* vec3_converter = VariantConverterRegistry::get_converter(Variant::VECTOR3);
   Vector3 x = vec3_converter->decode(node[0]).operator Vector3();
   Vector3 y = vec3_converter->decode(node[1]).operator Vector3();
   Vector3 z = vec3_converter->decode(node[2]).operator Vector3();
 
   return Basis(x, y, z);
-}
-
-const VariantConverter* BasisVariantConverter::get_vec3_converter() const
-{
-  const auto* vec3_converter = VariantConverterRegistry::get_converter(Variant::VECTOR3);
-  if (!vec3_converter) {
-    throw YAMLException("Vector3 converter not found in registry");
-  }
-  return vec3_converter;
 }

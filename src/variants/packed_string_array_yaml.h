@@ -25,7 +25,6 @@ class PackedStringArrayVariantConverter : public VariantConverter {
 
   private:
   void emit_as_sequence(ryml::NodeRef& node, const PackedStringArray& array, const YAMLFormat::View& format) const;
-  bool needs_block_style(const String& str) const;
 };
 
 } // namespace godot

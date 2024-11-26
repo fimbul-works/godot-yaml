@@ -14,7 +14,7 @@ void PackedVector2ArrayVariantConverter::encode(ryml::NodeRef& node, const Varia
   }
 
   node |= ryml::FLOW_SL;
-  const auto* vec2_converter = get_vec2_converter();
+  const auto* vec2_converter = VariantConverterRegistry::get_converter(Variant::VECTOR2);
 
   for (int i = 0; i < array.size(); ++i) {
     ryml::NodeRef vec_node = node.append_child();
@@ -33,7 +33,7 @@ Variant PackedVector2ArrayVariantConverter::decode(const ryml::ConstNodeRef& nod
   array.resize(size);
 
   if (size > 0) {
-    const auto* vec2_converter = get_vec2_converter();
+    const auto* vec2_converter = VariantConverterRegistry::get_converter(Variant::VECTOR2);
 
     for (size_t i = 0; i < size; ++i) {
       try {
@@ -46,13 +46,4 @@ Variant PackedVector2ArrayVariantConverter::decode(const ryml::ConstNodeRef& nod
   }
 
   return array;
-}
-
-const VariantConverter* PackedVector2ArrayVariantConverter::get_vec2_converter() const
-{
-  const auto* converter = VariantConverterRegistry::get_converter(Variant::VECTOR2);
-  if (!converter) {
-    throw YAMLException("Vector2 converter not found in registry");
-  }
-  return converter;
 }

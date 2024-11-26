@@ -25,8 +25,8 @@ void Transform3DVariantConverter::emit_as_map(ryml::NodeRef& node, const Transfo
   node |= ryml::MAP;
   node |= ryml::FLOW_SL;
 
-  const auto* basis_converter = get_basis_converter();
-  const auto* vec3_converter = get_vec3_converter();
+  const auto* basis_converter = VariantConverterRegistry::get_converter(Variant::BASIS);
+  const auto* vec3_converter = VariantConverterRegistry::get_converter(Variant::VECTOR3);
 
   // Encode basis
   ryml::NodeRef basis_node = node["basis"];
@@ -42,7 +42,7 @@ void Transform3DVariantConverter::emit_as_sequence(ryml::NodeRef& node, const Tr
   node |= ryml::SEQ;
   node |= ryml::FLOW_SL;
 
-  const auto* vec3_converter = get_vec3_converter();
+  const auto* vec3_converter = VariantConverterRegistry::get_converter(Variant::VECTOR3);
 
   // Encode basis columns
   for (int i = 0; i < 3; i++) {
@@ -77,8 +77,8 @@ Variant Transform3DVariantConverter::decode_from_map(const ryml::ConstNodeRef& n
     throw YAMLException::create_missing_field("Transform3D", "basis, origin");
   }
 
-  const auto* basis_converter = get_basis_converter();
-  const auto* vec3_converter = get_vec3_converter();
+  const auto* basis_converter = VariantConverterRegistry::get_converter(Variant::BASIS);
+  const auto* vec3_converter = VariantConverterRegistry::get_converter(Variant::VECTOR3);
 
   Basis basis = basis_converter->decode(node["basis"]).operator Basis();
   Vector3 origin = vec3_converter->decode(node["origin"]).operator Vector3();
@@ -92,7 +92,7 @@ Variant Transform3DVariantConverter::decode_from_sequence(const ryml::ConstNodeR
     throw YAMLException::create_invalid_sequence_length("Transform3D", 4);
   }
 
-  const auto* vec3_converter = get_vec3_converter();
+  const auto* vec3_converter = VariantConverterRegistry::get_converter(Variant::VECTOR3);
   Basis basis;
 
   // Read basis columns
@@ -104,22 +104,4 @@ Variant Transform3DVariantConverter::decode_from_sequence(const ryml::ConstNodeR
   Vector3 origin = vec3_converter->decode(node[3]).operator Vector3();
 
   return Transform3D(basis, origin);
-}
-
-const VariantConverter* Transform3DVariantConverter::get_vec3_converter() const
-{
-  const auto* converter = VariantConverterRegistry::get_converter(Variant::VECTOR3);
-  if (!converter) {
-    throw YAMLException("Vector3 converter not found in registry");
-  }
-  return converter;
-}
-
-const VariantConverter* Transform3DVariantConverter::get_basis_converter() const
-{
-  const auto* converter = VariantConverterRegistry::get_converter(Variant::BASIS);
-  if (!converter) {
-    throw YAMLException("Basis converter not found in registry");
-  }
-  return converter;
 }

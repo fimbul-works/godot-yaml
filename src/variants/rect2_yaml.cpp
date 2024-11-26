@@ -29,7 +29,7 @@ void Rect2VariantConverter::emit_as_map(ryml::NodeRef& node, const Rect2& rect, 
   node |= ryml::MAP;
   node |= ryml::FLOW_SL;
 
-  const auto* vec2_converter = get_vec2_converter();
+  const auto* vec2_converter = VariantConverterRegistry::get_converter(Variant::VECTOR2);
 
   ryml::NodeRef pos_node = node["position"];
   vec2_converter->encode(pos_node, rect.position, format);
@@ -43,7 +43,7 @@ void Rect2VariantConverter::emit_as_sequence(ryml::NodeRef& node, const Rect2& r
   node |= ryml::SEQ;
   node |= ryml::FLOW_SL;
 
-  const auto* vec2_converter = get_vec2_converter();
+  const auto* vec2_converter = VariantConverterRegistry::get_converter(Variant::VECTOR2);
 
   ryml::NodeRef pos_node = node.append_child();
   vec2_converter->encode(pos_node, rect.position, format);
@@ -89,7 +89,7 @@ Variant Rect2VariantConverter::decode_from_map(const ryml::ConstNodeRef& node) c
     throw YAMLException::create_missing_field("Rect2", "position, size");
   }
 
-  const auto* vec2_converter = get_vec2_converter();
+  const auto* vec2_converter = VariantConverterRegistry::get_converter(Variant::VECTOR2);
   Vector2 position = vec2_converter->decode(node["position"]).operator Vector2();
   Vector2 size = vec2_converter->decode(node["size"]).operator Vector2();
 
@@ -102,7 +102,7 @@ Variant Rect2VariantConverter::decode_from_sequence(const ryml::ConstNodeRef& no
     throw YAMLException::create_invalid_sequence_length("Rect2", 2);
   }
 
-  const auto* vec2_converter = get_vec2_converter();
+  const auto* vec2_converter = VariantConverterRegistry::get_converter(Variant::VECTOR2);
   Vector2 position = vec2_converter->decode(node[0]).operator Vector2();
   Vector2 size = vec2_converter->decode(node[1]).operator Vector2();
 
@@ -117,13 +117,4 @@ Variant Rect2VariantConverter::decode_from_expanded(const ryml::ConstNodeRef& no
   real_t h = string_to_float<real_t>(node["h"].val());
 
   return Rect2(x, y, w, h);
-}
-
-const VariantConverter* Rect2VariantConverter::get_vec2_converter() const
-{
-  const auto* converter = VariantConverterRegistry::get_converter(Variant::VECTOR2);
-  if (!converter) {
-    throw YAMLException("Vector2 converter not found in registry");
-  }
-  return converter;
 }

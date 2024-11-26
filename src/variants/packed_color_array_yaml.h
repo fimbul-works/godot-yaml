@@ -17,9 +17,6 @@ class PackedColorArrayVariantConverter : public VariantConverter {
 
   void encode(ryml::NodeRef& node, const Variant& v, const YAMLFormat::View& format) const override;
   Variant decode(const ryml::ConstNodeRef& node) const override;
-
-  private:
-  const VariantConverter* get_color_converter() const;
 };
 
 } // namespace godot

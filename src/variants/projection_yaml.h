@@ -29,8 +29,6 @@ class ProjectionVariantConverter : public VariantConverter {
   Variant decode_from_sequence(const ryml::ConstNodeRef& node) const;
   Vector4 decode_column(const ryml::ConstNodeRef& node) const;
   Vector4 decode_array_column(const ryml::ConstNodeRef& node) const;
-
-  const VariantConverter* get_vec4_converter() const;
 };
 
 } // namespace godot

@@ -55,7 +55,7 @@ void QuaternionVariantConverter::emit_as_axis_angle(ryml::NodeRef& node, const Q
   real_t angle;
   quat.get_axis_angle(axis, angle);
 
-  const auto* vec3_converter = get_vec3_converter();
+  const auto* vec3_converter = VariantConverterRegistry::get_converter(Variant::VECTOR3);
   ryml::NodeRef axis_node = node["axis"];
   vec3_converter->encode(axis_node, axis, format);
 
@@ -115,18 +115,9 @@ Variant QuaternionVariantConverter::decode_from_axis_angle(const ryml::ConstNode
     throw YAMLException::create_missing_field("Quaternion", "axis, angle");
   }
 
-  const auto* vec3_converter = get_vec3_converter();
+  const auto* vec3_converter = VariantConverterRegistry::get_converter(Variant::VECTOR3);
   Vector3 axis = vec3_converter->decode(node["axis"]).operator Vector3();
   real_t angle = string_to_float<real_t>(node["angle"].val());
 
   return Quaternion(axis, angle);
-}
-
-const VariantConverter* QuaternionVariantConverter::get_vec3_converter() const
-{
-  const auto* converter = VariantConverterRegistry::get_converter(Variant::VECTOR3);
-  if (!converter) {
-    throw YAMLException("Vector3 converter not found in registry");
-  }
-  return converter;
 }

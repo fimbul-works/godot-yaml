@@ -26,7 +26,7 @@ void AABBVariantConverter::emit_as_map(ryml::NodeRef& node, const AABB& aabb, co
   node |= ryml::MAP;
   node |= ryml::FLOW_SL;
 
-  const auto* vec3_converter = get_vec3_converter();
+  const auto* vec3_converter = VariantConverterRegistry::get_converter(Variant::VECTOR3);
 
   ryml::NodeRef position_node = node["position"];
   vec3_converter->encode(position_node, aabb.position, format);
@@ -40,7 +40,7 @@ void AABBVariantConverter::emit_as_sequence(ryml::NodeRef& node, const AABB& aab
   node |= ryml::SEQ;
   node |= ryml::FLOW_SL;
 
-  const auto* vec3_converter = get_vec3_converter();
+  const auto* vec3_converter = VariantConverterRegistry::get_converter(Variant::VECTOR3);
 
   ryml::NodeRef position_node = node.append_child();
   vec3_converter->encode(position_node, aabb.position, format);
@@ -71,7 +71,7 @@ Variant AABBVariantConverter::decode_from_map(const ryml::ConstNodeRef& node) co
     throw YAMLException("Missing required field 'size' in AABB");
   }
 
-  const auto* vec3_converter = get_vec3_converter();
+  const auto* vec3_converter = VariantConverterRegistry::get_converter(Variant::VECTOR3);
   const Vector3 position = vec3_converter->decode(position_node).operator Vector3();
   const Vector3 size = vec3_converter->decode(size_node).operator Vector3();
 
@@ -84,20 +84,11 @@ Variant AABBVariantConverter::decode_from_sequence(const ryml::ConstNodeRef& nod
     throw YAMLException("Invalid AABB sequence: expected exactly 2 elements");
   }
 
-  const auto* vec3_converter = get_vec3_converter();
+  const auto* vec3_converter = VariantConverterRegistry::get_converter(Variant::VECTOR3);
   const Vector3 position = vec3_converter->decode(node[0]).operator Vector3();
   const Vector3 size = vec3_converter->decode(node[1]).operator Vector3();
 
   return AABB(position, size);
-}
-
-const VariantConverter* AABBVariantConverter::get_vec3_converter() const
-{
-  const auto* vec3_converter = VariantConverterRegistry::get_converter(Variant::VECTOR3);
-  if (!vec3_converter) {
-    throw YAMLException("Vector3 converter not found in registry");
-  }
-  return vec3_converter;
 }
 
 } // namespace godot

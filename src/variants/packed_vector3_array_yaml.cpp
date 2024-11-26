@@ -14,7 +14,7 @@ void PackedVector3ArrayVariantConverter::encode(ryml::NodeRef& node, const Varia
   }
 
   node |= ryml::FLOW_SL;
-  const auto* vec3_converter = get_vec3_converter();
+  const auto* vec3_converter = VariantConverterRegistry::get_converter(Variant::VECTOR3);
 
   for (int i = 0; i < array.size(); ++i) {
     ryml::NodeRef vec_node = node.append_child();
@@ -33,7 +33,7 @@ Variant PackedVector3ArrayVariantConverter::decode(const ryml::ConstNodeRef& nod
   array.resize(size);
 
   if (size > 0) {
-    const auto* vec3_converter = get_vec3_converter();
+    const auto* vec3_converter = VariantConverterRegistry::get_converter(Variant::VECTOR3);
 
     for (size_t i = 0; i < size; ++i) {
       try {
@@ -46,13 +46,4 @@ Variant PackedVector3ArrayVariantConverter::decode(const ryml::ConstNodeRef& nod
   }
 
   return array;
-}
-
-const VariantConverter* PackedVector3ArrayVariantConverter::get_vec3_converter() const
-{
-  const auto* converter = VariantConverterRegistry::get_converter(Variant::VECTOR3);
-  if (!converter) {
-    throw YAMLException("Vector3 converter not found in registry");
-  }
-  return converter;
 }

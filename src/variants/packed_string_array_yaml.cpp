@@ -78,8 +78,3 @@ Variant PackedStringArrayVariantConverter::decode(const ryml::ConstNodeRef& node
 
   return array;
 }
-
-bool PackedStringArrayVariantConverter::needs_block_style(const String& str) const
-{
-  return str.contains("\n") || str.contains("\"") || str.begins_with(" ") || str.ends_with(" ") || str.begins_with("#");
-}

@@ -25,7 +25,7 @@ void Transform2DVariantConverter::emit_as_map(ryml::NodeRef& node, const Transfo
   node |= ryml::MAP;
   node |= ryml::FLOW_SL;
 
-  const auto* vec2_converter = get_vec2_converter();
+  const auto* vec2_converter = VariantConverterRegistry::get_converter(Variant::VECTOR2);
 
   // Encode the matrix columns (x, y components)
   ryml::NodeRef x_node = node["x"];
@@ -44,7 +44,7 @@ void Transform2DVariantConverter::emit_as_sequence(ryml::NodeRef& node, const Tr
   node |= ryml::SEQ;
   node |= ryml::FLOW_SL;
 
-  const auto* vec2_converter = get_vec2_converter();
+  const auto* vec2_converter = VariantConverterRegistry::get_converter(Variant::VECTOR2);
 
   // Encode columns in order: x, y, origin
   ryml::NodeRef x_node = node.append_child();
@@ -79,7 +79,7 @@ Variant Transform2DVariantConverter::decode_from_map(const ryml::ConstNodeRef& n
     throw YAMLException::create_missing_field("Transform2D", "x, y, origin");
   }
 
-  const auto* vec2_converter = get_vec2_converter();
+  const auto* vec2_converter = VariantConverterRegistry::get_converter(Variant::VECTOR2);
   Vector2 x = vec2_converter->decode(node["x"]).operator Vector2();
   Vector2 y = vec2_converter->decode(node["y"]).operator Vector2();
   Vector2 origin = vec2_converter->decode(node["origin"]).operator Vector2();
@@ -93,19 +93,10 @@ Variant Transform2DVariantConverter::decode_from_sequence(const ryml::ConstNodeR
     throw YAMLException::create_invalid_sequence_length("Transform2D", 3);
   }
 
-  const auto* vec2_converter = get_vec2_converter();
+  const auto* vec2_converter = VariantConverterRegistry::get_converter(Variant::VECTOR2);
   Vector2 x = vec2_converter->decode(node[0]).operator Vector2();
   Vector2 y = vec2_converter->decode(node[1]).operator Vector2();
   Vector2 origin = vec2_converter->decode(node[2]).operator Vector2();
 
   return Transform2D(x, y, origin);
-}
-
-const VariantConverter* Transform2DVariantConverter::get_vec2_converter() const
-{
-  const auto* converter = VariantConverterRegistry::get_converter(Variant::VECTOR2);
-  if (!converter) {
-    throw YAMLException("Vector2 converter not found in registry");
-  }
-  return converter;
 }

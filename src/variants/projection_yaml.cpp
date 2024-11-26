@@ -58,7 +58,7 @@ void ProjectionVariantConverter::emit_column(ryml::NodeRef& node, const Vector4&
     node.append_child() << float_to_string(col.w);
   } else {
     // Use Vector4 converter for structured format
-    const auto* vec4_converter = get_vec4_converter();
+    const auto* vec4_converter = VariantConverterRegistry::get_converter(Variant::VECTOR4);
     vec4_converter->encode(node, col, format);
   }
 }
@@ -116,7 +116,7 @@ Vector4 ProjectionVariantConverter::decode_column(const ryml::ConstNodeRef& node
     return decode_array_column(node);
   } else {
     // Use Vector4 converter for structured format
-    const auto* vec4_converter = get_vec4_converter();
+    const auto* vec4_converter = VariantConverterRegistry::get_converter(Variant::VECTOR4);
     return vec4_converter->decode(node).operator Vector4();
   }
 }
@@ -132,13 +132,4 @@ Vector4 ProjectionVariantConverter::decode_array_column(const ryml::ConstNodeRef
           string_to_float<real_t>(node[1].val()),
           string_to_float<real_t>(node[2].val()),
           string_to_float<real_t>(node[3].val()));
-}
-
-const VariantConverter* ProjectionVariantConverter::get_vec4_converter() const
-{
-  const auto* converter = VariantConverterRegistry::get_converter(Variant::VECTOR4);
-  if (!converter) {
-    throw YAMLException("Vector4 converter not found in registry");
-  }
-  return converter;
 }

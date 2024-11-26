@@ -29,7 +29,7 @@ void Rect2iVariantConverter::emit_as_map(ryml::NodeRef& node, const Rect2i& rect
   node |= ryml::MAP;
   node |= ryml::FLOW_SL;
 
-  const auto* vec2i_converter = get_vec2i_converter();
+  const auto* vec2i_converter = VariantConverterRegistry::get_converter(Variant::VECTOR2I);
 
   ryml::NodeRef pos_node = node["position"];
   vec2i_converter->encode(pos_node, rect.position, format);
@@ -43,7 +43,7 @@ void Rect2iVariantConverter::emit_as_sequence(ryml::NodeRef& node, const Rect2i&
   node |= ryml::SEQ;
   node |= ryml::FLOW_SL;
 
-  const auto* vec2i_converter = get_vec2i_converter();
+  const auto* vec2i_converter = VariantConverterRegistry::get_converter(Variant::VECTOR2I);
 
   ryml::NodeRef pos_node = node.append_child();
   vec2i_converter->encode(pos_node, rect.position, format);
@@ -89,7 +89,7 @@ Variant Rect2iVariantConverter::decode_from_map(const ryml::ConstNodeRef& node) 
     throw YAMLException::create_missing_field("Rect2i", "position, size");
   }
 
-  const auto* vec2i_converter = get_vec2i_converter();
+  const auto* vec2i_converter = VariantConverterRegistry::get_converter(Variant::VECTOR2I);
   Vector2i position = vec2i_converter->decode(node["position"]).operator Vector2i();
   Vector2i size = vec2i_converter->decode(node["size"]).operator Vector2i();
 
@@ -102,7 +102,7 @@ Variant Rect2iVariantConverter::decode_from_sequence(const ryml::ConstNodeRef& n
     throw YAMLException::create_invalid_sequence_length("Rect2i", 2);
   }
 
-  const auto* vec2i_converter = get_vec2i_converter();
+  const auto* vec2i_converter = VariantConverterRegistry::get_converter(Variant::VECTOR2I);
   Vector2i position = vec2i_converter->decode(node[0]).operator Vector2i();
   Vector2i size = vec2i_converter->decode(node[1]).operator Vector2i();
 
@@ -117,13 +117,4 @@ Variant Rect2iVariantConverter::decode_from_expanded(const ryml::ConstNodeRef& n
   int32_t h = string_to_int<int32_t>(node["h"].val());
 
   return Rect2i(x, y, w, h);
-}
-
-const VariantConverter* Rect2iVariantConverter::get_vec2i_converter() const
-{
-  const auto* converter = VariantConverterRegistry::get_converter(Variant::VECTOR2I);
-  if (!converter) {
-    throw YAMLException("Vector2i converter not found in registry");
-  }
-  return converter;
 }

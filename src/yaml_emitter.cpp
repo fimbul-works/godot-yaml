@@ -55,9 +55,11 @@ Ref<YAMLResult> YAMLEmitter::emit(const Variant& input, const Ref<YAMLFormat>& f
 void YAMLEmitter::emit_value(ryml::NodeRef& node, const Variant& value, const YAMLFormat::View& format)
 {
   // First try to emit as a tagged type if we have a converter
-  if (const auto* converter = get_converter_for_type(value.get_type())) {
-    emit_tagged_value(node, value, format);
-    return;
+  if (VariantConverterRegistry::has_converter(value.get_type())) {
+    if (const auto* converter = VariantConverterRegistry::get_converter(value.get_type())) {
+      emit_tagged_value(node, value, format);
+      return;
+    }
   }
 
   // Otherwise emit based on variant type
@@ -167,17 +169,11 @@ void YAMLEmitter::emit_dictionary(ryml::NodeRef& node, const Dictionary& dict, c
 
 void YAMLEmitter::emit_tagged_value(ryml::NodeRef& node, const Variant& value, const YAMLFormat::View& format)
 {
-  const auto* converter = get_converter_for_type(value.get_type());
-  if (!converter) {
+  if (!VariantConverterRegistry::has_converter(value.get_type())) {
+    UtilityFunctions::push_warning(String("No converter for type " + Variant::get_type_name(value.get_type())));
     return;
   }
-
-  // Set the tag using direct cstring
+  const auto* converter = VariantConverterRegistry::get_converter(value.get_type());
   node.set_val_tag(ryml::to_csubstr(converter->get_full_tag()));
   converter->encode(node, value, format);
-}
-
-const VariantConverter* YAMLEmitter::get_converter_for_type(Variant::Type type) const
-{
-  return VariantConverterRegistry::get_converter(type);
 }

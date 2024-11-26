@@ -24,9 +24,6 @@ class Transform3DVariantConverter : public VariantConverter {
 
   Variant decode_from_map(const ryml::ConstNodeRef& node) const;
   Variant decode_from_sequence(const ryml::ConstNodeRef& node) const;
-
-  const VariantConverter* get_vec3_converter() const;
-  const VariantConverter* get_basis_converter() const;
 };
 
 } // namespace godot
