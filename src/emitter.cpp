@@ -1,48 +1,19 @@
 #include "emitter.h"
 #include "util_numeric.h"
 #include "util_string.h"
+#include "yaml.h"
+
 #include <godot_cpp/variant/utility_functions.hpp>
 
 using namespace godot;
 
-void YAMLEmitter::_bind_methods()
-{
-  ClassDB::bind_method(D_METHOD("emit", "input", "format"), &YAMLEmitter::emit,
-          DEFVAL(YAMLFormat::create_default()));
-  ClassDB::bind_method(D_METHOD("set_default_format", "format"), &YAMLEmitter::set_default_format);
-  ClassDB::bind_method(D_METHOD("get_default_format"), &YAMLEmitter::get_default_format);
-}
-
-YAMLEmitter::YAMLEmitter()
-{
-  default_format = YAMLFormat::create_default();
-}
-
-YAMLEmitter::YAMLEmitter(const Ref<YAMLFormat>& format)
-{
-  default_format = format.is_valid() ? format : YAMLFormat::create_default();
-}
-
-YAMLEmitter::~YAMLEmitter() = default;
-
-void YAMLEmitter::set_default_format(const Ref<YAMLFormat>& format)
-{
-  default_format = format.is_valid() ? format : YAMLFormat::create_default();
-}
-
-Ref<YAMLFormat> YAMLEmitter::get_default_format() const
-{
-  return default_format;
-}
-
-Ref<YAMLResult> YAMLEmitter::emit(const Variant& input, const Ref<YAMLFormat>& format)
+Ref<YAMLResult> YAMLEmitter::emit(const Variant& input, const Ref<YAMLFormat>& format = YAML::format())
 {
   std::lock_guard<std::mutex> lock(emit_mutex);
 
   try {
     ryml::Tree tree;
-    emit_value(tree.rootref(), input,
-            format.is_valid() ? format->get_view() : default_format->get_view());
+    emit_value(tree.rootref(), input, format->get_view());
 
     std::string yaml_str = ryml::emitrs_yaml<std::string>(tree);
     return YAMLResult::success(String::utf8(yaml_str.c_str(), yaml_str.length()));
@@ -54,15 +25,6 @@ Ref<YAMLResult> YAMLEmitter::emit(const Variant& input, const Ref<YAMLFormat>& f
 
 void YAMLEmitter::emit_value(ryml::NodeRef& node, const Variant& value, const YAMLFormat::View& format)
 {
-  // First try to emit as a tagged type if we have a converter
-  if (VariantConverterRegistry::has_converter(value.get_type())) {
-    if (const auto* converter = VariantConverterRegistry::get_converter(value.get_type())) {
-      emit_tagged_value(node, value, format);
-      return;
-    }
-  }
-
-  // Otherwise emit based on variant type
   switch (value.get_type()) {
     case Variant::NIL:
       emit_nil(node);
@@ -90,8 +52,16 @@ void YAMLEmitter::emit_value(ryml::NodeRef& node, const Variant& value, const YA
       break;
 
     default:
+      if (VariantConverterRegistry::has_converter(value.get_type())) {
+        if (const auto* converter = VariantConverterRegistry::get_converter(value.get_type())) {
+          emit_tagged_value(node, value, format);
+          return;
+        }
+      }
+
       String type_name = Variant::get_type_name(value.get_type());
       current_result = YAMLResult::error(vformat("Unsupported type: %s", type_name));
+      break;
   }
 }
 

@@ -30,7 +30,7 @@
 #include "variants/vector4_yaml.h"
 #include "variants/vector4i_yaml.h"
 
-namespace godot {
+using namespace godot;
 
 // Static member initialization
 std::shared_mutex VariantConverterRegistry::s_registry_mutex;
@@ -191,5 +191,3 @@ void VariantConverterRegistry::init_object_converters()
   // Resource and custom object converters
   register_converter(std::make_unique<ObjectVariantConverter>());
 }
-
-} // namespace godot

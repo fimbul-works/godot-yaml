@@ -11,12 +11,10 @@ void Rect2iVariantConverter::encode(ryml::NodeRef& node, const Variant& v, const
 
   switch (format.get_format(Variant::RECT2I)) {
     case YAMLFormat::SEQUENCE:
+    case YAMLFormat::FLOW_SEQUENCE:
       emit_as_sequence(node, rect, format);
       break;
-    case YAMLFormat::CUSTOM_1: // Expanded format
-      emit_as_expanded(node, rect);
-      break;
-    case YAMLFormat::BLOCK_MAP:
+    case YAMLFormat::MAP:
     case YAMLFormat::FLOW_MAP:
     default:
       emit_as_map(node, rect, format);
@@ -27,7 +25,10 @@ void Rect2iVariantConverter::encode(ryml::NodeRef& node, const Variant& v, const
 void Rect2iVariantConverter::emit_as_map(ryml::NodeRef& node, const Rect2i& rect, const YAMLFormat::View& format) const
 {
   node |= ryml::MAP;
-  node |= ryml::FLOW_SL;
+
+  if (format.get_format(Variant::RECT2I) == YAMLFormat::FLOW_MAP) {
+    node |= ryml::FLOW_SL;
+  }
 
   const auto* vec2i_converter = VariantConverterRegistry::get_converter(Variant::VECTOR2I);
 
@@ -41,7 +42,10 @@ void Rect2iVariantConverter::emit_as_map(ryml::NodeRef& node, const Rect2i& rect
 void Rect2iVariantConverter::emit_as_sequence(ryml::NodeRef& node, const Rect2i& rect, const YAMLFormat::View& format) const
 {
   node |= ryml::SEQ;
-  node |= ryml::FLOW_SL;
+
+  if (format.get_format(Variant::RECT2I) == YAMLFormat::FLOW_SEQUENCE) {
+    node |= ryml::FLOW_SL;
+  }
 
   const auto* vec2i_converter = VariantConverterRegistry::get_converter(Variant::VECTOR2I);
 
@@ -52,25 +56,10 @@ void Rect2iVariantConverter::emit_as_sequence(ryml::NodeRef& node, const Rect2i&
   vec2i_converter->encode(size_node, rect.size, format);
 }
 
-void Rect2iVariantConverter::emit_as_expanded(ryml::NodeRef& node, const Rect2i& rect) const
-{
-  node |= ryml::MAP;
-  node |= ryml::FLOW_SL;
-
-  node["x"] << int_to_string(rect.position.x);
-  node["y"] << int_to_string(rect.position.y);
-  node["w"] << int_to_string(rect.size.x);
-  node["h"] << int_to_string(rect.size.y);
-}
-
 Variant Rect2iVariantConverter::decode(const ryml::ConstNodeRef& node) const
 {
   try {
     if (node.is_map()) {
-      // Check for expanded format first
-      if (node.has_child("x") && node.has_child("y") && node.has_child("w") && node.has_child("h")) {
-        return decode_from_expanded(node);
-      }
       return decode_from_map(node);
     } else if (node.is_seq()) {
       return decode_from_sequence(node);
@@ -107,14 +96,4 @@ Variant Rect2iVariantConverter::decode_from_sequence(const ryml::ConstNodeRef& n
   Vector2i size = vec2i_converter->decode(node[1]).operator Vector2i();
 
   return Rect2i(position, size);
-}
-
-Variant Rect2iVariantConverter::decode_from_expanded(const ryml::ConstNodeRef& node) const
-{
-  int32_t x = string_to_int<int32_t>(node["x"].val());
-  int32_t y = string_to_int<int32_t>(node["y"].val());
-  int32_t w = string_to_int<int32_t>(node["w"].val());
-  int32_t h = string_to_int<int32_t>(node["h"].val());
-
-  return Rect2i(x, y, w, h);
 }

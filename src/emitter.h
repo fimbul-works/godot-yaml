@@ -14,30 +14,15 @@
 
 namespace godot {
 
-class YAMLEmitter : public RefCounted {
-  GDCLASS(YAMLEmitter, RefCounted)
-
-  protected:
-  static void _bind_methods();
-
+class YAMLEmitter {
   public:
-  YAMLEmitter();
-  explicit YAMLEmitter(const Ref<YAMLFormat>& default_format);
-  virtual ~YAMLEmitter();
+  YAMLEmitter() = default;
 
-  Ref<YAMLResult> emit(const Variant& input, const Ref<YAMLFormat>& format = YAMLFormat::create_default());
-
-  // Format management
-  void set_default_format(const Ref<YAMLFormat>& format);
-  Ref<YAMLFormat> get_default_format() const;
+  Ref<YAMLResult> emit(const Variant& input, const Ref<YAMLFormat>& format);
 
   private:
-  // Thread safety
   std::mutex emit_mutex;
-
-  // State management
   Ref<YAMLResult> current_result;
-  Ref<YAMLFormat> default_format;
 
   // Core emission methods using immutable View - declarations only
   void emit_value(ryml::NodeRef& node, const Variant& value, const YAMLFormat::View& format);

@@ -24,8 +24,8 @@ class ColorVariantConverter : public VariantConverter {
   private:
   // Helper methods for different formats
   void emit_as_hex(ryml::NodeRef& node, const Color& color, bool with_alpha, const char* prefix) const;
-  void emit_as_flow_map(ryml::NodeRef& node, const Color& color) const;
-  void emit_as_sequence(ryml::NodeRef& node, const Color& color) const;
+  void emit_as_map(ryml::NodeRef& node, const Color& color, const YAMLFormat::View& format) const;
+  void emit_as_sequence(ryml::NodeRef& node, const Color& color, const YAMLFormat::View& format) const;
 
   // Decoding helpers
   Variant decode_hex(const ryml::csubstr& val) const;

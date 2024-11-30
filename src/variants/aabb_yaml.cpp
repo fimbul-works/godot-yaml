@@ -11,9 +11,10 @@ void AABBVariantConverter::encode(ryml::NodeRef& node, const Variant& v, const Y
   // Check format and use appropriate encoding method
   switch (format.get_format(Variant::AABB)) {
     case YAMLFormat::SEQUENCE:
+    case YAMLFormat::FLOW_SEQUENCE:
       emit_as_sequence(node, aabb, format);
       break;
-    case YAMLFormat::BLOCK_MAP:
+    case YAMLFormat::MAP:
     case YAMLFormat::FLOW_MAP:
     default:
       emit_as_map(node, aabb, format);
@@ -24,7 +25,10 @@ void AABBVariantConverter::encode(ryml::NodeRef& node, const Variant& v, const Y
 void AABBVariantConverter::emit_as_map(ryml::NodeRef& node, const AABB& aabb, const YAMLFormat::View& format) const
 {
   node |= ryml::MAP;
-  node |= ryml::FLOW_SL;
+
+  if (format.get_format(Variant::AABB) == YAMLFormat::FLOW_MAP) {
+    node |= ryml::FLOW_SL;
+  }
 
   const auto* vec3_converter = VariantConverterRegistry::get_converter(Variant::VECTOR3);
 
@@ -38,7 +42,10 @@ void AABBVariantConverter::emit_as_map(ryml::NodeRef& node, const AABB& aabb, co
 void AABBVariantConverter::emit_as_sequence(ryml::NodeRef& node, const AABB& aabb, const YAMLFormat::View& format) const
 {
   node |= ryml::SEQ;
-  node |= ryml::FLOW_SL;
+
+  if (format.get_format(Variant::AABB) == YAMLFormat::FLOW_SEQUENCE) {
+    node |= ryml::FLOW_SL;
+  }
 
   const auto* vec3_converter = VariantConverterRegistry::get_converter(Variant::VECTOR3);
 

@@ -12,9 +12,10 @@ void ProjectionVariantConverter::encode(ryml::NodeRef& node, const Variant& v, c
   // Check format and use appropriate encoding method
   switch (format.get_format(Variant::PROJECTION)) {
     case YAMLFormat::SEQUENCE:
+    case YAMLFormat::FLOW_SEQUENCE:
       emit_as_sequence(node, proj, format);
       break;
-    case YAMLFormat::BLOCK_MAP:
+    case YAMLFormat::MAP:
     case YAMLFormat::FLOW_MAP:
     default:
       emit_as_map(node, proj, format);
@@ -25,7 +26,10 @@ void ProjectionVariantConverter::encode(ryml::NodeRef& node, const Variant& v, c
 void ProjectionVariantConverter::emit_as_map(ryml::NodeRef& node, const Projection& proj, const YAMLFormat::View& format) const
 {
   node |= ryml::MAP;
-  node |= ryml::FLOW_SL;
+
+  if (format.get_format(Variant::PROJECTION) == YAMLFormat::FLOW_MAP) {
+    node |= ryml::FLOW_SL;
+  }
 
   // Encode each column as x, y, z, w
   emit_column(node["x"], proj.columns[0], format);
@@ -37,7 +41,10 @@ void ProjectionVariantConverter::emit_as_map(ryml::NodeRef& node, const Projecti
 void ProjectionVariantConverter::emit_as_sequence(ryml::NodeRef& node, const Projection& proj, const YAMLFormat::View& format) const
 {
   node |= ryml::SEQ;
-  node |= ryml::FLOW_SL;
+
+  if (format.get_format(Variant::PROJECTION) == YAMLFormat::FLOW_SEQUENCE) {
+    node |= ryml::FLOW_SL;
+  }
 
   // Emit columns in order
   for (int i = 0; i < 4; i++) {

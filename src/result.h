@@ -24,15 +24,18 @@ class YAMLResult : public RefCounted {
   static Ref<YAMLResult> error(const String& msg, int line = -1, int column = -1);
 
   // Immutable accessors
+  Variant get_data() const { return data; }
   bool has_error() const { return !error_message.is_empty(); }
   String get_error() const;
-  Variant get_data() const { return data; }
   int get_error_line() const { return error_line; }
   int get_error_column() const { return error_column; }
 
   private:
   // Private constructor to enforce factory method usage
-  YAMLResult(const Variant& data_, const String& error_ = "", int line = -1, int col = -1);
+  YAMLResult(const Variant& data_, const String& error_ = "", int line = -1, int col = -1) :
+          data(data_), error_message(error_), error_line(line), error_column(col)
+  {
+  }
 
   // Immutable state
   const Variant data;

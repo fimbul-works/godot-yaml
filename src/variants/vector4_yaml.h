@@ -19,8 +19,8 @@ class Vector4VariantConverter : public VariantConverter {
   Variant decode(const ryml::ConstNodeRef& node) const override;
 
   private:
-  void emit_as_map(ryml::NodeRef& node, const Vector4& vec) const;
-  void emit_as_sequence(ryml::NodeRef& node, const Vector4& vec) const;
+  void emit_as_map(ryml::NodeRef& node, const Vector4& vec, const YAMLFormat::View& format) const;
+  void emit_as_sequence(ryml::NodeRef& node, const Vector4& vec, const YAMLFormat::View& format) const;
 
   Variant decode_from_map(const ryml::ConstNodeRef& node) const;
   Variant decode_from_sequence(const ryml::ConstNodeRef& node) const;

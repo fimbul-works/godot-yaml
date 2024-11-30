@@ -21,8 +21,7 @@ void PackedInt64ArrayVariantConverter::emit_as_sequence(
     return; // Empty sequence
   }
 
-  // Use flow style for arrays (inline [x, y, z] format) unless block format is specified
-  if (format.get_format(Variant::PACKED_INT64_ARRAY) != YAMLFormat::BLOCK_MAP) {
+  if (format.get_format(Variant::PACKED_INT64_ARRAY) == YAMLFormat::FLOW_SEQUENCE) {
     node |= ryml::FLOW_SL;
   }
 

@@ -10,9 +10,10 @@ void Transform2DVariantConverter::encode(ryml::NodeRef& node, const Variant& v, 
 
   switch (format.get_format(Variant::TRANSFORM2D)) {
     case YAMLFormat::SEQUENCE:
+    case YAMLFormat::FLOW_SEQUENCE:
       emit_as_sequence(node, transform, format);
       break;
-    case YAMLFormat::BLOCK_MAP:
+    case YAMLFormat::MAP:
     case YAMLFormat::FLOW_MAP:
     default:
       emit_as_map(node, transform, format);
@@ -23,7 +24,10 @@ void Transform2DVariantConverter::encode(ryml::NodeRef& node, const Variant& v, 
 void Transform2DVariantConverter::emit_as_map(ryml::NodeRef& node, const Transform2D& transform, const YAMLFormat::View& format) const
 {
   node |= ryml::MAP;
-  node |= ryml::FLOW_SL;
+
+  if (format.get_format(Variant::TRANSFORM2D) == YAMLFormat::FLOW_MAP) {
+    node |= ryml::FLOW_SL;
+  }
 
   const auto* vec2_converter = VariantConverterRegistry::get_converter(Variant::VECTOR2);
 
@@ -42,7 +46,10 @@ void Transform2DVariantConverter::emit_as_map(ryml::NodeRef& node, const Transfo
 void Transform2DVariantConverter::emit_as_sequence(ryml::NodeRef& node, const Transform2D& transform, const YAMLFormat::View& format) const
 {
   node |= ryml::SEQ;
-  node |= ryml::FLOW_SL;
+
+  if (format.get_format(Variant::TRANSFORM2D) == YAMLFormat::FLOW_SEQUENCE) {
+    node |= ryml::FLOW_SL;
+  }
 
   const auto* vec2_converter = VariantConverterRegistry::get_converter(Variant::VECTOR2);
 

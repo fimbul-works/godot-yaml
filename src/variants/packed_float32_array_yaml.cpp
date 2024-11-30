@@ -21,8 +21,7 @@ void PackedFloat32ArrayVariantConverter::emit_as_sequence(
     return; // Empty sequence
   }
 
-  // Use flow style for arrays (inline [x, y, z] format)
-  if (format.get_format(Variant::PACKED_FLOAT32_ARRAY) != YAMLFormat::BLOCK_MAP) {
+  if (format.get_format(Variant::PACKED_FLOAT32_ARRAY) == YAMLFormat::FLOW_SEQUENCE) {
     node |= ryml::FLOW_SL;
   }
 

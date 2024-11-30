@@ -22,11 +22,9 @@ class Rect2VariantConverter : public VariantConverter {
   private:
   void emit_as_map(ryml::NodeRef& node, const Rect2& rect, const YAMLFormat::View& format) const;
   void emit_as_sequence(ryml::NodeRef& node, const Rect2& rect, const YAMLFormat::View& format) const;
-  void emit_as_expanded(ryml::NodeRef& node, const Rect2& rect) const;
 
   Variant decode_from_map(const ryml::ConstNodeRef& node) const;
   Variant decode_from_sequence(const ryml::ConstNodeRef& node) const;
-  Variant decode_from_expanded(const ryml::ConstNodeRef& node) const;
 };
 
 } // namespace godot

@@ -23,14 +23,8 @@ void initialize_yaml_module(ModuleInitializationLevel p_level)
   if (!ClassDB::class_exists("YAMLResult")) {
     GDREGISTER_CLASS(YAMLResult);
   }
-  if (!ClassDB::class_exists("YAMLParser")) {
-    GDREGISTER_CLASS(YAMLParser);
-  }
   if (!ClassDB::class_exists("YAMLFormat")) {
     GDREGISTER_CLASS(YAMLFormat);
-  }
-  if (!ClassDB::class_exists("YAMLEmitter")) {
-    GDREGISTER_CLASS(YAMLEmitter);
   }
   if (!ClassDB::class_exists("YAML")) {
     GDREGISTER_CLASS(YAML);

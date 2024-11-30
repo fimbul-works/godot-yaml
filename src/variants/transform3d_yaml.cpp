@@ -10,9 +10,10 @@ void Transform3DVariantConverter::encode(ryml::NodeRef& node, const Variant& v, 
 
   switch (format.get_format(Variant::TRANSFORM3D)) {
     case YAMLFormat::SEQUENCE:
+    case YAMLFormat::FLOW_SEQUENCE:
       emit_as_sequence(node, transform, format);
       break;
-    case YAMLFormat::BLOCK_MAP:
+    case YAMLFormat::MAP:
     case YAMLFormat::FLOW_MAP:
     default:
       emit_as_map(node, transform, format);
@@ -23,7 +24,10 @@ void Transform3DVariantConverter::encode(ryml::NodeRef& node, const Variant& v, 
 void Transform3DVariantConverter::emit_as_map(ryml::NodeRef& node, const Transform3D& transform, const YAMLFormat::View& format) const
 {
   node |= ryml::MAP;
-  node |= ryml::FLOW_SL;
+
+  if (format.get_format(Variant::TRANSFORM3D) == YAMLFormat::FLOW_MAP) {
+    node |= ryml::FLOW_SL;
+  }
 
   const auto* basis_converter = VariantConverterRegistry::get_converter(Variant::BASIS);
   const auto* vec3_converter = VariantConverterRegistry::get_converter(Variant::VECTOR3);
@@ -40,7 +44,10 @@ void Transform3DVariantConverter::emit_as_map(ryml::NodeRef& node, const Transfo
 void Transform3DVariantConverter::emit_as_sequence(ryml::NodeRef& node, const Transform3D& transform, const YAMLFormat::View& format) const
 {
   node |= ryml::SEQ;
-  node |= ryml::FLOW_SL;
+
+  if (format.get_format(Variant::TRANSFORM3D) == YAMLFormat::FLOW_SEQUENCE) {
+    node |= ryml::FLOW_SL;
+  }
 
   const auto* vec3_converter = VariantConverterRegistry::get_converter(Variant::VECTOR3);
 

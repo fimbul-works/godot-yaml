@@ -11,9 +11,10 @@ void BasisVariantConverter::encode(ryml::NodeRef& node, const Variant& v, const 
   // Check format and use appropriate encoding method
   switch (format.get_format(Variant::BASIS)) {
     case YAMLFormat::SEQUENCE:
+    case YAMLFormat::FLOW_SEQUENCE:
       emit_as_sequence(node, basis, format);
       break;
-    case YAMLFormat::BLOCK_MAP:
+    case YAMLFormat::MAP:
     case YAMLFormat::FLOW_MAP:
     default:
       emit_as_map(node, basis, format);
@@ -24,7 +25,10 @@ void BasisVariantConverter::encode(ryml::NodeRef& node, const Variant& v, const 
 void BasisVariantConverter::emit_as_map(ryml::NodeRef& node, const Basis& basis, const YAMLFormat::View& format) const
 {
   node |= ryml::MAP;
-  node |= ryml::FLOW_SL;
+
+  if (format.get_format(Variant::BASIS) == YAMLFormat::FLOW_MAP) {
+    node |= ryml::FLOW_SL;
+  }
 
   const auto* vec3_converter = VariantConverterRegistry::get_converter(Variant::VECTOR3);
 
@@ -41,7 +45,10 @@ void BasisVariantConverter::emit_as_map(ryml::NodeRef& node, const Basis& basis,
 void BasisVariantConverter::emit_as_sequence(ryml::NodeRef& node, const Basis& basis, const YAMLFormat::View& format) const
 {
   node |= ryml::SEQ;
-  node |= ryml::FLOW_SL;
+
+  if (format.get_format(Variant::BASIS) == YAMLFormat::FLOW_SEQUENCE) {
+    node |= ryml::FLOW_SL;
+  }
 
   const auto* vec3_converter = VariantConverterRegistry::get_converter(Variant::VECTOR3);
 

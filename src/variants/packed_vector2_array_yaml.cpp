@@ -13,7 +13,10 @@ void PackedVector2ArrayVariantConverter::encode(ryml::NodeRef& node, const Varia
     return; // Empty sequence
   }
 
-  node |= ryml::FLOW_SL;
+  if (format.get_format(Variant::PACKED_VECTOR2_ARRAY) == YAMLFormat::FLOW_SEQUENCE) {
+    node |= ryml::FLOW_SL;
+  }
+
   const auto* vec2_converter = VariantConverterRegistry::get_converter(Variant::VECTOR2);
 
   for (int i = 0; i < array.size(); ++i) {

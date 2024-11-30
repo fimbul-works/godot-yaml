@@ -14,15 +14,11 @@
 
 namespace godot {
 
-class YAMLParser : public RefCounted {
-  GDCLASS(YAMLParser, RefCounted)
-
-  protected:
-  static void _bind_methods();
-
+class YAMLParser {
   public:
-  YAMLParser();
-  virtual ~YAMLParser();
+  YAMLParser() = default;
+  ~YAMLParser() = default;
+
   Ref<YAMLResult> parse(const String& input);
 
   private:
@@ -35,7 +31,7 @@ class YAMLParser : public RefCounted {
     Ref<YAMLResult> current_result;
 
     ParserInstance();
-    ~ParserInstance();
+    ~ParserInstance() = default;
 
     static void error_callback(const char* msg, size_t len, ryml::Location loc, void* user_data);
 

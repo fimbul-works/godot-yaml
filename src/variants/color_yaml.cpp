@@ -17,12 +17,13 @@ void ColorVariantConverter::encode(ryml::NodeRef& node, const Variant& v, const 
       emit_as_hex(node, color, has_alpha, "#");
       break;
     case YAMLFormat::SEQUENCE:
-      emit_as_sequence(node, color);
+    case YAMLFormat::FLOW_SEQUENCE:
+      emit_as_sequence(node, color, format);
       break;
     case YAMLFormat::FLOW_MAP:
-    case YAMLFormat::BLOCK_MAP:
+    case YAMLFormat::MAP:
     default:
-      emit_as_flow_map(node, color);
+      emit_as_map(node, color, format);
       break;
   }
 }
@@ -32,10 +33,14 @@ void ColorVariantConverter::emit_as_hex(ryml::NodeRef& node, const Color& color,
   node << color_to_hex(color, with_alpha, prefix).c_str();
 }
 
-void ColorVariantConverter::emit_as_flow_map(ryml::NodeRef& node, const Color& color) const
+void ColorVariantConverter::emit_as_map(ryml::NodeRef& node, const Color& color, const YAMLFormat::View& format) const
 {
   node |= ryml::MAP;
-  node |= ryml::FLOW_SL;
+
+  if (format.get_format(Variant::COLOR) == YAMLFormat::FLOW_MAP) {
+    node |= ryml::FLOW_SL;
+  }
+
   node["r"] << float_to_string(color.r);
   node["g"] << float_to_string(color.g);
   node["b"] << float_to_string(color.b);
@@ -44,10 +49,14 @@ void ColorVariantConverter::emit_as_flow_map(ryml::NodeRef& node, const Color& c
   }
 }
 
-void ColorVariantConverter::emit_as_sequence(ryml::NodeRef& node, const Color& color) const
+void ColorVariantConverter::emit_as_sequence(ryml::NodeRef& node, const Color& color, const YAMLFormat::View& format) const
 {
   node |= ryml::SEQ;
-  node |= ryml::FLOW_SL;
+
+  if (format.get_format(Variant::COLOR) == YAMLFormat::FLOW_SEQUENCE) {
+    node |= ryml::FLOW_SL;
+  }
+
   node.append_child() << float_to_string(color.r);
   node.append_child() << float_to_string(color.g);
   node.append_child() << float_to_string(color.b);

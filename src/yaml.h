@@ -15,16 +15,15 @@ class YAML : public RefCounted {
 
   protected:
   static void _bind_methods();
-  // Keep constructor/destructor protected for proper GDExtension lifecycle
-  YAML() { }
-  ~YAML() { }
+
+  YAML() = default;
+  ~YAML() = default;
 
   public:
   static String version();
-  static Ref<YAMLParser> create_parser();
-  static Ref<YAMLEmitter> create_emitter();
   static Ref<YAMLResult> parse(const String& input);
   static Ref<YAMLResult> emit(const Variant& input, const Ref<YAMLFormat>& format);
+  static Ref<YAMLFormat> format();
 };
 
 } // namespace godot

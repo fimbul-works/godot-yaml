@@ -7,14 +7,6 @@ using namespace godot;
 
 thread_local YAMLParser::ParserInstance YAMLParser::t_parser_instance;
 
-void YAMLParser::_bind_methods()
-{
-  ClassDB::bind_method(D_METHOD("parse", "input"), &YAMLParser::parse);
-}
-
-YAMLParser::YAMLParser() = default;
-YAMLParser::~YAMLParser() = default;
-
 Ref<YAMLResult> YAMLParser::parse(const String& input)
 {
   try {
@@ -56,8 +48,6 @@ YAMLParser::ParserInstance::ParserInstance()
   m_evt_handler = std::make_unique<ryml::EventHandlerTree>(m_callbacks);
   m_parser = std::make_unique<ryml::Parser>(m_evt_handler.get(), ryml::ParserOptions().locations(true));
 }
-
-YAMLParser::ParserInstance::~ParserInstance() = default;
 
 void YAMLParser::ParserInstance::error_callback(const char* msg, size_t len, ryml::Location loc, void* user_data)
 {

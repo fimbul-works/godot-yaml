@@ -22,11 +22,9 @@ class QuaternionVariantConverter : public VariantConverter {
   private:
   void emit_as_map(ryml::NodeRef& node, const Quaternion& quat, const YAMLFormat::View& format) const;
   void emit_as_sequence(ryml::NodeRef& node, const Quaternion& quat, const YAMLFormat::View& format) const;
-  void emit_as_axis_angle(ryml::NodeRef& node, const Quaternion& quat, const YAMLFormat::View& format) const;
 
   Variant decode_from_map(const ryml::ConstNodeRef& node) const;
   Variant decode_from_sequence(const ryml::ConstNodeRef& node) const;
-  Variant decode_from_axis_angle(const ryml::ConstNodeRef& node) const;
 };
 
 } // namespace godot

@@ -11,12 +11,10 @@ void QuaternionVariantConverter::encode(ryml::NodeRef& node, const Variant& v, c
 
   switch (format.get_format(Variant::QUATERNION)) {
     case YAMLFormat::SEQUENCE:
+    case YAMLFormat::FLOW_SEQUENCE:
       emit_as_sequence(node, quat, format);
       break;
-    case YAMLFormat::CUSTOM_1: // Axis-Angle format
-      emit_as_axis_angle(node, quat, format);
-      break;
-    case YAMLFormat::BLOCK_MAP:
+    case YAMLFormat::MAP:
     case YAMLFormat::FLOW_MAP:
     default:
       emit_as_map(node, quat, format);
@@ -27,7 +25,10 @@ void QuaternionVariantConverter::encode(ryml::NodeRef& node, const Variant& v, c
 void QuaternionVariantConverter::emit_as_map(ryml::NodeRef& node, const Quaternion& quat, const YAMLFormat::View& format) const
 {
   node |= ryml::MAP;
-  node |= ryml::FLOW_SL;
+
+  if (format.get_format(Variant::QUATERNION) == YAMLFormat::FLOW_MAP) {
+    node |= ryml::FLOW_SL;
+  }
 
   node["x"] << float_to_string(quat.x);
   node["y"] << float_to_string(quat.y);
@@ -38,7 +39,10 @@ void QuaternionVariantConverter::emit_as_map(ryml::NodeRef& node, const Quaterni
 void QuaternionVariantConverter::emit_as_sequence(ryml::NodeRef& node, const Quaternion& quat, const YAMLFormat::View& format) const
 {
   node |= ryml::SEQ;
-  node |= ryml::FLOW_SL;
+
+  if (format.get_format(Variant::QUATERNION) == YAMLFormat::FLOW_SEQUENCE) {
+    node |= ryml::FLOW_SL;
+  }
 
   node.append_child() << float_to_string(quat.x);
   node.append_child() << float_to_string(quat.y);
@@ -46,31 +50,10 @@ void QuaternionVariantConverter::emit_as_sequence(ryml::NodeRef& node, const Qua
   node.append_child() << float_to_string(quat.w);
 }
 
-void QuaternionVariantConverter::emit_as_axis_angle(ryml::NodeRef& node, const Quaternion& quat, const YAMLFormat::View& format) const
-{
-  node |= ryml::MAP;
-  node |= ryml::FLOW_SL;
-
-  Vector3 axis;
-  real_t angle;
-  quat.get_axis_angle(axis, angle);
-
-  const auto* vec3_converter = VariantConverterRegistry::get_converter(Variant::VECTOR3);
-  ryml::NodeRef axis_node = node["axis"];
-  vec3_converter->encode(axis_node, axis, format);
-
-  node["angle"] << float_to_string(angle);
-}
-
 Variant QuaternionVariantConverter::decode(const ryml::ConstNodeRef& node) const
 {
   try {
     if (node.is_map()) {
-      // Check for axis-angle format first
-      if (node.has_child("axis") && node.has_child("angle")) {
-        return decode_from_axis_angle(node);
-      }
-      // Default to component map
       return decode_from_map(node);
     } else if (node.is_seq()) {
       return decode_from_sequence(node);
@@ -107,17 +90,4 @@ Variant QuaternionVariantConverter::decode_from_sequence(const ryml::ConstNodeRe
           string_to_float<real_t>(node[1].val()),
           string_to_float<real_t>(node[2].val()),
           string_to_float<real_t>(node[3].val()));
-}
-
-Variant QuaternionVariantConverter::decode_from_axis_angle(const ryml::ConstNodeRef& node) const
-{
-  if (!node.has_child("axis") || !node.has_child("angle")) {
-    throw YAMLException::create_missing_field("Quaternion", "axis, angle");
-  }
-
-  const auto* vec3_converter = VariantConverterRegistry::get_converter(Variant::VECTOR3);
-  Vector3 axis = vec3_converter->decode(node["axis"]).operator Vector3();
-  real_t angle = string_to_float<real_t>(node["angle"].val());
-
-  return Quaternion(axis, angle);
 }

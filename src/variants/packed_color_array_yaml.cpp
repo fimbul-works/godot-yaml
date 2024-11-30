@@ -13,6 +13,10 @@ void PackedColorArrayVariantConverter::encode(ryml::NodeRef& node, const Variant
     return; // Empty sequence
   }
 
+  if (format.get_format(Variant::PACKED_COLOR_ARRAY) == YAMLFormat::FLOW_SEQUENCE) {
+    node |= ryml::FLOW_SL;
+  }
+
   node |= ryml::FLOW_SL;
   const auto* color_converter = VariantConverterRegistry::get_converter(Variant::COLOR);
 

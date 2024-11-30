@@ -31,7 +31,7 @@ void PackedStringArrayVariantConverter::emit_as_sequence(
     }
   }
 
-  if (!needs_block) {
+  if (!needs_block && format.get_format(Variant::PACKED_STRING_ARRAY) == YAMLFormat::FLOW_SEQUENCE) {
     node |= ryml::FLOW_SL;
   }
 

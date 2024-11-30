@@ -10,29 +10,37 @@ void Vector3VariantConverter::encode(ryml::NodeRef& node, const Variant& v, cons
 
   switch (format.get_format(Variant::VECTOR3)) {
     case YAMLFormat::SEQUENCE:
-      emit_as_sequence(node, vec);
+      emit_as_sequence(node, vec, format);
       break;
-    case YAMLFormat::BLOCK_MAP:
+    case YAMLFormat::MAP:
     case YAMLFormat::FLOW_MAP:
     default:
-      emit_as_map(node, vec);
+      emit_as_map(node, vec, format);
       break;
   }
 }
 
-void Vector3VariantConverter::emit_as_map(ryml::NodeRef& node, const Vector3& vec) const
+void Vector3VariantConverter::emit_as_map(ryml::NodeRef& node, const Vector3& vec, const YAMLFormat::View& format) const
 {
   node |= ryml::MAP;
-  node |= ryml::FLOW_SL;
+
+  if (format.get_format(Variant::VECTOR3) == YAMLFormat::FLOW_MAP) {
+    node |= ryml::FLOW_SL;
+  }
+
   node["x"] << float_to_string(vec.x);
   node["y"] << float_to_string(vec.y);
   node["z"] << float_to_string(vec.z);
 }
 
-void Vector3VariantConverter::emit_as_sequence(ryml::NodeRef& node, const Vector3& vec) const
+void Vector3VariantConverter::emit_as_sequence(ryml::NodeRef& node, const Vector3& vec, const YAMLFormat::View& format) const
 {
   node |= ryml::SEQ;
-  node |= ryml::FLOW_SL;
+
+  if (format.get_format(Variant::VECTOR3) == YAMLFormat::FLOW_SEQUENCE) {
+    node |= ryml::FLOW_SL;
+  }
+
   node.append_child() << float_to_string(vec.x);
   node.append_child() << float_to_string(vec.y);
   node.append_child() << float_to_string(vec.z);
