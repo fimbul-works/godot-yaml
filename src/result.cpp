@@ -10,16 +10,18 @@ void YAMLResult::_bind_methods()
   ClassDB::bind_method(D_METHOD("get_error"), &YAMLResult::get_error);
   ClassDB::bind_method(D_METHOD("get_error_line"), &YAMLResult::get_error_line);
   ClassDB::bind_method(D_METHOD("get_error_column"), &YAMLResult::get_error_column);
+  ClassDB::bind_method(D_METHOD("has_style"), &YAMLResult::has_style);
+  ClassDB::bind_method(D_METHOD("get_style"), &YAMLResult::get_style);
 }
 
-Ref<YAMLResult> YAMLResult::success(const Variant& data)
+Ref<YAMLResult> YAMLResult::success(const Variant& data, const Ref<YAMLStyle>& style)
 {
-  return Ref<YAMLResult>(memnew(YAMLResult(data)));
+  return Ref<YAMLResult>(memnew(YAMLResult(data, style)));
 }
 
 Ref<YAMLResult> YAMLResult::error(const String& msg, int line, int column)
 {
-  return Ref<YAMLResult>(memnew(YAMLResult(Variant(), msg, line, column)));
+  return Ref<YAMLResult>(memnew(YAMLResult(Variant(), nullptr, msg, line, column)));
 }
 
 String YAMLResult::get_error() const

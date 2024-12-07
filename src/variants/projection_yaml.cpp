@@ -5,63 +5,58 @@
 
 using namespace godot;
 
-void ProjectionVariantConverter::encode(ryml::NodeRef& node, const Variant& v, const YAMLFormat::View& format) const
+void ProjectionVariantConverter::encode(ryml::NodeRef& node, const Variant& v, const Ref<YAMLStyle>& style) const
 {
   const Projection proj = v.operator Projection();
-  YAMLFormat::Format fmt = format.get_format(Variant::PROJECTION);
 
-  if (fmt == YAMLFormat::SEQUENCE || fmt == YAMLFormat::FLOW_SEQUENCE) {
-    emit_as_sequence(node, proj, format);
+  if (!style.is_valid() || style->collection_style == YAMLStyle::COLLECTION_ANY
+          || style->collection_style == YAMLStyle::MAP_BLOCK
+          || style->collection_style == YAMLStyle::MAP_FLOW) {
+    emit_as_map(node, proj, style);
   } else {
-    emit_as_map(node, proj, format);
+    emit_as_sequence(node, proj, style);
   }
 }
 
-void ProjectionVariantConverter::emit_as_map(ryml::NodeRef& node, const Projection& proj, const YAMLFormat::View& format) const
+void ProjectionVariantConverter::emit_as_map(ryml::NodeRef& node, const Projection& proj, const Ref<YAMLStyle>& style) const
 {
   node |= ryml::MAP;
-
-  if (format.get_format(Variant::PROJECTION) == YAMLFormat::FLOW_MAP) {
+  if (style.is_valid() && style->collection_style == YAMLStyle::MAP_FLOW) {
     node |= ryml::FLOW_SL;
   }
 
-  // Encode each column as x, y, z, w
-  emit_column(node["x"], proj.columns[0], format);
-  emit_column(node["y"], proj.columns[1], format);
-  emit_column(node["z"], proj.columns[2], format);
-  emit_column(node["w"], proj.columns[3], format);
+  // Pass child styles for each column
+  Ref<YAMLStyle> x_style = style.is_valid() ? style->get_child("x") : Ref<YAMLStyle>();
+  Ref<YAMLStyle> y_style = style.is_valid() ? style->get_child("y") : Ref<YAMLStyle>();
+  Ref<YAMLStyle> z_style = style.is_valid() ? style->get_child("z") : Ref<YAMLStyle>();
+  Ref<YAMLStyle> w_style = style.is_valid() ? style->get_child("w") : Ref<YAMLStyle>();
+
+  emit_column(node["x"], proj.columns[0], x_style);
+  emit_column(node["y"], proj.columns[1], y_style);
+  emit_column(node["z"], proj.columns[2], z_style);
+  emit_column(node["w"], proj.columns[3], w_style);
 }
 
-void ProjectionVariantConverter::emit_as_sequence(ryml::NodeRef& node, const Projection& proj, const YAMLFormat::View& format) const
+void ProjectionVariantConverter::emit_as_sequence(ryml::NodeRef& node, const Projection& proj, const Ref<YAMLStyle>& style) const
 {
   node |= ryml::SEQ;
-
-  if (format.get_format(Variant::PROJECTION) == YAMLFormat::FLOW_SEQUENCE) {
+  if (style.is_valid() && style->collection_style == YAMLStyle::COLLECTION_FLOW) {
     node |= ryml::FLOW_SL;
   }
 
-  // Emit columns in order
+  // Pass child styles using numeric indices
   for (int i = 0; i < 4; i++) {
+    Ref<YAMLStyle> col_style = style.is_valid() ? style->get_child(String::num_int64(i)) : Ref<YAMLStyle>();
     ryml::NodeRef col_node = node.append_child();
-    emit_column(col_node, proj.columns[i], format);
+    emit_column(col_node, proj.columns[i], col_style);
   }
 }
 
-void ProjectionVariantConverter::emit_column(ryml::NodeRef& node, const Vector4& col, const YAMLFormat::View& format) const
+void ProjectionVariantConverter::emit_column(ryml::NodeRef& node, const Vector4& col, const Ref<YAMLStyle>& style) const
 {
-  if (format.get_format(Variant::VECTOR4) == YAMLFormat::SEQUENCE) {
-    // Emit as simple array format [x,y,z,w]
-    node |= ryml::SEQ;
-    node |= ryml::FLOW_SL;
-    node.append_child() << float_to_string(col.x);
-    node.append_child() << float_to_string(col.y);
-    node.append_child() << float_to_string(col.z);
-    node.append_child() << float_to_string(col.w);
-  } else {
-    // Use Vector4 converter for structured format
-    const auto* vec4_converter = VariantConverterRegistry::get_converter(Variant::VECTOR4);
-    vec4_converter->encode(node, col, format);
-  }
+  // Use Vector4 converter with potentially overridden style
+  const auto* vec4_converter = VariantConverterRegistry::get_converter(Variant::VECTOR4);
+  vec4_converter->encode(node, col, style);
 }
 
 Variant ProjectionVariantConverter::decode(const ryml::ConstNodeRef& node) const

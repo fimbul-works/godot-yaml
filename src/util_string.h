@@ -36,6 +36,26 @@ inline bool needs_block_style(const ryml::csubstr& str)
   return needs_block_style(from_ryml_str(str));
 }
 
+inline bool should_use_block_style(const String& str)
+{
+  // Check for multiple lines
+  if (str.find("\n") != -1) {
+    return true;
+  }
+
+  // Check for leading/trailing spaces
+  if (str.begins_with(" ") || str.ends_with(" ")) {
+    return true;
+  }
+
+  // Check for special characters that might need escaping
+  if (str.find(":") != -1 || str.find("#") != -1 || str.find("{") != -1 || str.find("}") != -1 || str.find("[") != -1 || str.find("]") != -1) {
+    return true;
+  }
+
+  return false;
+}
+
 } // namespace godot
 
 #endif // UTIL_STRING_H

@@ -6,7 +6,7 @@
 
 using namespace godot;
 
-void PackedByteArrayVariantConverter::encode(ryml::NodeRef& node, const Variant& v, const YAMLFormat::View& format) const
+void PackedByteArrayVariantConverter::encode(ryml::NodeRef& node, const Variant& v, const Ref<YAMLStyle>& style) const
 {
   const PackedByteArray array = v.operator PackedByteArray();
 
@@ -16,18 +16,18 @@ void PackedByteArrayVariantConverter::encode(ryml::NodeRef& node, const Variant&
     return;
   }
 
-  switch (format.get_format(Variant::PACKED_BYTE_ARRAY)) {
-    case YAMLFormat::HEX:
-      emit_as_hex(node, array);
-      break;
-    case YAMLFormat::BASE64:
-    default:
-      emit_as_base64(node, array);
-      break;
+  // Use binary_encoding from style to determine format
+  if (!style.is_valid() || style->binary_encoding == YAMLStyle::BINARY_ANY) {
+    // Default to base64 if no style specified
+    emit_as_base64(node, array, style);
+  } else if (style->binary_encoding == YAMLStyle::BINARY_HEX) {
+    emit_as_hex(node, array, style);
+  } else {
+    emit_as_base64(node, array, style);
   }
 }
 
-void PackedByteArrayVariantConverter::emit_as_hex(ryml::NodeRef& node, const PackedByteArray& array) const
+void PackedByteArrayVariantConverter::emit_as_hex(ryml::NodeRef& node, const PackedByteArray& array, const Ref<YAMLStyle>& style) const
 {
   std::vector<char> hex_str;
   hex_str.reserve(array.size() * 2);
@@ -39,13 +39,24 @@ void PackedByteArrayVariantConverter::emit_as_hex(ryml::NodeRef& node, const Pac
     hex_str.push_back(hex_chars[byte & 0xF]);
   }
 
-  node << format_output(ryml::csubstr(hex_str.data(), hex_str.size()), HEX_LINE_LENGTH);
+  bool use_block = style.is_valid() && style->scalar_style == YAMLStyle::STYLE_BLOCK;
+  if (use_block) {
+    node << format_output(ryml::csubstr(hex_str.data(), hex_str.size()), HEX_LINE_LENGTH);
+  } else {
+    node << ryml::csubstr(hex_str.data(), hex_str.size());
+  }
 }
 
-void PackedByteArrayVariantConverter::emit_as_base64(ryml::NodeRef& node, const PackedByteArray& array) const
+void PackedByteArrayVariantConverter::emit_as_base64(ryml::NodeRef& node, const PackedByteArray& array, const Ref<YAMLStyle>& style) const
 {
   String base64 = Marshalls::get_singleton()->raw_to_base64(array);
-  node << format_output(to_ryml_str(base64), BASE64_LINE_LENGTH);
+
+  bool use_block = style.is_valid() && style->scalar_style == YAMLStyle::STYLE_BLOCK;
+  if (use_block) {
+    node << format_output(to_ryml_str(base64), BASE64_LINE_LENGTH);
+  } else {
+    node << to_ryml_str(base64);
+  }
 }
 
 Variant PackedByteArrayVariantConverter::decode(const ryml::ConstNodeRef& node) const

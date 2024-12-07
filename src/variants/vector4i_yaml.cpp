@@ -4,44 +4,35 @@
 
 using namespace godot;
 
-void Vector4iVariantConverter::encode(ryml::NodeRef& node, const Variant& v, const YAMLFormat::View& format) const
+void Vector4iVariantConverter::encode(ryml::NodeRef& node, const Variant& v, const Ref<YAMLStyle>& style) const
 {
   const Vector4i vec = v.operator Vector4i();
-  YAMLFormat::Format fmt = format.get_format(Variant::VECTOR4I);
 
-  if (fmt == YAMLFormat::SEQUENCE || fmt == YAMLFormat::FLOW_SEQUENCE) {
-    emit_as_sequence(node, vec, format);
+  if (!style.is_valid() || style->collection_style == YAMLStyle::COLLECTION_ANY
+          || style->collection_style == YAMLStyle::MAP_BLOCK
+          || style->collection_style == YAMLStyle::MAP_FLOW) {
+    // Map styles
+    node |= ryml::MAP;
+    if (style.is_valid() && style->collection_style == YAMLStyle::MAP_FLOW) {
+      node |= ryml::FLOW_SL;
+    }
+
+    node["x"] << int_to_string(vec.x);
+    node["y"] << int_to_string(vec.y);
+    node["z"] << int_to_string(vec.z);
+    node["w"] << int_to_string(vec.w);
   } else {
-    emit_as_map(node, vec, format);
+    // Collection styles
+    node |= ryml::SEQ;
+    if (style.is_valid() && style->collection_style == YAMLStyle::COLLECTION_FLOW) {
+      node |= ryml::FLOW_SL;
+    }
+
+    node.append_child() << int_to_string(vec.x);
+    node.append_child() << int_to_string(vec.y);
+    node.append_child() << int_to_string(vec.z);
+    node.append_child() << int_to_string(vec.w);
   }
-}
-
-void Vector4iVariantConverter::emit_as_map(ryml::NodeRef& node, const Vector4i& vec, const YAMLFormat::View& format) const
-{
-  node |= ryml::MAP;
-
-  if (format.get_format(Variant::VECTOR4I) == YAMLFormat::FLOW_MAP) {
-    node |= ryml::FLOW_SL;
-  }
-
-  node["x"] << int_to_string(vec.x);
-  node["y"] << int_to_string(vec.y);
-  node["z"] << int_to_string(vec.z);
-  node["w"] << int_to_string(vec.w);
-}
-
-void Vector4iVariantConverter::emit_as_sequence(ryml::NodeRef& node, const Vector4i& vec, const YAMLFormat::View& format) const
-{
-  node |= ryml::SEQ;
-
-  if (format.get_format(Variant::VECTOR4I) == YAMLFormat::FLOW_SEQUENCE) {
-    node |= ryml::FLOW_SL;
-  }
-
-  node.append_child() << int_to_string(vec.x);
-  node.append_child() << int_to_string(vec.y);
-  node.append_child() << int_to_string(vec.z);
-  node.append_child() << int_to_string(vec.w);
 }
 
 Variant Vector4iVariantConverter::decode(const ryml::ConstNodeRef& node) const

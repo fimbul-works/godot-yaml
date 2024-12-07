@@ -4,57 +4,60 @@
 
 using namespace godot;
 
-void Transform3DVariantConverter::encode(ryml::NodeRef& node, const Variant& v, const YAMLFormat::View& format) const
+void Transform3DVariantConverter::encode(ryml::NodeRef& node, const Variant& v, const Ref<YAMLStyle>& style) const
 {
   const Transform3D transform = v.operator Transform3D();
-  YAMLFormat::Format fmt = format.get_format(Variant::PROJECTION);
 
-  if (fmt == YAMLFormat::SEQUENCE || fmt == YAMLFormat::FLOW_SEQUENCE) {
-    emit_as_sequence(node, transform, format);
+  if (!style.is_valid() || style->collection_style == YAMLStyle::COLLECTION_ANY
+          || style->collection_style == YAMLStyle::MAP_BLOCK
+          || style->collection_style == YAMLStyle::MAP_FLOW) {
+    emit_as_map(node, transform, style);
   } else {
-    emit_as_map(node, transform, format);
+    emit_as_sequence(node, transform, style);
   }
 }
 
-void Transform3DVariantConverter::emit_as_map(ryml::NodeRef& node, const Transform3D& transform, const YAMLFormat::View& format) const
+void Transform3DVariantConverter::emit_as_map(ryml::NodeRef& node, const Transform3D& transform, const Ref<YAMLStyle>& style) const
 {
   node |= ryml::MAP;
-
-  if (format.get_format(Variant::TRANSFORM3D) == YAMLFormat::FLOW_MAP) {
+  if (style.is_valid() && style->collection_style == YAMLStyle::MAP_FLOW) {
     node |= ryml::FLOW_SL;
   }
 
   const auto* basis_converter = VariantConverterRegistry::get_converter(Variant::BASIS);
   const auto* vec3_converter = VariantConverterRegistry::get_converter(Variant::VECTOR3);
 
-  // Encode basis
-  ryml::NodeRef basis_node = node["basis"];
-  basis_converter->encode(basis_node, transform.basis, format);
+  // Pass child styles for basis and origin
+  Ref<YAMLStyle> basis_style = style.is_valid() ? style->get_child("basis") : Ref<YAMLStyle>();
+  Ref<YAMLStyle> origin_style = style.is_valid() ? style->get_child("origin") : Ref<YAMLStyle>();
 
-  // Encode origin
+  ryml::NodeRef basis_node = node["basis"];
+  basis_converter->encode(basis_node, transform.basis, basis_style);
+
   ryml::NodeRef origin_node = node["origin"];
-  vec3_converter->encode(origin_node, transform.origin, format);
+  vec3_converter->encode(origin_node, transform.origin, origin_style);
 }
 
-void Transform3DVariantConverter::emit_as_sequence(ryml::NodeRef& node, const Transform3D& transform, const YAMLFormat::View& format) const
+void Transform3DVariantConverter::emit_as_sequence(ryml::NodeRef& node, const Transform3D& transform, const Ref<YAMLStyle>& style) const
 {
   node |= ryml::SEQ;
-
-  if (format.get_format(Variant::TRANSFORM3D) == YAMLFormat::FLOW_SEQUENCE) {
+  if (style.is_valid() && style->collection_style == YAMLStyle::COLLECTION_FLOW) {
     node |= ryml::FLOW_SL;
   }
 
   const auto* vec3_converter = VariantConverterRegistry::get_converter(Variant::VECTOR3);
 
-  // Encode basis columns
+  // Pass child styles for each vector using indices
   for (int i = 0; i < 3; i++) {
+    Ref<YAMLStyle> row_style = style.is_valid() ? style->get_child(String::num_int64(i)) : Ref<YAMLStyle>();
     ryml::NodeRef col_node = node.append_child();
-    vec3_converter->encode(col_node, transform.basis.rows[i], format);
+    vec3_converter->encode(col_node, transform.basis.rows[i], row_style);
   }
 
-  // Encode origin
+  // Origin gets index 3
+  Ref<YAMLStyle> origin_style = style.is_valid() ? style->get_child("3") : Ref<YAMLStyle>();
   ryml::NodeRef origin_node = node.append_child();
-  vec3_converter->encode(origin_node, transform.origin, format);
+  vec3_converter->encode(origin_node, transform.origin, origin_style);
 }
 
 Variant Transform3DVariantConverter::decode(const ryml::ConstNodeRef& node) const

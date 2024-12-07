@@ -2,6 +2,8 @@
 #ifndef YAML_RESULT_H
 #define YAML_RESULT_H
 
+#include "style.h"
+
 #include <godot_cpp/classes/ref_counted.hpp>
 #include <godot_cpp/core/class_db.hpp>
 #include <godot_cpp/variant/variant.hpp>
@@ -20,7 +22,7 @@ class YAMLResult : public RefCounted {
           data(Variant()), error_message(""), error_line(-1), error_column(-1) { }
 
   // Static factory methods
-  static Ref<YAMLResult> success(const Variant& data);
+  static Ref<YAMLResult> success(const Variant& data, const Ref<YAMLStyle>& style = nullptr);
   static Ref<YAMLResult> error(const String& msg, int line = -1, int column = -1);
 
   // Immutable accessors
@@ -30,18 +32,26 @@ class YAMLResult : public RefCounted {
   int get_error_line() const { return error_line; }
   int get_error_column() const { return error_column; }
 
+  // Style handling
+  bool has_style() const { return style.is_valid(); }
+  Ref<YAMLStyle> get_style() const { return style; }
+
   private:
   // Private constructor to enforce factory method usage
-  YAMLResult(const Variant& data_, const String& error_ = "", int line = -1, int col = -1) :
-          data(data_), error_message(error_), error_line(line), error_column(col)
-  {
-  }
+  YAMLResult(
+          const Variant& data_,
+          const Ref<YAMLStyle>& style_ = nullptr,
+          const String& error_ = "",
+          int line = -1,
+          int col = -1) :
+          data(data_), style(style_), error_message(error_), error_line(line), error_column(col) { }
 
   // Immutable state
   const Variant data;
   const String error_message;
   const int error_line;
   const int error_column;
+  const Ref<YAMLStyle> style;
 };
 
 } // namespace godot

@@ -90,7 +90,7 @@ T string_to_int(const ryml::csubstr& value)
 }
 
 template <typename T>
-ryml::csubstr float_to_string(const T value)
+ryml::csubstr float_to_string(const T value, YAMLStyle::NumberFormat format = YAMLStyle::NUM_DECIMAL)
 {
   static_assert(std::is_floating_point<T>::value, "Type must be floating point");
 
@@ -100,35 +100,68 @@ ryml::csubstr float_to_string(const T value)
     return value > 0 ? ".inf" : "-.inf";
   } else {
     static thread_local char buf[64];
-    size_t len = ryml::format(buf, "{}", value);
+    const char* format_str;
+
+    switch (format) {
+      case YAMLStyle::NUM_SCIENTIFIC: {
+        // Manual scientific notation formatting
+        int exp = 0;
+        T mantissa = value;
+
+        if (mantissa != 0) {
+          while (std::abs(mantissa) >= 10.0) {
+            mantissa /= 10.0;
+            exp++;
+          }
+          while (std::abs(mantissa) < 1.0) {
+            mantissa *= 10.0;
+            exp--;
+          }
+        }
+
+        size_t len = snprintf(buf, sizeof(buf), "%.6fe%+d", mantissa, exp);
+        return ryml::csubstr(buf, len);
+      }
+      case YAMLStyle::NUM_HEX:
+        format_str = "0x{:a}"; // Hexadecimal floating point format
+        break;
+      default:
+        format_str = "{}";
+        break;
+    }
+
+    size_t len = ryml::format(buf, format_str, value);
     return ryml::csubstr(buf, len);
   }
 }
 
 template <typename T>
-ryml::csubstr int_to_string(const T value, const int base = 10)
+ryml::csubstr int_to_string(const T value, YAMLStyle::NumberFormat format = YAMLStyle::NUM_DECIMAL)
 {
   static_assert(std::is_integral<T>::value, "Type must be integral");
 
   static thread_local char buf[64];
-  const char* format;
+  const char* format_str;
 
-  switch (base) {
-    case 2:
-      format = "0b{:b}";
+  switch (format) {
+    case YAMLStyle::NUM_HEX:
+      format_str = "0x{:x}";
       break;
-    case 8:
-      format = "0o{:o}";
+    case YAMLStyle::NUM_OCTAL:
+      format_str = "0o{:o}";
       break;
-    case 16:
-      format = "0x{:x}";
+    case YAMLStyle::NUM_BINARY:
+      format_str = "0b{:b}";
+      break;
+    case YAMLStyle::NUM_SCIENTIFIC:
+      format_str = "{:e}";
       break;
     default:
-      format = "{}";
+      format_str = "{}";
       break;
   }
 
-  size_t len = ryml::format(buf, format, value);
+  size_t len = ryml::format(buf, format_str, value);
   return ryml::csubstr(buf, len);
 }
 

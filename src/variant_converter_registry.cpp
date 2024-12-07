@@ -37,7 +37,7 @@ std::shared_mutex VariantConverterRegistry::s_registry_mutex;
 std::once_flag VariantConverterRegistry::s_init_flag;
 bool VariantConverterRegistry::s_is_initialized = false;
 std::unordered_map<Variant::Type, std::unique_ptr<VariantConverter>> VariantConverterRegistry::s_type_to_converter;
-std::unordered_map<String, VariantConverter*> VariantConverterRegistry::s_tag_to_converter;
+std::unordered_map<String, VariantConverter*, StringHasher> VariantConverterRegistry::s_tag_to_converter;
 
 const VariantConverter* VariantConverterRegistry::get_converter(Variant::Type type)
 {

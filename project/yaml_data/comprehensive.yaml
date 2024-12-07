@@ -1,5 +1,3 @@
-# Comprehensive YAML Example
-
 # Scalars
 string_value: "Hello, World!"
 unquoted_string: Hello World

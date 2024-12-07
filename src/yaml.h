@@ -2,9 +2,9 @@
 #define YAML_H
 
 #include "emitter.h"
-#include "format.h"
 #include "parser.h"
 #include "result.h"
+#include "style.h"
 
 #include <godot_cpp/core/class_db.hpp>
 
@@ -21,9 +21,9 @@ class YAML : public RefCounted {
 
   public:
   static String version();
-  static Ref<YAMLResult> parse(const String& input);
-  static Ref<YAMLResult> emit(const Variant& input, const Ref<YAMLFormat>& format);
-  static Ref<YAMLFormat> format();
+  static Ref<YAMLResult> parse(const String& input, const bool detect_style = false);
+  static Ref<YAMLResult> emit(const Variant& input, const Ref<YAMLStyle>& format);
+  static Ref<YAMLStyle> create_style();
 };
 
 } // namespace godot

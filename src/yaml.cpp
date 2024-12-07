@@ -10,9 +10,9 @@ using namespace godot;
 void YAML::_bind_methods()
 {
   ClassDB::bind_static_method("YAML", D_METHOD("version"), &YAML::version);
-  ClassDB::bind_static_method("YAML", D_METHOD("parse", "input"), &YAML::parse);
-  ClassDB::bind_static_method("YAML", D_METHOD("emit", "input", "format"), &YAML::emit, DEFVAL(format()));
-  ClassDB::bind_static_method("YAML", D_METHOD("format"), &YAML::format);
+  ClassDB::bind_static_method("YAML", D_METHOD("parse", "input", "detect_style"), &YAML::parse, DEFVAL(false));
+  ClassDB::bind_static_method("YAML", D_METHOD("emit", "input", "style"), &YAML::emit, DEFVAL(Variant()));
+  ClassDB::bind_static_method("YAML", D_METHOD("create_style"), &YAML::create_style);
 }
 
 String YAML::version()
@@ -25,21 +25,21 @@ String YAML::version()
   return String("Version " + String(GODOT_YAML_VERSION) + " (" + target + ")");
 }
 
-Ref<YAMLResult> YAML::parse(const String& input)
+Ref<YAMLResult> YAML::parse(const String& input, const bool detect_style)
 {
   YAMLParser parser;
-  Ref<YAMLResult> result = parser.parse(input);
+  Ref<YAMLResult> result = parser.parse(input, detect_style);
   return result;
 }
 
-Ref<YAMLResult> YAML::emit(const Variant& input, const Ref<YAMLFormat>& format = YAML::format())
+Ref<YAMLResult> YAML::emit(const Variant& input, const Ref<YAMLStyle>& style)
 {
   YAMLEmitter emitter;
-  Ref<YAMLResult> result = emitter.emit(input, format);
+  Ref<YAMLResult> result = emitter.emit(input, style);
   return result;
 }
 
-Ref<YAMLFormat> YAML::format()
+Ref<YAMLStyle> YAML::create_style()
 {
-  return memnew(YAMLFormat);
+  return Ref<YAMLStyle>(memnew(YAMLStyle()));
 }

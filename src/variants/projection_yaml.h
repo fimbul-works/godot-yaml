@@ -5,25 +5,17 @@
 
 namespace godot {
 
-/**
- * YAML converter for Projection type.
- * Supports the following formats:
- * - Map with Vector4 columns: {x: {x,y,z,w}, y: {x,y,z,w}, z: {x,y,z,w}, w: {x,y,z,w}}
- * - Map with arrays: {x: [x,y,z,w], y: [x,y,z,w], z: [x,y,z,w], w: [x,y,z,w]}
- * - Sequence of Vector4: [{x,y,z,w}, {x,y,z,w}, {x,y,z,w}, {x,y,z,w}]
- * - Sequence of arrays: [[x,y,z,w], [x,y,z,w], [x,y,z,w], [x,y,z,w]]
- */
 class ProjectionVariantConverter : public VariantConverter {
   public:
   DEFINE_YAML_TAG("Projection", Variant::PROJECTION)
 
-  void encode(ryml::NodeRef& node, const Variant& v, const YAMLFormat::View& format) const override;
+  void encode(ryml::NodeRef& node, const Variant& v, const Ref<YAMLStyle>& style) const override;
   Variant decode(const ryml::ConstNodeRef& node) const override;
 
   private:
-  void emit_as_map(ryml::NodeRef& node, const Projection& proj, const YAMLFormat::View& format) const;
-  void emit_as_sequence(ryml::NodeRef& node, const Projection& proj, const YAMLFormat::View& format) const;
-  void emit_column(ryml::NodeRef& node, const Vector4& col, const YAMLFormat::View& format) const;
+  void emit_as_map(ryml::NodeRef& node, const Projection& proj, const Ref<YAMLStyle>& style) const;
+  void emit_as_sequence(ryml::NodeRef& node, const Projection& proj, const Ref<YAMLStyle>& style) const;
+  void emit_column(ryml::NodeRef& node, const Vector4& col, const Ref<YAMLStyle>& style) const;
 
   Variant decode_from_map(const ryml::ConstNodeRef& node) const;
   Variant decode_from_sequence(const ryml::ConstNodeRef& node) const;

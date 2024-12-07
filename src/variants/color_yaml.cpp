@@ -4,27 +4,41 @@
 
 using namespace godot;
 
-void ColorVariantConverter::encode(ryml::NodeRef& node, const Variant& v, const YAMLFormat::View& format) const
+void ColorVariantConverter::encode(ryml::NodeRef& node, const Variant& v, const Ref<YAMLStyle>& style) const
 {
   const Color color = v.operator Color();
   const bool has_alpha = color.a < 1.0f;
 
-  switch (format.get_format(Variant::COLOR)) {
-    case YAMLFormat::HEX:
-      emit_as_hex(node, color, has_alpha, "0x");
-      break;
-    case YAMLFormat::HEX_STRING:
-      emit_as_hex(node, color, has_alpha, "#");
-      break;
-    case YAMLFormat::SEQUENCE:
-    case YAMLFormat::FLOW_SEQUENCE:
-      emit_as_sequence(node, color, format);
-      break;
-    case YAMLFormat::FLOW_MAP:
-    case YAMLFormat::MAP:
-    default:
-      emit_as_map(node, color, format);
-      break;
+  if (!style.is_valid() || style->collection_style == YAMLStyle::COLLECTION_ANY) {
+    // Default to hex string if no style specified
+    emit_as_hex(node, color, has_alpha, "#");
+    return;
+  }
+
+  if (style->scalar_style == YAMLStyle::STYLE_PLAIN) {
+    switch (style->string_format) {
+      case YAMLStyle::STRING_HEX:
+        emit_as_hex(node, color, has_alpha, "0x");
+        break;
+      case YAMLStyle::STRING_HEX_STR:
+        emit_as_hex(node, color, has_alpha, "#");
+        break;
+      default:
+        // Fall back to structured format if no string format specified
+        if (style->collection_style == YAMLStyle::COLLECTION_FLOW || style->collection_style == YAMLStyle::COLLECTION_BLOCK) {
+          emit_as_sequence(node, color, style);
+        } else {
+          emit_as_map(node, color, style);
+        }
+        break;
+    }
+  } else {
+    // Use collection format
+    if (style->collection_style == YAMLStyle::COLLECTION_FLOW || style->collection_style == YAMLStyle::COLLECTION_BLOCK) {
+      emit_as_sequence(node, color, style);
+    } else {
+      emit_as_map(node, color, style);
+    }
   }
 }
 
@@ -33,11 +47,11 @@ void ColorVariantConverter::emit_as_hex(ryml::NodeRef& node, const Color& color,
   node << color_to_hex(color, with_alpha, prefix).c_str();
 }
 
-void ColorVariantConverter::emit_as_map(ryml::NodeRef& node, const Color& color, const YAMLFormat::View& format) const
+void ColorVariantConverter::emit_as_map(ryml::NodeRef& node, const Color& color, const Ref<YAMLStyle>& style) const
 {
+  // Map styles
   node |= ryml::MAP;
-
-  if (format.get_format(Variant::COLOR) == YAMLFormat::FLOW_MAP) {
+  if (style.is_valid() && style->collection_style == YAMLStyle::MAP_FLOW) {
     node |= ryml::FLOW_SL;
   }
 
@@ -49,11 +63,10 @@ void ColorVariantConverter::emit_as_map(ryml::NodeRef& node, const Color& color,
   }
 }
 
-void ColorVariantConverter::emit_as_sequence(ryml::NodeRef& node, const Color& color, const YAMLFormat::View& format) const
+void ColorVariantConverter::emit_as_sequence(ryml::NodeRef& node, const Color& color, const Ref<YAMLStyle>& style) const
 {
   node |= ryml::SEQ;
-
-  if (format.get_format(Variant::COLOR) == YAMLFormat::FLOW_SEQUENCE) {
+  if (style.is_valid() && style->collection_style == YAMLStyle::COLLECTION_FLOW) {
     node |= ryml::FLOW_SL;
   }
 

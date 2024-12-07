@@ -1,8 +1,9 @@
 #ifndef VARIANT_CONVERTER_H
 #define VARIANT_CONVERTER_H
 
-#include "format.h"
+#include "style.h"
 
+#include <godot_cpp/classes/ref.hpp>
 #include <godot_cpp/variant/variant.hpp>
 #include <ryml.hpp>
 
@@ -25,13 +26,7 @@ class VariantConverter {
   virtual const Variant::Type get_type() const = 0;
 
   // Pure virtual encode method that derived classes must implement
-  virtual void encode(ryml::NodeRef& node, const Variant& v, const YAMLFormat::View& format) const = 0;
-
-  // Non-virtual format overload that converts to view
-  void encode(ryml::NodeRef& node, const Variant& v, const YAMLFormat& format) const
-  {
-    encode(node, v, format.get_view());
-  }
+  virtual void encode(ryml::NodeRef& node, const Variant& v, const Ref<YAMLStyle>& style) const = 0;
 
   // Pure virtual decode method
   virtual Variant decode(const ryml::ConstNodeRef& node) const = 0;

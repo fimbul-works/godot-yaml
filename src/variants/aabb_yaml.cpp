@@ -4,50 +4,56 @@
 
 namespace godot {
 
-void AABBVariantConverter::encode(ryml::NodeRef& node, const Variant& v, const YAMLFormat::View& format) const
+void AABBVariantConverter::encode(ryml::NodeRef& node, const Variant& v, const Ref<YAMLStyle>& style) const
 {
   const AABB aabb = AABB(v);
-  YAMLFormat::Format fmt = format.get_format(Variant::AABB);
-
-  if (fmt == YAMLFormat::SEQUENCE || fmt == YAMLFormat::FLOW_SEQUENCE) {
-    emit_as_sequence(node, aabb, format);
+  if (!style.is_valid() || style->collection_style == YAMLStyle::COLLECTION_ANY
+          || style->collection_style == YAMLStyle::MAP_BLOCK
+          || style->collection_style == YAMLStyle::MAP_FLOW) {
+    emit_as_map(node, aabb, style);
   } else {
-    emit_as_map(node, aabb, format);
+    emit_as_sequence(node, aabb, style);
   }
 }
 
-void AABBVariantConverter::emit_as_map(ryml::NodeRef& node, const AABB& aabb, const YAMLFormat::View& format) const
+void AABBVariantConverter::emit_as_map(ryml::NodeRef& node, const AABB& aabb, const Ref<YAMLStyle>& style) const
 {
   node |= ryml::MAP;
-
-  if (format.get_format(Variant::AABB) == YAMLFormat::FLOW_MAP) {
+  if (style.is_valid() && style->collection_style == YAMLStyle::MAP_FLOW) {
     node |= ryml::FLOW_SL;
   }
 
   const auto* vec3_converter = VariantConverterRegistry::get_converter(Variant::VECTOR3);
+
+  // Pass child styles down to nested converters
+  Ref<YAMLStyle> position_style = style.is_valid() ? style->get_child("position") : Ref<YAMLStyle>();
+  Ref<YAMLStyle> size_style = style.is_valid() ? style->get_child("size") : Ref<YAMLStyle>();
 
   ryml::NodeRef position_node = node["position"];
-  vec3_converter->encode(position_node, aabb.position, format);
+  vec3_converter->encode(position_node, aabb.position, position_style);
 
   ryml::NodeRef size_node = node["size"];
-  vec3_converter->encode(size_node, aabb.size, format);
+  vec3_converter->encode(size_node, aabb.size, size_style);
 }
 
-void AABBVariantConverter::emit_as_sequence(ryml::NodeRef& node, const AABB& aabb, const YAMLFormat::View& format) const
+void AABBVariantConverter::emit_as_sequence(ryml::NodeRef& node, const AABB& aabb, const Ref<YAMLStyle>& style) const
 {
   node |= ryml::SEQ;
-
-  if (format.get_format(Variant::AABB) == YAMLFormat::FLOW_SEQUENCE) {
+  if (style.is_valid() && style->collection_style == YAMLStyle::COLLECTION_FLOW) {
     node |= ryml::FLOW_SL;
   }
 
   const auto* vec3_converter = VariantConverterRegistry::get_converter(Variant::VECTOR3);
 
+  // Pass child styles down to nested converters using numeric indices
+  Ref<YAMLStyle> position_style = style.is_valid() ? style->get_child("0") : Ref<YAMLStyle>();
+  Ref<YAMLStyle> size_style = style.is_valid() ? style->get_child("1") : Ref<YAMLStyle>();
+
   ryml::NodeRef position_node = node.append_child();
-  vec3_converter->encode(position_node, aabb.position, format);
+  vec3_converter->encode(position_node, aabb.position, position_style);
 
   ryml::NodeRef size_node = node.append_child();
-  vec3_converter->encode(size_node, aabb.size, format);
+  vec3_converter->encode(size_node, aabb.size, size_style);
 }
 
 Variant AABBVariantConverter::decode(const ryml::ConstNodeRef& node) const

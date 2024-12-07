@@ -4,29 +4,44 @@
 
 using namespace godot;
 
-void PackedInt64ArrayVariantConverter::encode(ryml::NodeRef& node, const Variant& v, const YAMLFormat::View& format) const
+void PackedInt64ArrayVariantConverter::encode(ryml::NodeRef& node, const Variant& v, const Ref<YAMLStyle>& style) const
 {
   const PackedInt64Array array = v.operator PackedInt64Array();
-  emit_as_sequence(node, array, format);
-}
-
-void PackedInt64ArrayVariantConverter::emit_as_sequence(
-        ryml::NodeRef& node,
-        const PackedInt64Array& array,
-        const YAMLFormat::View& format) const
-{
   node |= ryml::SEQ;
 
   if (array.size() == 0) {
     return; // Empty sequence
   }
 
-  if (format.get_format(Variant::PACKED_INT64_ARRAY) == YAMLFormat::FLOW_SEQUENCE) {
+  // Apply flow style to the sequence if specified
+  if (style.is_valid() && style->collection_style == YAMLStyle::COLLECTION_FLOW) {
     node |= ryml::FLOW_SL;
   }
 
+  // Get shared item style if it exists
+  Ref<YAMLStyle> shared_item_style;
+  if (style.is_valid()) {
+    shared_item_style = style->get_child("_items");
+  }
+
   for (int i = 0; i < array.size(); ++i) {
-    node.append_child() << int_to_string(array[i]);
+    ryml::NodeRef value_node = node.append_child();
+
+    // Check for individual item style, fall back to shared style
+    Ref<YAMLStyle> item_style;
+    if (style.is_valid()) {
+      item_style = style->get_child(String::num_int64(i));
+      if (!item_style.is_valid()) {
+        item_style = shared_item_style;
+      }
+    }
+
+    // Format number based on style
+    if (item_style.is_valid()) {
+      value_node << int_to_string(array[i], item_style->number_format);
+    } else {
+      value_node << int_to_string(array[i]);
+    }
   }
 }
 

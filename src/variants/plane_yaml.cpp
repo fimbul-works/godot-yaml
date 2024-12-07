@@ -5,48 +5,63 @@
 
 using namespace godot;
 
-void PlaneVariantConverter::encode(ryml::NodeRef& node, const Variant& v, const YAMLFormat::View& format) const
+void PlaneVariantConverter::encode(ryml::NodeRef& node, const Variant& v, const Ref<YAMLStyle>& style) const
 {
   const Plane plane = v.operator Plane();
-  YAMLFormat::Format fmt = format.get_format(Variant::PLANE);
 
-  if (fmt == YAMLFormat::SEQUENCE || fmt == YAMLFormat::FLOW_SEQUENCE) {
-    emit_as_sequence(node, plane, format);
+  if (!style.is_valid() || style->collection_style == YAMLStyle::COLLECTION_ANY
+          || style->collection_style == YAMLStyle::MAP_BLOCK
+          || style->collection_style == YAMLStyle::MAP_FLOW) {
+    emit_as_map(node, plane, style);
   } else {
-    emit_as_map(node, plane, format);
+    emit_as_sequence(node, plane, style);
   }
 }
 
-void PlaneVariantConverter::emit_as_map(ryml::NodeRef& node, const Plane& plane, const YAMLFormat::View& format) const
+void PlaneVariantConverter::emit_as_map(ryml::NodeRef& node, const Plane& plane, const Ref<YAMLStyle>& style) const
 {
   node |= ryml::MAP;
-
-  if (format.get_format(Variant::PLANE) == YAMLFormat::FLOW_MAP) {
+  if (style.is_valid() && style->collection_style == YAMLStyle::MAP_FLOW) {
     node |= ryml::FLOW_SL;
   }
 
   const auto* vec3_converter = VariantConverterRegistry::get_converter(Variant::VECTOR3);
 
+  // Pass child styles for nested components
+  Ref<YAMLStyle> normal_style = style.is_valid() ? style->get_child("normal") : Ref<YAMLStyle>();
   ryml::NodeRef normal_node = node["normal"];
-  vec3_converter->encode(normal_node, plane.normal, format);
+  vec3_converter->encode(normal_node, plane.normal, normal_style);
 
-  node["d"] << float_to_string(plane.d);
+  // The d component gets its own style
+  Ref<YAMLStyle> d_style = style.is_valid() ? style->get_child("d") : Ref<YAMLStyle>();
+  if (d_style.is_valid()) {
+    node["d"] << float_to_string(plane.d, d_style->number_format);
+  } else {
+    node["d"] << float_to_string(plane.d);
+  }
 }
 
-void PlaneVariantConverter::emit_as_sequence(ryml::NodeRef& node, const Plane& plane, const YAMLFormat::View& format) const
+void PlaneVariantConverter::emit_as_sequence(ryml::NodeRef& node, const Plane& plane, const Ref<YAMLStyle>& style) const
 {
   node |= ryml::SEQ;
-
-  if (format.get_format(Variant::PLANE) == YAMLFormat::FLOW_SEQUENCE) {
+  if (style.is_valid() && style->collection_style == YAMLStyle::COLLECTION_FLOW) {
     node |= ryml::FLOW_SL;
   }
 
   const auto* vec3_converter = VariantConverterRegistry::get_converter(Variant::VECTOR3);
 
+  // Pass child styles for nested components using numeric indices
+  Ref<YAMLStyle> normal_style = style.is_valid() ? style->get_child("0") : Ref<YAMLStyle>();
   ryml::NodeRef normal_node = node.append_child();
-  vec3_converter->encode(normal_node, plane.normal, format);
+  vec3_converter->encode(normal_node, plane.normal, normal_style);
 
-  node.append_child() << float_to_string(plane.d);
+  // Style for d component
+  Ref<YAMLStyle> d_style = style.is_valid() ? style->get_child("1") : Ref<YAMLStyle>();
+  if (d_style.is_valid()) {
+    node.append_child() << float_to_string(plane.d, d_style->number_format);
+  } else {
+    node.append_child() << float_to_string(plane.d);
+  }
 }
 
 Variant PlaneVariantConverter::decode(const ryml::ConstNodeRef& node) const

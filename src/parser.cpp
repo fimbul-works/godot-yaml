@@ -7,10 +7,12 @@ using namespace godot;
 
 thread_local YAMLParser::ParserInstance YAMLParser::t_parser_instance;
 
-Ref<YAMLResult> YAMLParser::parse(const String& input)
+Ref<YAMLResult> YAMLParser::parse(const String& input, const bool detect_style)
 {
   try {
     auto& instance = t_parser_instance;
+    instance.detect_style = detect_style;
+    instance.style = detect_style ? YAML::create_style() : nullptr;
     instance.current_result = YAMLResult::success(Variant());
     instance.m_tree.clear();
 
@@ -25,9 +27,13 @@ Ref<YAMLResult> YAMLParser::parse(const String& input)
 
     instance.m_tree.resolve();
 
+    if (detect_style) {
+      instance.detect_node_style(instance.m_tree.rootref());
+    }
+
     if (!instance.current_result->has_error()) {
-      instance.current_result = YAMLResult::success(
-              instance.process_node(instance.m_tree.rootref()));
+      Variant parsed_data = instance.process_node(instance.m_tree.rootref());
+      instance.current_result = YAMLResult::success(parsed_data, instance.style);
     }
 
     return instance.current_result;
@@ -249,6 +255,13 @@ std::optional<Variant> YAMLParser::ParserInstance::try_parse_tagged_value(const 
     return std::nullopt;
   }
 
+  if (tag == "!binary") {
+    const auto* converter = VariantConverterRegistry::get_converter_by_tag("PackedByteArray");
+    if (converter) {
+      return converter->decode(node);
+    }
+  }
+
   const VariantConverter* converter = VariantConverterRegistry::get_converter_by_tag(tag);
   if (!converter) {
     return std::nullopt;
@@ -268,4 +281,158 @@ String YAMLParser::ParserInstance::extract_tag(const ryml::ConstNodeRef& node) c
     return String::utf8(tag.sub(1).str, tag.len - 1);
   }
   return String::utf8(tag.str, tag.len);
+}
+
+void YAMLParser::ParserInstance::detect_node_style(const ryml::ConstNodeRef& node)
+{
+  if (!detect_style || !style.is_valid()) {
+    return;
+  }
+
+  // Get or create style for current path
+  Ref<YAMLStyle> current_style;
+
+  if (current_path.empty()) {
+    current_style = style; // Use root style
+  } else {
+    // Navigate to current path
+    current_style = style;
+    for (const auto& path_element : current_path) {
+      Ref<YAMLStyle> child = current_style->get_child(String(path_element.c_str()));
+      if (!child.is_valid()) {
+        child.instantiate();
+        current_style->set_child(String(path_element.c_str()), child);
+      }
+      current_style = child;
+    }
+  }
+
+  // Detect styles for this node
+  detect_scalar_style(node, current_style);
+  detect_collection_style(node, current_style);
+  detect_binary_style(node, current_style);
+  detect_anchor_style(node, current_style);
+
+  // For map nodes, process children with updated path
+  if (node.is_map()) {
+    for (const auto& child : node.children()) {
+      std::string key(child.key().str, child.key().len);
+      auto new_path = current_path;
+      new_path.push_back(key);
+      current_path = new_path;
+      detect_node_style(child);
+      current_path.pop_back();
+    }
+  }
+  // For sequence nodes, use indices as path elements
+  else if (node.is_seq()) {
+    int index = 0;
+    for (const auto& child : node.children()) {
+      auto new_path = current_path;
+      new_path.push_back(std::to_string(index++));
+      current_path = new_path;
+      detect_node_style(child);
+      current_path.pop_back();
+    }
+  }
+}
+
+void YAMLParser::ParserInstance::detect_scalar_style(const ryml::ConstNodeRef& node, const Ref<YAMLStyle>& style)
+{
+  if (!node.has_val()) {
+    return;
+  }
+
+  // Handle quoted styles
+  if (node.is_quoted()) {
+    style->scalar_style = YAMLStyle::STYLE_QUOTED;
+  }
+  // Handle block styles
+  else if (node.is_block() || node.is_val_folded()) {
+    style->scalar_style = YAMLStyle::STYLE_BLOCK;
+    style->block_style = node.is_val_folded() ? YAMLStyle::BLOCK_FOLDED : YAMLStyle::BLOCK_LITERAL;
+  } else {
+    style->scalar_style = YAMLStyle::STYLE_PLAIN;
+  }
+
+  // Detect number format
+  std::string value_str(node.val().str, node.val().len);
+  String value(value_str.c_str());
+  if (value.is_valid_float() || value.is_valid_int()) {
+    if (value.begins_with("0x") || value.begins_with("0X")) {
+      style->number_format = YAMLStyle::NUM_HEX;
+    } else if (value.begins_with("0o") || value.begins_with("0O")) {
+      style->number_format = YAMLStyle::NUM_OCTAL;
+    } else if (value.begins_with("0b") || value.begins_with("0B")) {
+      style->number_format = YAMLStyle::NUM_BINARY;
+    } else if (value.find("e") != -1 || value.find("E") != -1) {
+      style->number_format = YAMLStyle::NUM_SCIENTIFIC;
+    } else {
+      style->number_format = YAMLStyle::NUM_DECIMAL;
+    }
+  }
+}
+
+void YAMLParser::ParserInstance::detect_collection_style(const ryml::ConstNodeRef& node, const Ref<YAMLStyle>& style)
+{
+  if (node.is_seq()) {
+    style->collection_style = node.is_flow() ? YAMLStyle::COLLECTION_FLOW : YAMLStyle::COLLECTION_BLOCK;
+  } else if (node.is_map()) {
+    style->collection_style = node.is_flow() ? YAMLStyle::MAP_FLOW : YAMLStyle::MAP_BLOCK;
+  }
+}
+
+void YAMLParser::ParserInstance::detect_binary_style(const ryml::ConstNodeRef& node, const Ref<YAMLStyle>& style)
+{
+  if (!node.has_val() || !node.has_val_tag()) {
+    return;
+  }
+
+  // Detect binary encoding from tag
+  if (node.val_tag() == "!!binary") {
+    std::string value_str(node.val().str, node.val().len);
+    String value(value_str.c_str());
+
+    // Check if it's base64 encoded
+    bool is_base64 = true;
+    for (int i = 0; i < value.length(); i++) {
+      char32_t c = value[i];
+      if (!((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '+' || c == '/' || c == '=' || c == '\n')) {
+        is_base64 = false;
+        break;
+      }
+    }
+
+    style->binary_encoding = is_base64 ? YAMLStyle::BINARY_BASE64 : YAMLStyle::BINARY_HEX;
+
+    // Set block style for binary data
+    if (node.is_block()) {
+      style->scalar_style = YAMLStyle::STYLE_BLOCK;
+      style->block_style = YAMLStyle::BLOCK_LITERAL;
+    }
+
+    // Store the tag in custom settings
+    Dictionary custom;
+    custom["tag"] = "!!binary";
+    style->custom_settings = custom;
+  }
+}
+
+void YAMLParser::ParserInstance::detect_anchor_style(const ryml::ConstNodeRef& node, const Ref<YAMLStyle>& style)
+{
+  Dictionary custom_settings;
+
+  // Check for anchors and aliases
+  if (node.has_anchor()) {
+    custom_settings["anchor"] = String::utf8(node.val_anchor().str, node.val_anchor().len);
+  }
+
+  if (node.is_ref()) {
+    custom_settings["alias"] = String::utf8(node.val_ref().str, node.val_ref().len);
+  }
+
+  // Store custom settings if any were detected
+  if (!custom_settings.is_empty()) {
+    style->custom_settings = custom_settings;
+  }
 }

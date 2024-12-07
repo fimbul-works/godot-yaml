@@ -3,7 +3,7 @@
 
 using namespace godot;
 
-void NodePathVariantConverter::encode(ryml::NodeRef& node, const Variant& v, const YAMLFormat::View& format) const
+void NodePathVariantConverter::encode(ryml::NodeRef& node, const Variant& v, const Ref<YAMLStyle>& style) const
 {
   const NodePath path = v.operator NodePath();
   emit_as_string(node, path);

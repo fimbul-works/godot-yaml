@@ -48,7 +48,7 @@ class VariantConverterRegistry {
 
   // Storage
   static std::unordered_map<Variant::Type, std::unique_ptr<VariantConverter>> s_type_to_converter;
-  static std::unordered_map<String, VariantConverter*> s_tag_to_converter;
+  static std::unordered_map<String, VariantConverter*, StringHasher> s_tag_to_converter;
 
   // Registration helpers
   static void register_converter(std::unique_ptr<VariantConverter> converter);

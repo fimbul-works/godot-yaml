@@ -4,7 +4,7 @@
 
 using namespace godot;
 
-void PackedVector2ArrayVariantConverter::encode(ryml::NodeRef& node, const Variant& v, const YAMLFormat::View& format) const
+void PackedVector2ArrayVariantConverter::encode(ryml::NodeRef& node, const Variant& v, const Ref<YAMLStyle>& style) const
 {
   const PackedVector2Array array = v.operator PackedVector2Array();
   node |= ryml::SEQ;
@@ -13,15 +13,32 @@ void PackedVector2ArrayVariantConverter::encode(ryml::NodeRef& node, const Varia
     return; // Empty sequence
   }
 
-  if (format.get_format(Variant::PACKED_VECTOR2_ARRAY) == YAMLFormat::FLOW_SEQUENCE) {
+  // Apply flow style to the sequence itself if specified
+  if (style.is_valid() && style->collection_style == YAMLStyle::COLLECTION_FLOW) {
     node |= ryml::FLOW_SL;
   }
 
-  const auto* vec2_converter = VariantConverterRegistry::get_converter(Variant::VECTOR2);
+  const auto* vec_converter = VariantConverterRegistry::get_converter(Variant::VECTOR2);
+
+  // Get shared item style if it exists (key "_items" is a convention for shared array item styling)
+  Ref<YAMLStyle> shared_item_style;
+  if (style.is_valid()) {
+    shared_item_style = style->get_child("_items");
+  }
 
   for (int i = 0; i < array.size(); ++i) {
     ryml::NodeRef vec_node = node.append_child();
-    vec2_converter->encode(vec_node, array[i], format);
+
+    // Check for individual item style, fall back to shared style
+    Ref<YAMLStyle> item_style;
+    if (style.is_valid()) {
+      item_style = style->get_child(String::num_int64(i));
+      if (!item_style.is_valid()) {
+        item_style = shared_item_style;
+      }
+    }
+
+    vec_converter->encode(vec_node, array[i], item_style);
   }
 }
 

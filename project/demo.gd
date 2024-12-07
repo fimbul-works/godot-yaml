@@ -1,29 +1,111 @@
 extends Node2D
 
 func _ready():
-	var file = FileAccess.open("res://test.yaml", FileAccess.READ)
+	var file = FileAccess.open("res://yaml_data/comprehensive.yaml", FileAccess.READ)
 	var yaml_input = file.get_as_text().replace("\t", "    ") # TODO
 
-	var yaml = YAML.new()
-	# Getting version information
-	print(yaml.version())
+	var parse_res = YAML.parse(yaml_input, true)
+	if parse_res.has_error():
+		printerr(parse_res.get_error())
+		return
+	var data = parse_res.get_data()
+	var style = parse_res.get_style()
 
-	## Parsing YAML
-	#var start = Time.get_ticks_usec()
-	#var dict = yaml.parse(yaml_input)
-	#var elapsed = Time.get_ticks_usec() - start
-	#print_rich("[b]Parsed data:[/b]\n", JSON.stringify(dict, "  ", false))
-	#print_rich("[i]Parsing took %d microseconds[/i]\n" % elapsed)
-#
-	## Stringifying to YAML
-	#start = Time.get_ticks_usec()
-	#var yaml_output = yaml.stringify(dict)
-	#elapsed = Time.get_ticks_usec() - start
-	#print_rich("[b]Stringified data:[/b]\n", yaml_output)
-	#print_rich("[i]Stringifying took %d microseconds[/i]\n" % elapsed)
+	print(JSON.stringify(style.to_dict()))
 
-	# Test variant
-	var dict = {
+	var emit_result = YAML.emit(data)
+	if emit_result.has_error():
+		printerr(emit_result.get_error())
+		return
+	var yaml_raw = emit_result.get_data()
+	print("RAW EMIT\n\n" + yaml_raw + "\n")
+	emit_result = YAML.emit(data, style)
+	var yaml_style = emit_result.get_data()
+	print("STYLED EMIT\n\n" + yaml_style + "\n")
+	print("ORIGINAL YAML\n\n" + yaml_input + "\n")
+	
+	return
+	# Show version information
+	print(YAML.version())
+
+	# Test parsing
+	var dict = test_parsing(yaml_input)
+	if !dict:
+		printerr("Parsing failed. Bummer!")
+		return
+
+	# Test emitting
+	var yaml = test_emitting(dict)
+	if !yaml:
+		printerr("Emitting failed. Bogus!")
+		return
+
+	# Test variant conversions
+	test_variants()
+
+func test_parsing(input: String) -> Variant:
+	return time_call(func():
+		return YAML.parse(input)
+	, "Parsing")
+
+func test_emitting(input: Variant) -> Variant:
+	return time_call(func():
+		return YAML.emit(input)
+	, "Emitting")
+
+func test_variants():
+	var variant_dict = get_variant_dict()
+
+	for key in variant_dict.keys():
+		var original_value = variant_dict[key]
+		var eres = YAML.emit(original_value)
+		if eres.has_error():
+			printerr(key, " emit error: ", eres.get_error())
+			continue
+
+		var value_as_yaml = eres.get_data()
+		print_rich("[b]%s YAML:[/b]\n%s" % [key, value_as_yaml])
+
+		var pres = YAML.parse(value_as_yaml)
+		if pres.has_error():
+			printerr(key, " parse error: ", pres.get_error())
+			continue
+		var parsed_value = pres.get_data()
+		print_rich("[b]%s parsed:[/b]\n%s\n" % [key, parsed_value])
+
+	print_rich("[b]Before encoding:[/b]\n" + JSON.stringify(variant_dict, "  ", false))
+	var emit_result = YAML.emit(variant_dict)
+	if emit_result.has_error():
+		printerr(emit_result.get_error())
+		return
+
+	var emitted_yaml = emit_result.get_data()
+	print_rich("[b]Variants as YAML:[/b]\n", emitted_yaml)
+	var parse_result = YAML.parse(emitted_yaml)
+	if parse_result.has_error():
+		printerr(parse_result.get_error())
+		return
+	var parsed_dict = parse_result.get_error() if parse_result.has_error() else parse_result.get_data()
+	print_rich("[b]Variants after decoding:[/b]\n" + JSON.stringify(parsed_dict, "  ", false))
+
+## Time a function call for performance
+func time_call(fn: Callable, label: String = "Operation") -> Variant:
+	var start = Time.get_ticks_usec()
+	var result = fn.call()
+	var elapsed = Time.get_ticks_usec() - start
+	if result.has_error():
+		printerr("%s failed: " % label, result.get_error())
+		return
+	var data = result.get_data()
+	if typeof(data) == TYPE_STRING:
+		print_rich("[b]%s Output:[/b]\n" % label, data)
+	else:
+		print_rich("[b]%s Output:[/b]\n" % label, JSON.stringify(data, "  ", false))
+	print_rich("[i]Operation completed in %d microseconds[/i]\n" % elapsed)
+	return data
+
+func get_variant_dict():
+	return {
 		"aabb": AABB(Vector3(0, 1, 2), Vector3(3, 4, 5)),
 		"basis": Basis(Vector3(6, 7, 8), Vector3(9, 10, 11), Vector3(12, 13, 14)),
 		"callable": Callable(_callable_method), # Callable will be ignored, but will raise a warning
@@ -54,24 +136,6 @@ func _ready():
 		"vector4": Vector4(19, 20, 21, 22),
 		"vector4i": Vector4i(23, 24, 25, 26),
 	}
-
-	for key in dict.keys():
-		var value = dict[key]
-		var yaml_str = yaml.stringify(value)
-		if yaml.get_error():
-			printerr(key, " stringify error: ", yaml.get_error())
-			return
-		var val = yaml.parse(yaml_str)
-		if yaml.get_error():
-			printerr(key, " parse error: ", yaml.get_error())
-			return
-		print_rich("[b]%s YAML:[/b]\n%s" % [key, yaml_str])
-		print_rich("[b]%s parsed:[/b]\n%s\n" % [key, val])
-
-	var dict_str = yaml.stringify(dict)
-	print_rich("[b]Variants as YAML:[/b]\n", dict_str)
-	var parsed_dict = yaml.parse(dict_str)
-	print_rich("[b]Variants from YAML:[/b]\n", parsed_dict)
 
 func _callable_method():
 	pass

@@ -4,40 +4,31 @@
 
 using namespace godot;
 
-void Vector2VariantConverter::encode(ryml::NodeRef& node, const Variant& v, const YAMLFormat::View& format) const
+void Vector2VariantConverter::encode(ryml::NodeRef& node, const Variant& v, const Ref<YAMLStyle>& style) const
 {
   const Vector2 vec = v.operator Vector2();
-  YAMLFormat::Format fmt = format.get_format(Variant::VECTOR2);
 
-  if (fmt == YAMLFormat::SEQUENCE || fmt == YAMLFormat::FLOW_SEQUENCE) {
-    emit_as_sequence(node, vec, format);
+  if (!style.is_valid() || style->collection_style == YAMLStyle::COLLECTION_ANY
+          || style->collection_style == YAMLStyle::MAP_BLOCK
+          || style->collection_style == YAMLStyle::MAP_FLOW) {
+    // Map styles
+    node |= ryml::MAP;
+    if (style.is_valid() && style->collection_style == YAMLStyle::MAP_FLOW) {
+      node |= ryml::FLOW_SL;
+    }
+
+    node["x"] << float_to_string(vec.x);
+    node["y"] << float_to_string(vec.y);
   } else {
-    emit_as_map(node, vec, format);
+    // Collection styles
+    node |= ryml::SEQ;
+    if (style.is_valid() && style->collection_style == YAMLStyle::COLLECTION_FLOW) {
+      node |= ryml::FLOW_SL;
+    }
+
+    node.append_child() << float_to_string(vec.x);
+    node.append_child() << float_to_string(vec.y);
   }
-}
-
-void Vector2VariantConverter::emit_as_map(ryml::NodeRef& node, const Vector2& vec, const YAMLFormat::View& format) const
-{
-  node |= ryml::MAP;
-
-  if (format.get_format(Variant::VECTOR2) == YAMLFormat::FLOW_MAP) {
-    node |= ryml::FLOW_SL;
-  }
-
-  node["x"] << float_to_string(vec.x);
-  node["y"] << float_to_string(vec.y);
-}
-
-void Vector2VariantConverter::emit_as_sequence(ryml::NodeRef& node, const Vector2& vec, const YAMLFormat::View& format) const
-{
-  node |= ryml::SEQ;
-
-  if (format.get_format(Variant::VECTOR2) == YAMLFormat::FLOW_SEQUENCE) {
-    node |= ryml::FLOW_SL;
-  }
-
-  node.append_child() << float_to_string(vec.x);
-  node.append_child() << float_to_string(vec.y);
 }
 
 Variant Vector2VariantConverter::decode(const ryml::ConstNodeRef& node) const

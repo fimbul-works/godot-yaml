@@ -5,44 +5,34 @@
 
 using namespace godot;
 
-void QuaternionVariantConverter::encode(ryml::NodeRef& node, const Variant& v, const YAMLFormat::View& format) const
+void QuaternionVariantConverter::encode(ryml::NodeRef& node, const Variant& v, const Ref<YAMLStyle>& style) const
 {
   const Quaternion quat = v.operator Quaternion();
-  YAMLFormat::Format fmt = format.get_format(Variant::QUATERNION);
+  if (!style.is_valid() || style->collection_style == YAMLStyle::COLLECTION_ANY
+          || style->collection_style == YAMLStyle::MAP_BLOCK
+          || style->collection_style == YAMLStyle::MAP_FLOW) {
+    // Map styles
+    node |= ryml::MAP;
+    if (style.is_valid() && style->collection_style == YAMLStyle::MAP_FLOW) {
+      node |= ryml::FLOW_SL;
+    }
 
-  if (fmt == YAMLFormat::SEQUENCE || fmt == YAMLFormat::FLOW_SEQUENCE) {
-    emit_as_sequence(node, quat, format);
+    node["x"] << float_to_string(quat.x);
+    node["y"] << float_to_string(quat.y);
+    node["z"] << float_to_string(quat.z);
+    node["w"] << float_to_string(quat.w);
   } else {
-    emit_as_map(node, quat, format);
+    // Collection styles
+    node |= ryml::SEQ;
+    if (style.is_valid() && style->collection_style == YAMLStyle::COLLECTION_FLOW) {
+      node |= ryml::FLOW_SL;
+    }
+
+    node.append_child() << float_to_string(quat.x);
+    node.append_child() << float_to_string(quat.y);
+    node.append_child() << float_to_string(quat.z);
+    node.append_child() << float_to_string(quat.w);
   }
-}
-
-void QuaternionVariantConverter::emit_as_map(ryml::NodeRef& node, const Quaternion& quat, const YAMLFormat::View& format) const
-{
-  node |= ryml::MAP;
-
-  if (format.get_format(Variant::QUATERNION) == YAMLFormat::FLOW_MAP) {
-    node |= ryml::FLOW_SL;
-  }
-
-  node["x"] << float_to_string(quat.x);
-  node["y"] << float_to_string(quat.y);
-  node["z"] << float_to_string(quat.z);
-  node["w"] << float_to_string(quat.w);
-}
-
-void QuaternionVariantConverter::emit_as_sequence(ryml::NodeRef& node, const Quaternion& quat, const YAMLFormat::View& format) const
-{
-  node |= ryml::SEQ;
-
-  if (format.get_format(Variant::QUATERNION) == YAMLFormat::FLOW_SEQUENCE) {
-    node |= ryml::FLOW_SL;
-  }
-
-  node.append_child() << float_to_string(quat.x);
-  node.append_child() << float_to_string(quat.y);
-  node.append_child() << float_to_string(quat.z);
-  node.append_child() << float_to_string(quat.w);
 }
 
 Variant QuaternionVariantConverter::decode(const ryml::ConstNodeRef& node) const

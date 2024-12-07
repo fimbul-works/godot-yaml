@@ -5,50 +5,57 @@
 
 using namespace godot;
 
-void Rect2iVariantConverter::encode(ryml::NodeRef& node, const Variant& v, const YAMLFormat::View& format) const
+void Rect2iVariantConverter::encode(ryml::NodeRef& node, const Variant& v, const Ref<YAMLStyle>& style) const
 {
   const Rect2i rect = v.operator Rect2i();
-  YAMLFormat::Format fmt = format.get_format(Variant::RECT2I);
 
-  if (fmt == YAMLFormat::SEQUENCE || fmt == YAMLFormat::FLOW_SEQUENCE) {
-    emit_as_sequence(node, rect, format);
+  if (!style.is_valid() || style->collection_style == YAMLStyle::COLLECTION_ANY
+          || style->collection_style == YAMLStyle::MAP_BLOCK
+          || style->collection_style == YAMLStyle::MAP_FLOW) {
+    emit_as_map(node, rect, style);
   } else {
-    emit_as_map(node, rect, format);
+    emit_as_sequence(node, rect, style);
   }
 }
 
-void Rect2iVariantConverter::emit_as_map(ryml::NodeRef& node, const Rect2i& rect, const YAMLFormat::View& format) const
+void Rect2iVariantConverter::emit_as_map(ryml::NodeRef& node, const Rect2i& rect, const Ref<YAMLStyle>& style) const
 {
   node |= ryml::MAP;
-
-  if (format.get_format(Variant::RECT2I) == YAMLFormat::FLOW_MAP) {
+  if (style.is_valid() && style->collection_style == YAMLStyle::MAP_FLOW) {
     node |= ryml::FLOW_SL;
   }
 
   const auto* vec2i_converter = VariantConverterRegistry::get_converter(Variant::VECTOR2I);
+
+  // Pass child styles for position and size
+  Ref<YAMLStyle> pos_style = style.is_valid() ? style->get_child("position") : Ref<YAMLStyle>();
+  Ref<YAMLStyle> size_style = style.is_valid() ? style->get_child("size") : Ref<YAMLStyle>();
 
   ryml::NodeRef pos_node = node["position"];
-  vec2i_converter->encode(pos_node, rect.position, format);
+  vec2i_converter->encode(pos_node, rect.position, pos_style);
 
   ryml::NodeRef size_node = node["size"];
-  vec2i_converter->encode(size_node, rect.size, format);
+  vec2i_converter->encode(size_node, rect.size, size_style);
 }
 
-void Rect2iVariantConverter::emit_as_sequence(ryml::NodeRef& node, const Rect2i& rect, const YAMLFormat::View& format) const
+void Rect2iVariantConverter::emit_as_sequence(ryml::NodeRef& node, const Rect2i& rect, const Ref<YAMLStyle>& style) const
 {
   node |= ryml::SEQ;
-
-  if (format.get_format(Variant::RECT2I) == YAMLFormat::FLOW_SEQUENCE) {
+  if (style.is_valid() && style->collection_style == YAMLStyle::COLLECTION_FLOW) {
     node |= ryml::FLOW_SL;
   }
 
   const auto* vec2i_converter = VariantConverterRegistry::get_converter(Variant::VECTOR2I);
 
+  // Pass child styles using numeric indices
+  Ref<YAMLStyle> pos_style = style.is_valid() ? style->get_child("0") : Ref<YAMLStyle>();
+  Ref<YAMLStyle> size_style = style.is_valid() ? style->get_child("1") : Ref<YAMLStyle>();
+
   ryml::NodeRef pos_node = node.append_child();
-  vec2i_converter->encode(pos_node, rect.position, format);
+  vec2i_converter->encode(pos_node, rect.position, pos_style);
 
   ryml::NodeRef size_node = node.append_child();
-  vec2i_converter->encode(size_node, rect.size, format);
+  vec2i_converter->encode(size_node, rect.size, size_style);
 }
 
 Variant Rect2iVariantConverter::decode(const ryml::ConstNodeRef& node) const

@@ -15,7 +15,7 @@ class ObjectVariantConverter : public VariantConverter {
   public:
   DEFINE_YAML_TAG("Object", Variant::OBJECT)
 
-  void encode(ryml::NodeRef& node, const Variant& v, const YAMLFormat::View& format) const override;
+  void encode(ryml::NodeRef& node, const Variant& v, const Ref<YAMLStyle>& style) const override;
   Variant decode(const ryml::ConstNodeRef& node) const override;
 
   private:

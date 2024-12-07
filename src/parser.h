@@ -1,8 +1,8 @@
 #ifndef YAML_PARSER_H
 #define YAML_PARSER_H
 
-#include "format.h"
 #include "result.h"
+#include "style.h"
 #include "variant_converter_registry.h"
 
 #include <godot_cpp/classes/ref_counted.hpp>
@@ -19,7 +19,7 @@ class YAMLParser {
   YAMLParser() = default;
   ~YAMLParser() = default;
 
-  Ref<YAMLResult> parse(const String& input);
+  Ref<YAMLResult> parse(const String& input, const bool detect_style = false);
 
   private:
   // Thread-safe private instance
@@ -29,6 +29,9 @@ class YAMLParser {
     std::unique_ptr<ryml::Parser> m_parser;
     ryml::Tree m_tree;
     Ref<YAMLResult> current_result;
+    bool detect_style;
+    Ref<YAMLStyle> style;
+    std::vector<std::string> current_path;
 
     ParserInstance();
     ~ParserInstance() = default;
@@ -47,6 +50,13 @@ class YAMLParser {
     std::optional<Variant> try_parse_special_value(const String& str_val) const;
     std::optional<Variant> try_parse_numeric_value(const String& str_val, const ryml::csubstr& val) const;
     String extract_tag(const ryml::ConstNodeRef& node) const;
+
+    // Detect style information
+    void detect_node_style(const ryml::ConstNodeRef& node);
+    void detect_scalar_style(const ryml::ConstNodeRef& node, const Ref<YAMLStyle>& style);
+    void detect_collection_style(const ryml::ConstNodeRef& node, const Ref<YAMLStyle>& style);
+    void detect_binary_style(const ryml::ConstNodeRef& node, const Ref<YAMLStyle>& style);
+    void detect_anchor_style(const ryml::ConstNodeRef& node, const Ref<YAMLStyle>& style);
   };
 
   static thread_local ParserInstance t_parser_instance;

@@ -9,12 +9,12 @@ class Rect2VariantConverter : public VariantConverter {
   public:
   DEFINE_YAML_TAG("Rect2", Variant::RECT2)
 
-  void encode(ryml::NodeRef& node, const Variant& v, const YAMLFormat::View& format) const override;
+  void encode(ryml::NodeRef& node, const Variant& v, const Ref<YAMLStyle>& style) const override;
   Variant decode(const ryml::ConstNodeRef& node) const override;
 
   private:
-  void emit_as_map(ryml::NodeRef& node, const Rect2& rect, const YAMLFormat::View& format) const;
-  void emit_as_sequence(ryml::NodeRef& node, const Rect2& rect, const YAMLFormat::View& format) const;
+  void emit_as_map(ryml::NodeRef& node, const Rect2& rect, const Ref<YAMLStyle>& style) const;
+  void emit_as_sequence(ryml::NodeRef& node, const Rect2& rect, const Ref<YAMLStyle>& style) const;
 
   Variant decode_from_map(const ryml::ConstNodeRef& node) const;
   Variant decode_from_sequence(const ryml::ConstNodeRef& node) const;

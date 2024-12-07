@@ -1,8 +1,7 @@
 #include "register_types.h"
 
-#include "emitter.h"
-#include "parser.h"
 #include "result.h"
+#include "style.h"
 #include "variant_converter_registry.h"
 #include "yaml.h"
 
@@ -23,8 +22,8 @@ void initialize_yaml_module(ModuleInitializationLevel p_level)
   if (!ClassDB::class_exists("YAMLResult")) {
     GDREGISTER_CLASS(YAMLResult);
   }
-  if (!ClassDB::class_exists("YAMLFormat")) {
-    GDREGISTER_CLASS(YAMLFormat);
+  if (!ClassDB::class_exists("YAMLStyle")) {
+    GDREGISTER_CLASS(YAMLStyle);
   }
   if (!ClassDB::class_exists("YAML")) {
     GDREGISTER_CLASS(YAML);
