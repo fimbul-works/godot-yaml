@@ -7,17 +7,12 @@ using namespace godot;
 void Vector4iVariantConverter::encode(ryml::NodeRef& node, const Variant& v, const YAMLFormat::View& format) const
 {
   const Vector4i vec = v.operator Vector4i();
+  YAMLFormat::Format fmt = format.get_format(Variant::VECTOR4I);
 
-  switch (format.get_format(Variant::VECTOR4I)) {
-    case YAMLFormat::SEQUENCE:
-    case YAMLFormat::FLOW_SEQUENCE:
-      emit_as_sequence(node, vec, format);
-      break;
-    case YAMLFormat::MAP:
-    case YAMLFormat::FLOW_MAP:
-    default:
-      emit_as_map(node, vec, format);
-      break;
+  if (fmt == YAMLFormat::SEQUENCE || fmt == YAMLFormat::FLOW_SEQUENCE) {
+    emit_as_sequence(node, vec, format);
+  } else {
+    emit_as_map(node, vec, format);
   }
 }
 

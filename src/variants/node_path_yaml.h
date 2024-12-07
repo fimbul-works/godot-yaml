@@ -5,14 +5,6 @@
 
 namespace godot {
 
-/**
- * YAML converter for NodePath type.
- * Represents node paths as strings in YAML, with null/empty scalar for empty paths.
- * Examples:
- * - "Path/To/Node"
- * - "Path/To/Node:property"
- * - null (for empty path)
- */
 class NodePathVariantConverter : public VariantConverter {
   public:
   DEFINE_YAML_TAG("NodePath", Variant::NODE_PATH)

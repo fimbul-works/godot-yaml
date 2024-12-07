@@ -7,17 +7,12 @@ using namespace godot;
 void Transform3DVariantConverter::encode(ryml::NodeRef& node, const Variant& v, const YAMLFormat::View& format) const
 {
   const Transform3D transform = v.operator Transform3D();
+  YAMLFormat::Format fmt = format.get_format(Variant::PROJECTION);
 
-  switch (format.get_format(Variant::TRANSFORM3D)) {
-    case YAMLFormat::SEQUENCE:
-    case YAMLFormat::FLOW_SEQUENCE:
-      emit_as_sequence(node, transform, format);
-      break;
-    case YAMLFormat::MAP:
-    case YAMLFormat::FLOW_MAP:
-    default:
-      emit_as_map(node, transform, format);
-      break;
+  if (fmt == YAMLFormat::SEQUENCE || fmt == YAMLFormat::FLOW_SEQUENCE) {
+    emit_as_sequence(node, transform, format);
+  } else {
+    emit_as_map(node, transform, format);
   }
 }
 

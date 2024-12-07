@@ -5,12 +5,6 @@
 
 namespace godot {
 
-/**
- * YAML converter for Transform3D type.
- * Supports the following formats:
- * - Map: {basis: {x: {x,y,z}, y: {x,y,z}, z: {x,y,z}}, origin: {x,y,z}}
- * - Sequence: [{x,y,z}, {x,y,z}, {x,y,z}, {x,y,z}] (basis columns + origin)
- */
 class Transform3DVariantConverter : public VariantConverter {
   public:
   DEFINE_YAML_TAG("Transform3D", Variant::TRANSFORM3D)

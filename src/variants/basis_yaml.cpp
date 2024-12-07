@@ -7,18 +7,12 @@ using namespace godot;
 void BasisVariantConverter::encode(ryml::NodeRef& node, const Variant& v, const YAMLFormat::View& format) const
 {
   const Basis basis = v.operator Basis();
+  YAMLFormat::Format fmt = format.get_format(Variant::BASIS);
 
-  // Check format and use appropriate encoding method
-  switch (format.get_format(Variant::BASIS)) {
-    case YAMLFormat::SEQUENCE:
-    case YAMLFormat::FLOW_SEQUENCE:
-      emit_as_sequence(node, basis, format);
-      break;
-    case YAMLFormat::MAP:
-    case YAMLFormat::FLOW_MAP:
-    default:
-      emit_as_map(node, basis, format);
-      break;
+  if (fmt == YAMLFormat::SEQUENCE || fmt == YAMLFormat::FLOW_SEQUENCE) {
+    emit_as_sequence(node, basis, format);
+  } else {
+    emit_as_map(node, basis, format);
   }
 }
 

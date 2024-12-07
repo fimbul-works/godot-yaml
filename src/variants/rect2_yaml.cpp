@@ -8,17 +8,12 @@ using namespace godot;
 void Rect2VariantConverter::encode(ryml::NodeRef& node, const Variant& v, const YAMLFormat::View& format) const
 {
   const Rect2 rect = v.operator Rect2();
+  YAMLFormat::Format fmt = format.get_format(Variant::RECT2);
 
-  switch (format.get_format(Variant::RECT2)) {
-    case YAMLFormat::SEQUENCE:
-    case YAMLFormat::FLOW_SEQUENCE:
-      emit_as_sequence(node, rect, format);
-      break;
-    case YAMLFormat::MAP:
-    case YAMLFormat::FLOW_MAP:
-    default:
-      emit_as_map(node, rect, format);
-      break;
+  if (fmt == YAMLFormat::SEQUENCE || fmt == YAMLFormat::FLOW_SEQUENCE) {
+    emit_as_sequence(node, rect, format);
+  } else {
+    emit_as_map(node, rect, format);
   }
 }
 

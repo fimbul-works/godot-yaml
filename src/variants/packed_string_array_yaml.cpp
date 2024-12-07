@@ -16,40 +16,25 @@ void PackedStringArrayVariantConverter::emit_as_sequence(
 {
   node |= ryml::SEQ;
 
-  if (array.size() == 0) {
-    return; // Empty sequence
-  }
-
-  // Check if any string needs block style
-  bool needs_block = false;
-  if (format.get_format(Variant::PACKED_STRING_ARRAY) != YAMLFormat::FLOW_MAP) {
-    for (int i = 0; i < array.size(); ++i) {
-      if (needs_block_style(array[i])) {
-        needs_block = true;
-        break;
-      }
-    }
-  }
-
-  if (!needs_block && format.get_format(Variant::PACKED_STRING_ARRAY) == YAMLFormat::FLOW_SEQUENCE) {
+  if (format.get_format(Variant::PACKED_STRING_ARRAY) == YAMLFormat::FLOW_SEQUENCE) {
     node |= ryml::FLOW_SL;
   }
 
   for (int i = 0; i < array.size(); ++i) {
     const String& str = array[i];
+    ryml::NodeRef child = node.append_child();
+
     if (str.is_empty()) {
-      // Empty string is represented as empty scalar
-      ryml::NodeRef child = node.append_child();
       ryml::csubstr empty = {};
       child << empty;
-    } else {
-      // Use block style for strings with newlines or if requested
-      ryml::NodeRef child = node.append_child();
-      if (needs_block_style(str)) {
-        child |= ryml::BLOCK;
-      }
-      child << str.utf8().get_data();
+      continue;
     }
+
+    if (needs_block_style(str)) {
+      child |= ryml::BLOCK;
+    }
+
+    child << str.utf8().get_data();
   }
 }
 

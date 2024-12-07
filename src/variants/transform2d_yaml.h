@@ -5,12 +5,6 @@
 
 namespace godot {
 
-/**
- * YAML converter for Transform2D type.
- * Supports the following formats:
- * - Map: {x: {x: 1, y: 0}, y: {x: 0, y: 1}, origin: {x: 0, y: 0}}
- * - Sequence: [{x: 1, y: 0}, {x: 0, y: 1}, {x: 0, y: 0}]
- */
 class Transform2DVariantConverter : public VariantConverter {
   public:
   DEFINE_YAML_TAG("Transform2D", Variant::TRANSFORM2D)

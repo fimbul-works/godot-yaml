@@ -5,13 +5,6 @@
 
 namespace godot {
 
-/**
- * YAML converter for Rect2i type.
- * Supports the following formats:
- * - Map: {position: {x: 0, y: 0}, size: {x: 100, y: 50}}
- * - Sequence: [{x: 0, y: 0}, {x: 100, y: 50}]
- * - Expanded map: {x: 0, y: 0, w: 100, h: 50}
- */
 class Rect2iVariantConverter : public VariantConverter {
   public:
   DEFINE_YAML_TAG("Rect2i", Variant::RECT2I)

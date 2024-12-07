@@ -8,17 +8,12 @@ using namespace godot;
 void QuaternionVariantConverter::encode(ryml::NodeRef& node, const Variant& v, const YAMLFormat::View& format) const
 {
   const Quaternion quat = v.operator Quaternion();
+  YAMLFormat::Format fmt = format.get_format(Variant::QUATERNION);
 
-  switch (format.get_format(Variant::QUATERNION)) {
-    case YAMLFormat::SEQUENCE:
-    case YAMLFormat::FLOW_SEQUENCE:
-      emit_as_sequence(node, quat, format);
-      break;
-    case YAMLFormat::MAP:
-    case YAMLFormat::FLOW_MAP:
-    default:
-      emit_as_map(node, quat, format);
-      break;
+  if (fmt == YAMLFormat::SEQUENCE || fmt == YAMLFormat::FLOW_SEQUENCE) {
+    emit_as_sequence(node, quat, format);
+  } else {
+    emit_as_map(node, quat, format);
   }
 }
 

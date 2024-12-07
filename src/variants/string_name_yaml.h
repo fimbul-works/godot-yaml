@@ -5,11 +5,6 @@
 
 namespace godot {
 
-/**
- * YAML converter for StringName type.
- * StringName is represented as a plain string in YAML.
- * Empty StringName values are represented as null.
- */
 class StringNameVariantConverter : public VariantConverter {
   public:
   DEFINE_YAML_TAG("StringName", Variant::STRING_NAME)

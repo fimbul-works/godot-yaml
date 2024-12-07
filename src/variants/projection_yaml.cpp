@@ -8,18 +8,12 @@ using namespace godot;
 void ProjectionVariantConverter::encode(ryml::NodeRef& node, const Variant& v, const YAMLFormat::View& format) const
 {
   const Projection proj = v.operator Projection();
+  YAMLFormat::Format fmt = format.get_format(Variant::PROJECTION);
 
-  // Check format and use appropriate encoding method
-  switch (format.get_format(Variant::PROJECTION)) {
-    case YAMLFormat::SEQUENCE:
-    case YAMLFormat::FLOW_SEQUENCE:
-      emit_as_sequence(node, proj, format);
-      break;
-    case YAMLFormat::MAP:
-    case YAMLFormat::FLOW_MAP:
-    default:
-      emit_as_map(node, proj, format);
-      break;
+  if (fmt == YAMLFormat::SEQUENCE || fmt == YAMLFormat::FLOW_SEQUENCE) {
+    emit_as_sequence(node, proj, format);
+  } else {
+    emit_as_map(node, proj, format);
   }
 }
 

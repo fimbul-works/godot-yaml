@@ -6,15 +6,6 @@
 
 namespace godot {
 
-/**
- * YAML converter for PackedByteArray type.
- * Supports two encoding formats:
- * - Hexadecimal string (auto-detected if string contains only 0-9 and A-F)
- * - Base64 string (used for all other valid encodings)
- *
- * Both formats support whitespace and line breaks for readability,
- * which are automatically stripped during decoding.
- */
 class PackedByteArrayVariantConverter : public VariantConverter {
   public:
   DEFINE_YAML_TAG("PackedByteArray", Variant::PACKED_BYTE_ARRAY)

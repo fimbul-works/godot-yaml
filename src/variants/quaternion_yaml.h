@@ -5,13 +5,6 @@
 
 namespace godot {
 
-/**
- * YAML converter for Quaternion type.
- * Supports the following formats:
- * - Map: {x: 0, y: 0, z: 0, w: 1}
- * - Sequence: [x, y, z, w]
- * - Axis-Angle map: {axis: {x: 1, y: 0, z: 0}, angle: 1.5708}
- */
 class QuaternionVariantConverter : public VariantConverter {
   public:
   DEFINE_YAML_TAG("Quaternion", Variant::QUATERNION)
