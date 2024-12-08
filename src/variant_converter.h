@@ -16,6 +16,8 @@
 
 namespace godot {
 
+class YAMLEmitter;
+
 class VariantConverter {
   public:
   virtual ~VariantConverter() = default;

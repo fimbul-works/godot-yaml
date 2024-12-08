@@ -13,7 +13,7 @@ void Vector4iVariantConverter::encode(ryml::NodeRef& node, const Variant& v, con
           || style->collection_style == YAMLStyle::MAP_FLOW) {
     // Map styles
     node |= ryml::MAP;
-    if (style.is_valid() && style->collection_style == YAMLStyle::MAP_FLOW) {
+    if (!style.is_valid() || style->collection_style == YAMLStyle::MAP_FLOW) {
       node |= ryml::FLOW_SL;
     }
 
@@ -24,7 +24,7 @@ void Vector4iVariantConverter::encode(ryml::NodeRef& node, const Variant& v, con
   } else {
     // Collection styles
     node |= ryml::SEQ;
-    if (style.is_valid() && style->collection_style == YAMLStyle::COLLECTION_FLOW) {
+    if (!style.is_valid() || style->collection_style == YAMLStyle::COLLECTION_FLOW) {
       node |= ryml::FLOW_SL;
     }
 

@@ -55,7 +55,6 @@ class YAMLParser {
     void detect_node_style(const ryml::ConstNodeRef& node);
     void detect_scalar_style(const ryml::ConstNodeRef& node, const Ref<YAMLStyle>& style);
     void detect_collection_style(const ryml::ConstNodeRef& node, const Ref<YAMLStyle>& style);
-    void detect_binary_style(const ryml::ConstNodeRef& node, const Ref<YAMLStyle>& style);
     void detect_anchor_style(const ryml::ConstNodeRef& node, const Ref<YAMLStyle>& style);
   };
 

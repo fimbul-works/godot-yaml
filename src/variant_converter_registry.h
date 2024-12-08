@@ -13,19 +13,13 @@ namespace godot {
 
 class VariantConverterRegistry {
   public:
-  // Thread-safe converter access
   static const VariantConverter* get_converter(Variant::Type type);
   static const VariantConverter* get_converter_by_tag(const String& tag);
-
-  // Initialization and cleanup (called by GDExtension)
   static void initialize_registry();
   static void cleanup_registry();
-
-  // Testing/Debug helpers
   static bool has_converter(Variant::Type type);
   static bool has_converter_for_tag(const String& tag);
 
-  // Easily retrieve converter for type
   template <Variant::Type T>
   static const VariantConverter* get_converter_for(const char* type_name)
   {
@@ -37,23 +31,24 @@ class VariantConverterRegistry {
   }
 
   private:
-  // Prevent instantiation
   VariantConverterRegistry() = delete;
   ~VariantConverterRegistry() = delete;
 
-  // Thread safety
   static std::shared_mutex s_registry_mutex;
+  static std::atomic<bool> s_is_initialized;
   static std::once_flag s_init_flag;
-  static bool s_is_initialized;
 
-  // Storage
-  static std::unordered_map<Variant::Type, std::unique_ptr<VariantConverter>> s_type_to_converter;
-  static std::unordered_map<String, VariantConverter*, StringHasher> s_tag_to_converter;
+  struct RegistryData {
+    std::unordered_map<Variant::Type, std::unique_ptr<VariantConverter>> type_to_converter;
+    std::unordered_map<String, VariantConverter*, StringHasher> tag_to_converter;
+  };
 
-  // Registration helpers
+  static std::unique_ptr<RegistryData> s_registry_data;
+
   static void register_converter(std::unique_ptr<VariantConverter> converter);
+  static void ensure_initialized();
 
-  // Initialization helpers
+  // Initialization helpers remain the same
   static void init_primitive_converters();
   static void init_math_converters();
   static void init_vector_converters();
@@ -61,11 +56,6 @@ class VariantConverterRegistry {
   static void init_color_converters();
   static void init_array_converters();
   static void init_string_converters();
-  static void init_object_converters();
-
-  // Friends for initialization
-  friend void initialize_yaml_module(ModuleInitializationLevel p_level);
-  friend void uninitialize_yaml_module(ModuleInitializationLevel p_level);
 };
 
 } // namespace godot

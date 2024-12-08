@@ -51,7 +51,7 @@ void ColorVariantConverter::emit_as_map(ryml::NodeRef& node, const Color& color,
 {
   // Map styles
   node |= ryml::MAP;
-  if (style.is_valid() && style->collection_style == YAMLStyle::MAP_FLOW) {
+  if (!style.is_valid() || style->collection_style == YAMLStyle::MAP_FLOW) {
     node |= ryml::FLOW_SL;
   }
 
@@ -66,7 +66,7 @@ void ColorVariantConverter::emit_as_map(ryml::NodeRef& node, const Color& color,
 void ColorVariantConverter::emit_as_sequence(ryml::NodeRef& node, const Color& color, const Ref<YAMLStyle>& style) const
 {
   node |= ryml::SEQ;
-  if (style.is_valid() && style->collection_style == YAMLStyle::COLLECTION_FLOW) {
+  if (!style.is_valid() || style->collection_style == YAMLStyle::COLLECTION_FLOW) {
     node |= ryml::FLOW_SL;
   }
 

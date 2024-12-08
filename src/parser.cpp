@@ -310,7 +310,6 @@ void YAMLParser::ParserInstance::detect_node_style(const ryml::ConstNodeRef& nod
   // Detect styles for this node
   detect_scalar_style(node, current_style);
   detect_collection_style(node, current_style);
-  detect_binary_style(node, current_style);
   detect_anchor_style(node, current_style);
 
   // For map nodes, process children with updated path
@@ -379,42 +378,6 @@ void YAMLParser::ParserInstance::detect_collection_style(const ryml::ConstNodeRe
     style->collection_style = node.is_flow() ? YAMLStyle::COLLECTION_FLOW : YAMLStyle::COLLECTION_BLOCK;
   } else if (node.is_map()) {
     style->collection_style = node.is_flow() ? YAMLStyle::MAP_FLOW : YAMLStyle::MAP_BLOCK;
-  }
-}
-
-void YAMLParser::ParserInstance::detect_binary_style(const ryml::ConstNodeRef& node, const Ref<YAMLStyle>& style)
-{
-  if (!node.has_val() || !node.has_val_tag()) {
-    return;
-  }
-
-  // Detect binary encoding from tag
-  if (node.val_tag() == "!!binary") {
-    std::string value_str(node.val().str, node.val().len);
-    String value(value_str.c_str());
-
-    // Check if it's base64 encoded
-    bool is_base64 = true;
-    for (int i = 0; i < value.length(); i++) {
-      char32_t c = value[i];
-      if (!((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '+' || c == '/' || c == '=' || c == '\n')) {
-        is_base64 = false;
-        break;
-      }
-    }
-
-    style->binary_encoding = is_base64 ? YAMLStyle::BINARY_BASE64 : YAMLStyle::BINARY_HEX;
-
-    // Set block style for binary data
-    if (node.is_block()) {
-      style->scalar_style = YAMLStyle::STYLE_BLOCK;
-      style->block_style = YAMLStyle::BLOCK_LITERAL;
-    }
-
-    // Store the tag in custom settings
-    Dictionary custom;
-    custom["tag"] = "!!binary";
-    style->custom_settings = custom;
   }
 }
 
