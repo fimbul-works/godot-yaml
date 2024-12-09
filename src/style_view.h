@@ -19,7 +19,7 @@ class YAMLStyle::View {
   View() = default;
   bool is_valid() const;
 
-  static View create_view(const Ref<YAMLStyle>& style);
+  static View create_view(const Ref<YAMLStyle>& style = Ref<YAMLStyle>());
 
   // Const accessors
   YAMLStyle::ScalarStyle get_scalar_style() const;

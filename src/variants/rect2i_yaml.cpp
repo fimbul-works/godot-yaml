@@ -1,9 +1,15 @@
 #include "rect2i_yaml.h"
+#include "../converter_factory.h"
 #include "../exception.h"
 #include "../util_numeric.h"
-#include "../variant_converter_registry.h"
 
 using namespace godot;
+
+Rect2iVariantConverter::Rect2iVariantConverter(ConverterFactory* factory) :
+        vec2i_converter(factory->create_converter_as<Vector2iVariantConverter>(Variant::VECTOR2I))
+{
+  ERR_FAIL_NULL(vec2i_converter);
+}
 
 void Rect2iVariantConverter::encode(ryml::NodeRef& node, const Variant& v, const YAMLStyle::View& style) const
 {
@@ -23,8 +29,6 @@ void Rect2iVariantConverter::emit_as_map(ryml::NodeRef& node, const Rect2i& rect
   // Flow style
   style.apply_flow_style(node);
 
-  const auto* vec2i_converter = VariantConverterRegistry::get_instance().get_converter(Variant::VECTOR2I);
-
   // Pass child styles for position and size
   YAMLStyle::View pos_style = style.is_valid() ? style.get_child("position") : YAMLStyle::View();
   YAMLStyle::View size_style = style.is_valid() ? style.get_child("size") : YAMLStyle::View();
@@ -42,8 +46,6 @@ void Rect2iVariantConverter::emit_as_sequence(ryml::NodeRef& node, const Rect2i&
 
   // Flow style
   style.apply_flow_style(node);
-
-  const auto* vec2i_converter = VariantConverterRegistry::get_instance().get_converter(Variant::VECTOR2I);
 
   // Pass child styles using numeric indices
   YAMLStyle::View pos_style = style.is_valid() ? style.get_child("0") : YAMLStyle::View();
@@ -78,7 +80,6 @@ Variant Rect2iVariantConverter::decode_from_map(const ryml::ConstNodeRef& node) 
     throw YAMLException::create_missing_field("Rect2i", "position, size");
   }
 
-  const auto* vec2i_converter = VariantConverterRegistry::get_instance().get_converter(Variant::VECTOR2I);
   Vector2i position = vec2i_converter->decode(node["position"]).operator Vector2i();
   Vector2i size = vec2i_converter->decode(node["size"]).operator Vector2i();
 
@@ -91,7 +92,6 @@ Variant Rect2iVariantConverter::decode_from_sequence(const ryml::ConstNodeRef& n
     throw YAMLException::create_invalid_sequence_length("Rect2i", 2);
   }
 
-  const auto* vec2i_converter = VariantConverterRegistry::get_instance().get_converter(Variant::VECTOR2I);
   Vector2i position = vec2i_converter->decode(node[0]).operator Vector2i();
   Vector2i size = vec2i_converter->decode(node[1]).operator Vector2i();
 

@@ -1,9 +1,15 @@
 #include "plane_yaml.h"
+#include "../converter_factory.h"
 #include "../exception.h"
 #include "../util_numeric.h"
-#include "../variant_converter_registry.h"
 
 using namespace godot;
+
+PlaneVariantConverter::PlaneVariantConverter(ConverterFactory* factory) :
+        vec3_converter(factory->create_converter_as<Vector3VariantConverter>(Variant::VECTOR3))
+{
+  ERR_FAIL_NULL(vec3_converter);
+}
 
 void PlaneVariantConverter::encode(ryml::NodeRef& node, const Variant& v, const YAMLStyle::View& style) const
 {
@@ -22,8 +28,6 @@ void PlaneVariantConverter::emit_as_map(ryml::NodeRef& node, const Plane& plane,
 
   // Flow style
   style.apply_flow_style(node);
-
-  const auto* vec3_converter = VariantConverterRegistry::get_instance().get_converter(Variant::VECTOR3);
 
   // Pass child styles for nested components
   YAMLStyle::View normal_style = style.is_valid() ? style.get_child("normal") : YAMLStyle::View();
@@ -45,8 +49,6 @@ void PlaneVariantConverter::emit_as_sequence(ryml::NodeRef& node, const Plane& p
 
   // Flow style
   style.apply_flow_style(node);
-
-  const auto* vec3_converter = VariantConverterRegistry::get_instance().get_converter(Variant::VECTOR3);
 
   // Pass child styles for nested components using numeric indices
   YAMLStyle::View normal_style = style.is_valid() ? style.get_child("0") : YAMLStyle::View();
@@ -84,7 +86,6 @@ Variant PlaneVariantConverter::decode_from_map(const ryml::ConstNodeRef& node) c
     throw YAMLException::create_missing_field("Plane", "normal, d");
   }
 
-  const auto* vec3_converter = VariantConverterRegistry::get_instance().get_converter(Variant::VECTOR3);
   Vector3 normal = vec3_converter->decode(node["normal"]).operator Vector3();
   real_t d = string_to_float<real_t>(node["d"].val());
 
@@ -97,7 +98,6 @@ Variant PlaneVariantConverter::decode_from_sequence(const ryml::ConstNodeRef& no
     throw YAMLException::create_invalid_sequence_length("Plane", 2);
   }
 
-  const auto* vec3_converter = VariantConverterRegistry::get_instance().get_converter(Variant::VECTOR3);
   Vector3 normal = vec3_converter->decode(node[0]).operator Vector3();
   real_t d = string_to_float<real_t>(node[1].val());
 

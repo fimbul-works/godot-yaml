@@ -1,6 +1,6 @@
 #include "parser.h"
+#include "converter_factory.h"
 #include "util_numeric.h"
-#include "variant_converter_registry.h"
 
 #include <godot_cpp/variant/utility_functions.hpp>
 
@@ -8,10 +8,29 @@ using namespace godot;
 
 YAML::Parser::Parser()
 {
+  // Setup ryml callbacks
   callbacks.m_error = error_callback;
-  callbacks.m_user_data = this; // Important: this binds the error callback to this specific instance
+  callbacks.m_user_data = this;
+
+  // Initialize ryml components
   evt_handler = std::make_unique<ryml::EventHandlerTree>(callbacks);
-  parser = std::make_unique<ryml::Parser>(evt_handler.get(), ryml::ParserOptions().locations(true));
+  ryml_parser = std::make_unique<ryml::Parser>(evt_handler.get(), ryml::ParserOptions().locations(true));
+
+  // Initialize converters
+  init_converters();
+}
+
+void YAML::Parser::init_converters()
+{
+  // Get converters by type
+  type_converters = factory.create_converter_set();
+
+  // Build tag lookup table
+  for (const auto& pair : type_converters) {
+    if (pair.second) {
+      tag_converters[pair.second->get_tag()] = pair.second.get();
+    }
+  }
 }
 
 void YAML::Parser::error_callback(const char* msg, size_t len, ryml::Location loc, void* user_data)
@@ -43,7 +62,7 @@ void YAML::Parser::error_callback(const char* msg, size_t len, ryml::Location lo
 
   // Set error in this specific parser instance
   parser->current_result = YAMLResult::error(
-          String::utf8(error_msg.str, error_msg.len),
+          from_ryml_str(error_msg),
           loc.line,
           loc.col);
 
@@ -62,7 +81,7 @@ Ref<YAMLResult> YAML::Parser::parse(const String& input, bool p_detect_style)
 
     // Parse input into tree
     ryml::parse_in_arena(
-            parser.get(),
+            ryml_parser.get(),
             input.utf8().get_data(),
             &tree);
 
@@ -161,7 +180,7 @@ Variant YAML::Parser::process_key(const ryml::ConstNodeRef& node) const
   if (!node.has_key()) {
     return Variant();
   }
-  return String::utf8(node.key().str, node.key().len);
+  return from_ryml_str(node.key());
 }
 
 Variant YAML::Parser::process_value(const ryml::ConstNodeRef& node) const
@@ -173,7 +192,7 @@ Variant YAML::Parser::process_value(const ryml::ConstNodeRef& node) const
 
   try {
     ryml::csubstr val = node.val();
-    String str_val = String::utf8(val.str, val.len);
+    String str_val = from_ryml_str(val);
 
     // Handle special values first
     if (auto special_val = try_parse_special_value(str_val)) {
@@ -258,14 +277,16 @@ std::optional<Variant> YAML::Parser::try_parse_tagged_value(const ryml::ConstNod
     return std::nullopt;
   }
 
+  // Read !!binary as a PackedByteArray
   if (tag == "!binary") {
-    const auto* converter = VariantConverterRegistry::get_instance().get_converter_by_tag("PackedByteArray");
+    VariantConverter* converter = get_converter_for_type(Variant::PACKED_BYTE_ARRAY);
     if (converter) {
       return converter->decode(node);
     }
   }
 
-  const VariantConverter* converter = VariantConverterRegistry::get_instance().get_converter_by_tag(tag);
+  // Attempt to parse witha converter
+  VariantConverter* converter = get_converter_for_tag(tag);
   if (converter) {
     return converter->decode(node);
   }
@@ -284,6 +305,18 @@ String YAML::Parser::extract_tag(const ryml::ConstNodeRef& node) const
     return String::utf8(tag.sub(1).str, tag.len - 1);
   }
   return String::utf8(tag.str, tag.len);
+}
+
+VariantConverter* YAML::Parser::get_converter_for_type(Variant::Type type) const
+{
+  auto it = type_converters.find(type);
+  return it != type_converters.end() ? it->second.get() : nullptr;
+}
+
+VariantConverter* YAML::Parser::get_converter_for_tag(const String& tag) const
+{
+  auto it = tag_converters.find(tag);
+  return it != tag_converters.end() ? it->second : nullptr;
 }
 
 void YAML::Parser::detect_node_style(const ryml::ConstNodeRef& node)

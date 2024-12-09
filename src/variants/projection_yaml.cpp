@@ -1,9 +1,15 @@
 #include "projection_yaml.h"
+#include "../converter_factory.h"
 #include "../exception.h"
 #include "../util_numeric.h"
-#include "../variant_converter_registry.h"
 
 using namespace godot;
+
+ProjectionVariantConverter::ProjectionVariantConverter(ConverterFactory* factory) :
+        vec4_converter(factory->create_converter_as<Vector4VariantConverter>(Variant::VECTOR4))
+{
+  ERR_FAIL_NULL(vec4_converter);
+}
 
 void ProjectionVariantConverter::encode(ryml::NodeRef& node, const Variant& v, const YAMLStyle::View& style) const
 {
@@ -52,8 +58,6 @@ void ProjectionVariantConverter::emit_as_sequence(ryml::NodeRef& node, const Pro
 
 void ProjectionVariantConverter::emit_column(ryml::NodeRef& node, const Vector4& col, const YAMLStyle::View& style) const
 {
-  // Use Vector4 converter with potentially overridden style
-  const auto* vec4_converter = VariantConverterRegistry::get_instance().get_converter(Variant::VECTOR4);
   vec4_converter->encode(node, col, style);
 }
 
@@ -110,7 +114,6 @@ Vector4 ProjectionVariantConverter::decode_column(const ryml::ConstNodeRef& node
     return decode_array_column(node);
   } else {
     // Use Vector4 converter for structured format
-    const auto* vec4_converter = VariantConverterRegistry::get_instance().get_converter(Variant::VECTOR4);
     return vec4_converter->decode(node).operator Vector4();
   }
 }

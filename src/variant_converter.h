@@ -17,8 +17,12 @@
 
 namespace godot {
 
+// Forward declaration
+class ConverterFactory;
+
 class VariantConverter {
   public:
+  explicit VariantConverter() = default;
   virtual ~VariantConverter() = default;
 
   // Tag identification

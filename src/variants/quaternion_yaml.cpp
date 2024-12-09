@@ -1,7 +1,6 @@
 #include "quaternion_yaml.h"
 #include "../exception.h"
 #include "../util_numeric.h"
-#include "../variant_converter_registry.h"
 
 using namespace godot;
 

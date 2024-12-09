@@ -1,8 +1,14 @@
 #include "packed_vector3_array_yaml.h"
+#include "../converter_factory.h"
 #include "../exception.h"
-#include "../variant_converter_registry.h"
 
 using namespace godot;
+
+PackedVector3ArrayVariantConverter::PackedVector3ArrayVariantConverter(ConverterFactory* factory) :
+        vec3_converter(factory->create_converter_as<Vector3VariantConverter>(Variant::VECTOR3))
+{
+  ERR_FAIL_NULL(vec3_converter);
+}
 
 void PackedVector3ArrayVariantConverter::encode(ryml::NodeRef& node, const Variant& v, const YAMLStyle::View& style) const
 {
@@ -15,8 +21,6 @@ void PackedVector3ArrayVariantConverter::encode(ryml::NodeRef& node, const Varia
 
   // Flow style
   style.apply_flow_style(node);
-
-  const auto* vec_converter = VariantConverterRegistry::get_instance().get_converter(Variant::VECTOR3);
 
   // Get shared item style if it exists (key "_items" is a convention for shared array item styling)
   YAMLStyle::View shared_item_style;
@@ -36,7 +40,7 @@ void PackedVector3ArrayVariantConverter::encode(ryml::NodeRef& node, const Varia
       }
     }
 
-    vec_converter->encode(vec_node, array[i], item_style);
+    vec3_converter->encode(vec_node, array[i], item_style);
   }
 }
 
@@ -51,8 +55,6 @@ Variant PackedVector3ArrayVariantConverter::decode(const ryml::ConstNodeRef& nod
   array.resize(size);
 
   if (size > 0) {
-    const auto* vec3_converter = VariantConverterRegistry::get_instance().get_converter(Variant::VECTOR3);
-
     for (size_t i = 0; i < size; ++i) {
       try {
         Vector3 vec3 = vec3_converter->decode(node[i]);

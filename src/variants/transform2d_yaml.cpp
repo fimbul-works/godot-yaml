@@ -1,8 +1,14 @@
 #include "transform2d_yaml.h"
+#include "../converter_factory.h"
 #include "../exception.h"
-#include "../variant_converter_registry.h"
 
 using namespace godot;
+
+Transform2DVariantConverter::Transform2DVariantConverter(ConverterFactory* factory) :
+        vec2_converter(factory->create_converter_as<Vector2VariantConverter>(Variant::VECTOR2))
+{
+  ERR_FAIL_NULL(vec2_converter);
+}
 
 void Transform2DVariantConverter::encode(ryml::NodeRef& node, const Variant& v, const YAMLStyle::View& style) const
 {
@@ -21,8 +27,6 @@ void Transform2DVariantConverter::emit_as_map(ryml::NodeRef& node, const Transfo
 
   // Flow style
   style.apply_flow_style(node);
-
-  const auto* vec2_converter = VariantConverterRegistry::get_instance().get_converter(Variant::VECTOR2);
 
   // Pass child styles for basis and origin
   YAMLStyle::View x_style = style.is_valid() ? style.get_child("x") : YAMLStyle::View();
@@ -47,8 +51,6 @@ void Transform2DVariantConverter::emit_as_sequence(ryml::NodeRef& node, const Tr
 
   // Flow style
   style.apply_flow_style(node);
-
-  const auto* vec2_converter = VariantConverterRegistry::get_instance().get_converter(Variant::VECTOR2);
 
   // Pass child styles for basis and origin
   YAMLStyle::View x_style = style.is_valid() ? style.get_child("x") : YAMLStyle::View();
@@ -88,7 +90,6 @@ Variant Transform2DVariantConverter::decode_from_map(const ryml::ConstNodeRef& n
     throw YAMLException::create_missing_field("Transform2D", "x, y, origin");
   }
 
-  const auto* vec2_converter = VariantConverterRegistry::get_instance().get_converter(Variant::VECTOR2);
   Vector2 x = vec2_converter->decode(node["x"]).operator Vector2();
   Vector2 y = vec2_converter->decode(node["y"]).operator Vector2();
   Vector2 origin = vec2_converter->decode(node["origin"]).operator Vector2();
@@ -102,7 +103,6 @@ Variant Transform2DVariantConverter::decode_from_sequence(const ryml::ConstNodeR
     throw YAMLException::create_invalid_sequence_length("Transform2D", 3);
   }
 
-  const auto* vec2_converter = VariantConverterRegistry::get_instance().get_converter(Variant::VECTOR2);
   Vector2 x = vec2_converter->decode(node[0]).operator Vector2();
   Vector2 y = vec2_converter->decode(node[1]).operator Vector2();
   Vector2 origin = vec2_converter->decode(node[2]).operator Vector2();

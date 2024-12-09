@@ -20,6 +20,9 @@ YAMLStyle::View YAMLStyle::View::create_view(const Ref<YAMLStyle>& style)
   }
 
   auto view_data = std::make_shared<ViewData>();
+  if (!view_data) {
+    return View();
+  }
 
   // Copy all style values
   view_data->scalar_style = style->scalar_style;
@@ -35,6 +38,10 @@ YAMLStyle::View YAMLStyle::View::create_view(const Ref<YAMLStyle>& style)
   Array keys = style->get_children_keys();
   for (int i = 0; i < keys.size(); i++) {
     String key = keys[i];
+    if (key.is_empty()) {
+      continue;
+    }
+
     Ref<YAMLStyle> child = style->get_child(key);
     if (child.is_valid()) {
       auto child_view = create_view(child);
@@ -154,6 +161,10 @@ void YAMLStyle::View::apply_quote_style(ryml::NodeRef& node) const
 
 void YAMLStyle::View::apply_flow_style(ryml::NodeRef& node) const
 {
+  if (!is_valid()) {
+    return;
+  }
+
   if (data->flow_style == YAMLStyle::FLOW_SINGLE) {
     node |= ryml::FLOW_SL;
   }

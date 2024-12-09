@@ -1,8 +1,15 @@
 #include "basis_yaml.h"
+#include "../converter_factory.h"
 #include "../exception.h"
-#include "../variant_converter_registry.h"
+#include "vector3_yaml.h"
 
 using namespace godot;
+
+BasisVariantConverter::BasisVariantConverter(ConverterFactory* factory) :
+        vec3_converter(factory->create_converter_as<Vector3VariantConverter>(Variant::VECTOR3))
+{
+  ERR_FAIL_NULL(vec3_converter);
+}
 
 void BasisVariantConverter::encode(ryml::NodeRef& node, const Variant& v, const YAMLStyle::View& style) const
 {
@@ -18,11 +25,7 @@ void BasisVariantConverter::encode(ryml::NodeRef& node, const Variant& v, const 
 void BasisVariantConverter::emit_as_map(ryml::NodeRef& node, const Basis& basis, const YAMLStyle::View& style) const
 {
   node |= ryml::MAP;
-
-  // Flow style
   style.apply_flow_style(node);
-
-  const auto* vec3_converter = VariantConverterRegistry::get_instance().get_converter(Variant::VECTOR3);
 
   // Pass child styles for each column
   YAMLStyle::View x_style = style.is_valid() ? style.get_child("x") : YAMLStyle::View();
@@ -42,11 +45,7 @@ void BasisVariantConverter::emit_as_map(ryml::NodeRef& node, const Basis& basis,
 void BasisVariantConverter::emit_as_sequence(ryml::NodeRef& node, const Basis& basis, const YAMLStyle::View& style) const
 {
   node |= ryml::SEQ;
-
-  // Flow style
   style.apply_flow_style(node);
-
-  const auto* vec3_converter = VariantConverterRegistry::get_instance().get_converter(Variant::VECTOR3);
 
   // Pass child styles using numeric indices
   YAMLStyle::View x_style = style.is_valid() ? style.get_child("0") : YAMLStyle::View();
@@ -85,7 +84,6 @@ Variant BasisVariantConverter::decode_from_map(const ryml::ConstNodeRef& node) c
     throw YAMLException::create_missing_field("Basis", "x, y, z");
   }
 
-  const auto* vec3_converter = VariantConverterRegistry::get_instance().get_converter(Variant::VECTOR3);
   Vector3 x = vec3_converter->decode(node["x"]).operator Vector3();
   Vector3 y = vec3_converter->decode(node["y"]).operator Vector3();
   Vector3 z = vec3_converter->decode(node["z"]).operator Vector3();
@@ -99,7 +97,6 @@ Variant BasisVariantConverter::decode_from_sequence(const ryml::ConstNodeRef& no
     throw YAMLException::create_invalid_sequence_length("Basis", 3);
   }
 
-  const auto* vec3_converter = VariantConverterRegistry::get_instance().get_converter(Variant::VECTOR3);
   Vector3 x = vec3_converter->decode(node[0]).operator Vector3();
   Vector3 y = vec3_converter->decode(node[1]).operator Vector3();
   Vector3 z = vec3_converter->decode(node[2]).operator Vector3();

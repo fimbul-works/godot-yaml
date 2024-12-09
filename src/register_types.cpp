@@ -2,7 +2,6 @@
 
 #include "result.h"
 #include "style.h"
-#include "variant_converter_registry.h"
 #include "yaml.h"
 
 #include <gdextension_interface.h>
@@ -16,8 +15,6 @@ void initialize_yaml_module(ModuleInitializationLevel p_level)
   if (p_level != MODULE_INITIALIZATION_LEVEL_SCENE) {
     return;
   }
-
-  VariantConverterRegistry::get_instance();
 
   if (!ClassDB::class_exists("YAMLResult")) {
     GDREGISTER_CLASS(YAMLResult);

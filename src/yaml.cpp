@@ -6,6 +6,10 @@
 
 #include "version.h"
 
+#include <godot_cpp/variant/utility_functions.hpp>
+
+#include <sstream>
+
 using namespace godot;
 
 void YAML::_bind_methods()

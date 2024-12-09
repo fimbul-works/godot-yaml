@@ -1,8 +1,17 @@
 #include "transform3d_yaml.h"
+#include "../converter_factory.h"
 #include "../exception.h"
-#include "../variant_converter_registry.h"
 
 using namespace godot;
+
+Transform3DVariantConverter::Transform3DVariantConverter(ConverterFactory* factory) :
+        basis_converter(factory->create_converter_as<BasisVariantConverter>(Variant::BASIS)),
+        vec3_converter(factory->create_converter_as<Vector3VariantConverter>(Variant::VECTOR3))
+
+{
+  ERR_FAIL_NULL(basis_converter);
+  ERR_FAIL_NULL(vec3_converter);
+}
 
 void Transform3DVariantConverter::encode(ryml::NodeRef& node, const Variant& v, const YAMLStyle::View& style) const
 {
@@ -22,9 +31,6 @@ void Transform3DVariantConverter::emit_as_map(ryml::NodeRef& node, const Transfo
   // Flow style
   style.apply_flow_style(node);
 
-  const auto* basis_converter = VariantConverterRegistry::get_instance().get_converter(Variant::BASIS);
-  const auto* vec3_converter = VariantConverterRegistry::get_instance().get_converter(Variant::VECTOR3);
-
   // Pass child styles for basis and origin
   YAMLStyle::View& basis_style = style.is_valid() ? style.get_child("basis") : YAMLStyle::View();
   YAMLStyle::View& origin_style = style.is_valid() ? style.get_child("origin") : YAMLStyle::View();
@@ -42,8 +48,6 @@ void Transform3DVariantConverter::emit_as_sequence(ryml::NodeRef& node, const Tr
 
   // Flow style
   style.apply_flow_style(node);
-
-  const auto* vec3_converter = VariantConverterRegistry::get_instance().get_converter(Variant::VECTOR3);
 
   // Pass child styles for each vector using indices
   for (int i = 0; i < 3; i++) {
@@ -80,9 +84,6 @@ Variant Transform3DVariantConverter::decode_from_map(const ryml::ConstNodeRef& n
     throw YAMLException::create_missing_field("Transform3D", "basis, origin");
   }
 
-  const auto* basis_converter = VariantConverterRegistry::get_instance().get_converter(Variant::BASIS);
-  const auto* vec3_converter = VariantConverterRegistry::get_instance().get_converter(Variant::VECTOR3);
-
   Basis basis = basis_converter->decode(node["basis"]).operator Basis();
   Vector3 origin = vec3_converter->decode(node["origin"]).operator Vector3();
 
@@ -95,7 +96,6 @@ Variant Transform3DVariantConverter::decode_from_sequence(const ryml::ConstNodeR
     throw YAMLException::create_invalid_sequence_length("Transform3D", 4);
   }
 
-  const auto* vec3_converter = VariantConverterRegistry::get_instance().get_converter(Variant::VECTOR3);
   Basis basis;
 
   // Read basis columns

@@ -1,8 +1,14 @@
 #include "packed_color_array_yaml.h"
+#include "../converter_factory.h"
 #include "../exception.h"
-#include "../variant_converter_registry.h"
 
 using namespace godot;
+
+PackedColorArrayVariantConverter::PackedColorArrayVariantConverter(ConverterFactory* factory) :
+        color_converter(factory->create_converter_as<ColorVariantConverter>(Variant::COLOR))
+{
+  ERR_FAIL_NULL(color_converter);
+}
 
 void PackedColorArrayVariantConverter::encode(ryml::NodeRef& node, const Variant& v, const YAMLStyle::View& style) const
 {
@@ -15,8 +21,6 @@ void PackedColorArrayVariantConverter::encode(ryml::NodeRef& node, const Variant
 
   // Apply flow style to the sequence itself if specified
   style.apply_flow_style(node);
-
-  const auto* color_converter = VariantConverterRegistry::get_instance().get_converter(Variant::COLOR);
 
   // Get shared item style if it exists (key "_items" is a convention for shared array item styling)
   YAMLStyle::View shared_item_style;
@@ -51,8 +55,6 @@ Variant PackedColorArrayVariantConverter::decode(const ryml::ConstNodeRef& node)
   array.resize(size);
 
   if (size > 0) {
-    const auto* color_converter = VariantConverterRegistry::get_instance().get_converter(Variant::COLOR);
-
     for (size_t i = 0; i < size; ++i) {
       try {
         Color color = color_converter->decode(node[i]);

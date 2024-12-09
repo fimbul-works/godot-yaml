@@ -1,7 +1,9 @@
 #ifndef YAML_EMITTER_H
 #define YAML_EMITTER_H
 
+#include "converter_factory.h"
 #include "result.h"
+#include "string_hash.h"
 #include "style_view.h"
 #include "yaml.h"
 
@@ -18,6 +20,10 @@ class YAML::Emitter {
   Emitter();
   ~Emitter() = default;
 
+  // Non-copyable
+  Emitter(const Emitter&) = delete;
+  Emitter& operator=(const Emitter&) = delete;
+
   Ref<YAMLResult> emit(const Variant& input, const YAMLStyle::View& style);
 
   private:
@@ -26,12 +32,24 @@ class YAML::Emitter {
   std::unique_ptr<ryml::EventHandlerTree> evt_handler;
   ryml::Tree tree;
 
+  // Owned converters
+  ConverterFactory factory;
+  std::unordered_map<Variant::Type, std::unique_ptr<VariantConverter>> type_converters;
+  std::unordered_map<String, VariantConverter*, StringHasher, StringEqual> tag_converters;
+
   // Current state
   Ref<YAMLResult> current_result;
   YAMLStyle::View current_style;
 
   // Error handling
   static void error_callback(const char* msg, size_t len, ryml::Location loc, void* user_data);
+
+  // Initialize converters
+  void init_converters();
+
+  // Converter access helpers
+  VariantConverter* get_converter_for_type(Variant::Type type) const;
+  VariantConverter* get_converter_for_tag(const String& tag) const;
 
   void reset();
 
