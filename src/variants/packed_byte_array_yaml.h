@@ -10,7 +10,7 @@ class PackedByteArrayVariantConverter : public VariantConverter {
   public:
   DEFINE_YAML_TAG("PackedByteArray", Variant::PACKED_BYTE_ARRAY)
 
-  void encode(ryml::NodeRef& node, const Variant& v, const Ref<YAMLStyle>& style) const override;
+  void encode(ryml::NodeRef& node, const Variant& v, const YAMLStyle::View& style) const override;
   Variant decode(const ryml::ConstNodeRef& node) const override;
 
   private:
@@ -25,8 +25,8 @@ class PackedByteArrayVariantConverter : public VariantConverter {
   };
 
   // Encoding helpers
-  void emit_as_hex(ryml::NodeRef& node, const PackedByteArray& array, const Ref<YAMLStyle>& style) const;
-  void emit_as_base64(ryml::NodeRef& node, const PackedByteArray& array, const Ref<YAMLStyle>& style) const;
+  void emit_as_hex(ryml::NodeRef& node, const PackedByteArray& array, const YAMLStyle::View& style) const;
+  void emit_as_base64(ryml::NodeRef& node, const PackedByteArray& array, const YAMLStyle::View& style) const;
 
   // String processing helpers
   CleanupResult cleanup_and_detect(const ryml::csubstr& input) const;

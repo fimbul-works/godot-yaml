@@ -6,72 +6,101 @@
 #include <godot_cpp/classes/ref_counted.hpp>
 #include <godot_cpp/core/class_db.hpp>
 #include <godot_cpp/variant/dictionary.hpp>
-#include <godot_cpp/variant/packed_string_array.hpp>
+#include <ryml.hpp>
 
 #include <memory>
 #include <unordered_map>
 
 namespace godot {
 
+// Forward declarations
 class YAMLStyle : public RefCounted {
   GDCLASS(YAMLStyle, RefCounted);
 
   public:
-  // Scalar style enums - simplified from original
+  class View;
+
   enum ScalarStyle {
-    STYLE_ANY = 0, // Let emitter decide
-    STYLE_PLAIN = 1, // Unquoted
-    STYLE_QUOTED = 2, // Either single or double quotes
-    STYLE_BLOCK = 3, // Block style (literal or folded)
+    SCALAR_ANY, // Let emitter decide
+    SCALAR_PLAIN, // Regular unquoted scalar
+    SCALAR_BLOCK, // Basic block scalar
+    SCALAR_LITERAL, // | style - preserve newlines
+    SCALAR_FOLDED // > style - fold newlines
   };
 
-  enum BlockStyle {
-    BLOCK_ANY = 0, // Let emitter decide
-    BLOCK_LITERAL = 1, // | style
-    BLOCK_FOLDED = 2, // > style
+  enum QuoteStyle {
+    QUOTE_ANY, // Let emitter decide
+    QUOTE_NONE, // Unquoted when possible
+    QUOTE_SINGLE, // Force single quotes
+    QUOTE_DOUBLE // Force double quotes
   };
 
-  enum CollectionStyle {
-    COLLECTION_ANY = 0, // Let emitter decide
-    COLLECTION_BLOCK = 1, // [a, b, c]
-    COLLECTION_FLOW = 2, // [a,b,c]
-    MAP_BLOCK = 3, // key: value
-    MAP_FLOW = 4, // {key: value}
+  enum ContainerForm {
+    FORM_ANY, // Let emitter decide
+    FORM_SEQ, // List/array style
+    FORM_MAP // Dictionary/map style
+  };
+
+  enum FlowStyle {
+    FLOW_ANY, // Let emitter decide
+    FLOW_NONE, // Block style
+    FLOW_SINGLE, // Compact [a,b] or {k:v} style
   };
 
   enum NumberFormat {
-    NUM_DECIMAL = 0,
-    NUM_HEX = 1,
-    NUM_OCTAL = 2,
-    NUM_BINARY = 3,
-    NUM_SCIENTIFIC = 4,
-  };
-
-  enum StringFormat {
-    STRING_ANY = 0, // Let emitter decide
-    STRING_PLAIN = 1, // No special formatting
-    STRING_HEX = 2, // 0xRRGGBB[AA]
-    STRING_HEX_STR = 3 // #RRGGBB[AA]
+    NUM_ANY, // Let emitter decide
+    NUM_DECIMAL, // Standard decimal
+    NUM_HEX, // Hexadecimal (0xFF)
+    NUM_OCTAL, // Octal (0o700)
+    NUM_BINARY, // Binary (0b1010)
+    NUM_SCIENTIFIC // Scientific (1.23e+4)
   };
 
   enum BinaryEncoding {
-    BINARY_ANY = 0,
-    BINARY_BASE64 = 1,
-    BINARY_HEX = 2
+    BIN_ANY, // Let emitter decide
+    BIN_STRING, // Plain string
+    BIN_BASE64, // Base64 encoded
+    BIN_HEX // Hexadecimal encoded
   };
 
-  // Node-specific style information - simplified
-  ScalarStyle scalar_style = STYLE_ANY;
-  BlockStyle block_style = BLOCK_ANY;
-  CollectionStyle collection_style = COLLECTION_ANY;
-  NumberFormat number_format = NUM_DECIMAL;
-  StringFormat string_format = STRING_ANY;
-  BinaryEncoding binary_encoding = BINARY_BASE64;
-
-  Dictionary custom_settings; // For extensibility
+  enum ChompingStyle {
+    CHOMP_ANY, // Let emitter decide
+    CHOMP_DEFAULT, // Keep single newline
+    CHOMP_STRIP, // Strip all newlines (-)
+    CHOMP_KEEP // Keep all newlines (+)
+  };
 
   YAMLStyle();
-  ~YAMLStyle() = default;
+
+  // Style setters/getters
+  void set_scalar_style(ScalarStyle p_style) { scalar_style = p_style; }
+  ScalarStyle get_scalar_style() const { return scalar_style; }
+
+  void set_quote_style(QuoteStyle p_style) { quote_style = p_style; }
+  QuoteStyle get_quote_style() const { return quote_style; }
+
+  void set_container_form(ContainerForm p_style) { container_form = p_style; }
+  ContainerForm get_container_form() const { return container_form; }
+
+  void set_flow_style(FlowStyle p_style) { flow_style = p_style; }
+  FlowStyle get_flow_style() const { return flow_style; }
+
+  void set_number_format(NumberFormat p_format) { number_format = p_format; }
+  NumberFormat get_number_format() const { return number_format; }
+
+  void set_binary_encoding(BinaryEncoding p_encoding) { binary_encoding = p_encoding; }
+  BinaryEncoding get_binary_encoding() const { return binary_encoding; }
+
+  void set_chomping_style(ChompingStyle p_style) { chomping_style = p_style; }
+  ChompingStyle get_chomping_style() const { return chomping_style; }
+
+  void set_custom_settings(Dictionary p_custom) { custom_settings = p_custom; }
+  Dictionary get_custom_settings() const { return custom_settings; }
+
+  // Helper methods
+  bool is_block_style() const;
+  bool uses_quotes() const;
+  bool uses_flow() const;
 
   // Child style management
   Ref<YAMLStyle> get_child(const String& key) const;
@@ -79,50 +108,46 @@ class YAMLStyle : public RefCounted {
   bool has_child(const String& key) const;
   void clear_child(const String& key);
   void clear_children();
+  Array get_children_keys() const;
 
-  // Add getter/setter methods
-  ScalarStyle get_scalar_style() const { return scalar_style; }
-  void set_scalar_style(ScalarStyle p_style) { scalar_style = p_style; }
+  // Debug helper
+  String get_debug_string() const;
 
-  BlockStyle get_block_style() const { return block_style; }
-  void set_block_style(BlockStyle p_style) { block_style = p_style; }
-
-  CollectionStyle get_collection_style() const { return collection_style; }
-  void set_collection_style(CollectionStyle p_style) { collection_style = p_style; }
-
-  NumberFormat get_number_format() const { return number_format; }
-  void set_number_format(NumberFormat p_format) { number_format = p_format; }
-
-  StringFormat get_string_format() const { return string_format; }
-  void set_string_format(StringFormat p_format) { string_format = p_format; }
-
-  BinaryEncoding get_binary_encoding() const { return binary_encoding; }
-  void set_binary_encoding(BinaryEncoding p_encoding) { binary_encoding = p_encoding; }
-
-  // Conversion to/from Dictionary for GDScript interface
-  Dictionary to_dict() const;
-  Error from_dict(const Dictionary& dict);
-
-  String _to_string() const;
+  // Custom settings
+  Dictionary custom_settings;
 
   protected:
   static void _bind_methods();
-  String _style_to_string(const String& indent = "") const;
 
   private:
-  std::unordered_map<String, Ref<YAMLStyle>, StringHasher> child_styles;
+  ScalarStyle scalar_style;
+  QuoteStyle quote_style;
+  ContainerForm container_form;
+  FlowStyle flow_style;
+  NumberFormat number_format;
+  BinaryEncoding binary_encoding;
+  ChompingStyle chomping_style;
 
-  Dictionary _style_to_dict() const;
-  Error _dict_to_style(const Dictionary& dict);
+  std::unordered_map<String, Ref<YAMLStyle>, StringHasher, StringEqual> child_styles;
+
+  // Debug helper methods
+  static String get_scalar_style_string(ScalarStyle p_style);
+  static String get_quote_style_string(QuoteStyle p_style);
+  static String get_container_form_string(ContainerForm p_style);
+  static String get_flow_style_string(FlowStyle p_style);
+  static String get_number_format_string(NumberFormat p_format);
+  static String get_binary_encoding_string(BinaryEncoding p_encoding);
+  static String get_chomping_style_string(ChompingStyle p_style);
 };
 
 } // namespace godot
 
 VARIANT_ENUM_CAST(YAMLStyle::ScalarStyle);
-VARIANT_ENUM_CAST(YAMLStyle::BlockStyle);
-VARIANT_ENUM_CAST(YAMLStyle::CollectionStyle);
+VARIANT_ENUM_CAST(YAMLStyle::QuoteStyle);
+VARIANT_ENUM_CAST(YAMLStyle::ContainerForm);
+VARIANT_ENUM_CAST(YAMLStyle::FlowStyle);
 VARIANT_ENUM_CAST(YAMLStyle::NumberFormat);
-VARIANT_ENUM_CAST(YAMLStyle::StringFormat);
 VARIANT_ENUM_CAST(YAMLStyle::BinaryEncoding);
+VARIANT_ENUM_CAST(YAMLStyle::ChompingStyle);
 
 #endif // YAML_STYLE_H

@@ -1,6 +1,15 @@
-[gd_scene load_steps=2 format=3 uid="uid://bgseothw7g8ue"]
+[gd_scene load_steps=4 format=3 uid="uid://bgseothw7g8ue"]
 
 [ext_resource type="Script" path="res://demo.gd" id="1_qj7b2"]
+[ext_resource type="Script" path="res://style.gd" id="2_c1caj"]
+[ext_resource type="Texture2D" uid="uid://bfhq3863nxon1" path="res://icon.svg" id="3_iy6f0"]
 
 [node name="Demo" type="Node2D"]
 script = ExtResource("1_qj7b2")
+
+[node name="Style" type="Node" parent="." node_paths=PackedStringArray("sprite")]
+script = ExtResource("2_c1caj")
+sprite = NodePath("../Sprite2D")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("3_iy6f0")

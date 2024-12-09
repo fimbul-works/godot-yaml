@@ -31,30 +31,25 @@
 
 using namespace godot;
 
-// Static member initialization
-std::shared_mutex VariantConverterRegistry::s_registry_mutex;
-std::atomic<bool> VariantConverterRegistry::s_is_initialized(false);
-std::once_flag VariantConverterRegistry::s_init_flag;
-std::unique_ptr<VariantConverterRegistry::RegistryData> VariantConverterRegistry::s_registry_data;
-
-void VariantConverterRegistry::ensure_initialized()
+void VariantConverterRegistry::initialize()
 {
-  if (!s_is_initialized.load(std::memory_order_acquire)) {
-    initialize_registry();
-  }
+  if (is_initialized)
+    return;
+  initialize_registry();
+  is_initialized = true;
+}
+
+void VariantConverterRegistry::cleanup()
+{
+  type_to_converter.clear();
+  tag_to_converter.clear();
+  is_initialized = false;
 }
 
 const VariantConverter* VariantConverterRegistry::get_converter(Variant::Type type)
 {
-  ensure_initialized();
-
-  std::shared_lock lock(s_registry_mutex);
-  if (!s_registry_data) {
-    throw YAMLException("Registry not properly initialized");
-  }
-
-  auto it = s_registry_data->type_to_converter.find(type);
-  if (it == s_registry_data->type_to_converter.end()) {
+  auto it = type_to_converter.find(type);
+  if (it == type_to_converter.end()) {
     throw YAMLException(String("No converter found for type: ") + Variant::get_type_name(type));
   }
   return it->second.get();
@@ -62,15 +57,8 @@ const VariantConverter* VariantConverterRegistry::get_converter(Variant::Type ty
 
 const VariantConverter* VariantConverterRegistry::get_converter_by_tag(const String& tag)
 {
-  ensure_initialized();
-
-  std::shared_lock lock(s_registry_mutex);
-  if (!s_registry_data) {
-    throw YAMLException("Registry not properly initialized");
-  }
-
-  auto it = s_registry_data->tag_to_converter.find(tag);
-  return it != s_registry_data->tag_to_converter.end() ? it->second : nullptr;
+  auto it = tag_to_converter.find(tag);
+  return it != tag_to_converter.end() ? it->second : nullptr;
 }
 
 template <Variant::Type T>
@@ -88,52 +76,28 @@ void VariantConverterRegistry::register_converter(std::unique_ptr<VariantConvert
   Variant::Type type = converter_ptr->get_type();
   String tag = converter_ptr->get_tag();
 
-  s_registry_data->type_to_converter[type] = std::move(converter);
-  s_registry_data->tag_to_converter[tag] = converter_ptr;
+  type_to_converter[type] = std::move(converter);
+  tag_to_converter[tag] = converter_ptr;
 }
 
 void VariantConverterRegistry::initialize_registry()
 {
-  std::call_once(s_init_flag, []() {
-    std::unique_lock lock(s_registry_mutex);
-
-    // Create new registry data
-    s_registry_data = std::make_unique<RegistryData>();
-
-    // Initialize all converter groups
-    init_primitive_converters();
-    init_math_converters();
-    init_vector_converters();
-    init_transform_converters();
-    init_color_converters();
-    init_array_converters();
-    init_string_converters();
-
-    s_is_initialized.store(true, std::memory_order_release);
-  });
-}
-
-void VariantConverterRegistry::cleanup_registry()
-{
-  std::unique_lock lock(s_registry_mutex);
-  s_registry_data.reset();
-  s_is_initialized.store(false, std::memory_order_release);
+  init_math_converters();
+  init_vector_converters();
+  init_transform_converters();
+  init_color_converters();
+  init_array_converters();
+  init_string_converters();
 }
 
 bool VariantConverterRegistry::has_converter(Variant::Type type)
 {
-  ensure_initialized();
-
-  std::shared_lock lock(s_registry_mutex);
-  return s_registry_data && s_registry_data->type_to_converter.find(type) != s_registry_data->type_to_converter.end();
+  return type_to_converter.find(type) != type_to_converter.end();
 }
 
 bool VariantConverterRegistry::has_converter_for_tag(const String& tag)
 {
-  ensure_initialized();
-
-  std::shared_lock lock(s_registry_mutex);
-  return s_registry_data && s_registry_data->tag_to_converter.find(tag) != s_registry_data->tag_to_converter.end();
+  return tag_to_converter.find(tag) != tag_to_converter.end();
 }
 
 // Converter initialization implementations
@@ -186,10 +150,4 @@ void VariantConverterRegistry::init_string_converters()
 {
   register_converter(std::make_unique<StringNameVariantConverter>());
   register_converter(std::make_unique<NodePathVariantConverter>());
-}
-
-void VariantConverterRegistry::init_primitive_converters()
-{
-  // RID cannot be serialized!
-  // register_converter(std::make_unique<RIDVariantConverter>());
 }

@@ -1,4 +1,3 @@
-// yaml_result.h
 #ifndef YAML_RESULT_H
 #define YAML_RESULT_H
 
@@ -9,6 +8,9 @@
 #include <godot_cpp/variant/variant.hpp>
 
 namespace godot {
+
+// Forward reference
+class YAMLStyle;
 
 class YAMLResult : public RefCounted {
   GDCLASS(YAMLResult, RefCounted)

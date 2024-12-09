@@ -2,6 +2,7 @@
 #include "emitter.h"
 #include "parser.h"
 #include "result.h"
+#include "style_view.h"
 
 #include "version.h"
 
@@ -27,15 +28,16 @@ String YAML::version()
 
 Ref<YAMLResult> YAML::parse(const String& input, const bool detect_style)
 {
-  YAMLParser parser;
+  Parser parser;
   Ref<YAMLResult> result = parser.parse(input, detect_style);
   return result;
 }
 
 Ref<YAMLResult> YAML::emit(const Variant& input, const Ref<YAMLStyle>& style)
 {
-  YAMLEmitter emitter;
-  Ref<YAMLResult> result = emitter.emit(input, style);
+  Emitter emitter;
+  YAMLStyle::View style_view = YAMLStyle::View::create_view(style);
+  Ref<YAMLResult> result = emitter.emit(input, style_view);
   return result;
 }
 

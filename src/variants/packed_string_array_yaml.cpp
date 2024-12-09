@@ -3,7 +3,7 @@
 
 using namespace godot;
 
-void PackedStringArrayVariantConverter::encode(ryml::NodeRef& node, const Variant& v, const Ref<YAMLStyle>& style) const
+void PackedStringArrayVariantConverter::encode(ryml::NodeRef& node, const Variant& v, const YAMLStyle::View& style) const
 {
   const PackedStringArray array = v.operator PackedStringArray();
   node |= ryml::SEQ;
@@ -12,15 +12,13 @@ void PackedStringArrayVariantConverter::encode(ryml::NodeRef& node, const Varian
     return; // Empty sequence
   }
 
-  // Apply flow style to the sequence if specified
-  if (style.is_valid() && style->collection_style == YAMLStyle::COLLECTION_FLOW) {
-    node |= ryml::FLOW_SL;
-  }
+  // Flow style
+  style.apply_flow_style(node);
 
   // Get shared item style if it exists
-  Ref<YAMLStyle> shared_item_style;
+  YAMLStyle::View shared_item_style;
   if (style.is_valid()) {
-    shared_item_style = style->get_child("_items");
+    shared_item_style = style.get_child("_items");
   }
 
   for (int i = 0; i < array.size(); ++i) {
@@ -28,15 +26,14 @@ void PackedStringArrayVariantConverter::encode(ryml::NodeRef& node, const Varian
     ryml::NodeRef child = node.append_child();
 
     if (str.is_empty()) {
-      ryml::csubstr empty = {};
-      child << empty;
+      child << ryml::csubstr {};
       continue;
     }
 
     // Check for individual item style, fall back to shared style
-    Ref<YAMLStyle> item_style;
+    YAMLStyle::View item_style;
     if (style.is_valid()) {
-      item_style = style->get_child(String::num_int64(i));
+      item_style = style.get_child(String::num_int64(i));
       if (!item_style.is_valid()) {
         item_style = shared_item_style;
       }
@@ -44,36 +41,15 @@ void PackedStringArrayVariantConverter::encode(ryml::NodeRef& node, const Varian
 
     // Apply string styling
     if (item_style.is_valid()) {
-      switch (item_style->scalar_style) {
-        case YAMLStyle::STYLE_BLOCK:
-          child |= ryml::BLOCK;
-          if (item_style->block_style == YAMLStyle::BLOCK_FOLDED) {
-            child |= ryml::VAL_FOLDED;
-          }
-          break;
-        case YAMLStyle::STYLE_QUOTED:
-          child |= ryml::VAL_DQUO; // or SQUO for single quotes if you prefer
-          break;
-        case YAMLStyle::STYLE_PLAIN:
-          // Let YAML decide if quoting is needed
-          if (needs_block_style(str)) {
-            child |= ryml::BLOCK;
-          }
-          break;
-        default:
-          if (needs_block_style(str)) {
-            child |= ryml::BLOCK;
-          }
-          break;
-      }
+      item_style.apply_scalar_style(child);
+      item_style.apply_quote_style(child);
     } else {
-      // Default behavior
       if (needs_block_style(str)) {
         child |= ryml::BLOCK;
       }
     }
 
-    child << str.utf8().get_data();
+    child << to_ryml_str(str);
   }
 }
 

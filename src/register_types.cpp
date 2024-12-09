@@ -17,7 +17,7 @@ void initialize_yaml_module(ModuleInitializationLevel p_level)
     return;
   }
 
-  VariantConverterRegistry::initialize_registry();
+  VariantConverterRegistry::get_instance();
 
   if (!ClassDB::class_exists("YAMLResult")) {
     GDREGISTER_CLASS(YAMLResult);
@@ -35,8 +35,6 @@ void uninitialize_yaml_module(ModuleInitializationLevel p_level)
   if (p_level != MODULE_INITIALIZATION_LEVEL_SCENE) {
     return;
   }
-
-  VariantConverterRegistry::cleanup_registry();
 }
 
 } // namespace godot

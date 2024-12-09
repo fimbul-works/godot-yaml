@@ -1,7 +1,8 @@
 #ifndef VARIANT_CONVERTER_H
 #define VARIANT_CONVERTER_H
 
-#include "style.h"
+#include "style_view.h"
+#include "yaml.h"
 
 #include <godot_cpp/classes/ref.hpp>
 #include <godot_cpp/variant/variant.hpp>
@@ -16,8 +17,6 @@
 
 namespace godot {
 
-class YAMLEmitter;
-
 class VariantConverter {
   public:
   virtual ~VariantConverter() = default;
@@ -28,7 +27,7 @@ class VariantConverter {
   virtual const Variant::Type get_type() const = 0;
 
   // Pure virtual encode method that derived classes must implement
-  virtual void encode(ryml::NodeRef& node, const Variant& v, const Ref<YAMLStyle>& style) const = 0;
+  virtual void encode(ryml::NodeRef& node, const Variant& v, const YAMLStyle::View& style) const = 0;
 
   // Pure virtual decode method
   virtual Variant decode(const ryml::ConstNodeRef& node) const = 0;

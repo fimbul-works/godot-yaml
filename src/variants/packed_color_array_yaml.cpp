@@ -4,7 +4,7 @@
 
 using namespace godot;
 
-void PackedColorArrayVariantConverter::encode(ryml::NodeRef& node, const Variant& v, const Ref<YAMLStyle>& style) const
+void PackedColorArrayVariantConverter::encode(ryml::NodeRef& node, const Variant& v, const YAMLStyle::View& style) const
 {
   const PackedColorArray array = v.operator PackedColorArray();
   node |= ryml::SEQ;
@@ -14,25 +14,23 @@ void PackedColorArrayVariantConverter::encode(ryml::NodeRef& node, const Variant
   }
 
   // Apply flow style to the sequence itself if specified
-  if (style.is_valid() && style->collection_style == YAMLStyle::COLLECTION_FLOW) {
-    node |= ryml::FLOW_SL;
-  }
+  style.apply_flow_style(node);
 
-  const auto* color_converter = VariantConverterRegistry::get_converter(Variant::COLOR);
+  const auto* color_converter = VariantConverterRegistry::get_instance().get_converter(Variant::COLOR);
 
   // Get shared item style if it exists (key "_items" is a convention for shared array item styling)
-  Ref<YAMLStyle> shared_item_style;
+  YAMLStyle::View shared_item_style;
   if (style.is_valid()) {
-    shared_item_style = style->get_child("_items");
+    shared_item_style = style.get_child("_items");
   }
 
   for (int i = 0; i < array.size(); ++i) {
     ryml::NodeRef color_node = node.append_child();
 
     // Check for individual item style, fall back to shared style
-    Ref<YAMLStyle> item_style;
+    YAMLStyle::View item_style;
     if (style.is_valid()) {
-      item_style = style->get_child(String::num_int64(i));
+      item_style = style.get_child(String::num_int64(i));
       if (!item_style.is_valid()) {
         item_style = shared_item_style;
       }
@@ -53,7 +51,7 @@ Variant PackedColorArrayVariantConverter::decode(const ryml::ConstNodeRef& node)
   array.resize(size);
 
   if (size > 0) {
-    const auto* color_converter = VariantConverterRegistry::get_converter(Variant::COLOR);
+    const auto* color_converter = VariantConverterRegistry::get_instance().get_converter(Variant::COLOR);
 
     for (size_t i = 0; i < size; ++i) {
       try {

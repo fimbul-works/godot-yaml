@@ -9,7 +9,7 @@ class Vector2iVariantConverter : public VariantConverter {
   public:
   DEFINE_YAML_TAG("Vector2i", Variant::VECTOR2I)
 
-  void encode(ryml::NodeRef& node, const Variant& v, const Ref<YAMLStyle>& style) const override;
+  void encode(ryml::NodeRef& node, const Variant& v, const YAMLStyle::View& style) const override;
   Variant decode(const ryml::ConstNodeRef& node) const override;
 
   private:

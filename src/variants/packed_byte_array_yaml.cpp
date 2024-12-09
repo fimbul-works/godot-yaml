@@ -6,7 +6,7 @@
 
 using namespace godot;
 
-void PackedByteArrayVariantConverter::encode(ryml::NodeRef& node, const Variant& v, const Ref<YAMLStyle>& style) const
+void PackedByteArrayVariantConverter::encode(ryml::NodeRef& node, const Variant& v, const YAMLStyle::View& style) const
 {
   const PackedByteArray array = v.operator PackedByteArray();
 
@@ -17,17 +17,17 @@ void PackedByteArrayVariantConverter::encode(ryml::NodeRef& node, const Variant&
   }
 
   // Use binary_encoding from style to determine format
-  if (!style.is_valid() || style->binary_encoding == YAMLStyle::BINARY_ANY) {
+  if (!style.is_valid() || style.get_binary_encoding() == YAMLStyle::BIN_BASE64) {
     // Default to base64 if no style specified
     emit_as_base64(node, array, style);
-  } else if (style->binary_encoding == YAMLStyle::BINARY_HEX) {
+  } else if (style.get_binary_encoding() == YAMLStyle::BIN_HEX) {
     emit_as_hex(node, array, style);
   } else {
     emit_as_base64(node, array, style);
   }
 }
 
-void PackedByteArrayVariantConverter::emit_as_hex(ryml::NodeRef& node, const PackedByteArray& array, const Ref<YAMLStyle>& style) const
+void PackedByteArrayVariantConverter::emit_as_hex(ryml::NodeRef& node, const PackedByteArray& array, const YAMLStyle::View& style) const
 {
   std::vector<char> hex_str;
   hex_str.reserve(array.size() * 2);
@@ -39,20 +39,21 @@ void PackedByteArrayVariantConverter::emit_as_hex(ryml::NodeRef& node, const Pac
     hex_str.push_back(hex_chars[byte & 0xF]);
   }
 
-  bool use_block = style.is_valid() && style->scalar_style == YAMLStyle::STYLE_BLOCK;
-  if (use_block) {
+  if (style.is_block_style()) {
+    style.apply_scalar_style(node);
     node << format_output(ryml::csubstr(hex_str.data(), hex_str.size()), HEX_LINE_LENGTH);
   } else {
     node << ryml::csubstr(hex_str.data(), hex_str.size());
   }
 }
 
-void PackedByteArrayVariantConverter::emit_as_base64(ryml::NodeRef& node, const PackedByteArray& array, const Ref<YAMLStyle>& style) const
+void PackedByteArrayVariantConverter::emit_as_base64(ryml::NodeRef& node, const PackedByteArray& array, const YAMLStyle::View& style) const
 {
   String base64 = Marshalls::get_singleton()->raw_to_base64(array);
 
-  bool use_block = style.is_valid() && style->scalar_style == YAMLStyle::STYLE_BLOCK;
-  if (use_block) {
+  if (style.is_block_style()) {
+    style.apply_scalar_style(node);
+    node << ryml::CHOMP_CLIP;
     node << format_output(to_ryml_str(base64), BASE64_LINE_LENGTH);
   } else {
     node << to_ryml_str(base64);
@@ -114,26 +115,22 @@ ryml::csubstr PackedByteArrayVariantConverter::format_output(ryml::csubstr str, 
     return str;
   }
 
-  // Create the output buffer directly as a char array
-  size_t num_lines = (str.len + line_length - 1) / line_length;
-  size_t total_size = str.len + (num_lines - 1);
+  // Create string with explicit lifetime
+  std::string formatted;
+  formatted.reserve(str.len + ((str.len / line_length) + 1));
 
-  std::vector<char> formatted(total_size);
   size_t pos = 0;
-  size_t out_pos = 0;
-
   while (pos < str.len) {
     if (pos > 0) {
-      formatted[out_pos++] = '\n';
+      formatted += '\n';
     }
     size_t chunk_size = std::min(line_length, str.len - pos);
-    memcpy(&formatted[out_pos], str.str + pos, chunk_size);
-    out_pos += chunk_size;
+    formatted.append(str.str + pos, chunk_size);
     pos += chunk_size;
   }
 
-  // Return a view into the buffer
-  return ryml::csubstr(formatted.data(), out_pos);
+  // Return view of the processed string
+  return ryml::to_csubstr(formatted);
 }
 
 PackedByteArray PackedByteArrayVariantConverter::hex_to_bytes(const std::string& hex) const

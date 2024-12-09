@@ -4,17 +4,20 @@
 
 using namespace godot;
 
-void Vector4iVariantConverter::encode(ryml::NodeRef& node, const Variant& v, const Ref<YAMLStyle>& style) const
+void Vector4iVariantConverter::encode(ryml::NodeRef& node, const Variant& v, const YAMLStyle::View& style) const
 {
   const Vector4i vec = v.operator Vector4i();
 
-  if (!style.is_valid() || style->collection_style == YAMLStyle::COLLECTION_ANY
-          || style->collection_style == YAMLStyle::MAP_BLOCK
-          || style->collection_style == YAMLStyle::MAP_FLOW) {
+  YAMLStyle::ContainerForm container_form = style.get_container_form();
+  if (!style.is_valid() || container_form != YAMLStyle::FORM_SEQ) {
     // Map styles
     node |= ryml::MAP;
-    if (!style.is_valid() || style->collection_style == YAMLStyle::MAP_FLOW) {
+
+    // Flow style
+    if (!style.is_valid()) {
       node |= ryml::FLOW_SL;
+    } else {
+      style.apply_flow_style(node);
     }
 
     node["x"] << int_to_string(vec.x);
@@ -24,8 +27,12 @@ void Vector4iVariantConverter::encode(ryml::NodeRef& node, const Variant& v, con
   } else {
     // Collection styles
     node |= ryml::SEQ;
-    if (!style.is_valid() || style->collection_style == YAMLStyle::COLLECTION_FLOW) {
+
+    // Flow style
+    if (!style.is_valid()) {
       node |= ryml::FLOW_SL;
+    } else {
+      style.apply_flow_style(node);
     }
 
     node.append_child() << int_to_string(vec.x);

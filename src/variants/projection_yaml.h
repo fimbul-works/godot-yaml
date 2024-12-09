@@ -9,13 +9,13 @@ class ProjectionVariantConverter : public VariantConverter {
   public:
   DEFINE_YAML_TAG("Projection", Variant::PROJECTION)
 
-  void encode(ryml::NodeRef& node, const Variant& v, const Ref<YAMLStyle>& style) const override;
+  void encode(ryml::NodeRef& node, const Variant& v, const YAMLStyle::View& style) const override;
   Variant decode(const ryml::ConstNodeRef& node) const override;
 
   private:
-  void emit_as_map(ryml::NodeRef& node, const Projection& proj, const Ref<YAMLStyle>& style) const;
-  void emit_as_sequence(ryml::NodeRef& node, const Projection& proj, const Ref<YAMLStyle>& style) const;
-  void emit_column(ryml::NodeRef& node, const Vector4& col, const Ref<YAMLStyle>& style) const;
+  void emit_as_map(ryml::NodeRef& node, const Projection& proj, const YAMLStyle::View& style) const;
+  void emit_as_sequence(ryml::NodeRef& node, const Projection& proj, const YAMLStyle::View& style) const;
+  void emit_column(ryml::NodeRef& node, const Vector4& col, const YAMLStyle::View& style) const;
 
   Variant decode_from_map(const ryml::ConstNodeRef& node) const;
   Variant decode_from_sequence(const ryml::ConstNodeRef& node) const;

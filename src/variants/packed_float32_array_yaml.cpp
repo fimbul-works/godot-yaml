@@ -4,7 +4,7 @@
 
 using namespace godot;
 
-void PackedFloat32ArrayVariantConverter::encode(ryml::NodeRef& node, const Variant& v, const Ref<YAMLStyle>& style) const
+void PackedFloat32ArrayVariantConverter::encode(ryml::NodeRef& node, const Variant& v, const YAMLStyle::View& style) const
 {
   const PackedFloat32Array array = v.operator PackedFloat32Array();
   node |= ryml::SEQ;
@@ -14,23 +14,21 @@ void PackedFloat32ArrayVariantConverter::encode(ryml::NodeRef& node, const Varia
   }
 
   // Apply flow style to the sequence if specified
-  if (style.is_valid() && style->collection_style == YAMLStyle::COLLECTION_FLOW) {
-    node |= ryml::FLOW_SL;
-  }
+  style.apply_flow_style(node);
 
   // Get shared item style if it exists
-  Ref<YAMLStyle> shared_item_style;
+  YAMLStyle::View shared_item_style;
   if (style.is_valid()) {
-    shared_item_style = style->get_child("_items");
+    shared_item_style = style.get_child("_items");
   }
 
   for (int i = 0; i < array.size(); ++i) {
     ryml::NodeRef value_node = node.append_child();
 
     // Check for individual item style, fall back to shared style
-    Ref<YAMLStyle> item_style;
+    YAMLStyle::View item_style;
     if (style.is_valid()) {
-      item_style = style->get_child(String::num_int64(i));
+      item_style = style.get_child(String::num_int64(i));
       if (!item_style.is_valid()) {
         item_style = shared_item_style;
       }
@@ -38,7 +36,7 @@ void PackedFloat32ArrayVariantConverter::encode(ryml::NodeRef& node, const Varia
 
     // Format number based on style
     if (item_style.is_valid()) {
-      value_node << float_to_string(array[i], item_style->number_format);
+      value_node << float_to_string(array[i], item_style.get_number_format());
     } else {
       value_node << float_to_string(array[i]);
     }

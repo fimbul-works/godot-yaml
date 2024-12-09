@@ -9,11 +9,11 @@ class PackedInt32ArrayVariantConverter : public VariantConverter {
   public:
   DEFINE_YAML_TAG("PackedInt32Array", Variant::PACKED_INT32_ARRAY)
 
-  void encode(ryml::NodeRef& node, const Variant& v, const Ref<YAMLStyle>& style) const override;
+  void encode(ryml::NodeRef& node, const Variant& v, const YAMLStyle::View& style) const override;
   Variant decode(const ryml::ConstNodeRef& node) const override;
 
   private:
-  void emit_as_sequence(ryml::NodeRef& node, const PackedInt32Array& array, const Ref<YAMLStyle>& style) const;
+  void emit_as_sequence(ryml::NodeRef& node, const PackedInt32Array& array, const YAMLStyle::View& style) const;
 };
 
 } // namespace godot

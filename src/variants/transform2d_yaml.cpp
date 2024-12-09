@@ -4,32 +4,30 @@
 
 using namespace godot;
 
-void Transform2DVariantConverter::encode(ryml::NodeRef& node, const Variant& v, const Ref<YAMLStyle>& style) const
+void Transform2DVariantConverter::encode(ryml::NodeRef& node, const Variant& v, const YAMLStyle::View& style) const
 {
   const Transform2D transform = v.operator Transform2D();
 
-  if (!style.is_valid() || style->collection_style == YAMLStyle::COLLECTION_ANY
-          || style->collection_style == YAMLStyle::MAP_BLOCK
-          || style->collection_style == YAMLStyle::MAP_FLOW) {
+  if (!style.is_valid() || style.get_container_form() != YAMLStyle::FORM_SEQ) {
     emit_as_map(node, transform, style);
   } else {
     emit_as_sequence(node, transform, style);
   }
 }
 
-void Transform2DVariantConverter::emit_as_map(ryml::NodeRef& node, const Transform2D& transform, const Ref<YAMLStyle>& style) const
+void Transform2DVariantConverter::emit_as_map(ryml::NodeRef& node, const Transform2D& transform, const YAMLStyle::View& style) const
 {
   node |= ryml::MAP;
-  if (style.is_valid() && style->collection_style == YAMLStyle::MAP_FLOW) {
-    node |= ryml::FLOW_SL;
-  }
 
-  const auto* vec2_converter = VariantConverterRegistry::get_converter(Variant::VECTOR2);
+  // Flow style
+  style.apply_flow_style(node);
+
+  const auto* vec2_converter = VariantConverterRegistry::get_instance().get_converter(Variant::VECTOR2);
 
   // Pass child styles for basis and origin
-  Ref<YAMLStyle> x_style = style.is_valid() ? style->get_child("x") : Ref<YAMLStyle>();
-  Ref<YAMLStyle> y_style = style.is_valid() ? style->get_child("y") : Ref<YAMLStyle>();
-  Ref<YAMLStyle> origin_style = style.is_valid() ? style->get_child("origin") : Ref<YAMLStyle>();
+  YAMLStyle::View x_style = style.is_valid() ? style.get_child("x") : YAMLStyle::View();
+  YAMLStyle::View y_style = style.is_valid() ? style.get_child("y") : YAMLStyle::View();
+  YAMLStyle::View origin_style = style.is_valid() ? style.get_child("origin") : YAMLStyle::View();
 
   // Encode the matrix columns (x, y components)
   ryml::NodeRef x_node = node["x"];
@@ -43,19 +41,19 @@ void Transform2DVariantConverter::emit_as_map(ryml::NodeRef& node, const Transfo
   vec2_converter->encode(origin_node, transform.columns[2], origin_style);
 }
 
-void Transform2DVariantConverter::emit_as_sequence(ryml::NodeRef& node, const Transform2D& transform, const Ref<YAMLStyle>& style) const
+void Transform2DVariantConverter::emit_as_sequence(ryml::NodeRef& node, const Transform2D& transform, const YAMLStyle::View& style) const
 {
   node |= ryml::SEQ;
-  if (style.is_valid() && style->collection_style == YAMLStyle::COLLECTION_FLOW) {
-    node |= ryml::FLOW_SL;
-  }
 
-  const auto* vec2_converter = VariantConverterRegistry::get_converter(Variant::VECTOR2);
+  // Flow style
+  style.apply_flow_style(node);
+
+  const auto* vec2_converter = VariantConverterRegistry::get_instance().get_converter(Variant::VECTOR2);
 
   // Pass child styles for basis and origin
-  Ref<YAMLStyle> x_style = style.is_valid() ? style->get_child("x") : Ref<YAMLStyle>();
-  Ref<YAMLStyle> y_style = style.is_valid() ? style->get_child("y") : Ref<YAMLStyle>();
-  Ref<YAMLStyle> origin_style = style.is_valid() ? style->get_child("origin") : Ref<YAMLStyle>();
+  YAMLStyle::View x_style = style.is_valid() ? style.get_child("x") : YAMLStyle::View();
+  YAMLStyle::View y_style = style.is_valid() ? style.get_child("y") : YAMLStyle::View();
+  YAMLStyle::View origin_style = style.is_valid() ? style.get_child("origin") : YAMLStyle::View();
 
   // Encode columns in order: x, y, origin
   ryml::NodeRef x_node = node.append_child();
@@ -90,7 +88,7 @@ Variant Transform2DVariantConverter::decode_from_map(const ryml::ConstNodeRef& n
     throw YAMLException::create_missing_field("Transform2D", "x, y, origin");
   }
 
-  const auto* vec2_converter = VariantConverterRegistry::get_converter(Variant::VECTOR2);
+  const auto* vec2_converter = VariantConverterRegistry::get_instance().get_converter(Variant::VECTOR2);
   Vector2 x = vec2_converter->decode(node["x"]).operator Vector2();
   Vector2 y = vec2_converter->decode(node["y"]).operator Vector2();
   Vector2 origin = vec2_converter->decode(node["origin"]).operator Vector2();
@@ -104,7 +102,7 @@ Variant Transform2DVariantConverter::decode_from_sequence(const ryml::ConstNodeR
     throw YAMLException::create_invalid_sequence_length("Transform2D", 3);
   }
 
-  const auto* vec2_converter = VariantConverterRegistry::get_converter(Variant::VECTOR2);
+  const auto* vec2_converter = VariantConverterRegistry::get_instance().get_converter(Variant::VECTOR2);
   Vector2 x = vec2_converter->decode(node[0]).operator Vector2();
   Vector2 y = vec2_converter->decode(node[1]).operator Vector2();
   Vector2 origin = vec2_converter->decode(node[2]).operator Vector2();

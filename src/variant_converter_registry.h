@@ -13,15 +13,25 @@ namespace godot {
 
 class VariantConverterRegistry {
   public:
-  static const VariantConverter* get_converter(Variant::Type type);
-  static const VariantConverter* get_converter_by_tag(const String& tag);
-  static void initialize_registry();
-  static void cleanup_registry();
-  static bool has_converter(Variant::Type type);
-  static bool has_converter_for_tag(const String& tag);
+  // Thread-local instance access
+  static VariantConverterRegistry& get_instance()
+  {
+    static thread_local VariantConverterRegistry instance;
+    return instance;
+  }
+
+  void initialize();
+  void cleanup();
+
+  const VariantConverter* get_converter(Variant::Type type);
+  const VariantConverter* get_converter_by_tag(const String& tag);
+  void initialize_registry();
+  void cleanup_registry();
+  bool has_converter(Variant::Type type);
+  bool has_converter_for_tag(const String& tag);
 
   template <Variant::Type T>
-  static const VariantConverter* get_converter_for(const char* type_name)
+  const VariantConverter* get_converter_for(const char* type_name)
   {
     const auto* converter = get_converter(T);
     if (!converter) {
@@ -31,31 +41,22 @@ class VariantConverterRegistry {
   }
 
   private:
-  VariantConverterRegistry() = delete;
-  ~VariantConverterRegistry() = delete;
+  VariantConverterRegistry() { initialize(); }
+  ~VariantConverterRegistry() { cleanup(); }
 
-  static std::shared_mutex s_registry_mutex;
-  static std::atomic<bool> s_is_initialized;
-  static std::once_flag s_init_flag;
+  std::unordered_map<Variant::Type, std::unique_ptr<VariantConverter>> type_to_converter;
+  std::unordered_map<String, VariantConverter*, StringHasher> tag_to_converter;
+  bool is_initialized { false };
 
-  struct RegistryData {
-    std::unordered_map<Variant::Type, std::unique_ptr<VariantConverter>> type_to_converter;
-    std::unordered_map<String, VariantConverter*, StringHasher> tag_to_converter;
-  };
+  void register_converter(std::unique_ptr<VariantConverter> converter);
 
-  static std::unique_ptr<RegistryData> s_registry_data;
-
-  static void register_converter(std::unique_ptr<VariantConverter> converter);
-  static void ensure_initialized();
-
-  // Initialization helpers remain the same
-  static void init_primitive_converters();
-  static void init_math_converters();
-  static void init_vector_converters();
-  static void init_transform_converters();
-  static void init_color_converters();
-  static void init_array_converters();
-  static void init_string_converters();
+  void init_primitive_converters();
+  void init_math_converters();
+  void init_vector_converters();
+  void init_transform_converters();
+  void init_color_converters();
+  void init_array_converters();
+  void init_string_converters();
 };
 
 } // namespace godot

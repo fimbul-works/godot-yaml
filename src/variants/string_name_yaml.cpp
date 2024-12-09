@@ -3,21 +3,19 @@
 
 using namespace godot;
 
-void StringNameVariantConverter::encode(ryml::NodeRef& node, const Variant& v, const Ref<YAMLStyle>& style) const
+void StringNameVariantConverter::encode(ryml::NodeRef& node, const Variant& v, const YAMLStyle::View& style) const
 {
   const StringName str = v.operator StringName();
-  emit_as_string(node, str);
-}
 
-void StringNameVariantConverter::emit_as_string(ryml::NodeRef& node, const StringName& str) const
-{
   String string_val = String(str);
   if (string_val.is_empty()) {
-    // Empty StringName is represented as null
-    ryml::csubstr null = {};
-    node << null;
+    node << ryml::csubstr {};
   } else {
-    node << string_val.utf8().get_data();
+    if (style.is_valid()) {
+      style.apply_scalar_style(node);
+      style.apply_quote_style(node);
+    }
+    node << to_ryml_str(string_val);
   }
 }
 

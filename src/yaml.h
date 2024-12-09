@@ -1,12 +1,12 @@
 #ifndef YAML_H
 #define YAML_H
 
-#include "emitter.h"
-#include "parser.h"
 #include "result.h"
 #include "style.h"
 
-#include <godot_cpp/core/class_db.hpp>
+#include <godot_cpp/classes/ref.hpp>
+#include <godot_cpp/classes/ref_counted.hpp>
+#include <godot_cpp/variant/variant.hpp>
 
 namespace godot {
 
@@ -16,10 +16,11 @@ class YAML : public RefCounted {
   protected:
   static void _bind_methods();
 
-  YAML() = default;
-  ~YAML() = default;
-
   public:
+  // Forward-declare inner classes, defined in parser.h and emitter.h
+  class Parser;
+  class Emitter;
+
   static String version();
   static Ref<YAMLResult> parse(const String& input, const bool detect_style = false);
   static Ref<YAMLResult> emit(const Variant& input, const Ref<YAMLStyle>& format);
