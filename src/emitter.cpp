@@ -9,7 +9,6 @@
 #include <godot_cpp/classes/resource.hpp>
 #include <godot_cpp/core/class_db.hpp>
 #include <godot_cpp/variant/typed_array.hpp>
-#include <godot_cpp/variant/utility_functions.hpp>
 
 using namespace godot;
 
@@ -142,7 +141,14 @@ void YAML::Emitter::emit_value(ryml::NodeRef& node, const Variant& value, const 
     case Variant::OBJECT: {
       Object* obj = value.operator Object*();
       if (obj) {
-        emit_object(node, obj, style);
+        VariantConverter* converter = get_converter_for_type(Variant::OBJECT);
+        if (converter) {
+          node.set_val_tag(to_ryml_str(obj->get_class()));
+          converter->encode(node, obj, style);
+          break;
+        }
+        UtilityFunctions::push_error("Cannot get converter for Object");
+        break;
       } else {
         emit_nil(node);
       }
@@ -156,7 +162,8 @@ void YAML::Emitter::emit_value(ryml::NodeRef& node, const Variant& value, const 
         converter->encode(node, value, style);
       } else {
         String type_name = Variant::get_type_name(value.get_type());
-        UtilityFunctions::push_warning(vformat("Unsupported type: %s", type_name));
+        String warning = vformat("Unsupported type: %s", type_name);
+        UtilityFunctions::push_warning(warning);
         emit_nil(node);
       }
       break;
@@ -267,105 +274,12 @@ void YAML::Emitter::emit_dictionary(ryml::NodeRef& node, const Dictionary& dict,
   Array keys = dict.keys();
 
   for (int i = 0; i < keys.size(); i++) {
+    ryml::NodeRef child = node.append_child();
     String key_str = String(keys[i]); // Convert key to string
     ryml::csubstr key_view = to_ryml_str(key_str); // Create view into string data
-
     // DANGER: key_str might be destroyed while key_view still points to its data
-    ryml::NodeRef child = node.append_child();
     child << ryml::key(key_view); // Using potentially dangling pointer!
 
     emit_value(child, dict[keys[i]], style);
-  }
-}
-
-void YAML::Emitter::emit_object(ryml::NodeRef& node, const Object* obj, const YAMLStyle::View& style)
-{
-  // Set class tag
-  String class_name = obj->get_class();
-  node.set_val_tag(to_ryml_str("!" + class_name));
-
-  // Handle resources specially
-  const Resource* res = Object::cast_to<const Resource>(obj);
-  if (res) {
-    emit_resource(node, res, style);
-    return;
-  }
-
-  // For other objects, emit all properties
-  node |= ryml::MAP;
-  emit_object_properties(node, obj, style);
-}
-
-void YAML::Emitter::emit_resource(ryml::NodeRef& node, const Resource* res, const YAMLStyle::View& style)
-{
-  // Check if resource has a path and no local modifications
-  if (!res->get_path().is_empty()) {
-    String path = res->get_path();
-    if (ProjectSettings::get_singleton()->localize_path(path) == path) {
-      // No local modifications - just emit the path
-      node << path.utf8().get_data();
-      return;
-    }
-  }
-
-  // Resource has local modifications - emit as map with path and modified properties
-  node |= ryml::MAP;
-
-  // Store path if exists
-  if (!res->get_path().is_empty()) {
-    ryml::NodeRef path_node = node.append_child();
-    path_node << ryml::key(to_ryml_str("__path__"));
-    path_node << res->get_path().utf8().get_data();
-  }
-
-  emit_object_properties(node, res, style);
-}
-
-void YAML::Emitter::emit_object_properties(ryml::NodeRef& node, const Object* obj, const YAMLStyle::View& style)
-{
-  Dictionary properties = ObjectReflection::get_object_properties(obj);
-  Array prop_names = properties.keys();
-
-  for (int i = 0; i < prop_names.size(); i++) {
-    String prop_name = prop_names[i];
-    Dictionary prop_info = properties[prop_name];
-
-    if (should_serialize_property(prop_info)) {
-      Variant value = obj->get(prop_name);
-      emit_property_value(node, prop_name, value,
-              style.is_valid() ? style.get_child(prop_name) : YAMLStyle::View());
-    }
-  }
-}
-
-void YAML::Emitter::emit_property_value(ryml::NodeRef& node, const String& prop_name,
-        const Variant& value, const YAMLStyle::View& style)
-{
-  ryml::NodeRef child = node.append_child();
-  child << ryml::key(to_ryml_str(prop_name));
-  emit_value(child, value, style);
-}
-
-bool YAML::Emitter::should_serialize_property(const Dictionary& prop_info) const
-{
-  // Sometimes we deal with empty objects
-  if (!prop_info.has("value") || !prop_info.has("type") || !prop_info.has("usage")) {
-    return false;
-  }
-
-  // Skip properties that aren't meant to be stored
-  if (!(int(prop_info["usage"]) & PROPERTY_USAGE_STORAGE)) {
-    return false;
-  }
-
-  // Skip certain types that shouldn't be serialized
-  Variant::Type type = Variant::Type((int)prop_info["type"]);
-  switch (type) {
-    case Variant::CALLABLE:
-    case Variant::SIGNAL:
-    case Variant::RID:
-      return false;
-    default:
-      return true;
   }
 }

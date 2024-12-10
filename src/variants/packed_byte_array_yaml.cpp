@@ -51,9 +51,10 @@ void PackedByteArrayVariantConverter::emit_as_base64(ryml::NodeRef& node, const 
 {
   String base64 = Marshalls::get_singleton()->raw_to_base64(array);
 
-  if (style.is_block_style()) {
+  if (!style.is_valid() || style.is_block_style()) {
     style.apply_scalar_style(node);
     node << ryml::CHOMP_CLIP;
+    node |= ryml::VAL_FOLDED;
     node << format_output(to_ryml_str(base64), BASE64_LINE_LENGTH);
   } else {
     node << to_ryml_str(base64);

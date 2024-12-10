@@ -11,10 +11,6 @@ class NodePathVariantConverter : public VariantConverter {
 
   void encode(ryml::NodeRef& node, const Variant& v, const YAMLStyle::View& style) const override;
   Variant decode(const ryml::ConstNodeRef& node) const override;
-
-  private:
-  void emit_as_string(ryml::NodeRef& node, const NodePath& path) const;
-  Variant decode_from_string(const ryml::csubstr& val) const;
 };
 
 } // namespace godot

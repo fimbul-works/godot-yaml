@@ -1,21 +1,19 @@
 #include "node_path_yaml.h"
 #include "../exception.h"
 
+#include <godot_cpp/variant/utility_functions.hpp>
+
 using namespace godot;
 
 void NodePathVariantConverter::encode(ryml::NodeRef& node, const Variant& v, const YAMLStyle::View& style) const
 {
   const NodePath path = v.operator NodePath();
-  emit_as_string(node, path);
-}
-
-void NodePathVariantConverter::emit_as_string(ryml::NodeRef& node, const NodePath& path) const
-{
-  String str = String(path);
+  const String str = String(path);
   if (str.is_empty()) {
     node << ryml::csubstr {};
   } else {
-    node << str.utf8().get_data();
+    node |= ryml::VAL_DQUO;
+    node << to_ryml_str(str);
   }
 }
 
@@ -30,20 +28,10 @@ Variant NodePathVariantConverter::decode(const ryml::ConstNodeRef& node) const
       throw YAMLException::create_invalid_format("NodePath");
     }
 
-    return decode_from_string(node.val());
+    return NodePath(from_ryml_str(node.val()));
   } catch (const YAMLException&) {
     throw;
   } catch (const std::exception& e) {
     throw YAMLException::create_decode_error("NodePath", e.what());
-  }
-}
-
-Variant NodePathVariantConverter::decode_from_string(const ryml::csubstr& val) const
-{
-  try {
-    String path_str = String::utf8(val.str, val.len);
-    return NodePath(path_str);
-  } catch (const std::exception& e) {
-    throw YAMLException(String("Invalid NodePath format: ") + e.what());
   }
 }
