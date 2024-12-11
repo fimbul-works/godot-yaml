@@ -65,11 +65,22 @@ void YAML::Emitter::error_callback(const char* msg, size_t len, ryml::Location l
   throw YAMLException(emitter->current_result->get_error());
 }
 
+ryml::csubstr YAML::Emitter::store_string(const String& str)
+{
+  UtilityFunctions::print("Storing: ", str);
+  string_storage.push_back(std::string(str.utf8().get_data()));
+  return ryml::to_csubstr(string_storage.back());
+}
+
 void YAML::Emitter::reset()
 {
   tree.clear();
+  tree.reserve(1024);
+  tree.reserve_arena(4096);
+
   current_result = YAMLResult::success(Variant());
   current_style = YAMLStyle::View::create_view();
+  string_storage.clear();
 }
 
 VariantConverter* YAML::Emitter::get_converter_for_type(Variant::Type type) const
@@ -141,14 +152,7 @@ void YAML::Emitter::emit_value(ryml::NodeRef& node, const Variant& value, const 
     case Variant::OBJECT: {
       Object* obj = value.operator Object*();
       if (obj) {
-        VariantConverter* converter = get_converter_for_type(Variant::OBJECT);
-        if (converter) {
-          node.set_val_tag(to_ryml_str(obj->get_class()));
-          converter->encode(node, obj, style);
-          break;
-        }
-        UtilityFunctions::push_error("Cannot get converter for Object");
-        break;
+        emit_object(node, obj, style);
       } else {
         emit_nil(node);
       }
@@ -158,7 +162,7 @@ void YAML::Emitter::emit_value(ryml::NodeRef& node, const Variant& value, const 
     default: {
       VariantConverter* converter = get_converter_for_type(value.get_type());
       if (converter) {
-        node.set_val_tag(to_ryml_str(converter->get_full_tag()));
+        node.set_val_tag(converter->get_full_tag());
         converter->encode(node, value, style);
       } else {
         String type_name = Variant::get_type_name(value.get_type());
@@ -171,12 +175,12 @@ void YAML::Emitter::emit_value(ryml::NodeRef& node, const Variant& value, const 
   }
 
   // Add custom tags last
-  if (style.is_valid() && !style.get_custom_settings().is_empty() && style.get_custom_settings().has("tag") && !node.has_val_tag()) {
-    String tag = style.get_custom_settings()["tag"];
-    if (!tag.is_empty()) {
-      node.set_val_tag(to_ryml_str("!" + tag));
-    }
-  }
+  // if (style.is_valid() && !style.get_custom_settings().is_empty() && style.get_custom_settings().has("tag") && !node.has_val_tag()) {
+  //   String tag = style.get_custom_settings()["tag"];
+  //   if (!tag.is_empty()) {
+  //     node.set_val_tag(store_string("!" + tag));
+  //   }
+  // }
 }
 
 void YAML::Emitter::emit_nil(ryml::NodeRef& node)
@@ -275,11 +279,115 @@ void YAML::Emitter::emit_dictionary(ryml::NodeRef& node, const Dictionary& dict,
 
   for (int i = 0; i < keys.size(); i++) {
     ryml::NodeRef child = node.append_child();
-    String key_str = String(keys[i]); // Convert key to string
-    ryml::csubstr key_view = to_ryml_str(key_str); // Create view into string data
-    // DANGER: key_str might be destroyed while key_view still points to its data
-    child << ryml::key(key_view); // Using potentially dangling pointer!
-
+    child << ryml::key(store_string(keys[i]));
+    // child << ryml::key(keys[i]);
     emit_value(child, dict[keys[i]], style);
+  }
+}
+
+void YAML::Emitter::emit_object(ryml::NodeRef& node, const Variant& v, const YAMLStyle::View& style)
+{
+  Object* obj = v.operator Object*();
+  if (!obj) {
+    UtilityFunctions::push_warning("YAML: Encoding ", v, " into Object has failed");
+    node << ryml::csubstr {};
+  }
+
+  // Set class tag
+  String class_name = obj->get_class();
+  std::string full_tag = "!" + std::string(class_name.utf8().get_data());
+  node.set_val_tag(ryml::to_csubstr(full_tag));
+
+  // Handle resources specially
+  const Resource* res = Object::cast_to<const Resource>(obj);
+  if (res) {
+    emit_resource(node, res, style);
+    return;
+  }
+
+  // For other objects, emit all properties
+  node |= ryml::MAP;
+
+  UtilityFunctions::print("Emitting Object of type ", class_name);
+
+  emit_object_properties(node, obj, style);
+}
+
+void YAML::Emitter::emit_resource(ryml::NodeRef& node, const Resource* res, const YAMLStyle::View& style)
+{
+  String path = res->get_path();
+
+  // Check if resource has a path and no local modifications
+  if (!path.is_empty() && ProjectSettings::get_singleton()->localize_path(path) == path) {
+    // No local modifications - just emit the path
+    node << ryml::VAL_DQUO;
+    node << to_ryml_str(path);
+    return;
+  }
+
+  // Resource has local modifications - emit as map with path and modified properties
+  node |= ryml::MAP;
+
+  // Store path if exists
+  if (!path.is_empty()) {
+    ryml::NodeRef path_node = node.append_child();
+    path_node << ryml::key(to_ryml_str("path"));
+    path_node |= ryml::VAL_DQUO;
+    path_node << to_ryml_str(path);
+  }
+
+  emit_object_properties(node, res, style);
+}
+
+void YAML::Emitter::emit_object_properties(ryml::NodeRef& node, const Object* obj, const YAMLStyle::View& style)
+{
+  String class_name = obj->get_class();
+  UtilityFunctions::print("Encoding properties of ", class_name);
+
+  Dictionary properties = ObjectReflection::get_object_properties(obj);
+  Array prop_names = properties.keys();
+
+  for (int i = 0; i < prop_names.size(); i++) {
+    String prop_name = prop_names[i];
+    Dictionary prop_info = properties[prop_name];
+
+    if (should_serialize_property(prop_info)) {
+      Variant value = obj->get(prop_name);
+      UtilityFunctions::print("  - ", prop_name, ": ", value);
+      emit_property_value(node, prop_name, value,
+              style.is_valid() ? style.get_child(prop_name) : YAMLStyle::View());
+    }
+  }
+}
+
+void YAML::Emitter::emit_property_value(ryml::NodeRef& node, const String& prop_name, const Variant& value, const YAMLStyle::View& style)
+{
+  ryml::NodeRef child = node.append_child();
+  child << ryml::key(to_ryml_str(prop_name));
+  child << "TODO: emit property value";
+  //emit_value(child, value, style);
+}
+
+bool YAML::Emitter::should_serialize_property(const Dictionary& prop_info)
+{
+  // Sometimes we deal with empty objects
+  if (!prop_info.has("value") || !prop_info.has("type") || !prop_info.has("usage")) {
+    return false;
+  }
+
+  // Skip properties that aren't meant to be stored
+  if (!(int(prop_info["usage"]) & PROPERTY_USAGE_STORAGE)) {
+    return false;
+  }
+
+  // Skip certain types that shouldn't be serialized
+  Variant::Type type = Variant::Type((int)prop_info["type"]);
+  switch (type) {
+    case Variant::CALLABLE:
+    case Variant::SIGNAL:
+    case Variant::RID:
+      return false;
+    default:
+      return true;
   }
 }

@@ -51,6 +51,12 @@ class YAML::Emitter {
   VariantConverter* get_converter_for_type(Variant::Type type) const;
   VariantConverter* get_converter_for_tag(const String& tag) const;
 
+  // Keep string data alive for the duration of emission
+  std::vector<std::string> string_storage;
+
+  // Helper to store a string and get a safe view
+  ryml::csubstr store_string(const String& str);
+
   void reset();
 
   // Core emission methods
@@ -61,7 +67,12 @@ class YAML::Emitter {
   void emit_string(ryml::NodeRef& node, const String& value, const YAMLStyle::View& style);
   void emit_array(ryml::NodeRef& node, const Array& array, const YAMLStyle::View& style);
   void emit_dictionary(ryml::NodeRef& node, const Dictionary& dict, const YAMLStyle::View& style);
-  void emit_comment(ryml::NodeRef& node, String& comment);
+
+  void emit_object(ryml::NodeRef& node, const Variant& v, const YAMLStyle::View& style);
+  void emit_resource(ryml::NodeRef& node, const Resource* res, const YAMLStyle::View& style);
+  void emit_object_properties(ryml::NodeRef& node, const Object* obj, const YAMLStyle::View& style);
+  void emit_property_value(ryml::NodeRef& node, const String& prop_name, const Variant& value, const YAMLStyle::View& style);
+  bool should_serialize_property(const Dictionary& prop_info);
 };
 
 } // namespace godot

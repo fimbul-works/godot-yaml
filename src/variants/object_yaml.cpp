@@ -8,6 +8,8 @@
 #include <godot_cpp/variant/typed_array.hpp>
 #include <godot_cpp/variant/utility_functions.hpp>
 
+#include <memory>
+
 using namespace godot;
 
 void ObjectVariantConverter::encode(ryml::NodeRef& node, const Variant& v, const YAMLStyle::View& style) const
@@ -20,9 +22,7 @@ void ObjectVariantConverter::encode(ryml::NodeRef& node, const Variant& v, const
 
   // Set class tag
   String class_name = obj->get_class();
-  UtilityFunctions::print("Encode Object of class ", class_name);
-
-  node.set_val_tag(to_ryml_str("!" + class_name));
+  node.set_val_tag(store_string(class_name.utf8().get_data()));
 
   // Handle resources specially
   const Resource* res = Object::cast_to<const Resource>(obj);
@@ -45,8 +45,6 @@ void ObjectVariantConverter::emit_resource(ryml::NodeRef& node, const Resource* 
 
   // Check if resource has a path and no local modifications
   if (!path.is_empty() && ProjectSettings::get_singleton()->localize_path(path) == path) {
-    UtilityFunctions::print("Emitting Resource of type ", res->get_class());
-
     // No local modifications - just emit the path
     node << ryml::VAL_DQUO;
     node << to_ryml_str(path);
@@ -59,7 +57,7 @@ void ObjectVariantConverter::emit_resource(ryml::NodeRef& node, const Resource* 
   // Store path if exists
   if (!path.is_empty()) {
     ryml::NodeRef path_node = node.append_child();
-    path_node << ryml::key(to_ryml_str("resource_path"));
+    path_node << ryml::key(to_ryml_str("path"));
     path_node |= ryml::VAL_DQUO;
     path_node << to_ryml_str(path);
   }
@@ -138,6 +136,7 @@ Variant ObjectVariantConverter::decode(const ryml::ConstNodeRef& node) const
       throw YAMLException::create_invalid_format(class_name.utf8().get_data());
     }
 
+    return Variant();
   } catch (const YAMLException&) {
     throw;
   } catch (const std::exception& e) {
