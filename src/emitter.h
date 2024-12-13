@@ -39,7 +39,6 @@ class YAML::Emitter {
 
   // Current state
   Ref<YAMLResult> current_result;
-  YAMLStyle::View current_style;
 
   // Error handling
   static void error_callback(const char* msg, size_t len, ryml::Location loc, void* user_data);
@@ -52,12 +51,10 @@ class YAML::Emitter {
   VariantConverter* get_converter_for_tag(const String& tag) const;
 
   // Keep string data alive for the duration of emission
-  std::vector<std::string> string_storage;
+  std::set<std::string> string_storage;
 
   // Helper to store a string and get a safe view
   ryml::csubstr store_string(const String& str);
-
-  void reset();
 
   // Core emission methods
   void emit_value(ryml::NodeRef& node, const Variant& value, const YAMLStyle::View& style);

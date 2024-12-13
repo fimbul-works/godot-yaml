@@ -67,20 +67,8 @@ void YAML::Emitter::error_callback(const char* msg, size_t len, ryml::Location l
 
 ryml::csubstr YAML::Emitter::store_string(const String& str)
 {
-  UtilityFunctions::print("Storing: ", str);
-  string_storage.push_back(std::string(str.utf8().get_data()));
-  return ryml::to_csubstr(string_storage.back());
-}
-
-void YAML::Emitter::reset()
-{
-  tree.clear();
-  tree.reserve(1024);
-  tree.reserve_arena(4096);
-
-  current_result = YAMLResult::success(Variant());
-  current_style = YAMLStyle::View::create_view();
-  string_storage.clear();
+  auto [it, _] = string_storage.insert(str.utf8().get_data());
+  return ryml::to_csubstr(*it);
 }
 
 VariantConverter* YAML::Emitter::get_converter_for_type(Variant::Type type) const
@@ -98,8 +86,7 @@ VariantConverter* YAML::Emitter::get_converter_for_tag(const String& tag) const
 Ref<YAMLResult> YAML::Emitter::emit(const Variant& input, const YAMLStyle::View& style)
 {
   try {
-    reset();
-    current_style = style;
+    current_result = YAMLResult::success(Variant());
 
     // Emit value into tree
     emit_value(tree.rootref(), input, style);
@@ -295,8 +282,7 @@ void YAML::Emitter::emit_object(ryml::NodeRef& node, const Variant& v, const YAM
 
   // Set class tag
   String class_name = obj->get_class();
-  std::string full_tag = "!" + std::string(class_name.utf8().get_data());
-  node.set_val_tag(ryml::to_csubstr(full_tag));
+  node.set_val_tag(store_string("!" + class_name));
 
   // Handle resources specially
   const Resource* res = Object::cast_to<const Resource>(obj);
@@ -364,8 +350,7 @@ void YAML::Emitter::emit_property_value(ryml::NodeRef& node, const String& prop_
 {
   ryml::NodeRef child = node.append_child();
   child << ryml::key(to_ryml_str(prop_name));
-  child << "TODO: emit property value";
-  //emit_value(child, value, style);
+  emit_value(child, value, style);
 }
 
 bool YAML::Emitter::should_serialize_property(const Dictionary& prop_info)
