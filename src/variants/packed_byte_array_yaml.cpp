@@ -39,24 +39,30 @@ void PackedByteArrayVariantConverter::emit_as_hex(ryml::NodeRef& node, const Pac
     hex_str.push_back(hex_chars[byte & 0xF]);
   }
 
-  if (style.is_block_style()) {
+  if (style.is_valid()) {
     style.apply_scalar_style(node);
-    node << format_output(ryml::csubstr(hex_str.data(), hex_str.size()), HEX_LINE_LENGTH);
   } else {
-    node << ryml::csubstr(hex_str.data(), hex_str.size());
+    if (array.size() > HEX_LINE_LENGTH) {
+      node << ryml::SCALAR_LITERAL;
+    }
   }
+
+  node << format_output(ryml::csubstr(hex_str.data(), hex_str.size()), HEX_LINE_LENGTH);
 }
 
 void PackedByteArrayVariantConverter::emit_as_base64(ryml::NodeRef& node, const PackedByteArray& array, const YAMLStyle::View& style) const
 {
   String base64 = Marshalls::get_singleton()->raw_to_base64(array);
 
-  if (!style.is_valid() || style.is_block_style()) {
+  if (style.is_valid()) {
     style.apply_scalar_style(node);
-    node << format_output(to_ryml_str(base64), BASE64_LINE_LENGTH);
   } else {
-    node << to_ryml_str(base64);
+    if (base64.length() > BASE64_LINE_LENGTH) {
+      node << ryml::SCALAR_LITERAL;
+    }
   }
+
+  node << format_output(to_ryml_str(base64), BASE64_LINE_LENGTH);
 }
 
 Variant PackedByteArrayVariantConverter::decode(const ryml::ConstNodeRef& node) const

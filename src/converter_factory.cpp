@@ -4,7 +4,6 @@
 #include "variants/basis_yaml.h"
 #include "variants/color_yaml.h"
 #include "variants/node_path_yaml.h"
-#include "variants/object_yaml.h"
 #include "variants/packed_byte_array_yaml.h"
 #include "variants/packed_color_array_yaml.h"
 #include "variants/packed_float32_array_yaml.h"
@@ -42,8 +41,6 @@ std::unique_ptr<VariantConverter> ConverterFactory::create_converter(Variant::Ty
       return std::make_unique<ColorVariantConverter>();
     case Variant::NODE_PATH:
       return std::make_unique<NodePathVariantConverter>();
-    case Variant::OBJECT:
-      return std::make_unique<ObjectVariantConverter>();
     case Variant::PACKED_BYTE_ARRAY:
       return std::make_unique<PackedByteArrayVariantConverter>();
     case Variant::PACKED_COLOR_ARRAY:
@@ -108,7 +105,6 @@ std::unordered_map<Variant::Type, std::unique_ptr<VariantConverter>> ConverterFa
   converters[Variant::BASIS] = create_converter(Variant::BASIS);
   converters[Variant::COLOR] = create_converter(Variant::COLOR);
   converters[Variant::NODE_PATH] = create_converter(Variant::NODE_PATH);
-  converters[Variant::OBJECT] = create_converter(Variant::OBJECT);
   converters[Variant::PACKED_BYTE_ARRAY] = create_converter(Variant::PACKED_BYTE_ARRAY);
   converters[Variant::PACKED_COLOR_ARRAY] = create_converter(Variant::PACKED_COLOR_ARRAY);
   converters[Variant::PACKED_FLOAT32_ARRAY] = create_converter(Variant::PACKED_FLOAT32_ARRAY);
@@ -158,8 +154,6 @@ Variant::Type ConverterFactory::get_type_for_tag(const String& tag)
     return Variant::COLOR;
   if (tag.match(NodePathVariantConverter::TAG))
     return Variant::NODE_PATH;
-  if (tag.match(ObjectVariantConverter::TAG))
-    return Variant::OBJECT;
   if (tag.match(PackedByteArrayVariantConverter::TAG))
     return Variant::PACKED_BYTE_ARRAY;
   if (tag.match(PackedColorArrayVariantConverter::TAG))

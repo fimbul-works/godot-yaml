@@ -267,8 +267,7 @@ void YAML::Emitter::emit_dictionary(ryml::NodeRef& node, const Dictionary& dict,
   for (int i = 0; i < keys.size(); i++) {
     ryml::NodeRef child = node.append_child();
     child << ryml::key(store_string(keys[i]));
-    // child << ryml::key(keys[i]);
-    emit_value(child, dict[keys[i]], style);
+    emit_value(child, dict[keys[i]], style.get_child(String(keys[i])));
   }
 }
 
@@ -280,21 +279,25 @@ void YAML::Emitter::emit_object(ryml::NodeRef& node, const Variant& v, const YAM
     node << ryml::csubstr {};
   }
 
-  // Set class tag
   String class_name = obj->get_class();
-  node.set_val_tag(store_string("!" + class_name));
 
   // Handle resources specially
   const Resource* res = Object::cast_to<const Resource>(obj);
   if (res) {
+    node.set_val_tag(store_string("!" + class_name));
     emit_resource(node, res, style);
     return;
   }
 
+  // FIXME: Disable emitting class types
+  emit_nil(node);
+  UtilityFunctions::push_warning("YAML: Cannot emit class " + class_name);
+  return;
+
+  node.set_val_tag(store_string("!" + class_name));
+
   // For other objects, emit all properties
   node |= ryml::MAP;
-
-  UtilityFunctions::print("Emitting Object of type ", class_name);
 
   emit_object_properties(node, obj, style);
 }
@@ -302,20 +305,28 @@ void YAML::Emitter::emit_object(ryml::NodeRef& node, const Variant& v, const YAM
 void YAML::Emitter::emit_resource(ryml::NodeRef& node, const Resource* res, const YAMLStyle::View& style)
 {
   String path = res->get_path();
+  bool has_path = !path.is_empty();
+  bool is_local = res->is_local_to_scene();
 
   // Check if resource has a path and no local modifications
-  if (!path.is_empty() && ProjectSettings::get_singleton()->localize_path(path) == path) {
+  if (has_path && ProjectSettings::get_singleton()->localize_path(path) == path) {
     // No local modifications - just emit the path
     node << ryml::VAL_DQUO;
     node << to_ryml_str(path);
     return;
   }
 
+  // FIXME: Disable emitting local Resource types
+  node.set_val_tag("");
+  emit_nil(node);
+  UtilityFunctions::push_warning("YAML: Cannot emit local Resource types");
+  return;
+
   // Resource has local modifications - emit as map with path and modified properties
   node |= ryml::MAP;
 
   // Store path if exists
-  if (!path.is_empty()) {
+  if (has_path) {
     ryml::NodeRef path_node = node.append_child();
     path_node << ryml::key(to_ryml_str("path"));
     path_node |= ryml::VAL_DQUO;
@@ -328,7 +339,6 @@ void YAML::Emitter::emit_resource(ryml::NodeRef& node, const Resource* res, cons
 void YAML::Emitter::emit_object_properties(ryml::NodeRef& node, const Object* obj, const YAMLStyle::View& style)
 {
   String class_name = obj->get_class();
-  UtilityFunctions::print("Encoding properties of ", class_name);
 
   Dictionary properties = ObjectReflection::get_object_properties(obj);
   Array prop_names = properties.keys();
@@ -339,7 +349,6 @@ void YAML::Emitter::emit_object_properties(ryml::NodeRef& node, const Object* ob
 
     if (should_serialize_property(prop_info)) {
       Variant value = obj->get(prop_name);
-      UtilityFunctions::print("  - ", prop_name, ": ", value);
       emit_property_value(node, prop_name, value,
               style.is_valid() ? style.get_child(prop_name) : YAMLStyle::View());
     }

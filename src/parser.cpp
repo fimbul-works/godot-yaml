@@ -2,6 +2,8 @@
 #include "converter_factory.h"
 #include "util_numeric.h"
 
+#include <godot_cpp/classes/resource.hpp>
+#include <godot_cpp/classes/resource_loader.hpp>
 #include <godot_cpp/variant/utility_functions.hpp>
 
 using namespace godot;
@@ -291,7 +293,90 @@ std::optional<Variant> YAML::Parser::try_parse_tagged_value(const ryml::ConstNod
     return converter->decode(node);
   }
 
-  return std::nullopt;
+  // Check if this is a registered class name
+  if (ClassDB::class_exists(tag)) {
+    return parse_object_or_resource(node, tag);
+  }
+
+  return Variant();
+}
+
+Variant YAML::Parser::parse_object_or_resource(const ryml::ConstNodeRef& node, const String& class_name) const
+{
+  // If the node contains just a string value, it might be a resource path
+  if (node.has_val() && !node.is_map() && !node.is_seq()) {
+    String path = from_ryml_str(node.val());
+    if (path.begins_with("res://") || path.begins_with("user://")) {
+      return load_resource(path);
+    }
+  }
+
+  // Otherwise, treat it as an inline object/resource definition
+  if (!node.is_map()) {
+    ERR_PRINT(vformat("Invalid node format for class %s - expected map", class_name));
+    return Variant();
+  }
+
+  // Instantiate the object
+  Object* obj = ClassDB::instantiate(class_name);
+  if (!obj) {
+    ERR_PRINT(vformat("Failed to instantiate class: %s", class_name));
+    return Variant();
+  }
+
+  // Process the object's properties
+  bool success = populate_object_properties(obj, node);
+  if (!success) {
+    memdelete(obj);
+    return Variant();
+  }
+
+  // Handle Resources vs regular Objects
+  if (Object::cast_to<Resource>(obj)) {
+    // For Resources, return a Ref<Resource>
+    Ref<Resource> ref(Object::cast_to<Resource>(obj));
+    return ref;
+  } else {
+    // For regular Objects, return the raw pointer
+    // The owner of the returned Variant is responsible for cleanup
+    return obj;
+  }
+}
+
+Variant YAML::Parser::load_resource(const String& path) const
+{
+  ResourceLoader* loader = ResourceLoader::get_singleton();
+  if (!loader) {
+    ERR_PRINT("ResourceLoader singleton not available");
+    return Variant();
+  }
+
+  Ref<Resource> resource = loader->load(path);
+  if (!resource.is_valid()) {
+    ERR_PRINT(vformat("Failed to load resource from path: %s", path));
+    return Variant();
+  }
+
+  return resource;
+}
+
+bool YAML::Parser::populate_object_properties(Object* obj, const ryml::ConstNodeRef& node) const
+{
+  for (const auto& child : node.children()) {
+    String key = from_ryml_str(child.key());
+    Variant value = process_node(child);
+
+    // Skip null values
+    if (value.get_type() == Variant::NIL) {
+      continue;
+    }
+
+    // Try to set the property
+    UtilityFunctions::print("Set ", key, "=", value);
+    obj->set(key, value);
+  }
+
+  return true;
 }
 
 String YAML::Parser::extract_tag(const ryml::ConstNodeRef& node) const

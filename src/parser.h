@@ -61,6 +61,11 @@ class YAML::Parser {
   std::optional<Variant> try_parse_numeric_value(const String& str_val, const ryml::csubstr& val) const;
   String extract_tag(const ryml::ConstNodeRef& node) const;
 
+  // Object type handlers
+  Variant parse_object_or_resource(const ryml::ConstNodeRef& node, const String& class_name) const;
+  Variant load_resource(const String& path) const;
+  bool populate_object_properties(Object* obj, const ryml::ConstNodeRef& node) const;
+
   // Style detection methods
   void detect_node_style(const ryml::ConstNodeRef& node);
   void detect_scalar_style(const ryml::ConstNodeRef& node, const Ref<YAMLStyle>& style);
