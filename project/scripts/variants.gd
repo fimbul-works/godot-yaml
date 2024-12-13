@@ -1,43 +1,19 @@
-extends Node2D
+extends Node
+
+@export var local_resource: Resource
+@export var sprite: Sprite2D
+
+@export var is_enabled: bool = true
 
 func _ready():
-	var file = FileAccess.open("res://yaml_data/comprehensive.yaml", FileAccess.READ)
-	var yaml_input = file.get_as_text().replace("\t", "    ") # TODO
-
-	return
-	# Show version information
-	print(YAML.version())
-
-	# Test parsing
-	var dict = test_parsing(yaml_input)
-	if !dict:
-		printerr("Parsing failed. Bummer!")
+	if !is_enabled:
 		return
-
-	# Test emitting
-	var yaml = test_emitting(dict)
-	if !yaml:
-		printerr("Emitting failed. Bogus!")
-		return
-
-	# Test variant conversions
-	test_variants()
-
-func test_parsing(input: String) -> Variant:
-	return time_call(func():
-		return YAML.parse(input)
-	, "Parsing")
-
-func test_emitting(input: Variant) -> Variant:
-	return time_call(func():
-		return YAML.emit(input)
-	, "Emitting")
-
-func test_variants():
+	## Test variant conversions
 	var variant_dict = get_variant_dict()
 
 	for key in variant_dict.keys():
 		var original_value = variant_dict[key]
+		print("OG: ", original_value)
 		var eres = YAML.emit(original_value)
 		if eres.has_error():
 			printerr(key, " emit error: ", eres.get_error())
@@ -68,22 +44,6 @@ func test_variants():
 	var parsed_dict = parse_result.get_error() if parse_result.has_error() else parse_result.get_data()
 	print_rich("[b]Variants after decoding:[/b]\n" + JSON.stringify(parsed_dict, "  ", false))
 
-## Time a function call for performance
-func time_call(fn: Callable, label: String = "Operation") -> Variant:
-	var start = Time.get_ticks_usec()
-	var result = fn.call()
-	var elapsed = Time.get_ticks_usec() - start
-	if result.has_error():
-		printerr("%s failed: " % label, result.get_error())
-		return
-	var data = result.get_data()
-	if typeof(data) == TYPE_STRING:
-		print_rich("[b]%s Output:[/b]\n" % label, data)
-	else:
-		print_rich("[b]%s Output:[/b]\n" % label, JSON.stringify(data, "  ", false))
-	print_rich("[i]Operation completed in %d microseconds[/i]\n" % elapsed)
-	return data
-
 func get_variant_dict():
 	return {
 		"aabb": AABB(Vector3(0, 1, 2), Vector3(3, 4, 5)),
@@ -106,7 +66,9 @@ func get_variant_dict():
 		"rect2": Rect2(1, 2, 3, 4),
 		"rect2i": Rect2i(5, 6, 7, 8),
 		"resource": ResourceLoader.load("res://test_resource.tres"),
+		#"local_resource": local_resource,
 		"string_name": &"string name",
+		"sprite": sprite,
 		"transform2d": Transform2D(Vector2(0, 1), Vector2(2, 3), Vector2(4, 5)),
 		"transform3d": Transform3D(Vector3(0, 1, 2), Vector3(3, 4, 5), Vector3(6, 7, 8), Vector3(9, 10, 11)),
 		"vector2": Vector2(9, 10),

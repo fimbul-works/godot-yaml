@@ -1,5 +1,7 @@
 [gd_resource type="Curve" format=3 uid="uid://j3m027l58hox"]
 
 [resource]
-_data = [Vector2(0, 0), 0.0, 0.0, 0, 0, Vector2(0.509524, 1), 0.0, 0.0, 0, 0, Vector2(1, 0.516483), 0.0, 0.0, 0, 0]
+resource_local_to_scene = true
+min_value = -141.94
+_data = [Vector2(0.0421053, -141.94), 0.0, 0.0, 0, 0, Vector2(0.494737, -41.4108), -94.2462, -94.2462, 0, 0, Vector2(1, 0.516483), 0.0, 0.0, 0, 0]
 point_count = 3
