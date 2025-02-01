@@ -23,7 +23,7 @@ class YAML : public RefCounted {
 
   static String version();
   static Ref<YAMLResult> parse(const String& input, const bool detect_style = false);
-  static Ref<YAMLResult> emit(const Variant& input, const Ref<YAMLStyle>& format);
+  static Ref<YAMLResult> stringify(const Variant& input, const Ref<YAMLStyle>& format);
   static Ref<YAMLStyle> create_style();
 };
 

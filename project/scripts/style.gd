@@ -14,7 +14,7 @@ func _ready():
 		return
 	var data = parse_res.get_data()
 	var style = parse_res.get_style()
-	
+
 	#print(style.get_debug_string())
 
 	var emit_result = YAML.emit(data)

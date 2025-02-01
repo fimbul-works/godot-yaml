@@ -428,6 +428,20 @@ void YAML::Parser::detect_node_style(const ryml::ConstNodeRef& node)
     }
   }
 
+  detect_node_style_internal(node, current_style);
+}
+
+void YAML::Parser::detect_node_style(const ryml::ConstNodeRef& node, const Ref<YAMLStyle>& target_style)
+{
+  if (!detect_style || !target_style.is_valid()) {
+    return;
+  }
+
+  detect_node_style_internal(node, target_style);
+}
+
+void YAML::Parser::detect_node_style_internal(const ryml::ConstNodeRef& node, const Ref<YAMLStyle>& current_style)
+{
   // Detect styles for this node
   detect_scalar_style(node, current_style);
   detect_container_form(node, current_style);
@@ -440,22 +454,79 @@ void YAML::Parser::detect_node_style(const ryml::ConstNodeRef& node)
       auto new_path = current_path;
       new_path.push_back(key);
       current_path = new_path;
-      detect_node_style(child);
+      detect_node_style(child); // Use original method for path-based detection
       current_path.pop_back();
     }
   }
   // For sequence nodes, use indices as path elements
   else if (node.is_seq()) {
+    // First detect template style if needed
+    detect_array_template_style(node, current_path.empty() ? "_template" : current_path.back(), current_style);
+
+    // Then process each element
     int index = 0;
     for (const auto& child : node.children()) {
       auto new_path = current_path;
       new_path.push_back(std::to_string(index++));
       current_path = new_path;
-      detect_node_style(child);
+      detect_node_style(child); // Use original method for path-based detection
       current_path.pop_back();
     }
   }
 }
+
+// void YAML::Parser::detect_node_style(const ryml::ConstNodeRef& node)
+// {
+//   if (!detect_style || !style.is_valid()) {
+//     return;
+//   }
+
+//   // Get or create style for current path
+//   Ref<YAMLStyle> current_style;
+
+//   if (current_path.empty()) {
+//     current_style = style; // Use root style
+//   } else {
+//     // Navigate to current path
+//     current_style = style;
+//     for (const auto& path_element : current_path) {
+//       Ref<YAMLStyle> child = current_style->get_child(String(path_element.c_str()));
+//       if (!child.is_valid()) {
+//         child.instantiate();
+//         current_style->set_child(String(path_element.c_str()), child);
+//       }
+//       current_style = child;
+//     }
+//   }
+
+//   // Detect styles for this node
+//   detect_scalar_style(node, current_style);
+//   detect_container_form(node, current_style);
+//   detect_anchor_style(node, current_style);
+
+//   // For map nodes, process children with updated path
+//   if (node.is_map()) {
+//     for (const auto& child : node.children()) {
+//       std::string key(child.key().str, child.key().len);
+//       auto new_path = current_path;
+//       new_path.push_back(key);
+//       current_path = new_path;
+//       detect_node_style(child);
+//       current_path.pop_back();
+//     }
+//   }
+//   // For sequence nodes, use indices as path elements
+//   else if (node.is_seq()) {
+//     int index = 0;
+//     for (const auto& child : node.children()) {
+//       auto new_path = current_path;
+//       new_path.push_back(std::to_string(index++));
+//       current_path = new_path;
+//       detect_node_style(child);
+//       current_path.pop_back();
+//     }
+//   }
+// }
 
 void YAML::Parser::detect_scalar_style(const ryml::ConstNodeRef& node, const Ref<YAMLStyle>& style)
 {
@@ -532,4 +603,30 @@ void YAML::Parser::detect_anchor_style(const ryml::ConstNodeRef& node, const Ref
   if (!custom_settings.is_empty()) {
     style->custom_settings = custom_settings;
   }
+}
+
+void YAML::Parser::detect_array_template_style(const ryml::ConstNodeRef& node, const std::string& key, Ref<YAMLStyle> current_style)
+{
+  if (!detect_style || !current_style.is_valid() || !node.is_seq() || node.num_children() == 0) {
+    return;
+  }
+
+  // Create template style for the first element
+  Ref<YAMLStyle> template_style;
+  template_style.instantiate();
+
+  // Save current path
+  auto saved_path = current_path;
+
+  // Clear path for template detection to avoid nesting
+  current_path.clear();
+
+  // Detect style from first element
+  detect_node_style(node[0], template_style);
+
+  // Store template in parent style
+  current_style->set_child("_template", template_style);
+
+  // Restore path
+  current_path = saved_path;
 }

@@ -16,7 +16,7 @@ void YAML::_bind_methods()
 {
   ClassDB::bind_static_method("YAML", D_METHOD("version"), &YAML::version);
   ClassDB::bind_static_method("YAML", D_METHOD("parse", "input", "detect_style"), &YAML::parse, DEFVAL(false));
-  ClassDB::bind_static_method("YAML", D_METHOD("emit", "input", "style"), &YAML::emit, DEFVAL(Variant()));
+  ClassDB::bind_static_method("YAML", D_METHOD("stringify", "input", "style"), &YAML::stringify, DEFVAL(Variant()));
   ClassDB::bind_static_method("YAML", D_METHOD("create_style"), &YAML::create_style);
 }
 
@@ -37,7 +37,7 @@ Ref<YAMLResult> YAML::parse(const String& input, const bool detect_style)
   return result;
 }
 
-Ref<YAMLResult> YAML::emit(const Variant& input, const Ref<YAMLStyle>& style)
+Ref<YAMLResult> YAML::stringify(const Variant& input, const Ref<YAMLStyle>& style)
 {
   Emitter emitter;
   YAMLStyle::View style_view = YAMLStyle::View::create_view(style);

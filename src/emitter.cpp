@@ -162,12 +162,12 @@ void YAML::Emitter::emit_value(ryml::NodeRef& node, const Variant& value, const 
   }
 
   // Add custom tags last
-  // if (style.is_valid() && !style.get_custom_settings().is_empty() && style.get_custom_settings().has("tag") && !node.has_val_tag()) {
-  //   String tag = style.get_custom_settings()["tag"];
-  //   if (!tag.is_empty()) {
-  //     node.set_val_tag(store_string("!" + tag));
-  //   }
-  // }
+  if (style.is_valid() && !style.get_custom_settings().is_empty() && style.get_custom_settings().has("tag") && !node.has_val_tag()) {
+    String tag = style.get_custom_settings()["tag"];
+    if (!tag.is_empty()) {
+      node.set_val_tag(store_string("!" + tag));
+    }
+  }
 }
 
 void YAML::Emitter::emit_nil(ryml::NodeRef& node)
@@ -206,26 +206,25 @@ void YAML::Emitter::emit_string(ryml::NodeRef& node, const String& value, const 
     style.apply_scalar_style(node);
     style.apply_quote_style(node);
   } else {
-    // TODO: bring this back with sensible defaults
-    // // Auto-detect appropriate scalar style
-    // if (value.contains("\n")) {
-    //   node |= ryml::BLOCK;
-    //   // If the string has significant whitespace or ends with newlines,
-    //   // use literal style, otherwise use folded
-    //   if (value.ends_with("\n") || value.contains("  ")) {
-    //     node |= ryml::VAL_LITERAL;
-    //   } else {
-    //     node |= ryml::VAL_FOLDED;
-    //   }
-    // } else if (needs_block_style(value)) {
-    //   node |= ryml::BLOCK;
-    // }
-    // // Auto-detect quotes for non-block strings
-    // if (!node.is_block()) {
-    //   if (needs_quotes(value)) {
-    //     node |= ryml::VAL_DQUO;
-    //   }
-    // }
+    // Auto-detect appropriate scalar style
+    if (value.contains("\n")) {
+      node |= ryml::BLOCK;
+      // If the string has significant whitespace or ends with newlines,
+      // use literal style, otherwise use folded
+      if (value.ends_with("\n") || value.contains("  ")) {
+        node |= ryml::VAL_LITERAL;
+      } else {
+        node |= ryml::VAL_FOLDED;
+      }
+    } else if (needs_block_style(value)) {
+      node |= ryml::BLOCK;
+    }
+    // Auto-detect quotes for non-block strings
+    if (!node.is_block()) {
+      if (needs_quotes(value)) {
+        node |= ryml::VAL_DQUO;
+      }
+    }
   }
 
   node << to_ryml_str(value);
@@ -239,20 +238,21 @@ void YAML::Emitter::emit_array(ryml::NodeRef& node, const Array& array, const YA
     return;
   }
 
-  if (style.is_valid() && style.get_container_form() == YAMLStyle::FORM_SEQ) {
+  if (style.is_valid()) {
     style.apply_flow_style(node);
   }
 
-  // Get shared item style if available
+  // Get template style and shared item style
+  YAMLStyle::View template_style = style.is_valid() ? style.get_template_style() : YAMLStyle::View();
   YAMLStyle::View shared_style = style.is_valid() ? style.get_child("_items") : YAMLStyle::View();
 
   for (int i = 0; i < array.size(); i++) {
-    // Check for individual item style, fall back to shared style
+    // Check for individual item style, fall back to template, then shared style
     YAMLStyle::View item_style;
     if (style.is_valid()) {
       item_style = style.get_child(String::num_int64(i));
       if (!item_style.is_valid()) {
-        item_style = shared_style;
+        item_style = template_style.is_valid() ? template_style : shared_style;
       }
     }
     emit_value(node.append_child(), array[i], item_style);
@@ -276,7 +276,8 @@ void YAML::Emitter::emit_object(ryml::NodeRef& node, const Variant& v, const YAM
   Object* obj = v.operator Object*();
   if (!obj) {
     UtilityFunctions::push_warning("YAML: Encoding ", v, " into Object has failed");
-    node << ryml::csubstr {};
+    emit_nil(node);
+    return;
   }
 
   String class_name = obj->get_class();
@@ -289,17 +290,9 @@ void YAML::Emitter::emit_object(ryml::NodeRef& node, const Variant& v, const YAM
     return;
   }
 
-  // FIXME: Disable emitting class types
+  // Disable emitting class types
   emit_nil(node);
   UtilityFunctions::push_warning("YAML: Cannot emit class " + class_name);
-  return;
-
-  node.set_val_tag(store_string("!" + class_name));
-
-  // For other objects, emit all properties
-  node |= ryml::MAP;
-
-  emit_object_properties(node, obj, style);
 }
 
 void YAML::Emitter::emit_resource(ryml::NodeRef& node, const Resource* res, const YAMLStyle::View& style)
@@ -309,79 +302,15 @@ void YAML::Emitter::emit_resource(ryml::NodeRef& node, const Resource* res, cons
   bool is_local = res->is_local_to_scene();
 
   // Check if resource has a path and no local modifications
-  if (has_path && ProjectSettings::get_singleton()->localize_path(path) == path) {
+  if (has_path && ProjectSettings::get_singleton()->localize_path(path) == path && path.ends_with(".tres")) {
     // No local modifications - just emit the path
     node << ryml::VAL_DQUO;
     node << to_ryml_str(path);
     return;
   }
 
-  // FIXME: Disable emitting local Resource types
+  // Disable emitting local Resource types
   node.set_val_tag("");
   emit_nil(node);
   UtilityFunctions::push_warning("YAML: Cannot emit local Resource types");
-  return;
-
-  // Resource has local modifications - emit as map with path and modified properties
-  node |= ryml::MAP;
-
-  // Store path if exists
-  if (has_path) {
-    ryml::NodeRef path_node = node.append_child();
-    path_node << ryml::key(to_ryml_str("path"));
-    path_node |= ryml::VAL_DQUO;
-    path_node << to_ryml_str(path);
-  }
-
-  emit_object_properties(node, res, style);
-}
-
-void YAML::Emitter::emit_object_properties(ryml::NodeRef& node, const Object* obj, const YAMLStyle::View& style)
-{
-  String class_name = obj->get_class();
-
-  Dictionary properties = ObjectReflection::get_object_properties(obj);
-  Array prop_names = properties.keys();
-
-  for (int i = 0; i < prop_names.size(); i++) {
-    String prop_name = prop_names[i];
-    Dictionary prop_info = properties[prop_name];
-
-    if (should_serialize_property(prop_info)) {
-      Variant value = obj->get(prop_name);
-      emit_property_value(node, prop_name, value,
-              style.is_valid() ? style.get_child(prop_name) : YAMLStyle::View());
-    }
-  }
-}
-
-void YAML::Emitter::emit_property_value(ryml::NodeRef& node, const String& prop_name, const Variant& value, const YAMLStyle::View& style)
-{
-  ryml::NodeRef child = node.append_child();
-  child << ryml::key(to_ryml_str(prop_name));
-  emit_value(child, value, style);
-}
-
-bool YAML::Emitter::should_serialize_property(const Dictionary& prop_info)
-{
-  // Sometimes we deal with empty objects
-  if (!prop_info.has("value") || !prop_info.has("type") || !prop_info.has("usage")) {
-    return false;
-  }
-
-  // Skip properties that aren't meant to be stored
-  if (!(int(prop_info["usage"]) & PROPERTY_USAGE_STORAGE)) {
-    return false;
-  }
-
-  // Skip certain types that shouldn't be serialized
-  Variant::Type type = Variant::Type((int)prop_info["type"]);
-  switch (type) {
-    case Variant::CALLABLE:
-    case Variant::SIGNAL:
-    case Variant::RID:
-      return false;
-    default:
-      return true;
-  }
 }

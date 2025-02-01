@@ -29,6 +29,7 @@ class YAMLStyle::View {
   YAMLStyle::NumberFormat get_number_format() const;
   YAMLStyle::BinaryEncoding get_binary_encoding() const;
   YAMLStyle::ChompingStyle get_chomping_style() const;
+  YAMLStyle::View get_template_style() const;
 
   // Helper methods
   bool is_block_style() const;

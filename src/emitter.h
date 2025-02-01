@@ -67,9 +67,6 @@ class YAML::Emitter {
 
   void emit_object(ryml::NodeRef& node, const Variant& v, const YAMLStyle::View& style);
   void emit_resource(ryml::NodeRef& node, const Resource* res, const YAMLStyle::View& style);
-  void emit_object_properties(ryml::NodeRef& node, const Object* obj, const YAMLStyle::View& style);
-  void emit_property_value(ryml::NodeRef& node, const String& prop_name, const Variant& value, const YAMLStyle::View& style);
-  bool should_serialize_property(const Dictionary& prop_info);
 };
 
 } // namespace godot

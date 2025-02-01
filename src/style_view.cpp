@@ -90,6 +90,14 @@ YAMLStyle::ChompingStyle YAMLStyle::View::get_chomping_style() const
   return data ? data->chomping_style : YAMLStyle::CHOMP_ANY;
 }
 
+YAMLStyle::View YAMLStyle::View::get_template_style() const
+{
+  if (data && data->children.count("_template")) {
+    return View(data->children.at("_template"));
+  }
+  return View();
+}
+
 // Helper methods
 bool YAMLStyle::View::is_block_style() const
 {
