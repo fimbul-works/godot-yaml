@@ -25,13 +25,25 @@ YAMLStyle::View YAMLStyle::View::create_view(const Ref<YAMLStyle>& style)
   }
 
   // Copy all style values
+  view_data->has_scalar_style = style->has_scalar_style;
   view_data->scalar_style = style->scalar_style;
+
+  view_data->has_quote_style = style->has_quote_style;
   view_data->quote_style = style->quote_style;
+
+  view_data->has_container_form = style->has_container_form;
   view_data->container_form = style->container_form;
+
+  view_data->has_flow_style = style->has_flow_style;
   view_data->flow_style = style->flow_style;
+
+  view_data->has_number_format = style->has_number_format;
   view_data->number_format = style->number_format;
+
+  view_data->has_binary_encoding = style->has_binary_encoding;
   view_data->binary_encoding = style->binary_encoding;
-  view_data->chomping_style = style->chomping_style;
+
+  view_data->has_custom_settings = style->has_custom_settings;
   view_data->custom_settings = style->custom_settings;
 
   // Create views for all children
@@ -57,37 +69,86 @@ YAMLStyle::View YAMLStyle::View::create_view(const Ref<YAMLStyle>& style)
 // YAMLStyleView accessors
 YAMLStyle::ScalarStyle YAMLStyle::View::get_scalar_style() const
 {
-  return data ? data->scalar_style : YAMLStyle::SCALAR_ANY;
+  if (data && data->has_scalar_style) {
+    return data->scalar_style;
+  }
+
+  auto template_style = get_template_style();
+  if (template_style.is_valid()) {
+    return template_style.get_scalar_style();
+  }
+
+  return YAMLStyle::SCALAR_ANY;
 }
 
 YAMLStyle::QuoteStyle YAMLStyle::View::get_quote_style() const
 {
-  return data ? data->quote_style : YAMLStyle::QUOTE_ANY;
+  if (data && data->has_quote_style) {
+    return data->quote_style;
+  }
+
+  auto template_style = get_template_style();
+  if (template_style.is_valid()) {
+    return template_style.get_quote_style();
+  }
+
+  return YAMLStyle::QUOTE_ANY;
 }
 
 YAMLStyle::ContainerForm YAMLStyle::View::get_container_form() const
 {
-  return data ? data->container_form : YAMLStyle::FORM_ANY;
+  if (data && data->has_container_form) {
+    return data->container_form;
+  }
+
+  auto template_style = get_template_style();
+  if (template_style.is_valid()) {
+    return template_style.get_container_form();
+  }
+
+  return YAMLStyle::FORM_ANY;
 }
 
 YAMLStyle::FlowStyle YAMLStyle::View::get_flow_style() const
 {
-  return data ? data->flow_style : YAMLStyle::FLOW_ANY;
+  if (data && data->has_flow_style) {
+    return data->flow_style;
+  }
+
+  auto template_style = get_template_style();
+  if (template_style.is_valid()) {
+    return template_style.get_flow_style();
+  }
+
+  return YAMLStyle::FLOW_ANY;
 }
 
 YAMLStyle::NumberFormat YAMLStyle::View::get_number_format() const
 {
-  return data ? data->number_format : YAMLStyle::NUM_ANY;
+  if (data && data->has_number_format) {
+    return data->number_format;
+  }
+
+  auto template_style = get_template_style();
+  if (template_style.is_valid()) {
+    return template_style.get_number_format();
+  }
+
+  return YAMLStyle::NUM_ANY;
 }
 
 YAMLStyle::BinaryEncoding YAMLStyle::View::get_binary_encoding() const
 {
-  return data ? data->binary_encoding : YAMLStyle::BIN_ANY;
-}
+  if (data && data->has_binary_encoding) {
+    return data->binary_encoding;
+  }
 
-YAMLStyle::ChompingStyle YAMLStyle::View::get_chomping_style() const
-{
-  return data ? data->chomping_style : YAMLStyle::CHOMP_ANY;
+  auto template_style = get_template_style();
+  if (template_style.is_valid()) {
+    return template_style.get_binary_encoding();
+  }
+
+  return YAMLStyle::BIN_ANY;
 }
 
 YAMLStyle::View YAMLStyle::View::get_template_style() const
@@ -189,7 +250,8 @@ YAMLStyle::View YAMLStyle::View::get_child(const String& key) const
   if (data && data->children.count(key)) {
     return YAMLStyle::View(data->children.at(key));
   }
-  return YAMLStyle::View(nullptr);
+  // If no specific child style exists, return the current style
+  return *this;
 }
 
 bool YAMLStyle::View::has_child(const String& key) const
@@ -201,47 +263,4 @@ const Dictionary& YAMLStyle::View::get_custom_settings() const
 {
   static const Dictionary empty;
   return data ? data->custom_settings : empty;
-}
-
-String YAMLStyle::View::get_debug_string() const
-{
-  if (!data) {
-    return "Invalid style view";
-  }
-
-  String debug;
-  debug += "YAML Style View:\n";
-  debug += "--------------\n";
-  debug += vformat("Scalar Style:     %s\n", YAMLStyle::get_scalar_style_string(data->scalar_style));
-  debug += vformat("Quote Style:      %s\n", YAMLStyle::get_quote_style_string(data->quote_style));
-  debug += vformat("Collection Style: %s\n", YAMLStyle::get_container_form_string(data->container_form));
-  debug += vformat("Flow Style:       %s\n", YAMLStyle::get_flow_style_string(data->flow_style));
-  debug += vformat("Number Format:    %s\n", YAMLStyle::get_number_format_string(data->number_format));
-  debug += vformat("Binary Encoding:  %s\n", YAMLStyle::get_binary_encoding_string(data->binary_encoding));
-  debug += vformat("Chomping Style:   %s\n", YAMLStyle::get_chomping_style_string(data->chomping_style));
-
-  if (!data->custom_settings.is_empty()) {
-    debug += "\nCustom Settings:\n";
-    Array keys = data->custom_settings.keys();
-    for (int i = 0; i < keys.size(); i++) {
-      debug += vformat("  %s: %s\n", String(keys[i]), String(data->custom_settings[keys[i]]));
-    }
-  }
-
-  if (!data->children.empty()) {
-    debug += "\nChild Views:\n";
-    for (const auto& pair : data->children) {
-      debug += vformat("  %s:\n", pair.first);
-      YAMLStyle::View child_view(pair.second);
-      String child_debug = child_view.get_debug_string();
-      PackedStringArray lines = child_debug.split("\n");
-      for (int i = 0; i < lines.size(); i++) {
-        if (!lines[i].is_empty()) {
-          debug += vformat("    %s\n", lines[i]);
-        }
-      }
-    }
-  }
-
-  return debug;
 }

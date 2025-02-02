@@ -46,7 +46,7 @@ std::unique_ptr<VariantConverter> ConverterFactory::create_converter(Variant::Ty
     case Variant::PACKED_COLOR_ARRAY:
       return std::make_unique<PackedColorArrayVariantConverter>(this);
     case Variant::PACKED_FLOAT32_ARRAY:
-      return std::make_unique<PackedFloat64ArrayVariantConverter>();
+      return std::make_unique<PackedFloat32ArrayVariantConverter>();
     case Variant::PACKED_FLOAT64_ARRAY:
       return std::make_unique<PackedFloat64ArrayVariantConverter>();
     case Variant::PACKED_INT32_ARRAY:

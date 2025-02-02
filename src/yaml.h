@@ -17,11 +17,13 @@ class YAML : public RefCounted {
   static void _bind_methods();
 
   public:
-  // Forward-declare inner classes, defined in parser.h and emitter.h
+  // Forward-declare inner classes, defined in validator.h, parser.h, and emitter.h
+  class Validator;
   class Parser;
   class Emitter;
 
   static String version();
+  static Ref<YAMLResult> validate(const String& input);
   static Ref<YAMLResult> parse(const String& input, const bool detect_style = false);
   static Ref<YAMLResult> stringify(const Variant& input, const Ref<YAMLStyle>& format);
   static Ref<YAMLStyle> create_style();

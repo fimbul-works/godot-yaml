@@ -30,7 +30,7 @@ class YAMLResult : public RefCounted {
   // Immutable accessors
   Variant get_data() const { return data; }
   bool has_error() const { return !error_message.is_empty(); }
-  String get_error() const;
+  String get_error_message() const { return error_message; }
   int get_error_line() const { return error_line; }
   int get_error_column() const { return error_column; }
 

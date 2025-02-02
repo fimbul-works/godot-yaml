@@ -36,21 +36,18 @@ iso8601_datetime: 2023-04-01t12:00:00.000-05:00
 
 # Collections
 ## Lists
-
 fruits:
 - apple
 - banana
 - cherry
 
+
 nested_list:
   - - nested
-	- items
+  - items
   - - more
-	- nested
-	- items
-
-## Flow style list
-flow_style_list: [1, 2, 3, 4, 5]
+  - nested
+  - items
 
 ## Dictionaries
 person:
@@ -58,8 +55,17 @@ person:
   age: 30
   occupation: Developer
 
+## Flow style list
+flow_style_list: [1, 2, 3, 4, 5]
+
 ## Flow style dictionary
-flow_style_dict: {key1: value1, key2: value2}
+flow_style_dict: {key1: value1, key2: value2, key3: 124.5}
+
+## Nested flow list
+nested_flow_style_list: ["hello", 10, {foo: bar}, [4.20, 6.9]]
+
+## Nested flow dictionary
+nested_flow_style_dictionary: { key1: {foo: 'bar'}, key2: [4.20, 6.9] }
 
 # Anchors and aliases
 anchor_example: &anchor_name

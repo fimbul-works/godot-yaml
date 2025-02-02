@@ -69,7 +69,7 @@ void YAML::Parser::error_callback(const char* msg, size_t len, ryml::Location lo
           loc.col);
 
   // Error handler MUST throw!
-  throw YAMLException(parser->current_result->get_error());
+  throw YAMLException(parser->current_result->get_error_message());
 }
 
 Ref<YAMLResult> YAML::Parser::parse(const String& input, bool p_detect_style)

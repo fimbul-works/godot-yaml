@@ -65,8 +65,11 @@ class YAML::Emitter {
   void emit_array(ryml::NodeRef& node, const Array& array, const YAMLStyle::View& style);
   void emit_dictionary(ryml::NodeRef& node, const Dictionary& dict, const YAMLStyle::View& style);
 
-  void emit_object(ryml::NodeRef& node, const Variant& v, const YAMLStyle::View& style);
+  void emit_object(ryml::NodeRef& node, const Object* obj, const YAMLStyle::View& style);
   void emit_resource(ryml::NodeRef& node, const Resource* res, const YAMLStyle::View& style);
+
+  static const int MAX_DEPTH = 100;
+  void check_depth(int current_depth);
 };
 
 } // namespace godot

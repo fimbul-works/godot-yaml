@@ -63,38 +63,63 @@ class YAMLStyle : public RefCounted {
     BIN_HEX // Hexadecimal encoded
   };
 
-  enum ChompingStyle {
-    CHOMP_ANY, // Let emitter decide
-    CHOMP_DEFAULT, // Keep single newline
-    CHOMP_STRIP, // Strip all newlines (-)
-    CHOMP_KEEP // Keep all newlines (+)
-  };
-
   YAMLStyle();
 
   // Style setters/getters
-  void set_scalar_style(ScalarStyle p_style) { scalar_style = p_style; }
+  bool has_scalar_style = false;
+  void set_scalar_style(ScalarStyle p_style)
+  {
+    scalar_style = p_style;
+    has_scalar_style = true;
+  }
   ScalarStyle get_scalar_style() const { return scalar_style; }
 
-  void set_quote_style(QuoteStyle p_style) { quote_style = p_style; }
+  bool has_quote_style = false;
+  void set_quote_style(QuoteStyle p_style)
+  {
+    quote_style = p_style;
+    has_quote_style = true;
+  }
   QuoteStyle get_quote_style() const { return quote_style; }
 
-  void set_container_form(ContainerForm p_style) { container_form = p_style; }
+  bool has_container_form = false;
+  void set_container_form(ContainerForm p_style)
+  {
+    container_form = p_style;
+    has_container_form = true;
+  }
   ContainerForm get_container_form() const { return container_form; }
 
-  void set_flow_style(FlowStyle p_style) { flow_style = p_style; }
+  bool has_flow_style = false;
+  void set_flow_style(FlowStyle p_style)
+  {
+    flow_style = p_style;
+    has_flow_style = true;
+  }
   FlowStyle get_flow_style() const { return flow_style; }
 
-  void set_number_format(NumberFormat p_format) { number_format = p_format; }
+  bool has_number_format = false;
+  void set_number_format(NumberFormat p_format)
+  {
+    number_format = p_format;
+    has_number_format = true;
+  }
   NumberFormat get_number_format() const { return number_format; }
 
-  void set_binary_encoding(BinaryEncoding p_encoding) { binary_encoding = p_encoding; }
+  bool has_binary_encoding = false;
+  void set_binary_encoding(BinaryEncoding p_encoding)
+  {
+    binary_encoding = p_encoding;
+    has_binary_encoding = true;
+  }
   BinaryEncoding get_binary_encoding() const { return binary_encoding; }
 
-  void set_chomping_style(ChompingStyle p_style) { chomping_style = p_style; }
-  ChompingStyle get_chomping_style() const { return chomping_style; }
-
-  void set_custom_settings(Dictionary p_custom) { custom_settings = p_custom; }
+  bool has_custom_settings = false;
+  void set_custom_settings(Dictionary p_custom)
+  {
+    custom_settings = p_custom;
+    has_custom_settings = true;
+  }
   Dictionary get_custom_settings() const { return custom_settings; }
 
   // Helper methods
@@ -126,7 +151,6 @@ class YAMLStyle : public RefCounted {
   FlowStyle flow_style;
   NumberFormat number_format;
   BinaryEncoding binary_encoding;
-  ChompingStyle chomping_style;
 
   std::unordered_map<String, Ref<YAMLStyle>, StringHasher, StringEqual> child_styles;
 
@@ -137,7 +161,6 @@ class YAMLStyle : public RefCounted {
   static String get_flow_style_string(FlowStyle p_style);
   static String get_number_format_string(NumberFormat p_format);
   static String get_binary_encoding_string(BinaryEncoding p_encoding);
-  static String get_chomping_style_string(ChompingStyle p_style);
 };
 
 } // namespace godot
@@ -148,6 +171,5 @@ VARIANT_ENUM_CAST(YAMLStyle::ContainerForm);
 VARIANT_ENUM_CAST(YAMLStyle::FlowStyle);
 VARIANT_ENUM_CAST(YAMLStyle::NumberFormat);
 VARIANT_ENUM_CAST(YAMLStyle::BinaryEncoding);
-VARIANT_ENUM_CAST(YAMLStyle::ChompingStyle);
 
 #endif // YAML_STYLE_H

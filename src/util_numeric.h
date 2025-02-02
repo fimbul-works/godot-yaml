@@ -139,30 +139,43 @@ template <typename T>
 ryml::csubstr int_to_string(const T value, YAMLStyle::NumberFormat format = YAMLStyle::NUM_DECIMAL)
 {
   static_assert(std::is_integral<T>::value, "Type must be integral");
-
   static thread_local char buf[64];
-  const char* format_str;
 
   switch (format) {
     case YAMLStyle::NUM_HEX:
-      format_str = "0x{:x}";
+      snprintf(buf, sizeof(buf), "0x%x", (unsigned int)value);
       break;
     case YAMLStyle::NUM_OCTAL:
-      format_str = "0o{:o}";
+      snprintf(buf, sizeof(buf), "0o%o", (unsigned int)value);
       break;
-    case YAMLStyle::NUM_BINARY:
-      format_str = "0b{:b}";
+    case YAMLStyle::NUM_BINARY: {
+      // Handle binary format manually since snprintf doesn't support it
+      char binary[65]; // max 64 bits plus null terminator
+      T temp = value;
+      int i = 0;
+      do {
+        binary[i++] = '0' + (temp & 1);
+        temp >>= 1;
+      } while (temp && i < 64);
+
+      // Reverse and add prefix
+      snprintf(buf, sizeof(buf), "0b");
+      for (int j = i - 1; j >= 0; j--) {
+        size_t len = strlen(buf);
+        buf[len] = binary[j];
+        buf[len + 1] = '\0';
+      }
       break;
+    }
     case YAMLStyle::NUM_SCIENTIFIC:
-      format_str = "{:e}";
+      snprintf(buf, sizeof(buf), "%e", (double)value);
       break;
     default:
-      format_str = "{}";
+      snprintf(buf, sizeof(buf), "%d", (int)value);
       break;
   }
 
-  size_t len = ryml::format(buf, format_str, value);
-  return ryml::csubstr(buf, len);
+  return ryml::csubstr(buf, strlen(buf));
 }
 
 // Overloads for different input types

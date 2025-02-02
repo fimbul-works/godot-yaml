@@ -28,7 +28,6 @@ class YAMLStyle::View {
   YAMLStyle::FlowStyle get_flow_style() const;
   YAMLStyle::NumberFormat get_number_format() const;
   YAMLStyle::BinaryEncoding get_binary_encoding() const;
-  YAMLStyle::ChompingStyle get_chomping_style() const;
   YAMLStyle::View get_template_style() const;
 
   // Helper methods
@@ -48,19 +47,27 @@ class YAMLStyle::View {
   // Custom settings access
   const Dictionary& get_custom_settings() const;
 
-  // Debug helper
-  String get_debug_string() const;
-
   private:
   struct ViewData {
+    bool has_scalar_style = false;
     ScalarStyle scalar_style;
-    QuoteStyle quote_style;
-    ContainerForm container_form;
-    FlowStyle flow_style;
-    NumberFormat number_format;
-    BinaryEncoding binary_encoding;
-    ChompingStyle chomping_style;
 
+    bool has_quote_style = false;
+    QuoteStyle quote_style;
+
+    bool has_container_form = false;
+    ContainerForm container_form;
+
+    bool has_flow_style = false;
+    FlowStyle flow_style;
+
+    bool has_number_format = false;
+    NumberFormat number_format;
+
+    bool has_binary_encoding = false;
+    BinaryEncoding binary_encoding;
+
+    bool has_custom_settings = false;
     Dictionary custom_settings;
     std::unordered_map<String, std::shared_ptr<const ViewData>, StringHasher, StringEqual> children;
   };

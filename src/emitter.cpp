@@ -1,6 +1,5 @@
 #include "emitter.h"
 #include "converter_factory.h"
-#include "reflection.h"
 #include "util_numeric.h"
 #include "util_string.h"
 #include "yaml.h"
@@ -9,6 +8,7 @@
 #include <godot_cpp/classes/resource.hpp>
 #include <godot_cpp/core/class_db.hpp>
 #include <godot_cpp/variant/typed_array.hpp>
+#include <sstream>
 
 using namespace godot;
 
@@ -62,7 +62,7 @@ void YAML::Emitter::error_callback(const char* msg, size_t len, ryml::Location l
           loc.line,
           loc.col);
 
-  throw YAMLException(emitter->current_result->get_error());
+  throw YAMLException(emitter->current_result->get_error_message());
 }
 
 ryml::csubstr YAML::Emitter::store_string(const String& str)
@@ -110,56 +110,68 @@ Ref<YAMLResult> YAML::Emitter::emit(const Variant& input, const YAMLStyle::View&
 
 void YAML::Emitter::emit_value(ryml::NodeRef& node, const Variant& value, const YAMLStyle::View& style)
 {
-  switch (value.get_type()) {
-    case Variant::NIL:
-      emit_nil(node);
-      break;
+  static int depth = 0;
+  depth++;
 
-    case Variant::BOOL:
-      emit_bool(node, value);
-      break;
+  try {
+    check_depth(depth);
 
-    case Variant::INT:
-    case Variant::FLOAT:
-      emit_number(node, value, style);
-      break;
-
-    case Variant::STRING:
-      emit_string(node, value, style);
-      break;
-
-    case Variant::ARRAY:
-      emit_array(node, value, style);
-      break;
-
-    case Variant::DICTIONARY:
-      emit_dictionary(node, value, style);
-      break;
-
-    case Variant::OBJECT: {
-      Object* obj = value.operator Object*();
-      if (obj) {
-        emit_object(node, obj, style);
-      } else {
+    switch (value.get_type()) {
+      case Variant::NIL:
         emit_nil(node);
-      }
-      break;
-    }
+        break;
 
-    default: {
-      VariantConverter* converter = get_converter_for_type(value.get_type());
-      if (converter) {
-        node.set_val_tag(converter->get_full_tag());
-        converter->encode(node, value, style);
-      } else {
-        String type_name = Variant::get_type_name(value.get_type());
-        String warning = vformat("Unsupported type: %s", type_name);
-        UtilityFunctions::push_warning(warning);
-        emit_nil(node);
+      case Variant::BOOL:
+        emit_bool(node, value);
+        break;
+
+      case Variant::INT:
+      case Variant::FLOAT:
+        emit_number(node, value, style);
+        break;
+
+      case Variant::STRING:
+        emit_string(node, value, style);
+        break;
+
+      case Variant::ARRAY:
+        emit_array(node, value, style);
+        break;
+
+      case Variant::DICTIONARY:
+        emit_dictionary(node, value, style);
+        break;
+
+      case Variant::OBJECT: {
+        Object* obj = value.operator Object*();
+        if (obj) {
+          emit_object(node, obj, style);
+        } else {
+          emit_nil(node);
+        }
+        break;
       }
-      break;
+
+      default: {
+        VariantConverter* converter = get_converter_for_type(value.get_type());
+        if (converter) {
+          node.set_val_tag(converter->get_full_tag());
+          converter->encode(node, value, style);
+        } else {
+          String type_name = Variant::get_type_name(value.get_type());
+          String error = vformat("Cannot serialize type: %s", type_name);
+          current_result = YAMLResult::error(error);
+          throw YAMLException(error);
+        }
+        break;
+      }
     }
+  } catch (...) {
+    depth--;
+    throw;
   }
+
+  depth--;
 
   // Add custom tags last
   if (style.is_valid() && !style.get_custom_settings().is_empty() && style.get_custom_settings().has("tag") && !node.has_val_tag()) {
@@ -271,15 +283,8 @@ void YAML::Emitter::emit_dictionary(ryml::NodeRef& node, const Dictionary& dict,
   }
 }
 
-void YAML::Emitter::emit_object(ryml::NodeRef& node, const Variant& v, const YAMLStyle::View& style)
+void YAML::Emitter::emit_object(ryml::NodeRef& node, const Object* obj, const YAMLStyle::View& style)
 {
-  Object* obj = v.operator Object*();
-  if (!obj) {
-    UtilityFunctions::push_warning("YAML: Encoding ", v, " into Object has failed");
-    emit_nil(node);
-    return;
-  }
-
   String class_name = obj->get_class();
 
   // Handle resources specially
@@ -290,9 +295,10 @@ void YAML::Emitter::emit_object(ryml::NodeRef& node, const Variant& v, const YAM
     return;
   }
 
-  // Disable emitting class types
-  emit_nil(node);
-  UtilityFunctions::push_warning("YAML: Cannot emit class " + class_name);
+  // FIXME: Handle Object types
+  String error = vformat("Cannot emit Object of type: " + class_name);
+  current_result = YAMLResult::error(error);
+  throw YAMLException(error);
 }
 
 void YAML::Emitter::emit_resource(ryml::NodeRef& node, const Resource* res, const YAMLStyle::View& style)
@@ -309,8 +315,17 @@ void YAML::Emitter::emit_resource(ryml::NodeRef& node, const Resource* res, cons
     return;
   }
 
-  // Disable emitting local Resource types
-  node.set_val_tag("");
-  emit_nil(node);
-  UtilityFunctions::push_warning("YAML: Cannot emit local Resource types");
+  // FIXME: Handle local resources
+  String error = vformat("Cannot serialize local Resource");
+  current_result = YAMLResult::error(error);
+  throw YAMLException(error);
+}
+
+void YAML::Emitter::check_depth(int current_depth)
+{
+  if (current_depth > MAX_DEPTH) {
+    String error = vformat("Maximum nesting depth exceeded (%d). Possible circular reference?", MAX_DEPTH);
+    current_result = YAMLResult::error(error);
+    throw YAMLException(error);
+  }
 }

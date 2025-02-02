@@ -3,11 +3,10 @@
 #include "parser.h"
 #include "result.h"
 #include "style_view.h"
-
+#include "validator.h"
 #include "version.h"
 
 #include <godot_cpp/variant/utility_functions.hpp>
-
 #include <sstream>
 
 using namespace godot;
@@ -15,6 +14,7 @@ using namespace godot;
 void YAML::_bind_methods()
 {
   ClassDB::bind_static_method("YAML", D_METHOD("version"), &YAML::version);
+  ClassDB::bind_static_method("YAML", D_METHOD("validate", "input"), &YAML::validate);
   ClassDB::bind_static_method("YAML", D_METHOD("parse", "input", "detect_style"), &YAML::parse, DEFVAL(false));
   ClassDB::bind_static_method("YAML", D_METHOD("stringify", "input", "style"), &YAML::stringify, DEFVAL(Variant()));
   ClassDB::bind_static_method("YAML", D_METHOD("create_style"), &YAML::create_style);
@@ -27,13 +27,20 @@ String YAML::version()
 #else
   String target = "release";
 #endif
-  return String("Version " + String(GODOT_YAML_VERSION) + " (" + target + ")");
+  return String("Godot YAML " + String(GODOT_YAML_VERSION) + " (" + target + ")");
 }
 
 Ref<YAMLResult> YAML::parse(const String& input, const bool detect_style)
 {
   Parser parser;
   Ref<YAMLResult> result = parser.parse(input, detect_style);
+  return result;
+}
+
+Ref<YAMLResult> YAML::validate(const String& input)
+{
+  Validator validator;
+  Ref<YAMLResult> result = validator.validate(input);
   return result;
 }
 

@@ -13,8 +13,7 @@ YAMLStyle::YAMLStyle() :
         container_form(FORM_ANY),
         flow_style(FLOW_ANY),
         number_format(NUM_ANY),
-        binary_encoding(BIN_ANY),
-        chomping_style(CHOMP_ANY)
+        binary_encoding(BIN_ANY)
 {
 }
 
@@ -67,11 +66,6 @@ void YAMLStyle::_bind_methods()
   BIND_ENUM_CONSTANT(BIN_BASE64);
   BIND_ENUM_CONSTANT(BIN_HEX);
 
-  BIND_ENUM_CONSTANT(CHOMP_ANY);
-  BIND_ENUM_CONSTANT(CHOMP_DEFAULT);
-  BIND_ENUM_CONSTANT(CHOMP_STRIP);
-  BIND_ENUM_CONSTANT(CHOMP_KEEP);
-
   // Bind methods
   ClassDB::bind_method(D_METHOD("set_scalar_style", "style"), &YAMLStyle::set_scalar_style);
   ClassDB::bind_method(D_METHOD("get_scalar_style"), &YAMLStyle::get_scalar_style);
@@ -85,8 +79,6 @@ void YAMLStyle::_bind_methods()
   ClassDB::bind_method(D_METHOD("get_number_format"), &YAMLStyle::get_number_format);
   ClassDB::bind_method(D_METHOD("set_binary_encoding", "encoding"), &YAMLStyle::set_binary_encoding);
   ClassDB::bind_method(D_METHOD("get_binary_encoding"), &YAMLStyle::get_binary_encoding);
-  ClassDB::bind_method(D_METHOD("set_chomping_style", "style"), &YAMLStyle::set_chomping_style);
-  ClassDB::bind_method(D_METHOD("get_chomping_style"), &YAMLStyle::get_chomping_style);
   ClassDB::bind_method(D_METHOD("set_custom_settings", "style"), &YAMLStyle::set_custom_settings);
   ClassDB::bind_method(D_METHOD("get_custom_settings"), &YAMLStyle::get_custom_settings);
 
@@ -100,7 +92,14 @@ void YAMLStyle::_bind_methods()
   ClassDB::bind_method(D_METHOD("clear_child", "key"), &YAMLStyle::clear_child);
   ClassDB::bind_method(D_METHOD("clear_children"), &YAMLStyle::clear_children);
   ClassDB::bind_method(D_METHOD("get_children_keys"), &YAMLStyle::get_children_keys);
+
   ClassDB::bind_method(D_METHOD("get_debug_string"), &YAMLStyle::get_debug_string);
+  ClassDB::bind_static_method("YAMLStyle", D_METHOD("get_scalar_style_string", "p_style"), &YAMLStyle::get_scalar_style_string);
+  ClassDB::bind_static_method("YAMLStyle", D_METHOD("get_quote_style_string", "p_style"), &YAMLStyle::get_quote_style_string);
+  ClassDB::bind_static_method("YAMLStyle", D_METHOD("get_container_form_string", "p_style"), &YAMLStyle::get_container_form_string);
+  ClassDB::bind_static_method("YAMLStyle", D_METHOD("get_flow_style_string", "p_style"), &YAMLStyle::get_flow_style_string);
+  ClassDB::bind_static_method("YAMLStyle", D_METHOD("get_number_format_string", "p_style"), &YAMLStyle::get_number_format_string);
+  ClassDB::bind_static_method("YAMLStyle", D_METHOD("get_binary_encoding_string", "p_style"), &YAMLStyle::get_binary_encoding_string);
 
   ADD_PROPERTY(PropertyInfo(Variant::INT, "scalar_style", PROPERTY_HINT_ENUM, "Any,Plain,Block,Literal,Folded"), "set_scalar_style", "get_scalar_style");
   ADD_PROPERTY(PropertyInfo(Variant::INT, "quote_style", PROPERTY_HINT_ENUM, "Any,None,Single,Double"), "set_quote_style", "get_quote_style");
@@ -108,7 +107,6 @@ void YAMLStyle::_bind_methods()
   ADD_PROPERTY(PropertyInfo(Variant::INT, "flow_style", PROPERTY_HINT_ENUM, "Any,None,Single"), "set_flow_style", "get_flow_style");
   ADD_PROPERTY(PropertyInfo(Variant::INT, "number_format", PROPERTY_HINT_ENUM, "Any,Decimal,Hex,Octal,Binary,Scientific"), "set_number_format", "get_number_format");
   ADD_PROPERTY(PropertyInfo(Variant::INT, "binary_encoding", PROPERTY_HINT_ENUM, "Any,String,Base64,Hex"), "set_binary_encoding", "get_binary_encoding");
-  ADD_PROPERTY(PropertyInfo(Variant::INT, "chomping_style", PROPERTY_HINT_ENUM, "Any,Default,Strip,Keep"), "set_chomping_style", "get_chomping_style");
   ADD_PROPERTY(PropertyInfo(Variant::DICTIONARY, "custom_settings"), "set_custom_settings", "get_custom_settings");
 }
 
@@ -251,34 +249,17 @@ String YAMLStyle::get_binary_encoding_string(BinaryEncoding p_encoding)
   }
 }
 
-String YAMLStyle::get_chomping_style_string(ChompingStyle p_style)
-{
-  switch (p_style) {
-    case CHOMP_ANY:
-      return "Any";
-    case CHOMP_DEFAULT:
-      return "Default";
-    case CHOMP_STRIP:
-      return "Strip";
-    case CHOMP_KEEP:
-      return "Keep";
-    default:
-      return "Unknown";
-  }
-}
-
 String YAMLStyle::get_debug_string() const
 {
   String debug;
   debug += "YAML Style Configuration:\n";
   debug += "-----------------------\n";
-  debug += vformat("Scalar Style:     %s\n", get_scalar_style_string(scalar_style));
-  debug += vformat("Quote Style:      %s\n", get_quote_style_string(quote_style));
-  debug += vformat("Collection Style: %s\n", get_container_form_string(container_form));
-  debug += vformat("Flow Style:       %s\n", get_flow_style_string(flow_style));
-  debug += vformat("Number Format:    %s\n", get_number_format_string(number_format));
-  debug += vformat("Binary Encoding:  %s\n", get_binary_encoding_string(binary_encoding));
-  debug += vformat("Chomping Style:   %s\n", get_chomping_style_string(chomping_style));
+  debug += vformat("Scalar Style:     %s (%s)\n", get_scalar_style_string(scalar_style), has_scalar_style ? "Explicit" : "Inherited");
+  debug += vformat("Quote Style:      %s (%s)\n", get_quote_style_string(quote_style), has_quote_style ? "Explicit" : "Inherited");
+  debug += vformat("Collection Style: %s (%s)\n", get_container_form_string(container_form), has_container_form ? "Explicit" : "Inherited");
+  debug += vformat("Flow Style:       %s (%s)\n", get_flow_style_string(flow_style), has_flow_style ? "Explicit" : "Inherited");
+  debug += vformat("Number Format:    %s (%s)\n", get_number_format_string(number_format), has_number_format ? "Explicit" : "Inherited");
+  debug += vformat("Binary Encoding:  %s (%s)\n", get_binary_encoding_string(binary_encoding), has_binary_encoding ? "Explicit" : "Inherited");
 
   if (!custom_settings.is_empty()) {
     debug += "\nCustom Settings:\n";
