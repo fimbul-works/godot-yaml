@@ -1,118 +1,244 @@
-# Godot YAML Plugin
+# Godot YAML
 
-A high-performance YAML parsing and serialization plugin for Godot 4.2.2 or higher, powered by [RapidYAML](https://github.com/biojppm/rapidyaml). Features syntax highlighting, style customization, and comprehensive type support. Capable of sub-millisecond parsing and emitting of complex YAML documents.
+A high-performance YAML parsing and serialization plugin for Godot 4.x, powered by [RapidYAML](https://github.com/biojppm/rapidyaml). This plugin offers comprehensive YAML support with customizable styling options and full Godot variant type handling.
+
+## Compatibility
+
+- Requires **Godot 4.2.2** or higher
+- Currently supported platforms:
+  - Windows (64-bit)
+  - Linux, macOS, Android, and iOS support coming soon
 
 ## Features
 
-- ⚡ **Blazing Fast**: Sub-millisecond parsing and emitting powered by RapidYAML (ryml)
-- 📄 **Full YAML Support**: Parse and generate YAML-compliant documents including anchors, aliases, tags, and complex data types
-- 🎨 **Syntax Highlighting**: Built-in syntax highlighting for .yaml/.yml files in the editor
-- ✅ **Live Validation**: Real-time error checking and validation while editing
-- 🎭 **Style Customization**: Control YAML output formatting including scalar styles, flow styles, and more
-- 🔄 **Type Support**: Comprehensive support for Godot variant types including vectors, transforms, and packed arrays
-- 🛠️ **High-Level API**: Convenient wrapper classes for common operations
-
-## Installation
-
-1. Create an `addons` directory in your project if it doesn't exist
-2. Copy the `yaml` directory into `addons`
-3. Enable the plugin in Project Settings -> Plugins
-
-### Platform Support
-
-Currently supported platforms:
-- ✅ Windows (x86_32, x86_64)
-
-Coming soon:
-- 🚧 Linux
-- 🚧 macOS
-- 🚧 Android
-- 🚧 iOS
-
-Want to help? We welcome contributions for building and testing on additional platforms!
+- ⚡ **High Performance**: Built on the lightweight and efficient [RapidYAML](https://github.com/biojppm/rapidyaml) library
+- 🔄 **Complete Variant Support**: Handles all Godot built-in types including Vector2/3/4, Transform2D/3D, Color, and more
+- 🎨 **Style Customization**: Control how YAML is formatted with customizable style options
+- 📌 **Tagged Types**: Support for custom YAML tags and automatic tagging of Godot types
+- 🧩 **Custom Object Support**: Load and save Godot resources via YAML
+- 🛡️ **Error Handling**: Comprehensive error reporting with line and column information
+- 🧵 **Thread-Safe**: Fully supports multi-threaded parsing and emission without locking
+- 🔍 **Validation**: Separate validation step for checking YAML syntax without full parsing
 
 ## Basic Usage
 
+### Parsing YAML
+
 ```gdscript
-# Parse YAML string
+# Parse a YAML string
+var yaml_string = """
+player:
+  name: Hero
+  level: 10
+  inventory:
+    - Sword
+    - Shield
+    - Potion
+"""
+
 var result = YAML.parse(yaml_string)
-if !result.has_error():
+if result.has_error():
+    print("Error: ", result.get_error_message())
+    print("At line: ", result.get_error_line(), ", column: ", result.get_error_column())
+else:
     var data = result.get_data()
+    print("Player name: ", data.player.name)
+    print("Inventory: ", data.player.inventory)
+```
 
-# Generate YAML string
+### Generating YAML
+
+```gdscript
+# Create a dictionary to convert to YAML
+var data = {
+    "name": "Stranger",
+    "dialogue": ["Hello, traveler.", "What brings you here?"]
+}
+
+# Convert to YAML
 var stringify_result = YAML.stringify(data)
-if !stringify_result.has_error():
+if stringify_result.has_error():
+    print("Error: ", stringify_result.get_error_message())
+else:
     var yaml = stringify_result.get_data()
+    # name: Stranger
+    # dialogue:
+    #   - "Hello, traveler."
+    #   - "What brings you here?"
+    print(yaml)
 ```
 
-### Using YAMLLoader/YAMLWriter
-
-Convenience classes for common operations:
+### Validation
 
 ```gdscript
-# Load from file
-var data = YAMLLoader.load_file("res://data.yaml")
-
-# Save to file
-YAMLWriter.save_file(data, "user://output.yaml")
+# Validate YAML syntax without full parsing
+var yaml_string = "key: value\ninvalid -list"
+var validation = YAML.validate(yaml_string)
+if validation.has_error():
+    print("Invalid YAML: ", validation.get_error_message())
+    print("At line: ", validation.get_error_line(), ", column: ", validation.get_error_column())
+else:
+    print("YAML syntax is valid")
 ```
 
-### Style Customization
+## Installation
 
-```gdscript
-# Create and customize style
-var style = YAML.create_style()
-style.set_scalar_style(YAMLStyle.SCALAR_LITERAL)  # Use | for multiline strings
-style.set_quote_style(YAMLStyle.QUOTE_DOUBLE)     # Use " for strings
+1. Download the plugin from the Godot Asset Library or from the [GitHub repository](https://github.com/fimbul-works/godot-yaml)
+2. Extract the contents into your project's `addons/` directory
+3. Enable the plugin in Project Settings → Plugins
 
-# Apply style when generating YAML
-var yaml = YAMLWriter.save_string(data, style)
-```
+## Using Helper Classes
 
-## Examples
-
-The plugin includes several example scripts in `addons/yaml/examples/` demonstrating various features:
-
-- `basic_usage.gd`: Core parsing and stringification
-- `error_handling.gd`: Error handling and validation
-- `loader_writer.gd`: High-level API usage
-- `speed_benchmark.gd`: Performance testing
-- `style_handling.gd`: Style customization features
-- `variant_types.gd`: Godot type support
-
-## API Reference
-
-### YAML Singleton
-
-The main interface for YAML operations:
-
-- `parse(yaml: String, detect_style: bool = false) -> YAMLResult`
-- `stringify(data: Variant, style: YAMLStyle = null) -> YAMLResult`
-- `validate(yaml: String) -> YAMLResult`
-- `create_style() -> YAMLStyle`
-- `version() -> String`
+The plugin provides convenient helper classes for common operations:
 
 ### YAMLLoader
 
-Convenience class for loading YAML content:
+```gdscript
+# Load YAML from a file
+var data = YAMLLoader.load_file("res://data.yaml")
+if YAMLLoader.last_error != null:
+    print("Error loading file: ", YAMLLoader.last_error)
+else:
+    print("Loaded data: ", data)
 
-- `load_string(yaml_str: String) -> Variant`
-- `load_file(path: String) -> Variant`
+# Load from string
+var yaml_string = "key: value\nlist: [1, 2, 3]"
+data = YAMLLoader.load_string(yaml_string)
+```
 
 ### YAMLWriter
 
-Convenience class for saving YAML content:
+```gdscript
+# Save data to a YAML file
+var data = {"key": "value", "list": [1, 2, 3]}
+var success = YAMLWriter.save_file(data, "user://output.yaml")
+if !success:
+    print("Error saving file: ", YAMLWriter.last_error)
 
-- `save_string(data: Variant, style: YAMLStyle = null) -> String`
-- `save_file(data: Variant, path: String, style: YAMLStyle = null) -> bool`
+# Convert to YAML string
+var yaml_string = YAMLWriter.save_string(data)
+print(yaml_string)
+```
 
-## Known Issues
+## Style Customization
 
-- Stringifying/parsing the `Callable` variant is not supported
-- Stringifying/parsing `Object` types is not supported
-- Stringifying/parsing *local* `Resource` types is not supported
-- Parsing floating point values can sometimes have slight variance in the output
+YAML output can be customized using the `YAMLStyle` class:
+
+```gdscript
+# Create a new style
+var style = YAML.create_style()
+
+# Set scalar style (SCALAR_PLAIN, SCALAR_BLOCK, SCALAR_LITERAL, SCALAR_FOLDED)
+style.set_scalar_style(YAMLStyle.SCALAR_LITERAL)  # Use | for multiline strings
+
+# Set quote style (QUOTE_NONE, QUOTE_SINGLE, QUOTE_DOUBLE)
+style.set_quote_style(YAMLStyle.QUOTE_DOUBLE)     # Use " for strings
+
+# Set flow style (FLOW_NONE, FLOW_SINGLE)
+style.set_flow_style(YAMLStyle.FLOW_SINGLE)       # Use [] and {} style
+
+# Set number format (NUM_DECIMAL, NUM_HEX, NUM_OCTAL, NUM_BINARY, NUM_SCIENTIFIC)
+style.set_number_format(YAMLStyle.NUM_HEX)        # Output numbers in hex format
+
+# Apply style to specific child nodes
+var nested_style = YAML.create_style()
+nested_style.set_flow_style(YAMLStyle.FLOW_NONE)  # Use block style for this child
+style.set_child("nested", nested_style)
+
+# Apply the style when generating YAML
+var data = {
+    "string": "Hello\nWorld",
+    "nested": {
+        "list": [1, 2, 3],
+        "mapping": {"a": 1, "b": 2}
+    }
+}
+var result = YAML.stringify(data, style)
+var yaml = result.get_data()
+print(yaml)
+```
+
+## Style Detection
+
+You can automatically detect and preserve the styling of parsed YAML:
+
+```gdscript
+# Parse with style detection enabled
+var yaml_string = """
+list:
+  - item1
+  - item2
+nested: {key1: value1, key2: value2}  # Flow style
+multiline: |                          # Literal style
+  This is a multiline
+  string that preserves
+  line breaks
+"""
+
+var result = YAML.parse(yaml_string, true)  # Enable style detection
+if !result.has_error() && result.has_style():
+    var data = result.get_data()
+    var style = result.get_style()
+
+    # Modify data while preserving style
+    data.list.append("item3")
+
+    # Re-emit with preserved style
+    var output = YAML.stringify(data, style).get_data()
+    print(output)
+```
+
+## Supported Types
+
+The plugin automatically handles conversion between YAML and all standard Godot variant types:
+
+- Basic types: `bool`, `int`, `float`, `String`, `StringName`
+- Collection types: `Array`, `Dictionary`
+- Vector types: `Vector2`, `Vector2i`, `Vector3`, `Vector3i`, `Vector4`, `Vector4i`
+- Transform types: `Transform2D`, `Transform3D`, `Projection`
+- Geometric types: `AABB`, `Basis`, `Plane`, `Quaternion`, `Rect2`, `Rect2i`
+- Color type: `Color`
+- Array types: `PackedByteArray`, `PackedColorArray`, `PackedFloat32Array`, `PackedFloat64Array`, `PackedInt32Array`, `PackedInt64Array`, `PackedStringArray`, `PackedVector2Array`, `PackedVector3Array`
+- Reference types: `NodePath`
+- Unknown YAML types are safely converted to strings or dictionaries, ensuring no data loss.
+
+## Error Handling and Troubleshooting
+
+### Common Error Types
+
+- **Syntax Errors**: Invalid YAML structure detected during parsing
+- **Type Conversion Errors**: When YAML values can't be converted to expected types
+- **Circular Reference Errors**: When data structures contain circular references
+- **File Access Errors**: When reading from or writing to files fails
+
+### Troubleshooting Tips
+
+1. **Check Indentation**: YAML is sensitive to indentation. Use spaces consistently.
+2. **Validate First**: Use `YAML.validate()` to check syntax before full parsing.
+3. **Inspect Error Details**: Always check `get_error_line()` and `get_error_column()` to pinpoint issues.
+4. **Escape Special Characters**: Use quotes when values contain special characters.
+
+## Reporting Issues and Contributing
+
+- **Bug Reports**: Please use the [GitHub issue tracker](https://github.com/fimbul-works/godot-yaml/issues)
+- **Feature Requests**: Feel free to suggest improvements through GitHub issues
+- **Contributing**: Pull requests are welcome! See the main repository README for development guidelines
+
+## Planned Features
+
+- Custom type serialization & registration
+- Schema validation
+- Streaming API for large files
+- More performance optimizations
+
+## Credits
+
+- Powered by [RapidYAML](https://github.com/biojppm/rapidyaml) (ryml) - an efficient C++ library for YAML processing
 
 ## License
 
-MIT License (see [LICENSE](LICENSE) file for details)
+MIT License - See [LICENSE](LICENSE) file for details.
+
+---
+
+Built with ⚡ by [FimbulWorks](https://github.com/fimbul-works)

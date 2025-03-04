@@ -1,4 +1,4 @@
-extends Node
+extends Node2D
 ## Example showing basic usage with rich text printing
 
 var yaml_text := """
@@ -10,6 +10,8 @@ list:
 """
 
 func _ready():
+	if !visible:
+		return
 	print_rich("[b]🔰 Basic YAML Usage Example[/b]")
 
 	# Parse YAML string

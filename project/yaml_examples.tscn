@@ -9,20 +9,24 @@
 
 [node name="Examples" type="Node2D"]
 
-[node name="Basic Usage" type="Node" parent="."]
+[node name="Basic Usage" type="Node2D" parent="."]
 script = ExtResource("1_c1nba")
 
-[node name="Loader and Writer" type="Node" parent="."]
+[node name="Loader and Writer" type="Node2D" parent="."]
 script = ExtResource("2_k5e78")
 
-[node name="Variant Types" type="Node" parent="."]
+[node name="Variant Types" type="Node2D" parent="."]
+visible = false
 script = ExtResource("3_fbl7u")
 
-[node name="Style Handling" type="Node" parent="."]
+[node name="Style Handling" type="Node2D" parent="."]
+visible = false
 script = ExtResource("4_46tmf")
 
-[node name="Error Handling" type="Node" parent="."]
+[node name="Error Handling" type="Node2D" parent="."]
+visible = false
 script = ExtResource("5_d4jae")
 
-[node name="Speed Benchmark" type="Node" parent="."]
+[node name="Speed Benchmark" type="Node2D" parent="."]
+visible = false
 script = ExtResource("6_igcit")

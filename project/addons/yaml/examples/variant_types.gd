@@ -1,9 +1,11 @@
-extends Node
+extends Node2D
 ## Example showing YAML conversion of all supported Godot variant types
 
 const EPSILON := 0.000001  # Tolerance for floating point comparisons
 
 func _ready():
+	if !visible:
+		return
 	print_rich("\n[b]🔄 YAML Variant Type Conversion Tests[/b]")
 
 	var variants := get_variant_dict()

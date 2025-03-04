@@ -1,10 +1,14 @@
 class_name YAMLWriter
 
+static var last_error: Variant = null
+
 static func save_string(data: Variant, style: YAMLStyle = null) -> String:
 	var result := YAML.stringify(data, style)
 	if result.has_error():
-		push_error("YAML stringify error: " + result.get_error_message())
+		last_error = "%s at %d:%d" % [result.get_error_message(), result.get_error_line(), result.get_error_column()]
+		push_error("YAML stringify error: " + last_error)
 		return ""
+	last_error = null
 	return result.get_data()
 
 static func save_file(data: Variant, path: String, style: YAMLStyle = null) -> bool:

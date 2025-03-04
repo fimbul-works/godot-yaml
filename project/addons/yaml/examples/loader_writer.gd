@@ -1,4 +1,4 @@
-extends Node
+extends Node2D
 ## Example showing YAMLLoader and YAMLWriter interfaces with rich text output
 
 var yaml_text := """
@@ -10,6 +10,8 @@ list:
 """
 
 func _ready():
+	if !visible:
+		return
 	print_rich("\n[b]💾 YAML Loader/Writer Example[/b]")
 
 	# Load from string

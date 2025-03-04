@@ -117,7 +117,8 @@ Variant YAML::Parser::process_node(const ryml::ConstNodeRef& node) const
 {
   try {
     // First check for tagged values
-    if (auto tagged = try_parse_tagged_value(node)) {
+    auto tagged = try_parse_tagged_value(node);
+    if (tagged) {
       return *tagged;
     }
 
@@ -287,7 +288,7 @@ std::optional<Variant> YAML::Parser::try_parse_tagged_value(const ryml::ConstNod
     }
   }
 
-  // Attempt to parse witha converter
+  // Attempt to parse with a converter
   VariantConverter* converter = get_converter_for_tag(tag);
   if (converter) {
     return converter->decode(node);
@@ -298,7 +299,27 @@ std::optional<Variant> YAML::Parser::try_parse_tagged_value(const ryml::ConstNod
     return parse_object_or_resource(node, tag);
   }
 
-  return Variant();
+  // For unknown tags, store the tag in style if available
+  if (detect_style && style.is_valid()) {
+    // Get the current path's style
+    Ref<YAMLStyle> current_style = style;
+    for (const auto& path_element : current_path) {
+      current_style = current_style->get_child(String(path_element.c_str()));
+      if (!current_style.is_valid()) {
+        break;
+      }
+    }
+
+    if (current_style.is_valid()) {
+      // Store the tag in custom settings
+      Dictionary custom_settings = current_style->get_custom_settings();
+      custom_settings["tag"] = tag;
+      current_style->set_custom_settings(custom_settings);
+    }
+  }
+
+  // Return null to continue with normal processing in process_node
+  return std::nullopt;
 }
 
 Variant YAML::Parser::parse_object_or_resource(const ryml::ConstNodeRef& node, const String& class_name) const
@@ -446,6 +467,14 @@ void YAML::Parser::detect_node_style_internal(const ryml::ConstNodeRef& node, co
   detect_scalar_style(node, current_style);
   detect_container_form(node, current_style);
   detect_anchor_style(node, current_style);
+
+  // Store custom tag if present
+  String tag = extract_tag(node);
+  if (!tag.is_empty()) {
+    Dictionary custom_settings = current_style->get_custom_settings();
+    custom_settings["tag"] = tag;
+    current_style->set_custom_settings(custom_settings);
+  }
 
   // For map nodes, process children with updated path
   if (node.is_map()) {

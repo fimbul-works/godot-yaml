@@ -1,4 +1,4 @@
-extends Node
+extends Node2D
 
 ## Number of iterations for each benchmark
 const ITERATIONS: int = 5
@@ -7,6 +7,8 @@ const ITERATIONS: int = 5
 const YAML_PATH: String = "res://addons/yaml/yaml_data/comprehensive.yaml"
 
 func _ready() -> void:
+	if !visible:
+		return
 	print_rich("[b]⚡ YAML Speed Benchmark[/b]")
 	print(YAML.version())
 

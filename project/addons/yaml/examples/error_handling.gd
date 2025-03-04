@@ -1,7 +1,9 @@
-extends Node
+extends Node2D
 ## Example showing error handling and validation with rich text printing
 
 func _ready():
+	if !visible:
+		return
 	print_rich("[b]⚠️ YAML Error Handling Examples[/b]")
 	test_parse_errors()
 	test_stringify_errors()

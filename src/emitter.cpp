@@ -174,7 +174,7 @@ void YAML::Emitter::emit_value(ryml::NodeRef& node, const Variant& value, const 
   depth--;
 
   // Add custom tags last
-  if (style.is_valid() && !style.get_custom_settings().is_empty() && style.get_custom_settings().has("tag") && !node.has_val_tag()) {
+  if (style.is_valid() && !style.get_custom_settings().is_empty() && style.get_custom_settings().has("tag")) {
     String tag = style.get_custom_settings()["tag"];
     if (!tag.is_empty()) {
       node.set_val_tag(store_string("!" + tag));
@@ -274,6 +274,11 @@ void YAML::Emitter::emit_array(ryml::NodeRef& node, const Array& array, const YA
 void YAML::Emitter::emit_dictionary(ryml::NodeRef& node, const Dictionary& dict, const YAMLStyle::View& style)
 {
   node |= ryml::MAP;
+
+  if (style.is_valid() && style.get_flow_style() == YAMLStyle::FLOW_SINGLE) {
+    node |= ryml::FLOW_SL;
+  }
+
   Array keys = dict.keys();
 
   for (int i = 0; i < keys.size(); i++) {

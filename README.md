@@ -1,100 +1,155 @@
-# Godot YAML
+# Godot YAML GDExtension
 
-Godot YAML is a GDExtension for Godot 4.2.2 and higher that adds YAML parsing and stringification capabilities to your Godot projects. This extension wraps the [Rapid YAML](https://github.com/biojppm/rapidyaml) library, providing an easy-to-use interface for working with YAML in Godot.
+This is the **C++ GDExtension implementation** of the Godot YAML plugin. It provides **high-performance YAML parsing and serialization** using [RapidYAML](https://github.com/biojppm/rapidyaml) as the core engine, offering **sub-millisecond processing** for most YAML documents. This extension is built for Godot 4.2.2 or later.
 
-It currently has support for Windows, but should compile fine on other platforms.
+📌 **For full usage details and API documentation, see the plugin README:**
+📂 [`project/addons/yaml/README.md`](project/addons/yaml/README.md)
 
-## Features
-
-- Parse YAML strings into Godot Dictionaries
-- Stringify Godot Dictionaries into YAML format
-- Supports Godot 4.2.2 and higher
-
-## Known Issues
-
-- Stringifying/parsing the `Callable` variant is not supported
-- Parsing floating point values can sometimes have slight variance in the output
-
-## Installation
-
-1. Download the latest release from the [Releases](https://github.com/claus-codes/godot-yaml/releases) page.
-2. Extract the `yaml` folder into your Godot project's `addons/` directory.
-3. The folder structure should look like this:
-   ```
-   your_project/
-   └── addons/
-       └── yaml/
-           ├── bin/
-           ├── yaml.gdextension
-           ├── plugin.cfg
-           ├── plugin.gd
-           └── README.md
-   ```
-4. Godot will automatically detect and load the extension when you open your project.
-
-## Usage
-
-Here's a basic example of how to use Godot YAML in your Godot script:
+## 🚀 Quick Start
 
 ```gdscript
-var yaml = YAML.new()
+# Parse YAML
+var result = YAML.parse("key: value\nlist:\n  - item1\n  - item2")
+if !result.has_error():
+    var data = result.get_data()
+    print(data.key)  # Outputs: value
+    print(data.list) # Outputs: [item1, item2]
 
-# Parsing YAML
-var yaml_string = """
-key: value
-list:
-  - item1
-  - item2
-"""
-var parsed_data = yaml.parse(yaml_string)
-print(parsed_data)
-
-# Stringifying to YAML
-var dict_to_stringify = {
-    "key": "value",
-    "list": ["item1", "item2"]
-}
-var yaml_output = yaml.stringify(dict_to_stringify)
-print(yaml_output)
-
-# Check for errors
-if yaml.get_error() != null:
-  printerr(yaml.get_error())
-
-# Getting version information
-print(yaml.version())
+# Generate YAML
+var yaml = YAML.stringify({"numbers": [1, 2, 3]}).get_data()
+print(yaml)  # Outputs: "numbers:\n  - 1\n  - 2\n  - 3\n"
 ```
 
-## Demo Project
+## 🔥 Key Features
 
-A demo project is included in the `/project` folder of this repository. It provides examples of how to use the Godot YAML extension in a Godot project. To run the demo:
+- ⚡ **High Performance** – Optimized for speed with zero-copy parsing.
+- 🧩 **Full Variant Support** – Handles all\* **Godot built-in types**.
+- 🎨 **Customizable Formatting** – Control YAML styles with `YAMLStyle`.
+- 📌 **Tagged Types & Type Safety** – Support for custom YAML tags.
+- 🔍 **Error Handling** – Detailed errors with line/column info.
+- 🧵 **Thread-Safe** – No shared state, fully multi-threaded.
+- 🛡️ **Validation** – Separate **lightweight syntax validation**.
 
-1. Open Godot 4.2.2 or higher
-2. Use "Import" and select the `project.godot` file in the `/project` folder
-3. Once imported, run the project to see Godot YAML in action
+<sub>\* Except Callable, RID, or local Resources.</sub>
 
-## Building from Source
+## 🛠️ Installation & Setup
 
-If you want to build the extension from source:
+### **Building From Source**
 
-1. Clone this repository
-2. Make sure you have SCons installed
-3. Run `scons` in the root directory of the project
-4. The compiled libraries will be in the `/project/addons/yaml/bin` directory
+#### **Prerequisites**
+- **Git** (for cloning and submodules)
+- **Python 3.x** (for SCons build system)
+- **C++ compiler** with C++17 support:
+  - **Windows**: Visual Studio 2022 with C++ workload
+  - **Linux/macOS**: GCC 9+ or Clang 10+
+- **SCons** build system (`pip install scons`)
 
-## License
+#### **Step 1: Clone the Repository**
+```bash
+# Clone with submodules
+git clone --recursive https://github.com/fimbul-works/godot-yaml
 
-See the [LICENSE](LICENSE) file for details.
+# Or if already cloned, initialize submodules
+git submodule update --init --recursive
+```
 
-## Acknowledgments
+#### **Step 2: Build the Extension**
+```bash
+# Debug build
+scons target=template_debug
 
-- [Rapid YAML](https://github.com/biojppm/rapidyaml) - The YAML parser and emitter library used in this project
-- [Godot Engine](https://godotengine.org/) - The game engine this extension is built for
+# Release build
+scons target=template_release
 
-## Contributing
+# Specify platform (default is platform-dependent)
+scons platform=windows target=template_release
+scons platform=linux target=template_release
+```
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+#### **Build Options**
+- `platform`: Target (`windows`, `linux`, `macos`, etc.)
+- `target`: Build type (`template_debug`, `template_release`)
+- `arch`: CPU architecture (`x86_32`, `x86_64`, `arm64`, etc.)
+- `dev_build`: Enable extra debugging (`yes`/`no`)
+- `use_llvm`: Use Clang/LLVM compiler (`yes`/`no`)
+- `verbose`: Verbose build output (`yes`/`no`)
 
-## Support
+---
 
-If you encounter any issues or have questions, please file an issue on the [GitHub issue tracker](https://github.com/claus-codes/godot-yaml/issues).
+## ✅ Supported Platforms
+
+| Platform | Status | ETA |
+|----------|--------|-----|
+| **Windows** | ✅ Supported | - |
+| **Linux** | 🚧 In Progress | **Q2 2025** |
+| **macOS** | 🚧 In Progress | **Q2 2025** |
+| **Android** | 🚧 Planned | **Q3 2025** |
+| **iOS** | 🚧 Planned | **Q3 2025** |
+
+📌 **Contributions welcome!** If you can help with Linux/macOS, open a PR.
+
+---
+
+## ⚙️ **Error Handling in GDScript**
+
+When working with YAML, errors **always return detailed messages** with line/column numbers.
+
+#### **Example: Handling Parse Errors**
+```gdscript
+var result = YAML.parse("invalid_yaml: - missing_indent")
+
+if result.has_error():
+    print("❌ Error:", result.get_error_message())
+    print("📍 Line:", result.get_error_line(), "Column:", result.get_error_column())
+else:
+    var data = result.get_data()
+    print("✅ Parsed successfully:", data)
+```
+
+📂 **See [`project/addons/yaml/README.md`](project/addons/yaml/README.md) for more examples.**
+
+---
+
+## 🧑‍💻 **Contributing**
+
+### **Development Guidelines**
+1. **Follow Godot's API design patterns.**
+2. **Minimize allocations** (use `ryml::cstring` instead of `std::string`).
+3. **Error handling**: Use `YAMLResult` and throw `YAMLException` for C++ errors.
+4. **Thread safety**: No global state; ensure **safe multithreading**.
+5. **Write tests**: Every new feature should have **test coverage**.
+6. **Document your changes**: All public APIs **must be documented**.
+
+### **Code Formatting**
+```bash
+# Format code (requires clang-format)
+clang-format -i src/*.cpp src/*.h src/variants/*.cpp src/variants/*.h
+```
+
+### **Adding New Type Converters**
+1. **Create new type handler** in `variants/`.
+2. **Inherit from `VariantConverter`**.
+3. **Implement `encode` and `decode`** methods.
+4. **Register in `converter_factory.cpp`**.
+5. **Write test cases** in `variant_types.gd`.
+
+---
+
+## 🔮 **Future Roadmap**
+
+- **Custom Type Serialization** – Register custom Godot classes.
+- **Schema Validation** – Enforce YAML structure validation.
+- **Streaming API** – Support for huge files without loading into memory.
+- **Performance Optimizations** – Further speed improvements.
+
+📌 **See [`project/addons/yaml/README.md`](project/addons/yaml/README.md) for updates.**
+
+---
+
+## 📜 **License**
+
+MIT License (see [LICENSE](LICENSE) file for details).
+
+---
+
+🚀 **Built with ⚡ by [FimbulWorks](https://github.com/fimbul-works)**

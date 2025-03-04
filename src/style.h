@@ -122,6 +122,18 @@ class YAMLStyle : public RefCounted {
   }
   Dictionary get_custom_settings() const { return custom_settings; }
 
+  void set_custom_tag(const String& p_tag)
+  {
+    custom_settings["tag"] = p_tag;
+  }
+  String YAMLStyle::get_custom_tag() const
+  {
+    Dictionary custom = get_custom_settings();
+    if (custom.has("tag"))
+      return custom["tag"];
+    return "";
+  }
+
   // Helper methods
   bool is_block_style() const;
   bool uses_quotes() const;

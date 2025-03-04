@@ -1,7 +1,9 @@
-extends Node
+extends Node2D
 ## Example showing YAML style handling and customization with rich text output
 
 func _ready():
+	if !visible:
+		return
 	print_rich("\n[b]🎨 YAML Style Handling Examples[/b]")
 	test_style_detection()
 	test_style_modification()

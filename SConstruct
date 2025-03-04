@@ -32,14 +32,30 @@ def setup_build_env(base_env):
 
     platform = env.get('platform', '')
     is_debug = env.get('target', '') != 'template_release'
+    arch = env.get('arch', 'x86_64')  # Default to 64-bit
 
     # Platform and release/debug flags
     if platform == 'windows':
         env.Append(CCFLAGS=['/std:c++17', '/EHsc'])
         if is_debug:
             env.Append(CCFLAGS=['/Z7'])
+
+        # Add architecture-specific flags for Windows
+        if arch == 'x86_32':
+            env.Append(CCFLAGS=['/MACHINE:X86'])
+            env.Append(LINKFLAGS=['/MACHINE:X86'])
+        else:  # x86_64
+            env.Append(CCFLAGS=['/MACHINE:X64'])
+            env.Append(LINKFLAGS=['/MACHINE:X64'])
     else:
         env.Append(CCFLAGS=['-std=c++17'])
+        # Add architecture-specific flags for other platforms
+        if arch == 'x86_32':
+            env.Append(CCFLAGS=['-m32'])
+            env.Append(LINKFLAGS=['-m32'])
+        else:  # x86_64
+            env.Append(CCFLAGS=['-m64'])
+            env.Append(LINKFLAGS=['-m64'])
 
     # Set debug flag
     if is_debug:
@@ -72,9 +88,14 @@ def build_rapidyaml(env, variant_dir):
     ]
 
     # Godot uses the /MT runtime in both release and debug builds
+    arch = env.get('arch', 'x86_64')
     if platform == 'windows':
         cmake_command.append('-DCMAKE_CXX_FLAGS_DEBUG=/MT')
         cmake_command.append('-DCMAKE_CXX_FLAGS_RELEASE=/MT')
+        if arch == 'x86_32':
+            cmake_command.append('-A Win32')
+        else:
+            cmake_command.append('-A x64')
 
     # Run CMake
     subprocess.run(cmake_command, check=True)
