@@ -14,7 +14,7 @@ func test_style_detection():
 	print_rich("\n[b]Testing Style Detection:[/b]")
 
 	# Parse the comprehensive example with style detection enabled
-	var yaml := load_yaml_file("res://addons/yaml/yaml_data/comprehensive.yaml")
+	var yaml := load_yaml_file("res://addons/yaml/examples/comprehensive.yaml")
 	var result := YAML.parse(yaml, true) # Enable style detection
 
 	if result.has_error():

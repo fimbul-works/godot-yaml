@@ -4,7 +4,7 @@ extends Node2D
 const ITERATIONS: int = 5
 
 ## Path to the YAML file to benchmark
-const YAML_PATH: String = "res://addons/yaml/yaml_data/comprehensive.yaml"
+const YAML_PATH: String = "res://addons/yaml/examples/comprehensive.yaml"
 
 func _ready() -> void:
 	if !visible:

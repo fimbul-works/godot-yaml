@@ -6,33 +6,7 @@ reloadable = true
 
 [libraries]
 
-macos.debug = "res://addons/yaml/bin/libgdyaml.macos.debug.framework"
-macos.release = "res://addons/yaml/bin/libgdyaml.macos.release.framework"
-
-ios.debug = "res://addons/yaml/bin/libgdyaml.ios.debug.xcframework"
-ios.release = "res://addons/yaml/bin/libgdyaml.ios.release.xcframework"
-
 windows.debug.x86_32 = "res://addons/yaml/bin/libgdyaml.windows.debug.x86_32.dll"
 windows.release.x86_32 = "res://addons/yaml/bin/libgdyaml.windows.release.x86_32.dll"
 windows.debug.x86_64 = "res://addons/yaml/bin/libgdyaml.windows.debug.x86_64.dll"
 windows.release.x86_64 = "res://addons/yaml/bin/libgdyaml.windows.release.x86_64.dll"
-
-linux.debug.x86_64 = "res://addons/yaml/bin/libgdyaml.linux.debug.x86_64.so"
-linux.release.x86_64 = "res://addons/yaml/bin/libgdyaml.linux.release.x86_64.so"
-linux.debug.arm64 = "res://addons/yaml/bin/libgdyaml.linux.debug.arm64.so"
-linux.release.arm64 = "res://addons/yaml/bin/libgdyaml.linux.release.arm64.so"
-linux.debug.rv64 = "res://addons/yaml/bin/libgdyaml.linux.debug.rv64.so"
-linux.release.rv64 = "res://addons/yaml/bin/libgdyaml.linux.release.rv64.so"
-
-android.debug.x86_64 = "res://addons/yaml/bin/libgdyaml.android.debug.x86_64.so"
-android.release.x86_64 = "res://addons/yaml/bin/libgdyaml.android.release.x86_64.so"
-android.debug.arm64 = "res://addons/yaml/bin/libgdyaml.android.debug.arm64.so"
-android.release.arm64 = "res://addons/yaml/bin/libgdyaml.android.release.arm64.so"
-
-[dependencies]
-ios.debug = {
-    "res://addons/yaml/bin/libgodot-cpp.ios.debug.xcframework": ""
-}
-ios.release = {
-    "res://addons/yaml/bin/libgodot-cpp.ios.release.xcframework": ""
-}

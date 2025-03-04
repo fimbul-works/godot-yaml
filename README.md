@@ -78,13 +78,8 @@ scons platform=linux target=template_release
 
 ## ✅ Supported Platforms
 
-| Platform | Status | ETA |
-|----------|--------|-----|
-| **Windows** | ✅ Supported | - |
-| **Linux** | 🚧 In Progress | **Q2 2025** |
-| **macOS** | 🚧 In Progress | **Q2 2025** |
-| **Android** | 🚧 Planned | **Q3 2025** |
-| **iOS** | 🚧 Planned | **Q3 2025** |
+- **Windows**: ✅ Prebuilt binaries available.
+- **Linux/macOS**: 🚧 Not yet prebuilt, but **should compile without issues**.
 
 📌 **Contributions welcome!** If you can help with Linux/macOS, open a PR.
 
@@ -139,8 +134,6 @@ clang-format -i src/*.cpp src/*.h src/variants/*.cpp src/variants/*.h
 
 - **Custom Type Serialization** – Register custom Godot classes.
 - **Schema Validation** – Enforce YAML structure validation.
-- **Streaming API** – Support for huge files without loading into memory.
-- **Performance Optimizations** – Further speed improvements.
 
 📌 **See [`project/addons/yaml/README.md`](project/addons/yaml/README.md) for updates.**
 

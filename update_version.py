@@ -2,7 +2,7 @@ import re
 import os
 
 VERSION_FILE = 'src/version.h'
-PLUGIN_CONFIG_FILE = 'demo/addons/yaml/plugin.cfg'
+PLUGIN_CONFIG_FILE = 'project/addons/yaml/plugin.cfg'
 
 def get_current_versions():
     try:

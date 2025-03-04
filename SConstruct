@@ -70,8 +70,10 @@ def build_rapidyaml(env, variant_dir):
 
     # Configure CMake
     cmake_build_type = 'Release' if target == 'template_release' else 'Debug'
-    rapidyaml_build_dir = os.path.join(variant_dir, 'rapidyaml_build')
-    rapidyaml_install_dir = os.path.join(variant_dir, 'rapidyaml_install')
+
+    # Separate build directories
+    rapidyaml_build_dir = os.path.join(variant_dir, f'rapidyaml_build_{cmake_build_type.lower()}')
+    rapidyaml_install_dir = os.path.join(variant_dir, f'rapidyaml_install_{cmake_build_type.lower()}')
 
     if not os.path.exists(rapidyaml_build_dir):
         os.makedirs(rapidyaml_build_dir)
