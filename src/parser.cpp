@@ -1,7 +1,7 @@
 #include "parser.h"
+#include "class_registry.h"
 #include "converter_factory.h"
 #include "util_numeric.h"
-
 #include <godot_cpp/classes/resource.hpp>
 #include <godot_cpp/classes/resource_loader.hpp>
 #include <godot_cpp/variant/utility_functions.hpp>
@@ -294,6 +294,21 @@ std::optional<Variant> YAML::Parser::try_parse_tagged_value(const ryml::ConstNod
     return converter->decode(node);
   }
 
+  // Check for custom converters
+  if (YAMLClassRegistry::has_class(tag)) {
+    // Only allow map-types
+    if (!node.is_map()) {
+      ERR_PRINT(vformat("Invalid node format for class %s - expected map", tag));
+      return Variant();
+    }
+    YAMLClassRegistry::ClassInfo class_info = YAMLClassRegistry::get_class_info(tag);
+    // Class info exists and is valid
+    if (class_info.script_class.is_valid()) {
+      Dictionary dict = process_map(node);
+      return class_info.script_class->call(class_info.from_dict_method, dict);
+    }
+  }
+
   // Check if this is a registered class name
   if (ClassDB::class_exists(tag)) {
     return parse_object_or_resource(node, tag);
@@ -503,59 +518,6 @@ void YAML::Parser::detect_node_style_internal(const ryml::ConstNodeRef& node, co
     }
   }
 }
-
-// void YAML::Parser::detect_node_style(const ryml::ConstNodeRef& node)
-// {
-//   if (!detect_style || !style.is_valid()) {
-//     return;
-//   }
-
-//   // Get or create style for current path
-//   Ref<YAMLStyle> current_style;
-
-//   if (current_path.empty()) {
-//     current_style = style; // Use root style
-//   } else {
-//     // Navigate to current path
-//     current_style = style;
-//     for (const auto& path_element : current_path) {
-//       Ref<YAMLStyle> child = current_style->get_child(String(path_element.c_str()));
-//       if (!child.is_valid()) {
-//         child.instantiate();
-//         current_style->set_child(String(path_element.c_str()), child);
-//       }
-//       current_style = child;
-//     }
-//   }
-
-//   // Detect styles for this node
-//   detect_scalar_style(node, current_style);
-//   detect_container_form(node, current_style);
-//   detect_anchor_style(node, current_style);
-
-//   // For map nodes, process children with updated path
-//   if (node.is_map()) {
-//     for (const auto& child : node.children()) {
-//       std::string key(child.key().str, child.key().len);
-//       auto new_path = current_path;
-//       new_path.push_back(key);
-//       current_path = new_path;
-//       detect_node_style(child);
-//       current_path.pop_back();
-//     }
-//   }
-//   // For sequence nodes, use indices as path elements
-//   else if (node.is_seq()) {
-//     int index = 0;
-//     for (const auto& child : node.children()) {
-//       auto new_path = current_path;
-//       new_path.push_back(std::to_string(index++));
-//       current_path = new_path;
-//       detect_node_style(child);
-//       current_path.pop_back();
-//     }
-//   }
-// }
 
 void YAML::Parser::detect_scalar_style(const ryml::ConstNodeRef& node, const Ref<YAMLStyle>& style)
 {

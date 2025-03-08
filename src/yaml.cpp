@@ -1,4 +1,5 @@
 #include "yaml.h"
+#include "class_registry.h"
 #include "emitter.h"
 #include "parser.h"
 #include "result.h"
@@ -18,6 +19,9 @@ void YAML::_bind_methods()
   ClassDB::bind_static_method("YAML", D_METHOD("parse", "input", "detect_style"), &YAML::parse, DEFVAL(false));
   ClassDB::bind_static_method("YAML", D_METHOD("stringify", "input", "style"), &YAML::stringify, DEFVAL(Variant()));
   ClassDB::bind_static_method("YAML", D_METHOD("create_style"), &YAML::create_style);
+
+  ClassDB::bind_static_method("YAML", D_METHOD("register_class", "script_class", "to_dict", "from_dict"), &YAML::register_class, DEFVAL("to_dict"), DEFVAL("from_dict"));
+  ClassDB::bind_static_method("YAML", D_METHOD("has_registered_class", "tag_name"), &YAML::has_registered_class);
 }
 
 String YAML::version()
@@ -55,4 +59,14 @@ Ref<YAMLResult> YAML::stringify(const Variant& input, const Ref<YAMLStyle>& styl
 Ref<YAMLStyle> YAML::create_style()
 {
   return Ref<YAMLStyle>(memnew(YAMLStyle()));
+}
+
+void YAML::register_class(Ref<Script> p_class, const Variant& p_to_dict, const Variant& p_from_dict)
+{
+  YAMLClassRegistry::register_class(p_class, p_to_dict, p_from_dict);
+}
+
+bool YAML::has_registered_class(const String& class_name)
+{
+  return YAMLClassRegistry::has_class(class_name);
 }

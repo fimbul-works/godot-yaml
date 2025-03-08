@@ -1,9 +1,14 @@
 # Godot YAML GDExtension
 
-This is the **C++ GDExtension implementation** of the Godot YAML plugin. It provides **high-performance YAML parsing and serialization** using [RapidYAML](https://github.com/biojppm/rapidyaml) as the core engine, offering **sub-millisecond processing** for most YAML documents. This extension is built for Godot 4.2.2 or later.
+This is the **C++ GDExtension implementation** of the Godot YAML plugin. It provides **high-performance YAML parsing and serialization** using [RapidYAML](https://github.com/biojppm/rapidyaml) as the core engine, offering **sub-millisecond processing** for most YAML documents. This extension is built for Godot 4.3 or later.
 
 📌 **For full usage details and API documentation, see the plugin README:**
 📂 [`project/addons/yaml/README.md`](project/addons/yaml/README.md)
+
+## 🔄 Version History
+
+- **0.10.0** (Current) - Added custom class serialization support, upgraded to Godot 4.3
+- **0.9.0** - Initial public release
 
 ## 🚀 Quick Start
 
@@ -18,6 +23,23 @@ if !result.has_error():
 # Generate YAML
 var yaml = YAML.stringify({"numbers": [1, 2, 3]}).get_data()
 print(yaml)  # Outputs: "numbers:\n  - 1\n  - 2\n  - 3\n"
+
+# Register a custom class
+class_name MyCustomClass extends RefCounted
+var name = ""
+var value = 0
+
+static func from_dict(dict):
+    var obj = MyCustomClass.new()
+    obj.name = dict.get("name", "")
+    obj.value = dict.get("value", 0)
+    return obj
+
+func to_dict():
+    return {"name": name, "value": value}
+
+# In your initialization code:
+YAML.register_class(MyCustomClass)
 ```
 
 ## 🔥 Key Features
@@ -29,6 +51,7 @@ print(yaml)  # Outputs: "numbers:\n  - 1\n  - 2\n  - 3\n"
 - 🔍 **Error Handling** – Detailed errors with line/column info.
 - 🧵 **Thread-Safe** – No shared state, fully multi-threaded.
 - 🛡️ **Validation** – Separate **lightweight syntax validation**.
+- 🧪 **Custom Class Support** - Register GDScript classes for serialization/deserialization.
 
 <sub>\* Except Callable, RID, or local Resources.</sub>
 
@@ -132,7 +155,6 @@ clang-format -i src/*.cpp src/*.h src/variants/*.cpp src/variants/*.h
 
 ## 🔮 **Future Roadmap**
 
-- **Custom Type Serialization** – Register custom Godot classes.
 - **Schema Validation** – Enforce YAML structure validation.
 
 📌 **See [`project/addons/yaml/README.md`](project/addons/yaml/README.md) for updates.**

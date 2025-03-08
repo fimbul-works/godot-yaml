@@ -81,7 +81,7 @@ func test_error_details():
 
 	var yaml_with_error := """
 valid_line: value
-invalid line: : value
+- invalid line: value
 another_line: value
 """
 

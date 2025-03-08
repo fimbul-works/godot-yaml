@@ -6,6 +6,7 @@
 
 #include <godot_cpp/classes/ref.hpp>
 #include <godot_cpp/classes/ref_counted.hpp>
+#include <godot_cpp/classes/script.hpp>
 #include <godot_cpp/variant/variant.hpp>
 
 namespace godot {
@@ -27,6 +28,9 @@ class YAML : public RefCounted {
   static Ref<YAMLResult> parse(const String& input, const bool detect_style = false);
   static Ref<YAMLResult> stringify(const Variant& input, const Ref<YAMLStyle>& format);
   static Ref<YAMLStyle> create_style();
+
+  static void register_class(Ref<Script> p_class, const Variant& p_to_dict, const Variant& p_from_dict);
+  static bool has_registered_class(const String& class_name);
 };
 
 } // namespace godot

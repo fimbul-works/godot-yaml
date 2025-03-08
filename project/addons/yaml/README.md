@@ -1,10 +1,14 @@
 # Godot YAML
 
-A high-performance YAML parsing and serialization plugin for Godot 4.x, powered by [RapidYAML](https://github.com/biojppm/rapidyaml). This plugin offers comprehensive YAML support with customizable styling options and full Godot variant type handling.
+A high-performance YAML parsing and serialization plugin for Godot 4.3, powered by [RapidYAML](https://github.com/biojppm/rapidyaml). This plugin offers comprehensive YAML support with customizable styling options, full Godot variant type handling, and custom class serialization.
+
+## Version History
+- **0.10.0** (Current) - Added custom class serialization support, upgraded to Godot 4.3
+- **0.9.0** - Initial public release
 
 ## Compatibility
 
-- Requires **Godot 4.2.2** or higher
+- Requires **Godot 4.3** or higher (previous version 0.9.0 worked with Godot 4.2.2)
 - Currently supported platforms:
   - Windows (64-bit)
   - Linux, macOS, Android, and iOS support coming soon
@@ -15,7 +19,7 @@ A high-performance YAML parsing and serialization plugin for Godot 4.x, powered 
 - 🔄 **Complete Variant Support**: Handles all Godot built-in types including Vector2/3/4, Transform2D/3D, Color, and more
 - 🎨 **Style Customization**: Control how YAML is formatted with customizable style options
 - 📌 **Tagged Types**: Support for custom YAML tags and automatic tagging of Godot types
-- 🧩 **Custom Object Support**: Load and save Godot resources via YAML
+- 🧩 **Custom Class Support**: Register your GDScript classes for seamless serialization and deserialization
 - 🛡️ **Error Handling**: Comprehensive error reporting with line and column information
 - 🧵 **Thread-Safe**: Fully supports multi-threaded parsing and emission without locking
 - 🔍 **Validation**: Separate validation step for checking YAML syntax without full parsing
@@ -120,6 +124,67 @@ var yaml_string = YAMLWriter.save_string(data)
 print(yaml_string)
 ```
 
+## Custom Class Serialization (New in 0.10.0)
+
+You can now register your custom GDScript classes for seamless serialization:
+
+```gdscript
+# Define a custom class
+class_name Player extends Node
+
+var name: String
+var level: int
+var inventory: Array
+
+func _init(p_name: String = "", p_level: int = 1) -> void:
+    name = p_name
+    level = p_level
+    inventory = []
+
+static func from_dict(dict: Dictionary) -> Player:
+    var player = Player.new(dict.get("name", ""), dict.get("level", 1))
+    player.inventory = dict.get("inventory", [])
+    return player
+
+func to_dict() -> Dictionary:
+    return {
+        "name": name,
+        "level": level,
+        "inventory": inventory
+    }
+
+# Register the class with YAML
+func _ready() -> void:
+    # Default registration using to_dict() and from_dict() methods
+    YAML.register_class(Player)
+
+    # Or with custom method names
+    # YAML.register_class(Player, "serialize", "deserialize")
+
+    # Now you can serialize and deserialize Player objects
+    var player = Player.new("Hero", 10)
+    player.inventory = ["Sword", "Shield", "Potion"]
+
+    var data = {"player": player}
+
+    # Serialize to YAML
+    var yaml = YAML.stringify(data).get_data()
+    print(yaml)
+    # Output:
+    # player: !Player
+    #   name: Hero
+    #   level: 10
+    #   inventory:
+    #     - Sword
+    #     - Shield
+    #     - Potion
+
+    # Deserialize from YAML
+    var parsed = YAML.parse(yaml).get_data()
+    var restored_player = parsed.player
+    print(restored_player.name)  # Hero
+```
+
 ## Style Customization
 
 YAML output can be customized using the `YAMLStyle` class:
@@ -200,6 +265,7 @@ The plugin automatically handles conversion between YAML and all standard Godot 
 - Color type: `Color`
 - Array types: `PackedByteArray`, `PackedColorArray`, `PackedFloat32Array`, `PackedFloat64Array`, `PackedInt32Array`, `PackedInt64Array`, `PackedStringArray`, `PackedVector2Array`, `PackedVector3Array`
 - Reference types: `NodePath`
+- **Custom GDScript classes** (with registration)
 - Unknown YAML types are safely converted to strings or dictionaries, ensuring no data loss.
 
 ## Error Handling and Troubleshooting
@@ -226,7 +292,6 @@ The plugin automatically handles conversion between YAML and all standard Godot 
 
 ## Planned Features
 
-- Custom type serialization & registration
 - Schema validation
 - Streaming API for large files
 - More performance optimizations

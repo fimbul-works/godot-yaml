@@ -1,4 +1,5 @@
 #include "emitter.h"
+#include "class_registry.h"
 #include "converter_factory.h"
 #include "util_numeric.h"
 #include "util_string.h"
@@ -153,6 +154,8 @@ void YAML::Emitter::emit_value(ryml::NodeRef& node, const Variant& value, const 
       }
 
       default: {
+        // UtilityFunctions::print("get_tag_name: ", value.has_method("get_tag_name"), "to_dict: ", value.has_method("to_dict"), " from_dict: ", value.has_method("from_dict"));
+
         VariantConverter* converter = get_converter_for_type(value.get_type());
         if (converter) {
           node.set_val_tag(converter->get_full_tag());
@@ -288,9 +291,31 @@ void YAML::Emitter::emit_dictionary(ryml::NodeRef& node, const Dictionary& dict,
   }
 }
 
-void YAML::Emitter::emit_object(ryml::NodeRef& node, const Object* obj, const YAMLStyle::View& style)
+void YAML::Emitter::emit_object(ryml::NodeRef& node, Object* obj, const YAMLStyle::View& style)
 {
   String class_name = obj->get_class();
+
+  // Handle custom classes
+  Ref<Script> script = obj->get_script();
+  if (script.is_valid() && !script->get_global_name().is_empty()) {
+    class_name = script->get_global_name();
+
+    // Check that the class is registered
+    if (YAMLClassRegistry::has_class(class_name)) {
+      YAMLClassRegistry::ClassInfo class_info = YAMLClassRegistry::get_class_info(class_name);
+
+      // Class info exists and is valid
+      if (class_info.script_class.is_valid()) {
+        const StringName to_dict = class_info.to_dict_method;
+        Variant dict = obj->call(to_dict);
+        if (dict) {
+          node.set_val_tag(store_string("!" + class_name));
+          emit_dictionary(node, dict, style);
+          return;
+        }
+      }
+    }
+  }
 
   // Handle resources specially
   const Resource* res = Object::cast_to<const Resource>(obj);
