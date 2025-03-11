@@ -8,27 +8,47 @@ func _ready() -> void:
 
 	# Register the class constructor
 	YAML.register_class(MyCustomClass)
+	YAML.register_class(MyCustomResource)
 
 	# You can also pass alternative method names
 	#YAML.register_class(MyCustomClass, "serialize", "deserialize")
 
-	var custom = MyCustomClass.new("hello world", 123, PI)
+	var object = MyCustomClass.new("hello world", 123, PI)
 
 	# Stringify data
-	var str_result := YAML.stringify(custom)
-	if str_result.has_error():
-		push_error(str_result.get_error_message())
+	var obj_str_result := YAML.stringify(object)
+	if obj_str_result.has_error():
+		push_error(obj_str_result.get_error_message())
 		return
 
-	var yaml: String = str_result.get_data()
-	print_rich("\n[b]Stringify Result:[/b]\n%s" % yaml)
+	var obj_yaml: String = obj_str_result.get_data()
+	print_rich("\n[b]MyCustomClass Stringify Result:[/b]\n%s" % obj_yaml)
 
 	# Parse YAML string
-	var parse_result := YAML.parse(yaml)
-	if parse_result.has_error():
-		push_error(parse_result.get_error_message())
+	var obj_parse_result := YAML.parse(obj_yaml)
+	if obj_parse_result.has_error():
+		push_error(obj_parse_result.get_error_message())
 		return
-	var parsed_custom: MyCustomClass = parse_result.get_data()
+	var parsed_obj: MyCustomClass = obj_parse_result.get_data()
 
-	print_rich("\n[b]Parse Result:[/b]\n%s" % parsed_custom)
-	parsed_custom.hello()
+	print_rich("\n[b]MyCustomClass Parse Result:[/b]\n%s" % parsed_obj)
+	parsed_obj.hello()
+
+	var resource = MyCustomResource.new("I am resource", 42, 69.69)
+	var res_str_result := YAML.stringify(resource)
+	if res_str_result.has_error():
+		push_error(res_str_result.get_error_message())
+		return
+
+	var res_yaml: String = res_str_result.get_data()
+	print_rich("\n[b]MyCustomResource Stringify Result:[/b]\n%s" % res_yaml)
+
+	# Parse YAML string
+	var res_parse_result := YAML.parse(res_yaml)
+	if res_parse_result.has_error():
+		push_error(res_parse_result.get_error_message())
+		return
+	var parsed_res: MyCustomResource = res_parse_result.get_data()
+
+	print_rich("\n[b]MyCustomResource Parse Result:[/b]\n%s" % parsed_res)
+	parsed_res.hello()

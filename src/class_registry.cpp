@@ -1,4 +1,5 @@
 #include "class_registry.h"
+#include <godot_cpp/classes/resource.hpp>
 #include <godot_cpp/classes/script.hpp>
 #include <godot_cpp/variant/utility_functions.hpp>
 
@@ -23,7 +24,7 @@ void YAMLClassRegistry::register_class(Ref<Script> p_class, const Variant& p_to_
     return;
   }
 
-  // Prevent duplicats
+  // Prevent duplicates
   if (has_class(class_name)) {
     ERR_PRINT(vformat("Class %s is already registered", class_name));
     return;
@@ -41,25 +42,43 @@ void YAMLClassRegistry::register_class(Ref<Script> p_class, const Variant& p_to_
     return;
   }
 
-  // Create an instance
-  Object* instance = ClassDB::instantiate(p_class->get_instance_base_type());
-  if (!instance) {
-    ERR_PRINT(vformat("Failed to instantiate class %s", class_name));
-    return;
-  }
-  // Attach the script
-  instance->set_script(p_class);
-
   // Check instance method
   const StringName to_dict = p_to_dict.get_type() == Variant::STRING || p_to_dict.get_type() == Variant::STRING_NAME ? p_to_dict : "to_dict";
-  if (!instance->has_method(to_dict)) {
-    ERR_PRINT(vformat("Method '%s' not found in class %s", to_dict, class_name));
-    memdelete(instance);
-    return;
-  }
 
-  // Clean up memory
-  memdelete(instance);
+  // Create an instance
+  StringName base_type = p_class->get_instance_base_type();
+
+  if (base_type == StringName("Resource")) {
+    // For Resource types
+    Ref<Resource> res;
+    res.instantiate();
+    res->set_script(p_class);
+
+    if (!res->has_method(to_dict)) {
+      ERR_PRINT(vformat("Method '%s' not found in resource class %s", to_dict, class_name));
+      return;
+    }
+    // Ref will clean up automatically when it goes out of scope
+  } else {
+    // For non-Resource types
+    Object* instance = ClassDB::instantiate(base_type);
+    if (!instance) {
+      ERR_PRINT(vformat("Failed to instantiate class %s with base type %s", class_name, base_type));
+      return;
+    }
+
+    // Attach the script
+    instance->set_script(p_class);
+
+    if (!instance->has_method(to_dict)) {
+      ERR_PRINT(vformat("Method '%s' not found in class %s", to_dict, class_name));
+      memdelete(instance);
+      return;
+    }
+
+    // Clean up memory
+    memdelete(instance);
+  }
 
   // Create the class info
   ClassInfo info;

@@ -7,7 +7,8 @@ This is the **C++ GDExtension implementation** of the Godot YAML plugin. It prov
 
 ## 🔄 Version History
 
-- **0.10.0** (Current) - Added custom class serialization support, upgraded to Godot 4.3
+- **0.10.1** (Current) - Fixed issue with custom Resources not being serializable
+- **0.10.0** - Added custom class serialization support, upgraded to Godot 4.3
 - **0.9.0** - Initial public release
 
 ## 🚀 Quick Start

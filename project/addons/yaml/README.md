@@ -3,7 +3,9 @@
 A high-performance YAML parsing and serialization plugin for Godot 4.3, powered by [RapidYAML](https://github.com/biojppm/rapidyaml). This plugin offers comprehensive YAML support with customizable styling options, full Godot variant type handling, and custom class serialization.
 
 ## Version History
-- **0.10.0** (Current) - Added custom class serialization support, upgraded to Godot 4.3
+
+- **0.10.1** (Current) - Fixed issue with custom Resources not being serializable
+- **0.10.0** - Added custom class serialization support, upgraded to Godot 4.3
 - **0.9.0** - Initial public release
 
 ## Compatibility
