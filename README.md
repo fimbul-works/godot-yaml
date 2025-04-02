@@ -47,6 +47,7 @@ YAML.register_class(MyCustomClass)
 
 - ⚡ **High Performance** – Optimized for speed with zero-copy parsing.
 - 🧩 **Full Variant Support** – Handles all\* **Godot built-in types**.
+- 📑 **Multi-Document Support** – Parse YAML files with multiple `---` separated documents.
 - 🎨 **Customizable Formatting** – Control YAML styles with `YAMLStyle`.
 - 📌 **Tagged Types & Type Safety** – Support for custom YAML tags.
 - 🔍 **Error Handling** – Detailed errors with line/column info.
@@ -54,7 +55,7 @@ YAML.register_class(MyCustomClass)
 - 🛡️ **Validation** – Separate **lightweight syntax validation**.
 - 🧪 **Custom Class Support** - Register GDScript classes for serialization/deserialization.
 
-<sub>\* Except Callable, RID, or local Resources.</sub>
+<sub>\* Except Callable or RID.</sub>
 
 ## 🛠️ Installation & Setup
 

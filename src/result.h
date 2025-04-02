@@ -28,7 +28,9 @@ class YAMLResult : public RefCounted {
   static Ref<YAMLResult> error(const String& msg, int line = -1, int column = -1);
 
   // Immutable accessors
-  Variant get_data() const { return data; }
+  Variant get_data(int index = 0) const;
+  Variant get_document(int index = 0) const { return get_data(index); }
+  int get_document_count() const;
   bool has_error() const { return !error_message.is_empty(); }
   String get_error_message() const { return error_message; }
   int get_error_line() const { return error_line; }

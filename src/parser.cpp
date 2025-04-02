@@ -93,13 +93,28 @@ Ref<YAMLResult> YAML::Parser::parse(const String& input, bool p_detect_style)
 
     tree.resolve();
 
+    // Disable style detection if multiple documents
+    if (tree.rootref().is_stream() && tree.rootref().num_children() > 1) {
+      detect_style = false;
+    }
+
     if (detect_style) {
       detect_node_style(tree.rootref());
     }
 
     if (!current_result->has_error()) {
-      Variant parsed_data = process_node(tree.rootref());
-      current_result = YAMLResult::success(parsed_data, style);
+      if (tree.rootref().is_stream() && tree.rootref().num_children() > 1) {
+        // Multi-document case
+        Array documents;
+        for (const auto& child : tree.rootref().children()) {
+          documents.push_back(process_node(child));
+        }
+        current_result = YAMLResult::success(documents, style);
+      } else {
+        // Single document case
+        Variant parsed_data = process_node(tree.rootref());
+        current_result = YAMLResult::success(parsed_data, style);
+      }
     }
 
     return current_result;

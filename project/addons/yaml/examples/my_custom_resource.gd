@@ -1,4 +1,4 @@
-class_name MyCustomClass extends Node
+class_name MyCustomResource extends Resource
 
 @export var string_val: String
 @export var int_val: int
@@ -14,12 +14,12 @@ func _init(p_string := "", p_int := 0, p_float := 0.0, p_color = Color.WHITE) ->
 func hello():
 	print(string_val)
 
-static func from_dict(dict: Dictionary) -> MyCustomClass:
-	var res := MyCustomClass.new(
+static func from_dict(dict: Dictionary) -> MyCustomResource:
+	var res := MyCustomResource.new(
 		dict.get("string_val", ""),
 		dict.get("int_val", 0),
 		dict.get("float_val", 0.0),
-		dict.get("color_val", Color.RED)
+		dict.get("color_val", Color.WHITE)
 	)
 	return res
 

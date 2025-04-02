@@ -18,13 +18,16 @@ A high-performance YAML parsing and serialization plugin for Godot 4.3, powered 
 ## Features
 
 - ⚡ **High Performance**: Built on the lightweight and efficient [RapidYAML](https://github.com/biojppm/rapidyaml) library
-- 🔄 **Complete Variant Support**: Handles all Godot built-in types including Vector2/3/4, Transform2D/3D, Color, and more
+- 🧩 **Full Variant Support** – Handles all\* **Godot built-in types**.
+- 📑 **Multi-Document Support** – Parse YAML files with multiple `---` separated documents.
 - 🎨 **Style Customization**: Control how YAML is formatted with customizable style options
 - 📌 **Tagged Types**: Support for custom YAML tags and automatic tagging of Godot types
 - 🧩 **Custom Class Support**: Register your GDScript classes for seamless serialization and deserialization
 - 🛡️ **Error Handling**: Comprehensive error reporting with line and column information
 - 🧵 **Thread-Safe**: Fully supports multi-threaded parsing and emission without locking
 - 🔍 **Validation**: Separate validation step for checking YAML syntax without full parsing
+
+<sub>\* Except Callable or RID.</sub>
 
 ## Basic Usage
 
@@ -254,6 +257,59 @@ if !result.has_error() && result.has_style():
     var output = YAML.stringify(data, style).get_data()
     print(output)
 ```
+
+## Multi-Document YAML Support
+
+The plugin fully supports YAML files containing multiple documents separated by `---` delimiters. This is particularly useful for any scenario where related but separate data structures need to be kept together.
+
+### Parsing Multiple Documents
+
+```gdscript
+# Parse a multi-document YAML string
+var yaml_string = """
+# First document
+title: Document 1
+data:
+  - item1
+  - item2
+---
+# Second document
+title: Document 2
+config:
+  enabled: true
+---
+# Third document
+title: Document 3
+message: "Final document"
+"""
+
+var result = YAML.parse(yaml_string)
+if result.has_error():
+    print("Error: ", result.get_error_message())
+else:
+    # Get number of documents
+    var doc_count = result.get_document_count()
+    print("Number of documents: ", doc_count)  # Output: 3
+
+    # Process each document
+    for i in range(doc_count):
+        var doc = result.get_document(i)
+        print("Document %d title: %s" % [i, doc.title])
+
+    # You can also access documents directly by index
+    var first_doc = result.get_document(0)   # First document
+    var second_doc = result.get_document(1)  # Second document
+
+    # The original get_data() method still works, now with optional index
+    var third_doc = result.get_data(2)       # Third document
+```
+
+### Notes on Multi-Document Usage
+
+- Documents are indexed starting from `0`
+- For backward compatibility, `get_data()` without an index returns the first document
+- `get_document_count()` returns the number of documents (at least `1` for valid YAML), or `0` if the result has an error
+- When parsing single-document YAML, `get_document(0)` and `get_data()` return identical results
 
 ## Supported Types
 
