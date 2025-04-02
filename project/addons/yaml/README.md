@@ -4,7 +4,8 @@ A high-performance YAML parsing and serialization plugin for Godot 4.3, powered 
 
 ## Version History
 
-- **0.10.1** (Current) - Fixed issue with custom Resources not being serializable
+- **0.11.0** (Current) - Added support for parsing multiple documents, and error handling for custom class deserialization
+- **0.10.1** - Fixed issue with custom Resources not being serializable
 - **0.10.0** - Added custom class serialization support, upgraded to Godot 4.3
 - **0.9.0** - Initial public release
 
