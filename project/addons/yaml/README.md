@@ -129,7 +129,7 @@ var yaml_string = YAMLWriter.save_string(data)
 print(yaml_string)
 ```
 
-## Custom Class Serialization (New in 0.10.0)
+## Custom Class Serialization
 
 You can now register your custom GDScript classes for seamless serialization:
 
@@ -188,6 +188,48 @@ func _ready() -> void:
     var parsed = YAML.parse(yaml).get_data()
     var restored_player = parsed.player
     print(restored_player.name)  # Hero
+```
+
+### Error Handling for Custom Classes
+
+You can add validation and return detailed error messages from your `from_dict` method by returning a `YAMLResult` object:
+
+```gdscript
+static func from_dict(dict: Dictionary):
+    # Validate required fields
+    if !dict.has("name"):
+        return YAMLResult.error("Player class missing required 'name' field")
+
+    if typeof(dict.get("level", 0)) != TYPE_INT:
+        return YAMLResult.error("Player 'level' must be an integer")
+
+    # Create object if validation passes
+    var player = Player.new(dict.name, dict.get("level", 1))
+    player.inventory = dict.get("inventory", [])
+
+    # Return the object as usual
+    return player
+```
+
+When parsing YAML with a custom class that returns a `YAMLResult`:
+
+- If `from_dict` returns a `YAMLResult` with an error, the entire parse operation will fail
+- The error message from your custom class will be propagated to the parse result
+- This allows for detailed validation errors with custom messages
+
+Example:
+
+```gdscript
+var invalid_yaml = """
+player: !Player
+  # Missing name field
+  level: ten  # Invalid type
+"""
+
+var result = YAML.parse(invalid_yaml)
+if result.has_error():
+    print("Error: " + result.get_error_message())
+    # Output: "Error: Player 'level' must be an integer"
 ```
 
 ## Style Customization

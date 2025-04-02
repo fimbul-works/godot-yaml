@@ -14,6 +14,7 @@ void YAMLResult::_bind_methods()
   ClassDB::bind_method(D_METHOD("get_error_column"), &YAMLResult::get_error_column);
   ClassDB::bind_method(D_METHOD("has_style"), &YAMLResult::has_style);
   ClassDB::bind_method(D_METHOD("get_style"), &YAMLResult::get_style);
+  ClassDB::bind_static_method("YAMLResult", D_METHOD("error", "msg", "line", "column"), &YAMLResult::error, DEFVAL(-1), DEFVAL(-1));
 }
 
 Ref<YAMLResult> YAMLResult::success(const Variant& data, const Ref<YAMLStyle>& style)

@@ -13,6 +13,7 @@ func _ready() -> void:
 	# You can also pass alternative method names
 	#YAML.register_class(MyCustomClass, "serialize", "deserialize")
 
+	# Custom (Node) class
 	var object = MyCustomClass.new("hello world", 123, PI)
 
 	# Stringify data
@@ -34,6 +35,7 @@ func _ready() -> void:
 	print_rich("\n[b]MyCustomClass Parse Result:[/b]\n%s" % parsed_obj)
 	parsed_obj.hello()
 
+	# Custom (Resource) class
 	var resource = MyCustomResource.new("I am resource", 42, 69.69)
 	var res_str_result := YAML.stringify(resource)
 	if res_str_result.has_error():
@@ -52,3 +54,12 @@ func _ready() -> void:
 
 	print_rich("\n[b]MyCustomResource Parse Result:[/b]\n%s" % parsed_res)
 	parsed_res.hello()
+
+	# Try parsing an invalid resource
+	var invalid_yaml := """
+!MyCustomClass
+this: will error
+"""
+	var invalid_parse_result := YAML.parse(invalid_yaml)
+	assert(invalid_parse_result.has_error(), "YAML should have an error")
+	print_rich("Received expected error: ", invalid_parse_result.get_error_message())

@@ -130,31 +130,26 @@ Ref<YAMLResult> YAML::Parser::parse(const String& input, bool p_detect_style)
 
 Variant YAML::Parser::process_node(const ryml::ConstNodeRef& node) const
 {
-  try {
-    // First check for tagged values
-    auto tagged = try_parse_tagged_value(node);
-    if (tagged) {
-      return *tagged;
-    }
-
-    // Handle different node types
-    if (node.is_keyval()) {
-      return process_value(node);
-    } else if (node.is_map()) {
-      return process_map(node);
-    } else if (node.is_seq()) {
-      return process_sequence(node);
-    } else if (node.has_key()) {
-      return process_key(node);
-    } else if (node.has_val()) {
-      return process_value(node);
-    }
-
-    return Variant();
-  } catch (const std::exception& e) {
-    ERR_PRINT(String("YAML parsing error: ") + e.what());
-    return Variant();
+  // First check for tagged values
+  auto tagged = try_parse_tagged_value(node);
+  if (tagged) {
+    return *tagged;
   }
+
+  // Handle different node types
+  if (node.is_keyval()) {
+    return process_value(node);
+  } else if (node.is_map()) {
+    return process_map(node);
+  } else if (node.is_seq()) {
+    return process_sequence(node);
+  } else if (node.has_key()) {
+    return process_key(node);
+  } else if (node.has_val()) {
+    return process_value(node);
+  }
+
+  return Variant();
 }
 
 Variant YAML::Parser::process_map(const ryml::ConstNodeRef& node) const
@@ -208,26 +203,21 @@ Variant YAML::Parser::process_value(const ryml::ConstNodeRef& node) const
     return Variant();
   }
 
-  try {
-    ryml::csubstr val = node.val();
-    String str_val = from_ryml_str(val);
+  ryml::csubstr val = node.val();
+  String str_val = from_ryml_str(val);
 
-    // Handle special values first
-    if (auto special_val = try_parse_special_value(str_val)) {
-      return *special_val;
-    }
-
-    // Try numeric conversion
-    if (auto num_val = try_parse_numeric_value(str_val, val)) {
-      return *num_val;
-    }
-
-    // Return as string if no other type matches
-    return str_val;
-  } catch (const std::exception& e) {
-    ERR_PRINT(String("Value parsing error: ") + e.what());
-    return Variant();
+  // Handle special values first
+  if (auto special_val = try_parse_special_value(str_val)) {
+    return *special_val;
   }
+
+  // Try numeric conversion
+  if (auto num_val = try_parse_numeric_value(str_val, val)) {
+    return *num_val;
+  }
+
+  // Return as string if no other type matches
+  return str_val;
 }
 
 std::optional<Variant> YAML::Parser::try_parse_special_value(const String& str_val) const
@@ -317,10 +307,22 @@ std::optional<Variant> YAML::Parser::try_parse_tagged_value(const ryml::ConstNod
       return Variant();
     }
     YAMLClassRegistry::ClassInfo class_info = YAMLClassRegistry::get_class_info(tag);
+
     // Class info exists and is valid
     if (class_info.script_class.is_valid()) {
       Dictionary dict = process_map(node);
-      return class_info.script_class->call(class_info.from_dict_method, dict);
+      Variant result = class_info.script_class->call(class_info.from_dict_method, dict);
+
+      // Is it a YAMLResult?
+      if (result.get_type() == Variant::OBJECT && Object::cast_to<YAMLResult>(result.operator Object*())) {
+        Ref<YAMLResult> yaml_result = result;
+        if (yaml_result->has_error()) {
+          throw YAMLException(yaml_result->get_error_message());
+        }
+        return yaml_result->get_data(); // Return the actual object
+      }
+
+      return result;
     }
   }
 
