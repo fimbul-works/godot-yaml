@@ -285,6 +285,24 @@ std::optional<Variant> YAML::Parser::try_parse_tagged_value(const ryml::ConstNod
     return std::nullopt;
   }
 
+  // Detect PackedByteArray encoding
+  if (detect_style && style.is_valid() && (tag == "PackedByteArray" || tag == "!binary")) {
+    // Check if content looks like hex
+    String value = from_ryml_str(node.val());
+    bool is_hex = true;
+
+    // Simple hex detection (could use a more robust method)
+    for (int i = 0; i < value.length(); i++) {
+      char32_t c = value[i];
+      if (!is_whitespace(c) && !is_hex_digit(c)) {
+        is_hex = false;
+        break;
+      }
+    }
+
+    style->set_binary_encoding(is_hex ? YAMLStyle::BIN_HEX : YAMLStyle::BIN_BASE64);
+  }
+
   // Read !!binary as a PackedByteArray
   if (tag == "!binary") {
     VariantConverter* converter = get_converter_for_type(Variant::PACKED_BYTE_ARRAY);
@@ -336,7 +354,7 @@ std::optional<Variant> YAML::Parser::try_parse_tagged_value(const ryml::ConstNod
     // Get the current path's style
     Ref<YAMLStyle> current_style = style;
     for (const auto& path_element : current_path) {
-      current_style = current_style->get_child(String(path_element.c_str()));
+      current_style = current_style->get_child(path_element);
       if (!current_style.is_valid()) {
         break;
       }
@@ -466,16 +484,16 @@ void YAML::Parser::detect_node_style(const ryml::ConstNodeRef& node)
   // Get or create style for current path
   Ref<YAMLStyle> current_style;
 
-  if (current_path.empty()) {
+  if (current_path.is_empty()) {
     current_style = style; // Use root style
   } else {
     // Navigate to current path
     current_style = style;
     for (const auto& path_element : current_path) {
-      Ref<YAMLStyle> child = current_style->get_child(String(path_element.c_str()));
+      Ref<YAMLStyle> child = current_style->get_child(path_element);
       if (!child.is_valid()) {
         child.instantiate();
-        current_style->set_child(String(path_element.c_str()), child);
+        current_style->set_child(path_element, child);
       }
       current_style = child;
     }
@@ -511,27 +529,28 @@ void YAML::Parser::detect_node_style_internal(const ryml::ConstNodeRef& node, co
   // For map nodes, process children with updated path
   if (node.is_map()) {
     for (const auto& child : node.children()) {
-      std::string key(child.key().str, child.key().len);
+      String key = String::utf8(child.key().str, child.key().len);
       auto new_path = current_path;
-      new_path.push_back(key);
+      new_path.append(key);
       current_path = new_path;
       detect_node_style(child); // Use original method for path-based detection
-      current_path.pop_back();
+      current_path.remove_at(current_path.size() - 1);
     }
   }
+
   // For sequence nodes, use indices as path elements
   else if (node.is_seq()) {
     // First detect template style if needed
-    detect_array_template_style(node, current_path.empty() ? "_template" : current_path.back(), current_style);
+    detect_array_template_style(node, current_path.is_empty() ? String("_template") : current_path[current_path.size() - 1], current_style);
 
     // Then process each element
     int index = 0;
     for (const auto& child : node.children()) {
       auto new_path = current_path;
-      new_path.push_back(std::to_string(index++));
+      new_path.push_back(String::num_int64(index++));
       current_path = new_path;
       detect_node_style(child); // Use original method for path-based detection
-      current_path.pop_back();
+      current_path.remove_at(current_path.size() - 1);
     }
   }
 }
@@ -613,7 +632,7 @@ void YAML::Parser::detect_anchor_style(const ryml::ConstNodeRef& node, const Ref
   }
 }
 
-void YAML::Parser::detect_array_template_style(const ryml::ConstNodeRef& node, const std::string& key, Ref<YAMLStyle> current_style)
+void YAML::Parser::detect_array_template_style(const ryml::ConstNodeRef& node, const String& key, Ref<YAMLStyle> current_style)
 {
   if (!detect_style || !current_style.is_valid() || !node.is_seq() || node.num_children() == 0) {
     return;

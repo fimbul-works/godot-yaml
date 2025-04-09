@@ -1,6 +1,7 @@
 #ifndef VARIANT_CONVERTER_H
 #define VARIANT_CONVERTER_H
 
+#include "string_pool.h"
 #include "style_view.h"
 #include "yaml.h"
 
@@ -37,13 +38,11 @@ class VariantConverter {
   virtual Variant decode(const ryml::ConstNodeRef& node) const = 0;
 
   protected:
-  // Store strings for the current encoding operation
-  mutable std::vector<std::string> temp_storage;
+  mutable YAMLStringPool string_pool;
 
-  ryml::csubstr store_string(std::string&& str) const
+  ryml::csubstr store_string(const String& str) const
   {
-    temp_storage.push_back(std::move(str));
-    return ryml::to_csubstr(temp_storage.back());
+    return string_pool.store(str);
   }
 };
 

@@ -14,10 +14,6 @@ class YAMLException : public std::runtime_error {
           std::runtime_error(msg),
           godot_message(msg) { }
 
-  explicit YAMLException(std::string msg) :
-          std::runtime_error(msg),
-          godot_message(msg.c_str()) { }
-
   explicit YAMLException(String msg) :
           std::runtime_error(msg.utf8().get_data()),
           godot_message(std::move(msg)) { }

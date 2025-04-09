@@ -25,10 +25,15 @@ void PackedInt32ArrayVariantConverter::encode(ryml::NodeRef& node, const Variant
   for (int i = 0; i < array.size(); ++i) {
     ryml::NodeRef value_node = node.append_child();
 
-    // Check for individual item style, fall back to shared style
     YAMLStyle::View item_style;
     if (style.is_valid()) {
-      item_style = style.get_child(String::num_int64(i));
+      // Check for individual item style
+      const String idx = String::num_int64(i);
+      if (style.has_child(idx)) {
+        item_style = style.get_child(idx);
+      }
+
+      // Fall back to shared style
       if (!item_style.is_valid()) {
         item_style = shared_item_style;
       }
@@ -55,7 +60,7 @@ Variant PackedInt32ArrayVariantConverter::decode(const ryml::ConstNodeRef& node)
 
   for (size_t i = 0; i < size; ++i) {
     try {
-      array.set(i, string_to_int<int32_t>(node[i].val()));
+      array.set(i, static_cast<int32_t>(string_to_int<int64_t>(node[i].val())));
     } catch (const std::exception& e) {
       throw YAMLException::create_decode_error(String("integer at index " + String::num_uint64(i)).utf8().get_data(), e.what());
     }

@@ -7,9 +7,11 @@ This is the **C++ GDExtension implementation** of the Godot YAML plugin. It prov
 
 ## 🔄 Version History
 
-- **0.10.1** (Current) - Fixed issue with custom Resources not being serializable
-- **0.10.0** - Added custom class serialization support, upgraded to Godot 4.3
-- **0.9.0** - Initial public release
+- **0.12.0** (Current) - Performance optimizations, bug fixes, and comprehensive tests for all variant types.
+- **0.11.0** - Added support for parsing multiple documents, and error handling for custom class deserialization.
+- **0.10.1** - Fixed issue with custom Resources not being serializable.
+- **0.10.0** - Added custom class serialization support, upgraded to Godot 4.3.
+- **0.9.0** - Initial public release.
 
 ## 🚀 Quick Start
 
@@ -46,14 +48,15 @@ YAML.register_class(MyCustomClass)
 ## 🔥 Key Features
 
 - ⚡ **High Performance** – Optimized for speed with zero-copy parsing.
-- 🧩 **Full Variant Support** – Handles all\* **Godot built-in types**.
-- 📑 **Multi-Document Support** – Parse YAML files with multiple `---` separated documents.
-- 🎨 **Customizable Formatting** – Control YAML styles with `YAMLStyle`.
-- 📌 **Tagged Types & Type Safety** – Support for custom YAML tags.
-- 🔍 **Error Handling** – Detailed errors with line/column info.
-- 🧵 **Thread-Safe** – No shared state, fully multi-threaded.
-- 🛡️ **Validation** – Separate **lightweight syntax validation**.
+- 🧩 **Full Variant Support** – Handles all\* **Godot built-in Variant types**.
 - 🧪 **Custom Class Support** - Register GDScript classes for serialization/deserialization.
+- 🗂️ **Resource References** – Use `!Resource` to auto-load scenes, textures, audio, and other assets via `ResourceLoader`.
+- 📑 **Multi-Document Support** – Parse YAML files with multiple `---` separated documents.
+- 🎨 **Style Customization**: Control how YAML is formatted with customizable style options with `YAMLStyle`.
+- 📌 **Tagged Types**: Support for custom YAML tags and automatic tagging of Godot types.
+- 🛡️ **Error Handling**: Comprehensive error reporting with line and column information.
+- 🧵 **Thread-Safe**: Fully supports multi-threaded parsing and emission without locking.
+- 🛡️ **Validation**: Separate validation step for checking YAML syntax without full parsing.
 
 <sub>\* Except Callable or RID.</sub>
 
@@ -145,21 +148,6 @@ else:
 # Format code (requires clang-format)
 clang-format -i src/*.cpp src/*.h src/variants/*.cpp src/variants/*.h
 ```
-
-### **Adding New Type Converters**
-1. **Create new type handler** in `variants/`.
-2. **Inherit from `VariantConverter`**.
-3. **Implement `encode` and `decode`** methods.
-4. **Register in `converter_factory.cpp`**.
-5. **Write test cases** in `variant_types.gd`.
-
----
-
-## 🔮 **Future Roadmap**
-
-- **Schema Validation** – Enforce YAML structure validation.
-
-📌 **See [`project/addons/yaml/README.md`](project/addons/yaml/README.md) for updates.**
 
 ---
 

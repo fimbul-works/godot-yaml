@@ -4,7 +4,8 @@ A high-performance YAML parsing and serialization plugin for Godot 4.3, powered 
 
 ## Version History
 
-- **0.11.0** (Current) - Added support for parsing multiple documents, and error handling for custom class deserialization
+- **0.12.0** (Current) - Performance optimizations, bug fixes, and comprehensive tests for all variant types (see [`examples/variants/`](./examples/variants/))
+- **0.11.0** - Added support for parsing multiple documents, and error handling for custom class deserialization
 - **0.10.1** - Fixed issue with custom Resources not being serializable
 - **0.10.0** - Added custom class serialization support, upgraded to Godot 4.3
 - **0.9.0** - Initial public release
@@ -18,15 +19,16 @@ A high-performance YAML parsing and serialization plugin for Godot 4.3, powered 
 
 ## Features
 
-- ⚡ **High Performance**: Built on the lightweight and efficient [RapidYAML](https://github.com/biojppm/rapidyaml) library
-- 🧩 **Full Variant Support** – Handles all\* **Godot built-in types**.
-- 📑 **Multi-Document Support** – Parse YAML files with multiple `---` separated documents.
-- 🎨 **Style Customization**: Control how YAML is formatted with customizable style options
-- 📌 **Tagged Types**: Support for custom YAML tags and automatic tagging of Godot types
-- 🧩 **Custom Class Support**: Register your GDScript classes for seamless serialization and deserialization
-- 🛡️ **Error Handling**: Comprehensive error reporting with line and column information
-- 🧵 **Thread-Safe**: Fully supports multi-threaded parsing and emission without locking
-- 🔍 **Validation**: Separate validation step for checking YAML syntax without full parsing
+- ⚡ **High Performance**: Built on the lightweight and efficient [RapidYAML](https://github.com/biojppm/rapidyaml) library.
+- 🧩 **Full Variant Support** – Handles all\* **Godot built-in Variant types.**
+- 🧪 [**Custom Class Support**](#custom-class-serialization): Register your GDScript classes for seamless serialization and deserialization.
+- 🗂️ [**Resource References**](#referencing-external-resources) – Use `!Resource` to auto-load scenes, textures, audio, and other assets via `ResourceLoader`.
+- 📑 [**Multi-Document Support**](#multi-document-yaml-support) – Parse YAML files with multiple `---` separated documents.
+- 🎨 [**Style Customization**](#style-customization): Control how YAML is formatted with customizable style options with `YAMLStyle`.
+- 📌 **Tagged Types**: Support for custom YAML tags and automatic tagging of Godot types.
+- 🛡️ **Error Handling**: Comprehensive error reporting with line and column information.
+- 🧵 **Thread-Safe**: Fully supports multi-threaded parsing and emission without locking.
+- 🛡️ [**Validation**](#validation): Separate validation step for checking YAML syntax without full parsing.
 
 <sub>\* Except Callable or RID.</sub>
 
@@ -97,6 +99,39 @@ else:
 2. Extract the contents into your project's `addons/` directory
 3. Enable the plugin in Project Settings → Plugins
 
+## Supported Types
+
+The plugin automatically handles conversion between YAML and all standard Godot variant types:
+
+- Basic types: `bool`, `int`, `float`, `String`, `StringName`
+- Collection types: `Array`, `Dictionary`
+- Vector types: `Vector2`, `Vector2i`, `Vector3`, `Vector3i`, `Vector4`, `Vector4i`
+- Transform types: `Transform2D`, `Transform3D`, `Projection`
+- Geometric types: `AABB`, `Basis`, `Plane`, `Quaternion`, `Rect2`, `Rect2i`
+- Color type: `Color`
+- Array types: `PackedByteArray`, `PackedColorArray`, `PackedFloat32Array`, `PackedFloat64Array`, `PackedInt32Array`, `PackedInt64Array`, `PackedStringArray`, `PackedVector2Array`, `PackedVector3Array`
+- Reference types: `NodePath`, `Resource` (see [Resource references](#referencing-external-resources))
+- **Custom GDScript classes** (with registration)
+- Unknown YAML types are safely converted to strings or dictionaries, ensuring no data loss
+
+### Referencing External Resources
+You can use the `!Resource` tag to automatically load external resources using `ResourceLoader.load()`. This allows YAML files to reference any loadable Godot resource, like scenes, textures, audio files, and more.
+
+```gdscript
+var yaml_string = """
+sprite:
+  texture: !Resource res://textures/hero.png
+  scene: !Resource res://scenes/npc.tscn
+"""
+
+var result = YAML.parse(yaml_string)
+var data = result.get_data()
+
+# These will be actual loaded Resource instances
+print(data.sprite.texture is Texture2D)  # true
+print(data.sprite.scene is PackedScene)  # true
+```
+
 ## Using Helper Classes
 
 The plugin provides convenient helper classes for common operations:
@@ -132,7 +167,7 @@ print(yaml_string)
 
 ## Custom Class Serialization
 
-You can now register your custom GDScript classes for seamless serialization:
+You can register your custom GDScript classes for seamless serialization:
 
 ```gdscript
 # Define a custom class
@@ -271,7 +306,7 @@ var yaml = result.get_data()
 print(yaml)
 ```
 
-## Style Detection
+### Style Detection
 
 You can automatically detect and preserve the styling of parsed YAML:
 
@@ -354,21 +389,6 @@ else:
 - `get_document_count()` returns the number of documents (at least `1` for valid YAML), or `0` if the result has an error
 - When parsing single-document YAML, `get_document(0)` and `get_data()` return identical results
 
-## Supported Types
-
-The plugin automatically handles conversion between YAML and all standard Godot variant types:
-
-- Basic types: `bool`, `int`, `float`, `String`, `StringName`
-- Collection types: `Array`, `Dictionary`
-- Vector types: `Vector2`, `Vector2i`, `Vector3`, `Vector3i`, `Vector4`, `Vector4i`
-- Transform types: `Transform2D`, `Transform3D`, `Projection`
-- Geometric types: `AABB`, `Basis`, `Plane`, `Quaternion`, `Rect2`, `Rect2i`
-- Color type: `Color`
-- Array types: `PackedByteArray`, `PackedColorArray`, `PackedFloat32Array`, `PackedFloat64Array`, `PackedInt32Array`, `PackedInt64Array`, `PackedStringArray`, `PackedVector2Array`, `PackedVector3Array`
-- Reference types: `NodePath`
-- **Custom GDScript classes** (with registration)
-- Unknown YAML types are safely converted to strings or dictionaries, ensuring no data loss.
-
 ## Error Handling and Troubleshooting
 
 ### Common Error Types
@@ -387,19 +407,13 @@ The plugin automatically handles conversion between YAML and all standard Godot 
 
 ## Reporting Issues and Contributing
 
-- **Bug Reports**: Please use the [GitHub issue tracker](https://github.com/fimbul-works/godot-yaml/issues)
-- **Feature Requests**: Feel free to suggest improvements through GitHub issues
-- **Contributing**: Pull requests are welcome! See the main repository README for development guidelines
-
-## Planned Features
-
-- Schema validation
-- Streaming API for large files
-- More performance optimizations
+- **Bug Reports**: Please use the [GitHub issue tracker](https://github.com/fimbul-works/godot-yaml/issues).
+- **Feature Requests**: Feel free to suggest improvements through GitHub issues.
+- **Contributing**: Pull requests are welcome! See the main repository README for development guidelines.
 
 ## Credits
 
-- Powered by [RapidYAML](https://github.com/biojppm/rapidyaml) (ryml) - an efficient C++ library for YAML processing
+- Powered by [RapidYAML](https://github.com/biojppm/rapidyaml) (ryml) - an efficient C++ library for YAML processing.
 
 ## License
 

@@ -134,18 +134,6 @@ std::unordered_map<Variant::Type, std::unique_ptr<VariantConverter>> ConverterFa
 
 Variant::Type ConverterFactory::get_type_for_tag(const String& tag)
 {
-  if (tag.match(Vector2VariantConverter::TAG))
-    return Variant::VECTOR2;
-  if (tag.match(Vector2iVariantConverter::TAG))
-    return Variant::VECTOR2I;
-  if (tag.match(Vector3VariantConverter::TAG))
-    return Variant::VECTOR3;
-  if (tag.match(Vector3iVariantConverter::TAG))
-    return Variant::VECTOR3I;
-  if (tag.match(Vector4VariantConverter::TAG))
-    return Variant::VECTOR4;
-  if (tag.match(Vector4iVariantConverter::TAG))
-    return Variant::VECTOR4I;
   if (tag.match(AABBVariantConverter::TAG))
     return Variant::AABB;
   if (tag.match(BasisVariantConverter::TAG))
@@ -188,6 +176,18 @@ Variant::Type ConverterFactory::get_type_for_tag(const String& tag)
     return Variant::TRANSFORM2D;
   if (tag.match(Transform3DVariantConverter::TAG))
     return Variant::TRANSFORM3D;
+  if (tag.match(Vector2VariantConverter::TAG))
+    return Variant::VECTOR2;
+  if (tag.match(Vector2iVariantConverter::TAG))
+    return Variant::VECTOR2I;
+  if (tag.match(Vector3VariantConverter::TAG))
+    return Variant::VECTOR3;
+  if (tag.match(Vector3iVariantConverter::TAG))
+    return Variant::VECTOR3I;
+  if (tag.match(Vector4VariantConverter::TAG))
+    return Variant::VECTOR4;
+  if (tag.match(Vector4iVariantConverter::TAG))
+    return Variant::VECTOR4I;
 
   return Variant::NIL; // Not found
 }

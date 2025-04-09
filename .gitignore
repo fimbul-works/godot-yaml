@@ -1,12 +1,14 @@
 # Generated directories with binaries
 build
 bin
+*.zip
 
 # Scons
 .sconsign.dblite
 
 # Godot 4+ specific ignores
 .godot/
+*.tmp
 
 # VSCode
 .vscode

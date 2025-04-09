@@ -31,10 +31,15 @@ void PackedVector2ArrayVariantConverter::encode(ryml::NodeRef& node, const Varia
   for (int i = 0; i < array.size(); ++i) {
     ryml::NodeRef vec_node = node.append_child();
 
-    // Check for individual item style, fall back to shared style
     YAMLStyle::View item_style;
     if (style.is_valid()) {
-      item_style = style.get_child(String::num_int64(i));
+      // Check for individual item style
+      const String idx = String::num_int64(i);
+      if (style.has_child(idx)) {
+        item_style = style.get_child(idx);
+      }
+
+      // Fall back to shared style
       if (!item_style.is_valid()) {
         item_style = shared_item_style;
       }

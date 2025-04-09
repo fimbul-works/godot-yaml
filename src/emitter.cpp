@@ -68,8 +68,7 @@ void YAML::Emitter::error_callback(const char* msg, size_t len, ryml::Location l
 
 ryml::csubstr YAML::Emitter::store_string(const String& str)
 {
-  auto [it, _] = string_storage.insert(str.utf8().get_data());
-  return ryml::to_csubstr(*it);
+  return string_pool.store(str);
 }
 
 VariantConverter* YAML::Emitter::get_converter_for_type(Variant::Type type) const

@@ -20,9 +20,9 @@ class ColorVariantConverter : public VariantConverter {
   Variant decode_hex(const ryml::csubstr& val) const;
   Variant decode_map(const ryml::ConstNodeRef& node) const;
   Variant decode_sequence(const ryml::ConstNodeRef& node) const;
-  Color parse_hex_components(const std::string& hex_str, int offset, size_t expected_length) const;
+  Color parse_hex_components(const String& hex_str, int offset, size_t expected_length) const;
 
-  std::string color_to_hex(const Color& color, bool with_alpha, const char* prefix) const;
+  ryml::csubstr color_to_hex(const Color& color, bool with_alpha, const char* prefix) const;
 
   static constexpr int HEX_STRING_LENGTH = 7; // #RRGGBB
   static constexpr int HEX_NUMBER_LENGTH = 8; // 0xRRGGBB

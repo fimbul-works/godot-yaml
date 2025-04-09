@@ -9,16 +9,12 @@ void ColorVariantConverter::encode(ryml::NodeRef& node, const Variant& v, const 
   const Color color = v.operator Color();
   const bool has_alpha = color.a < 1.0f;
 
-  if (style.get_container_form() == YAMLStyle::FORM_SEQ) {
-    emit_as_sequence(node, color, style);
-    return;
-  } else if (style.get_container_form() == YAMLStyle::FORM_MAP) {
-    emit_as_map(node, color, style);
-    return;
-  } else if (style.get_number_format() == YAMLStyle::NUM_HEX) {
+  if (style.get_number_format() == YAMLStyle::NUM_HEX) {
     emit_as_hex(node, color, has_alpha, "0x");
   } else if (style.get_binary_encoding() == YAMLStyle::BIN_HEX) {
     emit_as_hex(node, color, has_alpha, "#");
+  } else if (style.get_container_form() == YAMLStyle::FORM_SEQ) {
+    emit_as_sequence(node, color, style);
   } else {
     emit_as_map(node, color, style);
   }
@@ -26,7 +22,7 @@ void ColorVariantConverter::encode(ryml::NodeRef& node, const Variant& v, const 
 
 void ColorVariantConverter::emit_as_hex(ryml::NodeRef& node, const Color& color, bool with_alpha, const char* prefix) const
 {
-  node << color_to_hex(color, with_alpha, prefix).c_str();
+  node << color_to_hex(color, with_alpha, prefix);
 }
 
 void ColorVariantConverter::emit_as_map(ryml::NodeRef& node, const Color& color, const YAMLStyle::View& style) const
@@ -93,34 +89,35 @@ Variant ColorVariantConverter::decode(const ryml::ConstNodeRef& node) const
   }
 }
 
-Color ColorVariantConverter::parse_hex_components(const std::string& hex_str, int offset, size_t expected_length) const
+Color ColorVariantConverter::parse_hex_components(const String& hex_str, int offset, size_t expected_length) const
 {
   if (hex_str.length() != expected_length && hex_str.length() != expected_length + HEX_ALPHA_EXTRA) {
     throw YAMLException("Invalid hex color length");
   }
 
   try {
-    int r = std::stoi(hex_str.substr(offset, 2), nullptr, 16);
-    int g = std::stoi(hex_str.substr(offset + 2, 2), nullptr, 16);
-    int b = std::stoi(hex_str.substr(offset + 4, 2), nullptr, 16);
-    int a = hex_str.length() == expected_length + HEX_ALPHA_EXTRA ? std::stoi(hex_str.substr(offset + 6, 2), nullptr, 16) : 255;
+    int r = hex_str.substr(offset, 2).hex_to_int();
+    int g = hex_str.substr(offset + 2, 2).hex_to_int();
+    int b = hex_str.substr(offset + 4, 2).hex_to_int();
+    int a = hex_str.length() == expected_length + HEX_ALPHA_EXTRA ? hex_str.substr(offset + 6, 2).hex_to_int() : 255;
 
     return Color(r / COLOR_COMPONENT_MAX,
             g / COLOR_COMPONENT_MAX,
             b / COLOR_COMPONENT_MAX,
             a / COLOR_COMPONENT_MAX);
-  } catch (const std::exception& e) {
+  } catch (...) {
     throw YAMLException("Invalid hex color component");
   }
 }
 
 Variant ColorVariantConverter::decode_hex(const ryml::csubstr& val) const
 {
-  std::string hex_str(val.str, val.len);
+  String hex_str = from_ryml_str(val);
+
   try {
     if (hex_str[0] == '#') {
       return parse_hex_components(hex_str, 1, HEX_STRING_LENGTH);
-    } else if (hex_str.compare(0, 2, "0x") == 0) {
+    } else if (hex_str.begins_with("0x")) {
       return parse_hex_components(hex_str, 2, HEX_NUMBER_LENGTH);
     }
     throw YAMLException("Invalid hex color format");
@@ -160,22 +157,16 @@ Variant ColorVariantConverter::decode_sequence(const ryml::ConstNodeRef& node) c
   return Color(r, g, b, a);
 }
 
-std::string ColorVariantConverter::color_to_hex(const Color& color, bool with_alpha, const char* prefix) const
+ryml::csubstr ColorVariantConverter::color_to_hex(const Color& color, bool with_alpha, const char* prefix) const
 {
-  char buffer[11]; // Enough for prefix + RRGGBBAA + null
+  uint8_t r = static_cast<uint8_t>(CLAMP(color.r * COLOR_COMPONENT_MAX, 0.0f, COLOR_COMPONENT_MAX));
+  uint8_t g = static_cast<uint8_t>(CLAMP(color.g * COLOR_COMPONENT_MAX, 0.0f, COLOR_COMPONENT_MAX));
+  uint8_t b = static_cast<uint8_t>(CLAMP(color.b * COLOR_COMPONENT_MAX, 0.0f, COLOR_COMPONENT_MAX));
+
   if (with_alpha) {
-    snprintf(buffer, sizeof(buffer), "%s%02X%02X%02X%02X",
-            prefix,
-            static_cast<int>(color.r * COLOR_COMPONENT_MAX),
-            static_cast<int>(color.g * COLOR_COMPONENT_MAX),
-            static_cast<int>(color.b * COLOR_COMPONENT_MAX),
-            static_cast<int>(color.a * COLOR_COMPONENT_MAX));
-  } else {
-    snprintf(buffer, sizeof(buffer), "%s%02X%02X%02X",
-            prefix,
-            static_cast<int>(color.r * COLOR_COMPONENT_MAX),
-            static_cast<int>(color.g * COLOR_COMPONENT_MAX),
-            static_cast<int>(color.b * COLOR_COMPONENT_MAX));
+    uint8_t a = static_cast<uint8_t>(CLAMP(color.a * COLOR_COMPONENT_MAX, 0.0f, COLOR_COMPONENT_MAX));
+    return string_pool.store(vformat("%s%02X%02X%02X%02X", prefix, r, g, b, a));
   }
-  return std::string(buffer);
+
+  return string_pool.store(vformat("%s%02X%02X%02X", prefix, r, g, b));
 }
