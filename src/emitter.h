@@ -4,6 +4,7 @@
 #include "converter_factory.h"
 #include "result.h"
 #include "string_hash.h"
+#include "string_pool.h"
 #include "style_view.h"
 #include "yaml.h"
 
@@ -50,10 +51,7 @@ class YAML::Emitter {
   VariantConverter* get_converter_for_type(Variant::Type type) const;
   VariantConverter* get_converter_for_tag(const String& tag) const;
 
-  // Keep string data alive for the duration of emission
-  std::set<std::string> string_storage;
-
-  // Helper to store a string and get a safe view
+  YAMLStringPool string_pool;
   ryml::csubstr store_string(const String& str);
 
   // Core emission methods

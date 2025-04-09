@@ -42,10 +42,8 @@ def setup_build_env(base_env):
 
         # Add architecture-specific flags for Windows
         if arch == 'x86_32':
-            env.Append(CCFLAGS=['/MACHINE:X86'])
             env.Append(LINKFLAGS=['/MACHINE:X86'])
         else:  # x86_64
-            env.Append(CCFLAGS=['/MACHINE:X64'])
             env.Append(LINKFLAGS=['/MACHINE:X64'])
     else:
         env.Append(CCFLAGS=['-std=c++17'])

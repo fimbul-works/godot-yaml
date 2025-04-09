@@ -19,7 +19,7 @@ class PackedByteArrayVariantConverter : public VariantConverter {
 
   // Helper struct for string cleanup and format detection
   struct CleanupResult {
-    std::string cleaned;
+    String cleaned;
     bool is_hex;
     size_t original_length;
   };
@@ -30,8 +30,8 @@ class PackedByteArrayVariantConverter : public VariantConverter {
 
   // String processing helpers
   CleanupResult cleanup_and_detect(const ryml::csubstr& input) const;
-  ryml::csubstr format_output(ryml::csubstr str, size_t line_length) const;
-  PackedByteArray hex_to_bytes(const std::string& hex) const;
+  ryml::csubstr format_output(const String& str, size_t line_length) const;
+  PackedByteArray hex_to_bytes(const String& hex) const;
 
   // Character validation
   static bool is_hex_char(char c);

@@ -17,10 +17,7 @@ void PackedByteArrayVariantConverter::encode(ryml::NodeRef& node, const Variant&
   }
 
   // Use binary_encoding from style to determine format
-  if (!style.is_valid() || style.get_binary_encoding() == YAMLStyle::BIN_BASE64) {
-    // Default to base64 if no style specified
-    emit_as_base64(node, array, style);
-  } else if (style.get_binary_encoding() == YAMLStyle::BIN_HEX) {
+  if (style.get_binary_encoding() == YAMLStyle::BIN_HEX) {
     emit_as_hex(node, array, style);
   } else {
     emit_as_base64(node, array, style);
@@ -29,14 +26,13 @@ void PackedByteArrayVariantConverter::encode(ryml::NodeRef& node, const Variant&
 
 void PackedByteArrayVariantConverter::emit_as_hex(ryml::NodeRef& node, const PackedByteArray& array, const YAMLStyle::View& style) const
 {
-  std::vector<char> hex_str;
-  hex_str.reserve(array.size() * 2);
+  String hex_str;
 
   static const char hex_chars[] = "0123456789ABCDEF";
   for (int i = 0; i < array.size(); ++i) {
     uint8_t byte = array[i];
-    hex_str.push_back(hex_chars[byte >> 4]);
-    hex_str.push_back(hex_chars[byte & 0xF]);
+    hex_str += hex_chars[byte >> 4];
+    hex_str += hex_chars[byte & 0xF];
   }
 
   if (style.is_valid()) {
@@ -47,7 +43,7 @@ void PackedByteArrayVariantConverter::emit_as_hex(ryml::NodeRef& node, const Pac
     }
   }
 
-  node << format_output(ryml::csubstr(hex_str.data(), hex_str.size()), HEX_LINE_LENGTH);
+  node << format_output(hex_str, HEX_LINE_LENGTH);
 }
 
 void PackedByteArrayVariantConverter::emit_as_base64(ryml::NodeRef& node, const PackedByteArray& array, const YAMLStyle::View& style) const
@@ -62,7 +58,7 @@ void PackedByteArrayVariantConverter::emit_as_base64(ryml::NodeRef& node, const 
     }
   }
 
-  node << format_output(to_ryml_str(base64), BASE64_LINE_LENGTH);
+  node << format_output(base64, BASE64_LINE_LENGTH);
 }
 
 Variant PackedByteArrayVariantConverter::decode(const ryml::ConstNodeRef& node) const
@@ -81,7 +77,7 @@ Variant PackedByteArrayVariantConverter::decode(const ryml::ConstNodeRef& node) 
     if (result.is_hex) {
       return hex_to_bytes(result.cleaned);
     } else {
-      return Marshalls::get_singleton()->base64_to_raw(String::utf8(result.cleaned.c_str()));
+      return Marshalls::get_singleton()->base64_to_raw(result.cleaned);
     }
   } catch (const std::exception& e) {
     throw YAMLException::create_decode_error("PackedByteArray", e.what());
@@ -91,8 +87,7 @@ Variant PackedByteArrayVariantConverter::decode(const ryml::ConstNodeRef& node) 
 PackedByteArrayVariantConverter::CleanupResult
 PackedByteArrayVariantConverter::cleanup_and_detect(const ryml::csubstr& input) const
 {
-  std::string cleaned;
-  cleaned.reserve(input.len);
+  String cleaned;
   bool is_hex = true;
 
   for (size_t i = 0; i < input.len; i++) {
@@ -114,38 +109,41 @@ PackedByteArrayVariantConverter::cleanup_and_detect(const ryml::csubstr& input) 
 }
 
 // In the format_output method, change:
-ryml::csubstr PackedByteArrayVariantConverter::format_output(ryml::csubstr str, size_t line_length) const
+ryml::csubstr PackedByteArrayVariantConverter::format_output(const String& str, size_t line_length) const
 {
-  if (str.len <= line_length) {
-    return str;
+  if (str.length() <= line_length) {
+    return store_string(str);
   }
 
   // Create string with explicit lifetime
-  std::string formatted;
-  formatted.reserve(str.len + ((str.len / line_length) + 1));
+  String formatted;
 
+  size_t len = str.length();
   size_t pos = 0;
-  while (pos < str.len) {
+  while (pos < len) {
     if (pos > 0) {
       formatted += '\n';
     }
-    size_t chunk_size = std::min(line_length, str.len - pos);
-    formatted.append(str.str + pos, chunk_size);
+    size_t chunk_size = std::min(line_length, len - pos);
+    formatted += str.substr(pos, chunk_size);
     pos += chunk_size;
   }
+  // Add trailing newline to turn "|-" into just "|"
+  formatted += '\n';
 
   // Return view of the processed string
-  return ryml::to_csubstr(formatted);
+  return store_string(formatted);
 }
 
-PackedByteArray PackedByteArrayVariantConverter::hex_to_bytes(const std::string& hex) const
+PackedByteArray PackedByteArrayVariantConverter::hex_to_bytes(const String& hex) const
 {
   PackedByteArray array;
   array.resize(hex.length() / 2);
+  const char* hex_str = hex.utf8().get_data();
 
   for (size_t i = 0; i < array.size(); ++i) {
     unsigned int byte;
-    std::sscanf(hex.c_str() + i * 2, "%2x", &byte);
+    std::sscanf(hex_str + i * 2, "%2x", &byte);
     array.set(i, static_cast<uint8_t>(byte));
   }
 

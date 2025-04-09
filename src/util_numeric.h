@@ -48,6 +48,28 @@ T string_to_int(const ryml::csubstr& value)
 {
   static_assert(std::is_integral<T>::value, "Type must be integral");
 
+  // For int64_t with known large hexadecimal values that would overflow,
+  // use a special case approach
+  if (std::is_same_v<T, int64_t> && (value.begins_with("0x") || value.begins_with("0X"))) {
+    // Convert to std::string for easier handling
+    std::string str(value.begin(), value.end());
+
+    try {
+      // For int64_t, we can use strtoll which handles hex values correctly
+      char* end;
+      int64_t result = std::strtoll(str.c_str(), &end, 0);
+
+      // Check if conversion was successful
+      if (end == str.c_str() || *end != '\0') {
+        throw YAMLException("Invalid integer format");
+      }
+
+      return result;
+    } catch (...) {
+      throw YAMLException("Integer value out of range");
+    }
+  }
+
   T result;
   int base = 10;
   const char* start = value.begin();
@@ -122,9 +144,6 @@ ryml::csubstr float_to_string(const T value, YAMLStyle::NumberFormat format = YA
         size_t len = snprintf(buf, sizeof(buf), "%.6fe%+d", mantissa, exp);
         return ryml::csubstr(buf, len);
       }
-      case YAMLStyle::NUM_HEX:
-        format_str = "0x{:a}"; // Hexadecimal floating point format
-        break;
       default:
         format_str = "{}";
         break;
@@ -143,10 +162,10 @@ ryml::csubstr int_to_string(const T value, YAMLStyle::NumberFormat format = YAML
 
   switch (format) {
     case YAMLStyle::NUM_HEX:
-      snprintf(buf, sizeof(buf), "0x%x", (unsigned int)value);
+      snprintf(buf, sizeof(buf), "0x%llx", (uint64_t)value);
       break;
     case YAMLStyle::NUM_OCTAL:
-      snprintf(buf, sizeof(buf), "0o%o", (unsigned int)value);
+      snprintf(buf, sizeof(buf), "0o%llo", (uint64_t)value);
       break;
     case YAMLStyle::NUM_BINARY: {
       // Handle binary format manually since snprintf doesn't support it
@@ -171,7 +190,7 @@ ryml::csubstr int_to_string(const T value, YAMLStyle::NumberFormat format = YAML
       snprintf(buf, sizeof(buf), "%e", (double)value);
       break;
     default:
-      snprintf(buf, sizeof(buf), "%d", (int)value);
+      snprintf(buf, sizeof(buf), "%lld", (int64_t)value);
       break;
   }
 
@@ -186,12 +205,6 @@ T string_to_float(const ryml::substr& value)
 }
 
 template <typename T>
-T string_to_float(const std::string& value)
-{
-  return string_to_float<T>(ryml::to_csubstr(value));
-}
-
-template <typename T>
 T string_to_float(const godot::String& value)
 {
   return string_to_float<T>(ryml::to_csubstr(value.utf8().get_data()));
@@ -199,12 +212,6 @@ T string_to_float(const godot::String& value)
 
 template <typename T>
 T string_to_int(const ryml::substr& value)
-{
-  return string_to_int<T>(ryml::to_csubstr(value));
-}
-
-template <typename T>
-T string_to_int(const std::string& value)
 {
   return string_to_int<T>(ryml::to_csubstr(value));
 }

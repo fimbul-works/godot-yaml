@@ -41,7 +41,7 @@ class YAML::Parser {
 
   // Current parse state
   Ref<YAMLResult> current_result;
-  std::vector<std::string> current_path;
+  Vector<String> current_path;
   bool detect_style;
   Ref<YAMLStyle> style;
 
@@ -73,7 +73,7 @@ class YAML::Parser {
   void detect_scalar_style(const ryml::ConstNodeRef& node, const Ref<YAMLStyle>& style);
   void detect_container_form(const ryml::ConstNodeRef& node, const Ref<YAMLStyle>& style);
   void detect_anchor_style(const ryml::ConstNodeRef& node, const Ref<YAMLStyle>& style);
-  void detect_array_template_style(const ryml::ConstNodeRef& node, const std::string& key, Ref<YAMLStyle> current_style);
+  void detect_array_template_style(const ryml::ConstNodeRef& node, const String& key, Ref<YAMLStyle> current_style);
 
   // Initialize converters
   void init_converters();

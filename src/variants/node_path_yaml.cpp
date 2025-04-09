@@ -12,7 +12,12 @@ void NodePathVariantConverter::encode(ryml::NodeRef& node, const Variant& v, con
   if (str.is_empty()) {
     node << ryml::csubstr {};
   } else {
-    node |= ryml::VAL_DQUO;
+    if (style.is_valid()) {
+      style.apply_scalar_style(node);
+      style.apply_quote_style(node);
+    } else {
+      node |= ryml::VAL_DQUO;
+    }
     node << to_ryml_str(str);
   }
 }
