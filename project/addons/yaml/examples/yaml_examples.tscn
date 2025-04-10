@@ -1,4 +1,4 @@
-[gd_scene load_steps=36 format=3 uid="uid://bgseothw7g8ue"]
+[gd_scene load_steps=37 format=3 uid="uid://bgseothw7g8ue"]
 
 [ext_resource type="Script" path="res://addons/yaml/examples/basic_usage.gd" id="1_c1nba"]
 [ext_resource type="Script" path="res://addons/yaml/examples/loader_writer.gd" id="2_k5e78"]
@@ -35,6 +35,8 @@
 [ext_resource type="Script" path="res://addons/yaml/examples/variants/yaml_test_vector3i.gd" id="18_544y0"]
 [ext_resource type="Script" path="res://addons/yaml/examples/variants/yaml_test_vector4.gd" id="19_0w0w7"]
 [ext_resource type="Script" path="res://addons/yaml/examples/variants/yaml_test_vector4i.gd" id="20_ry01a"]
+
+[sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_grb45"]
 
 [node name="Examples" type="Node2D"]
 
@@ -144,3 +146,4 @@ script = ExtResource("8_lna3x")
 
 [node name="Resource Referencing" type="Node2D" parent="."]
 script = ExtResource("9_jrrbs")
+local_texture = SubResource("PlaceholderTexture2D_grb45")

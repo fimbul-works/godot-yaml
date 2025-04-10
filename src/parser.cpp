@@ -324,6 +324,7 @@ std::optional<Variant> YAML::Parser::try_parse_tagged_value(const ryml::ConstNod
       ERR_PRINT(vformat("Invalid node format for class %s - expected map", tag));
       return Variant();
     }
+
     YAMLClassRegistry::ClassInfo class_info = YAMLClassRegistry::get_class_info(tag);
 
     // Class info exists and is valid
@@ -380,19 +381,19 @@ Variant YAML::Parser::parse_object_or_resource(const ryml::ConstNodeRef& node, c
     if (path.begins_with("res://") || path.begins_with("user://")) {
       return load_resource(path);
     }
+
+    throw YAMLException(vformat("Invalid resource path for class %s", class_name));
   }
 
   // Otherwise, treat it as an inline object/resource definition
   if (!node.is_map()) {
-    ERR_PRINT(vformat("Invalid node format for class %s - expected map", class_name));
-    return Variant();
+    throw YAMLException(vformat("Invalid node format for class %s - expected map", class_name));
   }
 
   // Instantiate the object
   Object* obj = ClassDB::instantiate(class_name);
   if (!obj) {
-    ERR_PRINT(vformat("Failed to instantiate class: %s", class_name));
-    return Variant();
+    throw YAMLException(vformat("Failed to instantiate class: %s", class_name));
   }
 
   // Process the object's properties
@@ -443,7 +444,6 @@ bool YAML::Parser::populate_object_properties(Object* obj, const ryml::ConstNode
     }
 
     // Try to set the property
-    UtilityFunctions::print("Set ", key, "=", value);
     obj->set(key, value);
   }
 

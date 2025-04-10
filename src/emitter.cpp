@@ -153,8 +153,6 @@ void YAML::Emitter::emit_value(ryml::NodeRef node, const Variant& value, const Y
       }
 
       default: {
-        // UtilityFunctions::print("get_tag_name: ", value.has_method("get_tag_name"), "to_dict: ", value.has_method("to_dict"), " from_dict: ", value.has_method("from_dict"));
-
         VariantConverter* converter = get_converter_for_type(value.get_type());
         if (converter) {
           node.set_val_tag(converter->get_full_tag());
@@ -318,10 +316,9 @@ void YAML::Emitter::emit_object(ryml::NodeRef& node, Object* obj, const YAMLStyl
     }
   }
 
-  // Handle resources specially
+  // Handle resources
   const Resource* res = Object::cast_to<const Resource>(obj);
   if (res) {
-    node.set_val_tag(store_string("!" + class_name));
     emit_resource(node, res, style);
     return;
   }
@@ -335,21 +332,25 @@ void YAML::Emitter::emit_object(ryml::NodeRef& node, Object* obj, const YAMLStyl
 void YAML::Emitter::emit_resource(ryml::NodeRef& node, const Resource* res, const YAMLStyle::View& style)
 {
   String path = res->get_path();
-  bool has_path = !path.is_empty();
   bool is_local = res->is_local_to_scene();
 
-  // Check if resource has a path and no local modifications
-  if (has_path && ProjectSettings::get_singleton()->localize_path(path) == path && path.ends_with(".tres")) {
-    // No local modifications - just emit the path
-    node << ryml::VAL_DQUO;
-    node << to_ryml_str(path);
-    return;
+  // Local resources cannot be serialized
+  if (is_local || path.to_lower().contains("::")) {
+    String error = vformat("Cannot serialize local Resource");
+    current_result = YAMLResult::error(error);
+    throw YAMLException(error);
   }
 
-  // FIXME: Handle local resources
-  String error = vformat("Cannot serialize local Resource");
-  current_result = YAMLResult::error(error);
-  throw YAMLException(error);
+  // Resources need a path
+  if (path.is_empty()) {
+    String error = vformat("Cannot serialize Resource without path");
+    current_result = YAMLResult::error(error);
+    throw YAMLException(error);
+  }
+
+  node.set_val_tag("!Resource");
+  node << ryml::VAL_DQUO;
+  node << to_ryml_str(path);
 }
 
 void YAML::Emitter::check_depth(int current_depth)
