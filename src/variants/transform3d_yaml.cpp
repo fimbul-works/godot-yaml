@@ -32,8 +32,8 @@ void Transform3DVariantConverter::emit_as_map(ryml::NodeRef& node, const Transfo
   style.apply_flow_style(node);
 
   // Pass child styles for basis and origin
-  YAMLStyle::View& basis_style = style.is_valid() ? style.get_child("basis") : YAMLStyle::View();
-  YAMLStyle::View& origin_style = style.is_valid() ? style.get_child("origin") : YAMLStyle::View();
+  YAMLStyle::View basis_style = style.is_valid() ? style.get_child("basis") : YAMLStyle::View();
+  YAMLStyle::View origin_style = style.is_valid() ? style.get_child("origin") : YAMLStyle::View();
 
   ryml::NodeRef basis_node = node["basis"];
   basis_converter->encode(basis_node, transform.basis, basis_style);
@@ -51,13 +51,13 @@ void Transform3DVariantConverter::emit_as_sequence(ryml::NodeRef& node, const Tr
 
   // Pass child styles for each vector using indices
   for (int i = 0; i < 3; i++) {
-    YAMLStyle::View& row_style = style.is_valid() ? style.get_child(String::num_int64(i)) : YAMLStyle::View();
+    const YAMLStyle::View& row_style = style.is_valid() ? style.get_child(String::num_int64(i)) : YAMLStyle::View();
     ryml::NodeRef col_node = node.append_child();
     vec3_converter->encode(col_node, transform.basis.rows[i], row_style);
   }
 
   // Origin gets index 3
-  YAMLStyle::View& origin_style = style.is_valid() ? style.get_child("3") : YAMLStyle::View();
+  YAMLStyle::View origin_style = style.is_valid() ? style.get_child("3") : YAMLStyle::View();
   ryml::NodeRef origin_node = node.append_child();
   vec3_converter->encode(origin_node, transform.origin, origin_style);
 }

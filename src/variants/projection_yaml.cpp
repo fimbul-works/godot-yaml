@@ -35,10 +35,14 @@ void ProjectionVariantConverter::emit_as_map(ryml::NodeRef& node, const Projecti
   YAMLStyle::View z_style = style.is_valid() ? style.get_child("z") : YAMLStyle::View();
   YAMLStyle::View w_style = style.is_valid() ? style.get_child("w") : YAMLStyle::View();
 
-  emit_column(node["x"], proj.columns[0], x_style);
-  emit_column(node["y"], proj.columns[1], y_style);
-  emit_column(node["z"], proj.columns[2], z_style);
-  emit_column(node["w"], proj.columns[3], w_style);
+  ryml::NodeRef x_node = node["x"];
+  ryml::NodeRef y_node = node["y"];
+  ryml::NodeRef z_node = node["z"];
+  ryml::NodeRef w_node = node["w"];
+  emit_column(x_node, proj.columns[0], x_style);
+  emit_column(y_node, proj.columns[1], y_style);
+  emit_column(z_node, proj.columns[2], z_style);
+  emit_column(w_node, proj.columns[3], w_style);
 }
 
 void ProjectionVariantConverter::emit_as_sequence(ryml::NodeRef& node, const Projection& proj, const YAMLStyle::View& style) const

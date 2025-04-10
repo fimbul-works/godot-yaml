@@ -55,7 +55,7 @@ class YAML::Emitter {
   ryml::csubstr store_string(const String& str);
 
   // Core emission methods
-  void emit_value(ryml::NodeRef& node, const Variant& value, const YAMLStyle::View& style);
+  void emit_value(ryml::NodeRef node, const Variant& value, const YAMLStyle::View& style);
   void emit_nil(ryml::NodeRef& node);
   void emit_bool(ryml::NodeRef& node, bool value);
   void emit_number(ryml::NodeRef& node, const Variant& value, const YAMLStyle::View& style);

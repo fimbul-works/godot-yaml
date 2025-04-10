@@ -47,7 +47,7 @@ class ConverterFactory {
   std::unordered_map<Variant::Type, std::unique_ptr<VariantConverter>> create_converter_set();
 
   private:
-  Variant::Type ConverterFactory::get_type_for_tag(const String& tag);
+  Variant::Type get_type_for_tag(const String& tag);
 };
 
 } // namespace godot

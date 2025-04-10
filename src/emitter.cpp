@@ -108,7 +108,7 @@ Ref<YAMLResult> YAML::Emitter::emit(const Variant& input, const YAMLStyle::View&
   }
 }
 
-void YAML::Emitter::emit_value(ryml::NodeRef& node, const Variant& value, const YAMLStyle::View& style)
+void YAML::Emitter::emit_value(ryml::NodeRef node, const Variant& value, const YAMLStyle::View& style)
 {
   static int depth = 0;
   depth++;
@@ -269,7 +269,8 @@ void YAML::Emitter::emit_array(ryml::NodeRef& node, const Array& array, const YA
         item_style = template_style.is_valid() ? template_style : shared_style;
       }
     }
-    emit_value(node.append_child(), array[i], item_style);
+    ryml::NodeRef child = node.append_child();
+    emit_value(child, array[i], item_style);
   }
 }
 
@@ -285,7 +286,8 @@ void YAML::Emitter::emit_dictionary(ryml::NodeRef& node, const Dictionary& dict,
 
   for (int i = 0; i < keys.size(); i++) {
     ryml::NodeRef child = node.append_child();
-    child << ryml::key(store_string(keys[i]));
+    ryml::csubstr key_str = store_string(keys[i]);
+    child << ryml::key(key_str);
     emit_value(child, dict[keys[i]], style.get_child(String(keys[i])));
   }
 }

@@ -126,7 +126,7 @@ class YAMLStyle : public RefCounted {
   {
     custom_settings["tag"] = p_tag;
   }
-  String YAMLStyle::get_custom_tag() const
+  String get_custom_tag() const
   {
     Dictionary custom = get_custom_settings();
     if (custom.has("tag"))

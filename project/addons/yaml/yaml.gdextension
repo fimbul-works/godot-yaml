@@ -10,3 +10,6 @@ windows.debug.x86_32 = "res://addons/yaml/bin/libgdyaml.windows.debug.x86_32.dll
 windows.release.x86_32 = "res://addons/yaml/bin/libgdyaml.windows.release.x86_32.dll"
 windows.debug.x86_64 = "res://addons/yaml/bin/libgdyaml.windows.debug.x86_64.dll"
 windows.release.x86_64 = "res://addons/yaml/bin/libgdyaml.windows.release.x86_64.dll"
+
+linux.debug.x86_64 = "res://addons/yaml/bin/libgdyaml.linux.debug.x86_64.so"
+linux.release.x86_64 = "res://addons/yaml/bin/libgdyaml.linux.release.x86_64.so"
