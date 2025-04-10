@@ -7,7 +7,8 @@ This is the **C++ GDExtension implementation** of the Godot YAML plugin. It prov
 
 ## 🔄 Version History
 
-- **0.12.0** (Current) - Performance optimizations, bug fixes, and comprehensive tests for all variant types.
+- **0.12.1** (Current) - Build support for Linux (x86 64-bit)
+- **0.12.0** - Performance optimizations, bug fixes, and comprehensive tests for all variant types.
 - **0.11.0** - Added support for parsing multiple documents, and error handling for custom class deserialization.
 - **0.10.1** - Fixed issue with custom Resources not being serializable.
 - **0.10.0** - Added custom class serialization support, upgraded to Godot 4.3.
@@ -107,7 +108,8 @@ scons platform=linux target=template_release
 ## ✅ Supported Platforms
 
 - **Windows**: ✅ Prebuilt binaries available.
-- **Linux/macOS**: 🚧 Not yet prebuilt, but **should compile without issues**.
+- **Linux**: ✅ Prebuilt binaries available for **x86 64-bit** architecture.
+- **macOS**: 🚧 Not yet prebuilt, but **should compile without issues**.
 
 📌 **Contributions welcome!** If you can help with Linux/macOS, open a PR.
 

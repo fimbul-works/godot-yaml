@@ -1,5 +1,5 @@
 #ifndef GODOT_YAML_VERSION
 
-#define GODOT_YAML_VERSION "0.12.0"
+#define GODOT_YAML_VERSION "0.12.1"
 
 #endif // GODOT_YAML_VERSION
