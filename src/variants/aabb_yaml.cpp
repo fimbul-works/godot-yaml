@@ -74,11 +74,11 @@ Variant AABBVariantConverter::decode_from_map(const ryml::ConstNodeRef& node) co
   const auto position_node = node["position"];
   const auto size_node = node["size"];
 
-  if (!position_node.valid()) {
+  if (position_node.invalid()) {
     throw YAMLException("Missing required field 'position' in AABB");
   }
 
-  if (!size_node.valid()) {
+  if (size_node.invalid()) {
     throw YAMLException("Missing required field 'size' in AABB");
   }
 
