@@ -1,0 +1,248 @@
+[gd_scene load_steps=7 format=3 uid="uid://b7wsl0ss24hvb"]
+
+[ext_resource type="Script" path="res://addons/yaml/editor/yaml_editor.gd" id="1_jqpkv"]
+[ext_resource type="Script" path="res://addons/yaml/editor/yaml_syntax_highlighter.gd" id="2_0xmrl"]
+[ext_resource type="Script" path="res://addons/yaml/editor/yaml_code_edit.gd" id="2_lgcdy"]
+
+[sub_resource type="EditorSyntaxHighlighter" id="EditorSyntaxHighlighter_adv2p"]
+script = ExtResource("2_0xmrl")
+
+[sub_resource type="FontVariation" id="FontVariation_o84u8"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_42q8o"]
+
+[node name="YamlEditor" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+script = ExtResource("1_jqpkv")
+metadata/_edit_use_anchors_ = true
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 4
+theme_override_constants/margin_top = 4
+theme_override_constants/margin_right = 4
+theme_override_constants/margin_bottom = 4
+
+[node name="VSplitContainer" type="VSplitContainer" parent="MarginContainer"]
+layout_mode = 2
+
+[node name="HSplitContainer" type="HSplitContainer" parent="MarginContainer/VSplitContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="FilePanel" type="VBoxContainer" parent="MarginContainer/VSplitContainer/HSplitContainer"]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+
+[node name="FileToolbar" type="HBoxContainer" parent="MarginContainer/VSplitContainer/HSplitContainer/FilePanel"]
+layout_mode = 2
+
+[node name="NewButton" type="Button" parent="MarginContainer/VSplitContainer/HSplitContainer/FilePanel/FileToolbar"]
+layout_mode = 2
+tooltip_text = "New YAML File"
+text = "New"
+
+[node name="OpenButton" type="Button" parent="MarginContainer/VSplitContainer/HSplitContainer/FilePanel/FileToolbar"]
+layout_mode = 2
+tooltip_text = "Open YAML File"
+text = "Open"
+
+[node name="SpacerControl" type="Control" parent="MarginContainer/VSplitContainer/HSplitContainer/FilePanel/FileToolbar"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="FileLabel" type="Label" parent="MarginContainer/VSplitContainer/HSplitContainer/FilePanel/FileToolbar"]
+layout_mode = 2
+text = "Open Files"
+
+[node name="FileList" type="ItemList" parent="MarginContainer/VSplitContainer/HSplitContainer/FilePanel"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+allow_rmb_select = true
+auto_height = true
+
+[node name="EditorPanel" type="VBoxContainer" parent="MarginContainer/VSplitContainer/HSplitContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="EditorToolbar" type="HBoxContainer" parent="MarginContainer/VSplitContainer/HSplitContainer/EditorPanel"]
+layout_mode = 2
+
+[node name="SaveButton" type="Button" parent="MarginContainer/VSplitContainer/HSplitContainer/EditorPanel/EditorToolbar"]
+layout_mode = 2
+tooltip_text = "Save Current File"
+text = "Save"
+
+[node name="SaveAsButton" type="Button" parent="MarginContainer/VSplitContainer/HSplitContainer/EditorPanel/EditorToolbar"]
+layout_mode = 2
+tooltip_text = "Save As..."
+text = "Save As"
+
+[node name="VSeparator" type="VSeparator" parent="MarginContainer/VSplitContainer/HSplitContainer/EditorPanel/EditorToolbar"]
+layout_mode = 2
+
+[node name="ValidationButton" type="Button" parent="MarginContainer/VSplitContainer/HSplitContainer/EditorPanel/EditorToolbar"]
+layout_mode = 2
+tooltip_text = "Validate YAML"
+text = "Validate"
+
+[node name="YAMLCodeEdit" type="CodeEdit" parent="MarginContainer/VSplitContainer/HSplitContainer/EditorPanel"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+text = "# Scalars
+string_value: \"Hello, World!\"
+unquoted_string: Hello World
+single_quoted: 'Hello, ''World'''
+folded_string: >
+  This is a long string
+  that will be folded
+  into a single line
+literal_string: |
+  This is a long string
+  that will preserve
+  newlines
+
+# Numeric types
+integer: 42
+float: 3.14159
+hex: 0xff
+octal: 0o700
+binary: 0b1010
+scientific_notation: 6.022e23
+infinity: .inf
+not_a_number: .nan
+
+# Boolean types
+boolean_true: true
+boolean_false: false
+
+# Null
+null_value: null
+null_value_2: ~
+
+# Dates and times
+date: 2023-04-01
+canonical_datetime: 2023-04-01T12:00:00Z
+iso8601_datetime: 2023-04-01t12:00:00.000-05:00
+
+# Collections
+## Lists
+fruits:
+- apple
+- banana
+- cherry
+
+
+nested_list:
+  - - nested
+  - items
+  - - more
+  - nested
+  - items
+
+## Dictionaries
+person:
+  name: John Doe
+  age: 30
+  occupation: Developer
+
+## Flow style list
+flow_style_list: [1, 2, 3, 4, 5]
+
+## Flow style dictionary
+flow_style_dict: {key1: value1, key2: value2, key3: 124.5}
+
+## Nested flow list
+nested_flow_style_list: [\"hello\", 10, {foo: bar}, [4.20, 6.9]]
+
+## Nested flow dictionary
+nested_flow_style_dictionary: { key1: {foo: 'bar'}, key2: [4.20, 6.9] }
+
+# Anchors and aliases
+anchor_example: &anchor_name
+  key1: value1
+  key2: value2
+
+alias_example: *anchor_name
+
+# Merge key
+base: &base
+  name: John Doe
+  age: 30
+
+merge_example:
+  <<: *base
+  occupation: Developer
+
+# Ordered maps
+ordered_map: !!omap
+  - key1: value1
+  - key2: value2
+
+# Binary data
+binary_data: !!binary |
+  R0lGODlhDAAMAIQAAP//9/X17unp5WZmZgAAAOfn515eXvPz7Y6OjuDg4J+fn5
+  OTk6enp56enmleECcgggoBADs=
+
+# Tags
+custom_tag: !my_custom_tag
+  key: value
+"
+scroll_smooth = true
+minimap_draw = true
+syntax_highlighter = SubResource("EditorSyntaxHighlighter_adv2p")
+highlight_all_occurrences = true
+highlight_current_line = true
+draw_control_chars = true
+draw_tabs = true
+draw_spaces = true
+line_folding = true
+gutters_draw_line_numbers = true
+gutters_draw_fold_gutter = true
+indent_size = 2
+indent_use_spaces = true
+indent_automatic = true
+auto_brace_completion_enabled = true
+auto_brace_completion_highlight_matching = true
+script = ExtResource("2_lgcdy")
+
+[node name="StatusPanel" type="HBoxContainer" parent="MarginContainer/VSplitContainer/HSplitContainer/EditorPanel"]
+layout_mode = 2
+
+[node name="StatusLabel" type="Label" parent="MarginContainer/VSplitContainer/HSplitContainer/EditorPanel/StatusPanel"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 2
+focus_mode = 2
+theme_override_fonts/font = SubResource("FontVariation_o84u8")
+theme_override_styles/normal = SubResource("StyleBoxEmpty_42q8o")
+text = "No file open"
+vertical_alignment = 1
+
+[node name="LineColLabel" type="Label" parent="MarginContainer/VSplitContainer/HSplitContainer/EditorPanel/StatusPanel"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 8
+text = "1 : 1"
+vertical_alignment = 1
+
+[connection signal="pressed" from="MarginContainer/VSplitContainer/HSplitContainer/FilePanel/FileToolbar/NewButton" to="." method="_on_new_button_pressed"]
+[connection signal="pressed" from="MarginContainer/VSplitContainer/HSplitContainer/FilePanel/FileToolbar/OpenButton" to="." method="_on_open_button_pressed"]
+[connection signal="pressed" from="MarginContainer/VSplitContainer/HSplitContainer/EditorPanel/EditorToolbar/SaveButton" to="." method="_on_save_button_pressed"]
+[connection signal="pressed" from="MarginContainer/VSplitContainer/HSplitContainer/EditorPanel/EditorToolbar/SaveAsButton" to="." method="_on_save_as_button_pressed"]
+[connection signal="pressed" from="MarginContainer/VSplitContainer/HSplitContainer/EditorPanel/EditorToolbar/ValidationButton" to="." method="_on_validation_button_pressed"]
+[connection signal="text_changed" from="MarginContainer/VSplitContainer/HSplitContainer/EditorPanel/YAMLCodeEdit" to="." method="_on_code_edit_text_changed"]

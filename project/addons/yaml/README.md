@@ -45,19 +45,19 @@ player:
   name: Hero
   level: 10
   inventory:
-    - Sword
-    - Shield
-    - Potion
+	- Sword
+	- Shield
+	- Potion
 """
 
 var result = YAML.parse(yaml_string)
 if result.has_error():
-    print("Error: ", result.get_error_message())
-    print("At line: ", result.get_error_line(), ", column: ", result.get_error_column())
+	print("Error: ", result.get_error_message())
+	print("At line: ", result.get_error_line(), ", column: ", result.get_error_column())
 else:
-    var data = result.get_data()
-    print("Player name: ", data.player.name)
-    print("Inventory: ", data.player.inventory)
+	var data = result.get_data()
+	print("Player name: ", data.player.name)
+	print("Inventory: ", data.player.inventory)
 ```
 
 ### Generating YAML
@@ -65,21 +65,21 @@ else:
 ```gdscript
 # Create a dictionary to convert to YAML
 var data = {
-    "name": "Stranger",
-    "dialogue": ["Hello, traveler.", "What brings you here?"]
+	"name": "Stranger",
+	"dialogue": ["Hello, traveler.", "What brings you here?"]
 }
 
 # Convert to YAML
 var stringify_result = YAML.stringify(data)
 if stringify_result.has_error():
-    print("Error: ", stringify_result.get_error_message())
+	print("Error: ", stringify_result.get_error_message())
 else:
-    var yaml = stringify_result.get_data()
-    # name: Stranger
-    # dialogue:
-    #   - "Hello, traveler."
-    #   - "What brings you here?"
-    print(yaml)
+	var yaml = stringify_result.get_data()
+	# name: Stranger
+	# dialogue:
+	#   - "Hello, traveler."
+	#   - "What brings you here?"
+	print(yaml)
 ```
 
 ### Validation
@@ -89,10 +89,10 @@ else:
 var yaml_string = "key: value\ninvalid -list"
 var validation = YAML.validate(yaml_string)
 if validation.has_error():
-    print("Invalid YAML: ", validation.get_error_message())
-    print("At line: ", validation.get_error_line(), ", column: ", validation.get_error_column())
+	print("Invalid YAML: ", validation.get_error_message())
+	print("At line: ", validation.get_error_line(), ", column: ", validation.get_error_column())
 else:
-    print("YAML syntax is valid")
+	print("YAML syntax is valid")
 ```
 
 ## Installation
@@ -144,9 +144,9 @@ The plugin provides convenient helper classes for common operations:
 # Load YAML from a file
 var data = YAMLLoader.load_file("res://data.yaml")
 if YAMLLoader.last_error != null:
-    print("Error loading file: ", YAMLLoader.last_error)
+	print("Error loading file: ", YAMLLoader.last_error)
 else:
-    print("Loaded data: ", data)
+	print("Loaded data: ", data)
 
 # Load from string
 var yaml_string = "key: value\nlist: [1, 2, 3]"
@@ -160,7 +160,7 @@ data = YAMLLoader.load_string(yaml_string)
 var data = {"key": "value", "list": [1, 2, 3]}
 var success = YAMLWriter.save_file(data, "user://output.yaml")
 if !success:
-    print("Error saving file: ", YAMLWriter.last_error)
+	print("Error saving file: ", YAMLWriter.last_error)
 
 # Convert to YAML string
 var yaml_string = YAMLWriter.save_string(data)
@@ -180,52 +180,52 @@ var level: int
 var inventory: Array
 
 func _init(p_name: String = "", p_level: int = 1) -> void:
-    name = p_name
-    level = p_level
-    inventory = []
+	name = p_name
+	level = p_level
+	inventory = []
 
 static func from_dict(dict: Dictionary) -> Player:
-    var player = Player.new(dict.get("name", ""), dict.get("level", 1))
-    player.inventory = dict.get("inventory", [])
-    return player
+	var player = Player.new(dict.get("name", ""), dict.get("level", 1))
+	player.inventory = dict.get("inventory", [])
+	return player
 
 func to_dict() -> Dictionary:
-    return {
-        "name": name,
-        "level": level,
-        "inventory": inventory
-    }
+	return {
+		"name": name,
+		"level": level,
+		"inventory": inventory
+	}
 
 # Register the class with YAML
 func _ready() -> void:
-    # Default registration using to_dict() and from_dict() methods
-    YAML.register_class(Player)
+	# Default registration using to_dict() and from_dict() methods
+	YAML.register_class(Player)
 
-    # Or with custom method names
-    # YAML.register_class(Player, "serialize", "deserialize")
+	# Or with custom method names
+	# YAML.register_class(Player, "serialize", "deserialize")
 
-    # Now you can serialize and deserialize Player objects
-    var player = Player.new("Hero", 10)
-    player.inventory = ["Sword", "Shield", "Potion"]
+	# Now you can serialize and deserialize Player objects
+	var player = Player.new("Hero", 10)
+	player.inventory = ["Sword", "Shield", "Potion"]
 
-    var data = {"player": player}
+	var data = {"player": player}
 
-    # Serialize to YAML
-    var yaml = YAML.stringify(data).get_data()
-    print(yaml)
-    # Output:
-    # player: !Player
-    #   name: Hero
-    #   level: 10
-    #   inventory:
-    #     - Sword
-    #     - Shield
-    #     - Potion
+	# Serialize to YAML
+	var yaml = YAML.stringify(data).get_data()
+	print(yaml)
+	# Output:
+	# player: !Player
+	#   name: Hero
+	#   level: 10
+	#   inventory:
+	#     - Sword
+	#     - Shield
+	#     - Potion
 
-    # Deserialize from YAML
-    var parsed = YAML.parse(yaml).get_data()
-    var restored_player = parsed.player
-    print(restored_player.name)  # Hero
+	# Deserialize from YAML
+	var parsed = YAML.parse(yaml).get_data()
+	var restored_player = parsed.player
+	print(restored_player.name)  # Hero
 ```
 
 ### Error Handling for Custom Classes
@@ -234,19 +234,19 @@ You can add validation and return detailed error messages from your `from_dict` 
 
 ```gdscript
 static func from_dict(dict: Dictionary):
-    # Validate required fields
-    if !dict.has("name"):
-        return YAMLResult.error("Player class missing required 'name' field")
+	# Validate required fields
+	if !dict.has("name"):
+		return YAMLResult.error("Player class missing required 'name' field")
 
-    if typeof(dict.get("level", 0)) != TYPE_INT:
-        return YAMLResult.error("Player 'level' must be an integer")
+	if typeof(dict.get("level", 0)) != TYPE_INT:
+		return YAMLResult.error("Player 'level' must be an integer")
 
-    # Create object if validation passes
-    var player = Player.new(dict.name, dict.get("level", 1))
-    player.inventory = dict.get("inventory", [])
+	# Create object if validation passes
+	var player = Player.new(dict.name, dict.get("level", 1))
+	player.inventory = dict.get("inventory", [])
 
-    # Return the object as usual
-    return player
+	# Return the object as usual
+	return player
 ```
 
 When parsing YAML with a custom class that returns a `YAMLResult`:
@@ -266,8 +266,8 @@ player: !Player
 
 var result = YAML.parse(invalid_yaml)
 if result.has_error():
-    print("Error: " + result.get_error_message())
-    # Output: "Error: Player 'level' must be an integer"
+	print("Error: " + result.get_error_message())
+	# Output: "Error: Player 'level' must be an integer"
 ```
 
 ## Style Customization
@@ -297,11 +297,11 @@ style.set_child("nested", nested_style)
 
 # Apply the style when generating YAML
 var data = {
-    "string": "Hello\nWorld",
-    "nested": {
-        "list": [1, 2, 3],
-        "mapping": {"a": 1, "b": 2}
-    }
+	"string": "Hello\nWorld",
+	"nested": {
+		"list": [1, 2, 3],
+		"mapping": {"a": 1, "b": 2}
+	}
 }
 var result = YAML.stringify(data, style)
 var yaml = result.get_data()
@@ -327,15 +327,15 @@ multiline: |                          # Literal style
 
 var result = YAML.parse(yaml_string, true)  # Enable style detection
 if !result.has_error() && result.has_style():
-    var data = result.get_data()
-    var style = result.get_style()
+	var data = result.get_data()
+	var style = result.get_style()
 
-    # Modify data while preserving style
-    data.list.append("item3")
+	# Modify data while preserving style
+	data.list.append("item3")
 
-    # Re-emit with preserved style
-    var output = YAML.stringify(data, style).get_data()
-    print(output)
+	# Re-emit with preserved style
+	var output = YAML.stringify(data, style).get_data()
+	print(output)
 ```
 
 ## Multi-Document YAML Support
@@ -365,23 +365,23 @@ message: "Final document"
 
 var result = YAML.parse(yaml_string)
 if result.has_error():
-    print("Error: ", result.get_error_message())
+	print("Error: ", result.get_error_message())
 else:
-    # Get number of documents
-    var doc_count = result.get_document_count()
-    print("Number of documents: ", doc_count)  # Output: 3
+	# Get number of documents
+	var doc_count = result.get_document_count()
+	print("Number of documents: ", doc_count)  # Output: 3
 
-    # Process each document
-    for i in range(doc_count):
-        var doc = result.get_document(i)
-        print("Document %d title: %s" % [i, doc.title])
+	# Process each document
+	for i in range(doc_count):
+		var doc = result.get_document(i)
+		print("Document %d title: %s" % [i, doc.title])
 
-    # You can also access documents directly by index
-    var first_doc = result.get_document(0)   # First document
-    var second_doc = result.get_document(1)  # Second document
+	# You can also access documents directly by index
+	var first_doc = result.get_document(0)   # First document
+	var second_doc = result.get_document(1)  # Second document
 
-    # The original get_data() method still works, now with optional index
-    var third_doc = result.get_data(2)       # Third document
+	# The original get_data() method still works, now with optional index
+	var third_doc = result.get_data(2)       # Third document
 ```
 
 ### Notes on Multi-Document Usage
