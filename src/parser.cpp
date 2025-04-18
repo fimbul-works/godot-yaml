@@ -1,6 +1,7 @@
 #include "parser.h"
 #include "class_registry.h"
 #include "converter_factory.h"
+#include "security.h"
 #include "util_numeric.h"
 #include <godot_cpp/classes/resource.hpp>
 #include <godot_cpp/classes/resource_loader.hpp>
@@ -72,12 +73,14 @@ void YAML::Parser::error_callback(const char* msg, size_t len, ryml::Location lo
   throw YAMLException(parser->current_result->get_error_message());
 }
 
-Ref<YAMLResult> YAML::Parser::parse(const String& input, bool p_detect_style)
+Ref<YAMLResult> YAML::Parser::parse(const String& input, const bool p_detect_style, const YAMLSecurity::View& p_security_view)
 {
   try {
     detect_style = p_detect_style;
     style = detect_style ? YAML::create_style() : nullptr;
     current_result = YAMLResult::success(Variant());
+    security_view = p_security_view;
+
     tree.clear();
     current_path.clear();
 
@@ -419,14 +422,37 @@ Variant YAML::Parser::load_resource(const String& path) const
 {
   ResourceLoader* loader = ResourceLoader::get_singleton();
   if (!loader) {
-    ERR_PRINT("ResourceLoader singleton not available");
-    return Variant();
+    throw YAMLException("ResourceLoader singleton not available");
   }
 
+  if (!security_view.is_path_allowed(path)) {
+    String error = vformat("Resource path not allowed: %s", path);
+    throw YAMLException(error);
+  }
+
+  // Check if the path exists
+  if (!loader->exists(path)) {
+    throw YAMLException(vformat("Resource does not exist at path: %s", path));
+  }
+
+  // Load the resource
   Ref<Resource> resource = loader->load(path);
   if (!resource.is_valid()) {
-    ERR_PRINT(vformat("Failed to load resource from path: %s", path));
-    return Variant();
+    throw YAMLException(vformat("Failed to load resource from path: %s", path));
+  }
+
+  // Get the resource class name
+  String class_name = resource->get_class();
+
+  // Handle custom classes with scripts
+  Ref<Script> script = resource->get_script();
+  if (script.is_valid() && !script->get_global_name().is_empty()) {
+    class_name = script->get_global_name();
+  }
+
+  // Check if the resource type is allowed for this path
+  if (!security_view.is_resource_allowed(path, class_name)) {
+    throw YAMLException(vformat("Resource type %s not allowed from path %s", class_name, path));
   }
 
   return resource;

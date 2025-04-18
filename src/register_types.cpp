@@ -1,6 +1,7 @@
 #include "register_types.h"
 
 #include "result.h"
+#include "security.h"
 #include "style.h"
 #include "yaml.h"
 
@@ -24,6 +25,10 @@ void initialize_yaml_module(ModuleInitializationLevel p_level)
     GDREGISTER_CLASS(YAMLStyle);
   }
 
+  if (!ClassDB::class_exists("YAMLSecurity")) {
+    GDREGISTER_CLASS(YAMLSecurity);
+  }
+
   if (!ClassDB::class_exists("YAML")) {
     GDREGISTER_CLASS(YAML);
   }
@@ -34,6 +39,8 @@ void uninitialize_yaml_module(ModuleInitializationLevel p_level)
   if (p_level != MODULE_INITIALIZATION_LEVEL_SCENE) {
     return;
   }
+
+  YAMLSecurity::cleanup_default_instance();
 }
 
 } // namespace godot

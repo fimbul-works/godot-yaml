@@ -3,6 +3,7 @@
 
 #include "converter_factory.h"
 #include "result.h"
+#include "security.h"
 #include "string_hash.h"
 #include "style.h"
 #include "yaml.h"
@@ -25,7 +26,7 @@ class YAML::Parser {
   Parser& operator=(const Parser&) = delete;
 
   // Parse YAML input string
-  Ref<YAMLResult> parse(const String& input, const bool detect_style = false);
+  Ref<YAMLResult> parse(const String& input, const bool detect_style = false, const YAMLSecurity::View& security_view = YAMLSecurity::get_default_view());
 
   private:
   // Parser components
@@ -81,6 +82,9 @@ class YAML::Parser {
   // Converter access helpers
   VariantConverter* get_converter_for_type(Variant::Type type) const;
   VariantConverter* get_converter_for_tag(const String& tag) const;
+
+  // Security view for resource access
+  YAMLSecurity::View security_view;
 };
 
 } // namespace godot
