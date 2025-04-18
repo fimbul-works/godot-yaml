@@ -1,0 +1,6 @@
+string: string_value
+number: 1234
+list:
+  - apples
+  - oranges
+  - foobar

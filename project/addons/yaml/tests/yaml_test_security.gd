@@ -2,15 +2,15 @@ class_name YAMLSecurityTest extends YAMLTest
 
 # Test resources to use in security tests
 var test_resources = {
-	"texture": "res://addons/yaml/example_scenes/assets/texture.png",
-	"material": "res://addons/yaml/example_scenes/assets/material.tres",
-	"simple_scene": "res://addons/yaml/example_scenes/simple_scene.tscn",
-	"script_scene": "res://addons/yaml/example_scenes/script_scene.tscn",
-	"audio": "res://addons/yaml/example_scenes/common/audio.wav",
-	"font": "res://addons/yaml/example_scenes/common/font.ttf",
-	"gdscript": "res://addons/yaml/example_scenes/scripts/risky_script.gd",
+	"texture": "res://addons/yaml/tests/test_assets/assets/texture.png",
+	"material": "res://addons/yaml/tests/test_assets/assets/material.tres",
+	"simple_scene": "res://addons/yaml/tests/test_assets/simple_scene.tscn",
+	"script_scene": "res://addons/yaml/tests/test_assets/script_scene.tscn",
+	"audio": "res://addons/yaml/tests/test_assets/common/audio.wav",
+	"font": "res://addons/yaml/tests/test_assets/common/font.ttf",
+	"gdscript": "res://addons/yaml/tests/test_assets/scripts/risky_script.gd",
 	"gdextension": "res://addons/yaml/yaml.gdextension",
-	"custom_resource": "res://addons/yaml/example_scenes/assets/custom_resource.tres",
+	"custom_resource": "res://addons/yaml/tests/test_assets/assets/custom_resource.tres",
 	"user_config": "user://config.tres"
 }
 
@@ -21,18 +21,6 @@ func _ready():
 # Helper function to create YAML with resource paths
 func create_resource_yaml(path: String) -> String:
 	return "!Resource " + path
-
-func get_resource_type_hint(path: String) -> String:
-	var file := FileAccess.open(path, FileAccess.READ)
-	if not file:
-		push_error("Failed to open file: %s" % path)
-		return ""
-
-	while not file.eof_reached():
-		var line = file.get_line().strip_edges()
-		if line.begins_with("resource_type") or line.begins_with("type"):
-			return line.split("=", false)[1].strip_edges()
-	return ""
 
 # Test default behavior (block scripts and extensions)
 func test_default_security():
@@ -61,7 +49,7 @@ func test_path_security():
 	var security = YAML.create_security()
 
 	# Allow only assets path
-	security.allow_path("res://addons/yaml/example_scenes/assets/")
+	security.allow_path("res://addons/yaml/tests/test_assets/assets/")
 
 	# Resources in allowed path should work (except globally blocked)
 	var texture_yaml = create_resource_yaml(test_resources.texture)
@@ -92,7 +80,7 @@ func test_path_with_types():
 	var security = YAML.create_security()
 
 	# Allow only Texture2D in assets path
-	security.allow_path("res://addons/yaml/example_scenes/assets/", ["Texture2D"])
+	security.allow_path("res://addons/yaml/tests/test_assets/assets/", ["Texture2D"])
 
 	# Only specified types in allowed path should work
 	var texture_yaml = create_resource_yaml(test_resources.texture)
@@ -118,7 +106,7 @@ func test_unblock_types():
 	security.clear_type_restrictions()
 
 	# Re-add the path but allow all types (including scripts)
-	security.allow_path("res://addons/yaml/example_scenes/")
+	security.allow_path("res://addons/yaml/tests/test_assets/")
 
 	# Block GDExtension but allow Script
 	security.block_type("GDExtension")

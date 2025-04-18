@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://caktobsoxmm54"]
 
-[ext_resource type="Script" path="res://addons/yaml/example_scenes/scripts/risky_script.gd" id="1_2mlp7"]
+[ext_resource type="Script" path="res://addons/yaml/tests/test_assets/scripts/risky_script.gd" id="1_2mlp7"]
 
 [node name="Node" type="Node"]
 script = ExtResource("1_2mlp7")

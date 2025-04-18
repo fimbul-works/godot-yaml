@@ -1,0 +1,5 @@
+!MyCustomClass
+string_val: hello world
+int_val: 123
+float_val: 3.141592653589793
+color_val: !Color {r: 1,g: 1,b: 1}

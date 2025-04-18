@@ -4,29 +4,60 @@ class_name YAMLTest extends Node2D
 var test_name: String = "Unnamed Test"
 var passed_tests := 0
 var total_tests := 0
+var test_times := {}
+
+func _before_each() -> void:
+	# Child class can override this
+	pass
+
+func _after_each() -> void:
+	# Child class can override this
+	pass
 
 func _ready():
+	# If the node is not visible, do not run the test
 	if not visible:
 		return
+
+	# If the parent is not visible, do not run the test
 	if get_parent() and not get_parent().visible:
 		return
+
+	# If the scene is not visible, do not run the test
+	if owner and not owner.visible:
+		return
+
 	print_rich("\n[b]🧪 %s[/b]" % test_name)
 
-	# Discover and run all test methods
+	# Discover the test methods
 	var methods = get_method_list()
 	var test_methods = methods.filter(func(method): return method.name.begins_with("test_"))
 
 	# Sort methods by name for consistent execution order
 	test_methods.sort_custom(func(a, b): return a.name < b.name)
 
+	var suite_start := Time.get_ticks_usec()
+
 	# Execute each test method
 	for method in test_methods:
 		print_rich("\n[b]Running: %s[/b]" % method.name.replace("test_", "").replace("_", " ").capitalize())
+		var test_start := Time.get_ticks_usec()
+		_before_each()
 		call(method.name)
+		_after_each()
+		var test_elapsed := Time.get_ticks_usec() - test_start
+		test_times[method] = test_elapsed
 
-	print_rich("\n[b]Results: %d/%d tests passed[/b]" % [passed_tests, total_tests])
+	# Report time
+	var elapsed: float = Time.get_ticks_usec() - suite_start
+	var tunit := "µsec"
+	if elapsed > 1000:
+		elapsed /= 1000
+		tunit = "ms"
 
-# Helper assertion methods that use Godot's assert
+	print_rich("\n[b]Results: %d/%d tests passed in %d %s[/b]" % [passed_tests, total_tests, elapsed, tunit])
+
+## Assert values are equal
 func assert_equal(actual, expected, message: String) -> void:
 	total_tests += 1
 	var condition = actual == expected
@@ -39,6 +70,7 @@ func assert_equal(actual, expected, message: String) -> void:
 		print_rich("  Actual: %s" % actual)
 	assert(condition, message)
 
+## Assert values are not equal
 func assert_not_equal(actual, expected, message: String) -> void:
 	total_tests += 1
 	var condition = actual != expected
@@ -51,6 +83,7 @@ func assert_not_equal(actual, expected, message: String) -> void:
 		print_rich("  Actual: %s" % actual)
 	assert(condition, message)
 
+## Assert a condition is true
 func assert_true(condition: bool, message: String) -> void:
 	total_tests += 1
 	if condition:
@@ -60,6 +93,7 @@ func assert_true(condition: bool, message: String) -> void:
 		print_rich("[color=red]✗ %s[/color]" % message)
 	assert(condition, message)
 
+## Assert a condition is false
 func assert_false(condition: bool, message: String) -> void:
 	total_tests += 1
 	if not condition:
@@ -69,7 +103,7 @@ func assert_false(condition: bool, message: String) -> void:
 		print_rich("[color=red]✗ %s[/color]" % message)
 	assert(not condition, message)
 
-# Helper for custom equality checks
+## Helper for custom equality checks
 func assert_custom_equal(actual, expected, equal_func: Callable, message: String) -> void:
 	total_tests += 1
 	var condition = equal_func.call(actual, expected)
@@ -114,7 +148,8 @@ func assert_yaml_lacks_feature(yaml_string: String, feature: String, message: St
 	var lacks_feature = yaml_string.find(feature) == -1
 	assert_true(lacks_feature, message)
 
-func truncate(str: String) -> String:
-	if str.length() > 60:
-		return str.substr(0, 60) + "..."
+## Trunate text
+func truncate(str: String, len := 100) -> String:
+	if str.length() > len:
+		return str.substr(0, len) + "..."
 	return str

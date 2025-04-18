@@ -1,162 +1,42 @@
-[gd_scene load_steps=38 format=3 uid="uid://dogc1x0c3re7o"]
+[gd_scene load_steps=11 format=3 uid="uid://dogc1x0c3re7o"]
 
+[ext_resource type="Script" path="res://addons/yaml/examples/examples.gd" id="1_7nxqb"]
 [ext_resource type="Script" path="res://addons/yaml/examples/basic_usage.gd" id="1_iyu1q"]
 [ext_resource type="Script" path="res://addons/yaml/examples/loader_writer.gd" id="2_6ij2c"]
-[ext_resource type="Script" path="res://addons/yaml/examples/variants/yaml_test_aabb.gd" id="3_7d030"]
-[ext_resource type="Script" path="res://addons/yaml/examples/variants/yaml_test_basis.gd" id="4_1i337"]
-[ext_resource type="Script" path="res://addons/yaml/examples/variants/yaml_test_color.gd" id="5_yqdx1"]
-[ext_resource type="Script" path="res://addons/yaml/examples/variants/yaml_test_node_path.gd" id="6_i76uf"]
-[ext_resource type="Script" path="res://addons/yaml/examples/variants/yaml_test_packed_byte_array.gd" id="7_jfa7r"]
-[ext_resource type="Script" path="res://addons/yaml/examples/variants/yaml_test_packed_color_array.gd" id="8_bbr3t"]
-[ext_resource type="Script" path="res://addons/yaml/examples/variants/yaml_test_packed_float32_array.gd" id="9_ymqxt"]
-[ext_resource type="Script" path="res://addons/yaml/examples/variants/yaml_test_packed_float64_array.gd" id="10_ij800"]
-[ext_resource type="Script" path="res://addons/yaml/examples/variants/yaml_test_packed_int32_array.gd" id="11_qh5qj"]
-[ext_resource type="Script" path="res://addons/yaml/examples/variants/yaml_test_packed_int64_array.gd" id="12_cth1t"]
-[ext_resource type="Script" path="res://addons/yaml/examples/variants/yaml_test_packed_string_array.gd" id="13_1uvkf"]
-[ext_resource type="Script" path="res://addons/yaml/examples/variants/yaml_test_packed_vector2_array.gd" id="14_i8dm5"]
-[ext_resource type="Script" path="res://addons/yaml/examples/variants/yaml_test_packed_vector3_array.gd" id="15_yor0u"]
-[ext_resource type="Script" path="res://addons/yaml/examples/variants/yaml_test_plane.gd" id="16_ajl0x"]
-[ext_resource type="Script" path="res://addons/yaml/examples/variants/yaml_test_projection.gd" id="17_88ok7"]
-[ext_resource type="Script" path="res://addons/yaml/examples/variants/yaml_test_quaternion.gd" id="18_b83sj"]
-[ext_resource type="Script" path="res://addons/yaml/examples/variants/yaml_test_rect2.gd" id="19_lmq7c"]
-[ext_resource type="Script" path="res://addons/yaml/examples/variants/yaml_test_rect2i.gd" id="20_ri8ja"]
-[ext_resource type="Script" path="res://addons/yaml/examples/variants/yaml_test_string_name.gd" id="21_n5e2i"]
-[ext_resource type="Script" path="res://addons/yaml/examples/variants/yaml_test_transform2d.gd" id="22_8rq22"]
-[ext_resource type="Script" path="res://addons/yaml/examples/variants/yaml_test_transform3d.gd" id="23_js5ev"]
-[ext_resource type="Script" path="res://addons/yaml/examples/variants/yaml_test_vector2.gd" id="24_klu2p"]
-[ext_resource type="Script" path="res://addons/yaml/examples/variants/yaml_test_vector2i.gd" id="25_cv5r7"]
-[ext_resource type="Script" path="res://addons/yaml/examples/variants/yaml_test_vector3.gd" id="26_mguy5"]
-[ext_resource type="Script" path="res://addons/yaml/examples/variants/yaml_test_vector3i.gd" id="27_3o2qp"]
-[ext_resource type="Script" path="res://addons/yaml/examples/variants/yaml_test_vector4.gd" id="28_coalp"]
-[ext_resource type="Script" path="res://addons/yaml/examples/variants/yaml_test_vector4i.gd" id="29_b8std"]
-[ext_resource type="Script" path="res://addons/yaml/examples/style_handling.gd" id="30_20ht8"]
+[ext_resource type="PackedScene" uid="uid://cnu3gk1llwbuv" path="res://addons/yaml/tests/YAML Tests.tscn" id="9_ltyb8"]
 [ext_resource type="Script" path="res://addons/yaml/examples/error_handling.gd" id="31_xr2li"]
 [ext_resource type="Script" path="res://addons/yaml/examples/speed_benchmark.gd" id="32_umwpu"]
 [ext_resource type="Script" path="res://addons/yaml/examples/custom_class.gd" id="33_2d3w6"]
 [ext_resource type="Script" path="res://addons/yaml/examples/multi_document.gd" id="34_84xsb"]
-[ext_resource type="Script" path="res://addons/yaml/examples/resources.gd" id="35_jnbc0"]
-[ext_resource type="Script" path="res://addons/yaml/examples/yaml_test_security.gd" id="36_57bcv"]
+[ext_resource type="Script" path="res://addons/yaml/examples/resource_referencing.gd" id="35_jnbc0"]
 
 [sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_grb45"]
 
 [node name="Examples" type="Node2D"]
+script = ExtResource("1_7nxqb")
 
 [node name="Basic Usage" type="Node2D" parent="."]
-visible = false
 script = ExtResource("1_iyu1q")
 
 [node name="Loader and Writer" type="Node2D" parent="."]
-visible = false
 script = ExtResource("2_6ij2c")
 
-[node name="Variants" type="Node2D" parent="."]
-visible = false
-
-[node name="AABB" type="Node2D" parent="Variants"]
-script = ExtResource("3_7d030")
-
-[node name="Basis" type="Node2D" parent="Variants"]
-script = ExtResource("4_1i337")
-
-[node name="Color" type="Node2D" parent="Variants"]
-script = ExtResource("5_yqdx1")
-
-[node name="NodePath" type="Node2D" parent="Variants"]
-script = ExtResource("6_i76uf")
-
-[node name="PackedByteArray" type="Node2D" parent="Variants"]
-script = ExtResource("7_jfa7r")
-
-[node name="PackedColorArray" type="Node2D" parent="Variants"]
-script = ExtResource("8_bbr3t")
-
-[node name="PackedFloat32Array" type="Node2D" parent="Variants"]
-script = ExtResource("9_ymqxt")
-
-[node name="PackedFloat64Array" type="Node2D" parent="Variants"]
-script = ExtResource("10_ij800")
-
-[node name="PackedInt32Array" type="Node2D" parent="Variants"]
-script = ExtResource("11_qh5qj")
-
-[node name="PackedInt64Array" type="Node2D" parent="Variants"]
-script = ExtResource("12_cth1t")
-
-[node name="PackedStringArray" type="Node2D" parent="Variants"]
-script = ExtResource("13_1uvkf")
-
-[node name="PackedVector2Array" type="Node2D" parent="Variants"]
-script = ExtResource("14_i8dm5")
-
-[node name="PackedVector3Array" type="Node2D" parent="Variants"]
-script = ExtResource("15_yor0u")
-
-[node name="Plane" type="Node2D" parent="Variants"]
-script = ExtResource("16_ajl0x")
-
-[node name="Projection" type="Node2D" parent="Variants"]
-script = ExtResource("17_88ok7")
-
-[node name="Quaternion" type="Node2D" parent="Variants"]
-script = ExtResource("18_b83sj")
-
-[node name="Rect2" type="Node2D" parent="Variants"]
-script = ExtResource("19_lmq7c")
-
-[node name="Rect2i" type="Node2D" parent="Variants"]
-script = ExtResource("20_ri8ja")
-
-[node name="StringName" type="Node2D" parent="Variants"]
-script = ExtResource("21_n5e2i")
-
-[node name="Transform2D" type="Node2D" parent="Variants"]
-script = ExtResource("22_8rq22")
-
-[node name="Transform3D" type="Node2D" parent="Variants"]
-script = ExtResource("23_js5ev")
-
-[node name="Vector2" type="Node2D" parent="Variants"]
-script = ExtResource("24_klu2p")
-
-[node name="Vector2i" type="Node2D" parent="Variants"]
-script = ExtResource("25_cv5r7")
-
-[node name="Vector3" type="Node2D" parent="Variants"]
-script = ExtResource("26_mguy5")
-
-[node name="Vector3i" type="Node2D" parent="Variants"]
-script = ExtResource("27_3o2qp")
-
-[node name="Vector4" type="Node2D" parent="Variants"]
-script = ExtResource("28_coalp")
-
-[node name="Vector4i" type="Node2D" parent="Variants"]
-script = ExtResource("29_b8std")
-
-[node name="Style Handling" type="Node2D" parent="."]
-visible = false
-script = ExtResource("30_20ht8")
-
 [node name="Error Handling" type="Node2D" parent="."]
-visible = false
 script = ExtResource("31_xr2li")
 
 [node name="Speed Benchmark" type="Node2D" parent="."]
-visible = false
 script = ExtResource("32_umwpu")
 
 [node name="Custom Class" type="Node2D" parent="."]
-visible = false
 script = ExtResource("33_2d3w6")
 
 [node name="Multiple Documents" type="Node2D" parent="."]
-visible = false
 script = ExtResource("34_84xsb")
 
 [node name="Resource Referencing" type="Node2D" parent="."]
-visible = false
 script = ExtResource("35_jnbc0")
 local_texture = SubResource("PlaceholderTexture2D_grb45")
 
-[node name="Test Security" type="Node2D" parent="."]
-script = ExtResource("36_57bcv")
+[node name="Tests" parent="." instance=ExtResource("9_ltyb8")]
+unique_name_in_owner = true
+visible = false
