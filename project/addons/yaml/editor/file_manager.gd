@@ -1,6 +1,5 @@
 @tool
-class_name YAMLFileManager
-extends Node
+class_name YAMLFileManager extends Node
 
 signal file_opened(path)
 signal file_closed(path)

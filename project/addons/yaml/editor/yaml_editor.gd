@@ -11,10 +11,17 @@ var validator: YAMLValidator
 var editor: EditorInterface
 
 # UI references
-@onready var file_list = %FileList
-@onready var code_edit = %YAMLCodeEdit
-@onready var status_label = %StatusLabel
-@onready var line_col_label = %LineColLabel
+@onready var menu_bar: YAMLMenuBar = %MenuBar
+@onready var file_menu := %File
+@onready var edit_menu := %Edit
+@onready var search_menu := %Search
+@onready var filter_input := %Filter
+
+@onready var file_list := %FileList
+@onready var code_edit := %YAMLCodeEdit
+@onready var status_label := %StatusLabel
+@onready var line_col_label := %LineColLabel
+@onready var resizable_container := %ResizableContainer
 
 func _ready() -> void:
 	# Initialize components
@@ -33,18 +40,21 @@ func _ready() -> void:
 	# Wait for UI to be ready
 	await get_tree().process_frame
 
+	filter_input.right_icon = get_theme_icon("Search", "EditorIcons")
+
 	# Set up components
 	file_manager.setup(file_list, code_edit, status_label)
 	undo_redo_manager.setup(file_manager)
-	session_manager.setup(file_manager)
+	session_manager.setup(file_manager, resizable_container)
 	validator.setup(code_edit, status_label)
 
 	# Connect toolbar signals
-	%NewButton.pressed.connect(_on_new_button_pressed)
-	%OpenButton.pressed.connect(_on_open_button_pressed)
-	%SaveButton.pressed.connect(_on_save_button_pressed)
-	%SaveAsButton.pressed.connect(_on_save_as_button_pressed)
-	%ValidationButton.pressed.connect(_on_validation_button_pressed)
+	menu_bar.new_file.connect(_on_new_button_pressed)
+	menu_bar.open_file.connect(_on_open_button_pressed)
+	menu_bar.save_requested.connect(_on_save_button_pressed)
+	menu_bar.save_as_requested.connect(_on_save_as_button_pressed)
+	menu_bar.undo_requested.connect(_on_undo_requested)
+	menu_bar.redo_requested.connect(_on_redo_requested)
 
 	# Connect code editor signals
 	code_edit.snapshot_requested.connect(_on_snapshot_requested)

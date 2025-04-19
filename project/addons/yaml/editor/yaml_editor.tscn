@@ -3,9 +3,19 @@
 [ext_resource type="Script" path="res://addons/yaml/editor/yaml_editor.gd" id="1_jqpkv"]
 [ext_resource type="Script" path="res://addons/yaml/editor/yaml_syntax_highlighter.gd" id="2_0xmrl"]
 [ext_resource type="Script" path="res://addons/yaml/editor/yaml_code_edit.gd" id="2_lgcdy"]
-[ext_resource type="Script" path="res://addons/yaml/editor/session_manager.gd" id="2_xtybg"]
-[ext_resource type="Script" path="res://addons/yaml/editor/file_manager.gd" id="3_f05hj"]
-[ext_resource type="Script" path="res://addons/yaml/editor/undo_redo_manager.gd" id="4_v7r65"]
+[ext_resource type="Script" path="res://addons/yaml/editor/menu_bar.gd" id="5_bqqrn"]
+
+[sub_resource type="Image" id="Image_l7wee"]
+data = {
+"data": PackedByteArray(255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 255, 255, 0, 255, 94, 94, 127, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 255, 255, 0, 255, 93, 93, 255, 255, 94, 94, 127, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 255, 255, 0, 255, 93, 93, 255, 255, 93, 93, 255, 255, 94, 94, 127, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 255, 255, 0, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 94, 94, 127, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 93, 93, 231, 255, 94, 94, 54, 255, 94, 94, 57, 255, 93, 93, 233, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 231, 255, 94, 94, 54, 255, 94, 94, 57, 255, 93, 93, 233, 255, 93, 93, 255, 255, 93, 93, 255, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 97, 97, 42, 255, 255, 255, 0, 255, 255, 255, 0, 255, 97, 97, 42, 255, 93, 93, 233, 255, 93, 93, 232, 255, 93, 93, 41, 255, 255, 255, 0, 255, 255, 255, 0, 255, 97, 97, 42, 255, 93, 93, 233, 255, 93, 93, 232, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 96, 96, 45, 255, 93, 93, 44, 255, 255, 255, 0, 255, 97, 97, 42, 255, 97, 97, 42, 255, 255, 255, 0, 255, 96, 96, 45, 255, 93, 93, 44, 255, 255, 255, 0, 255, 97, 97, 42, 255, 97, 97, 42, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 96, 96, 45, 255, 93, 93, 235, 255, 94, 94, 234, 255, 95, 95, 43, 255, 255, 255, 0, 255, 255, 255, 0, 255, 96, 96, 45, 255, 93, 93, 235, 255, 94, 94, 234, 255, 95, 95, 43, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 93, 93, 235, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 233, 255, 95, 95, 59, 255, 96, 96, 61, 255, 93, 93, 235, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 233, 255, 95, 95, 59, 255, 96, 96, 61, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0),
+"format": "RGBA8",
+"height": 16,
+"mipmaps": false,
+"width": 16
+}
+
+[sub_resource type="ImageTexture" id="ImageTexture_sjxj7"]
+image = SubResource("Image_l7wee")
 
 [sub_resource type="EditorSyntaxHighlighter" id="EditorSyntaxHighlighter_68y40"]
 script = ExtResource("2_0xmrl")
@@ -26,15 +36,6 @@ size_flags_vertical = 3
 script = ExtResource("1_jqpkv")
 metadata/_edit_use_anchors_ = true
 
-[node name="YAMLSessionManager" type="Node" parent="."]
-script = ExtResource("2_xtybg")
-
-[node name="YAMLFileManager" type="Node" parent="."]
-script = ExtResource("3_f05hj")
-
-[node name="YAMLUndoRedoManager" type="Node" parent="."]
-script = ExtResource("4_v7r65")
-
 [node name="MarginContainer" type="MarginContainer" parent="."]
 layout_mode = 1
 anchors_preset = 15
@@ -43,80 +44,107 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/margin_left = 4
-theme_override_constants/margin_top = 4
+theme_override_constants/margin_top = 1
 theme_override_constants/margin_right = 4
 theme_override_constants/margin_bottom = 4
 
-[node name="VSplitContainer" type="VSplitContainer" parent="MarginContainer"]
-layout_mode = 2
-
-[node name="HSplitContainer" type="HSplitContainer" parent="MarginContainer/VSplitContainer"]
-layout_mode = 2
-size_flags_vertical = 3
-
-[node name="FilePanel" type="VBoxContainer" parent="MarginContainer/VSplitContainer/HSplitContainer"]
+[node name="MainVBox" type="VBoxContainer" parent="MarginContainer"]
 custom_minimum_size = Vector2(200, 0)
 layout_mode = 2
 
-[node name="FileToolbar" type="HBoxContainer" parent="MarginContainer/VSplitContainer/HSplitContainer/FilePanel"]
+[node name="MarginContainer" type="MarginContainer" parent="MarginContainer/MainVBox"]
 layout_mode = 2
+theme_override_constants/margin_bottom = 1
 
-[node name="NewButton" type="Button" parent="MarginContainer/VSplitContainer/HSplitContainer/FilePanel/FileToolbar"]
+[node name="MenuBar" type="MenuBar" parent="MarginContainer/MainVBox/MarginContainer"]
 unique_name_in_owner = true
 layout_mode = 2
-tooltip_text = "New YAML File"
-text = "New"
+flat = true
+script = ExtResource("5_bqqrn")
 
-[node name="OpenButton" type="Button" parent="MarginContainer/VSplitContainer/HSplitContainer/FilePanel/FileToolbar"]
+[node name="File" type="PopupMenu" parent="MarginContainer/MainVBox/MarginContainer/MenuBar"]
+unique_name_in_owner = true
+title = "File"
+hide_on_checkable_item_selection = false
+item_count = 7
+item_0/text = "New"
+item_1/text = "Open..."
+item_1/id = 1
+item_2/id = -1
+item_2/separator = true
+item_3/text = "Save"
+item_3/id = 2
+item_4/text = "Save As..."
+item_4/id = 3
+item_5/id = -1
+item_5/separator = true
+item_6/text = "Close"
+item_6/id = 4
+
+[node name="Edit" type="PopupMenu" parent="MarginContainer/MainVBox/MarginContainer/MenuBar"]
+unique_name_in_owner = true
+auto_translate_mode = 1
+item_count = 6
+item_0/text = "Undo"
+item_1/text = "Redo"
+item_1/id = 1
+item_2/id = -1
+item_2/separator = true
+item_3/text = "Cut"
+item_3/id = 2
+item_4/text = "Copy"
+item_4/id = 3
+item_5/text = "Paste"
+item_5/id = 4
+
+[node name="Search" type="PopupMenu" parent="MarginContainer/MainVBox/MarginContainer/MenuBar"]
+unique_name_in_owner = true
+auto_translate_mode = 1
+item_count = 5
+item_0/text = "Find..."
+item_1/text = "Find Next"
+item_1/id = 1
+item_2/text = "Find Previous"
+item_2/id = 2
+item_3/id = -1
+item_3/separator = true
+item_4/text = "Replace..."
+item_4/id = 3
+
+[node name="ResizableContainer" type="HSplitContainer" parent="MarginContainer/MainVBox"]
 unique_name_in_owner = true
 layout_mode = 2
-tooltip_text = "Open YAML File"
-text = "Open"
+size_flags_vertical = 3
+split_offset = 305
 
-[node name="SpacerControl" type="Control" parent="MarginContainer/VSplitContainer/HSplitContainer/FilePanel/FileToolbar"]
+[node name="FilePanel" type="VBoxContainer" parent="MarginContainer/MainVBox/ResizableContainer"]
+custom_minimum_size = Vector2(150, 0)
 layout_mode = 2
-size_flags_horizontal = 3
+size_flags_stretch_ratio = 0.25
 
-[node name="FileLabel" type="Label" parent="MarginContainer/VSplitContainer/HSplitContainer/FilePanel/FileToolbar"]
+[node name="Filter" type="LineEdit" parent="MarginContainer/MainVBox/ResizableContainer/FilePanel"]
+unique_name_in_owner = true
 layout_mode = 2
-text = "Open Files"
+placeholder_text = "Filter Files"
+clear_button_enabled = true
+right_icon = SubResource("ImageTexture_sjxj7")
 
-[node name="FileList" type="ItemList" parent="MarginContainer/VSplitContainer/HSplitContainer/FilePanel"]
+[node name="FileList" type="ItemList" parent="MarginContainer/MainVBox/ResizableContainer/FilePanel"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
 allow_rmb_select = true
 auto_height = true
+item_count = 3
+item_0/text = "custom_class.yaml"
+item_1/text = "simple.yaml"
+item_2/text = "comprehensive.yaml"
 
-[node name="EditorPanel" type="VBoxContainer" parent="MarginContainer/VSplitContainer/HSplitContainer"]
+[node name="EditorPanel" type="VBoxContainer" parent="MarginContainer/MainVBox/ResizableContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="EditorToolbar" type="HBoxContainer" parent="MarginContainer/VSplitContainer/HSplitContainer/EditorPanel"]
-layout_mode = 2
-
-[node name="SaveButton" type="Button" parent="MarginContainer/VSplitContainer/HSplitContainer/EditorPanel/EditorToolbar"]
-unique_name_in_owner = true
-layout_mode = 2
-tooltip_text = "Save Current File"
-text = "Save"
-
-[node name="SaveAsButton" type="Button" parent="MarginContainer/VSplitContainer/HSplitContainer/EditorPanel/EditorToolbar"]
-unique_name_in_owner = true
-layout_mode = 2
-tooltip_text = "Save As..."
-text = "Save As"
-
-[node name="VSeparator" type="VSeparator" parent="MarginContainer/VSplitContainer/HSplitContainer/EditorPanel/EditorToolbar"]
-layout_mode = 2
-
-[node name="ValidationButton" type="Button" parent="MarginContainer/VSplitContainer/HSplitContainer/EditorPanel/EditorToolbar"]
-unique_name_in_owner = true
-layout_mode = 2
-tooltip_text = "Validate YAML"
-text = "Validate"
-
-[node name="YAMLCodeEdit" type="CodeEdit" parent="MarginContainer/VSplitContainer/HSplitContainer/EditorPanel"]
+[node name="YAMLCodeEdit" type="CodeEdit" parent="MarginContainer/MainVBox/ResizableContainer/EditorPanel"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
@@ -237,10 +265,17 @@ auto_brace_completion_enabled = true
 auto_brace_completion_highlight_matching = true
 script = ExtResource("2_lgcdy")
 
-[node name="StatusPanel" type="HBoxContainer" parent="MarginContainer/VSplitContainer/HSplitContainer/EditorPanel"]
+[node name="MarginContainer" type="MarginContainer" parent="MarginContainer/MainVBox/ResizableContainer/EditorPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 0
+theme_override_constants/margin_top = 5
+theme_override_constants/margin_right = 0
+theme_override_constants/margin_bottom = 5
+
+[node name="StatusPanel" type="HBoxContainer" parent="MarginContainer/MainVBox/ResizableContainer/EditorPanel/MarginContainer"]
 layout_mode = 2
 
-[node name="StatusLabel" type="Label" parent="MarginContainer/VSplitContainer/HSplitContainer/EditorPanel/StatusPanel"]
+[node name="StatusLabel" type="Label" parent="MarginContainer/MainVBox/ResizableContainer/EditorPanel/MarginContainer/StatusPanel"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 2
@@ -249,7 +284,7 @@ theme_override_fonts/font = SubResource("FontVariation_o84u8")
 theme_override_styles/normal = SubResource("StyleBoxEmpty_42q8o")
 vertical_alignment = 1
 
-[node name="LineColLabel" type="Label" parent="MarginContainer/VSplitContainer/HSplitContainer/EditorPanel/StatusPanel"]
+[node name="LineColLabel" type="Label" parent="MarginContainer/MainVBox/ResizableContainer/EditorPanel/MarginContainer/StatusPanel"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 8

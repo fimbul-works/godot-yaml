@@ -3,7 +3,7 @@
 [ext_resource type="Script" path="res://addons/yaml/examples/examples.gd" id="1_7nxqb"]
 [ext_resource type="Script" path="res://addons/yaml/examples/basic_usage.gd" id="1_iyu1q"]
 [ext_resource type="Script" path="res://addons/yaml/examples/loader_writer.gd" id="2_6ij2c"]
-[ext_resource type="PackedScene" uid="uid://cnu3gk1llwbuv" path="res://addons/yaml/tests/YAML Tests.tscn" id="9_ltyb8"]
+[ext_resource type="PackedScene" uid="uid://cnu3gk1llwbuv" path="res://addons/yaml/tests/yaml_tests.tscn" id="9_ltyb8"]
 [ext_resource type="Script" path="res://addons/yaml/examples/error_handling.gd" id="31_xr2li"]
 [ext_resource type="Script" path="res://addons/yaml/examples/speed_benchmark.gd" id="32_umwpu"]
 [ext_resource type="Script" path="res://addons/yaml/examples/custom_class.gd" id="33_2d3w6"]

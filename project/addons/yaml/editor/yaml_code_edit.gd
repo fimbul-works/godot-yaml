@@ -1,6 +1,5 @@
 @tool
-class_name YAMLCodeEditor
-extends CodeEdit
+class_name YAMLCodeEditor extends CodeEdit
 
 signal content_changed
 signal snapshot_requested
