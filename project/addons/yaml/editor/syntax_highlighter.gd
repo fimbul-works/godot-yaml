@@ -1,5 +1,5 @@
 @tool
-extends EditorSyntaxHighlighter
+class_name YAMLEditorSyntaxHighlighter extends EditorSyntaxHighlighter
 
 # Theme settings and cache
 var theme_overrides: Dictionary

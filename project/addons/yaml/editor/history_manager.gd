@@ -1,221 +1,358 @@
 @tool
 class_name YAMLHistoryManager extends Node
 
+# TextState - Represents just the text content
+class TextState extends RefCounted:
+	var text: String
+
+	func _init(p_text: String) -> void:
+		text = p_text
+
+	func _to_string() -> String:
+		return "TextState(length=%d)" % [text.length()]
+
+# CursorState - Represents cursor and scroll position
+class CursorState extends RefCounted:
+	var caret_line: int
+	var caret_column: int
+	var scroll_v: float
+	var scroll_h: float
+
+	func _init(p_caret_line: int, p_caret_column: int,
+			p_scroll_v: float, p_scroll_h: float) -> void:
+		caret_line = p_caret_line
+		caret_column = p_caret_column
+		scroll_v = p_scroll_v
+		scroll_h = p_scroll_h
+
+	func _to_string() -> String:
+		return "CursorState(line=%d, column=%d)" % [caret_line, caret_column]
+
+# HistoryAction - Represents a complete undoable action
+class HistoryAction extends RefCounted:
+	var text_before: TextState
+	var text_after: TextState
+	var cursor_position: CursorState  # Position when this action was created
+
+	func _init(p_text_before: TextState, p_text_after: TextState, p_cursor: CursorState) -> void:
+		text_before = p_text_before
+		text_after = p_text_after
+		cursor_position = p_cursor
+
+	func _to_string() -> String:
+		return "HistoryAction(cursor=%s)" % [cursor_position]
+
+# FileHistory - Manages history for a single file
+class FileHistory extends RefCounted:
+	var actions: Array[HistoryAction] = []
+	var current_index: int = -1  # -1 means no history yet
+	var saved_index: int = -1    # -1 means never saved
+
+	# The text state when we started editing (or last saved)
+	var base_text_state: TextState = null
+
+	func _init(p_initial_text: String) -> void:
+		base_text_state = TextState.new(p_initial_text)
+
+	func add_action(action: HistoryAction) -> void:
+		# If we're not at the end of history, truncate future actions
+		if current_index < actions.size() - 1:
+			actions = actions.slice(0, current_index + 1)
+
+		# Don't add if text didn't actually change
+		if current_index >= 0 and actions[current_index].text_after.text == action.text_before.text:
+			if action.text_before.text == action.text_after.text:
+				return
+
+		actions.append(action)
+		current_index = actions.size() - 1
+
+	func can_undo() -> bool:
+		return current_index >= 0
+
+	func can_redo() -> bool:
+		return current_index < actions.size() - 1
+
+	func undo() -> Dictionary:
+		if can_undo():
+			var action = actions[current_index]
+			current_index -= 1
+
+			# When undoing, we want to:
+			# 1. Restore the text before the change
+			# 2. Keep cursor where it was when the action was created
+			return {
+				"text": action.text_before.text,
+				"cursor": action.cursor_position
+			}
+		return {}
+
+	func redo() -> Dictionary:
+		if can_redo():
+			current_index += 1
+			var action = actions[current_index]
+
+			# When redoing, we want to:
+			# 1. Restore the text after the change
+			# 2. Keep cursor where it was when the action was created
+			return {
+				"text": action.text_after.text,
+				"cursor": action.cursor_position
+			}
+		return {}
+
+	func is_modified() -> bool:
+		if current_index < 0:
+			return false
+
+		return current_index != saved_index
+
+	func mark_saved() -> void:
+		saved_index = current_index
+
+		# Update the base text state
+		if current_index >= 0:
+			base_text_state = actions[current_index].text_after
+		else:
+			# No actions yet, so base text is just the initial state
+			pass
+
 signal undo_performed(path)
 signal redo_performed(path)
 
-# History structure:
-# {path: {states: [], index: -1, saved_index: -1}}
-# Where each state is now a dictionary with:
-# {text, caret_line, caret_column, scroll_v, scroll_h}
-var history: Dictionary = {}
-const MAX_HISTORY_STATES = 100
+const MAX_HISTORY_ACTIONS = 100
 
 var file_manager: YAMLFileManager
-var snapshot_timestamp: int = 0
-const SNAPSHOT_INTERVAL_MS = 300  # Minimum interval between snapshots
+var file_system: YAMLFileSystem
+var histories: Dictionary = {}  # path: FileHistory
 var is_processing_operation: bool = false
+var previous_text: String = ""  # Track the previous state for snapshot comparison
 
 func _ready() -> void:
-	pass
+	file_system = YAMLFileSystem.get_singleton()
 
 func setup(p_file_manager: YAMLFileManager) -> void:
 	file_manager = p_file_manager
 
 	# Connect to file manager signals
-	file_manager.file_opened.connect(_on_file_opened)
-	file_manager.file_closed.connect(_on_file_closed)
-	file_manager.file_saved.connect(_on_file_saved)
+	file_manager.current_file_changed.connect(_on_current_file_changed)
 
+	# Connect to file system signals
+	file_system.file_opened.connect(_on_file_opened)
+	file_system.file_closed.connect(_on_file_closed)
+	file_system.file_saved.connect(_on_file_saved)
+	file_system.file_renamed.connect(_on_file_renamed)
+
+# Take a snapshot of the current state
+# This should be called when significant changes happen
 func take_snapshot() -> void:
+	if is_processing_operation:
+		return
+
 	var path = file_manager.get_current_file_path()
 	if path.is_empty():
 		return
 
-	# Check if enough time has passed since last snapshot
-	var current_time = Time.get_ticks_msec()
-	if current_time - snapshot_timestamp < SNAPSHOT_INTERVAL_MS:
-		return
-
-	snapshot_timestamp = current_time
-
-	# Initialize history for this file if it doesn't exist
-	if not history.has(path):
-		history[path] = {
-			"states": [],
-			"index": -1,
-			"saved_index": -1
-		}
-
-	var current_history = history[path]
 	var code_edit = file_manager.code_editor
+	var current_text = code_edit.text
 
-	# Create a state object with text and cursor/scroll information
-	var state = {
-		"text": code_edit.text,
-		"caret_line": code_edit.get_caret_line(),
-		"caret_column": code_edit.get_caret_column(),
-		"scroll_v": code_edit.get_v_scroll_bar().value,
-		"scroll_h": code_edit.get_h_scroll_bar().value
-	}
-
-	# If we're already processing an undo/redo, don't take a new snapshot
-	if is_processing_operation:
+	# Skip if the text hasn't changed
+	if current_text == previous_text:
 		return
 
-	# If the current state is different from the last state
-	if current_history.states.is_empty() or state.text != current_history.states[current_history.index].text:
-		# If we're not at the end of the history, truncate future states
-		if current_history.index < current_history.states.size() - 1:
-			current_history.states = current_history.states.slice(0, current_history.index + 1)
+	# Get cursor state
+	var cursor_state = CursorState.new(
+		code_edit.get_caret_line(),
+		code_edit.get_caret_column(),
+		code_edit.get_v_scroll_bar().value,
+		code_edit.get_h_scroll_bar().value
+	)
 
-		# Add the new state
-		current_history.states.append(state)
-		current_history.index = current_history.states.size() - 1
+	print("Taking snapshot with caret at line: %d, column: %d" % [cursor_state.caret_line, cursor_state.caret_column])
 
-		# Limit the number of states to prevent memory issues
-		if current_history.states.size() > MAX_HISTORY_STATES:
-			var excess = current_history.states.size() - MAX_HISTORY_STATES
-			current_history.states = current_history.states.slice(excess)
-			current_history.index = current_history.states.size() - 1
+	# Ensure we have a history object for this file
+	if not histories.has(path):
+		histories[path] = FileHistory.new(current_text)
 
-			# Adjust saved index if needed
-			if current_history.saved_index >= 0:
-				current_history.saved_index -= excess
-				if current_history.saved_index < 0:
-					current_history.saved_index = -1
+	var history = histories[path]
 
-		# Update UI to show there are unsaved changes
-		_update_modified_flag()
+	# Create text states
+	var text_before = TextState.new(previous_text)
+	var text_after = TextState.new(current_text)
+
+	# If this is the first action, and we don't have a previous text,
+	# use the base text from the file history
+	if previous_text.is_empty() and history.base_text_state:
+		text_before = history.base_text_state
+
+	# Create and add the new action
+	var action = HistoryAction.new(text_before, text_after, cursor_state)
+	history.add_action(action)
+
+	# Update our tracking state
+	previous_text = current_text
+
+	# Limit history size
+	_limit_history_size(history)
+
+	# Update UI to show unsaved changes
+	_update_modified_flag()
+
+func _limit_history_size(history: FileHistory) -> void:
+	if history.actions.size() > MAX_HISTORY_ACTIONS:
+		var excess = history.actions.size() - MAX_HISTORY_ACTIONS
+		history.actions = history.actions.slice(excess)
+		history.current_index -= excess
+
+		# Adjust saved index if needed
+		if history.saved_index >= 0:
+			history.saved_index -= excess
+			if history.saved_index < 0:
+				history.saved_index = -1  # No longer saved
 
 func perform_undo() -> void:
 	var path = file_manager.get_current_file_path()
-	if path.is_empty() or not history.has(path):
+	if path.is_empty() or not histories.has(path):
 		return
 
-	var current_history = history[path]
+	var history = histories[path]
+	if not history.can_undo():
+		return
 
-	# Check if we can undo
-	if current_history.index > 0:
-		is_processing_operation = true
+	is_processing_operation = true
 
-		current_history.index -= 1
-		var previous_state = current_history.states[current_history.index]
+	var code_edit = file_manager.code_editor
 
-		# Apply the state to the editor
-		var code_edit = file_manager.code_editor
+	# Begin complex operation to avoid creating undo history during our undo
+	code_edit.begin_complex_operation()
 
-		# Apply state using a deferred call to handle async correctly
-		call_deferred("_process_state_change", previous_state, code_edit, path, false)
+	# Get the state to restore
+	var state = history.undo()
+	if state.is_empty():
+		is_processing_operation = false
+		code_edit.end_complex_operation()
+		return
+
+	# Apply text change
+	previous_text = state.text
+	code_edit.set_text_and_preserve_state(state.text, false)
+
+	var cursor = state.cursor
+	print("Undoing with cursor at line: %d, column: %d" % [cursor.caret_line, cursor.caret_column])
+
+	# Restore cursor position
+	code_edit.set_caret_line(cursor.caret_line)
+	code_edit.set_caret_column(cursor.caret_column)
+
+	# Restore scroll position
+	code_edit.get_v_scroll_bar().value = cursor.scroll_v
+	code_edit.get_h_scroll_bar().value = cursor.scroll_h
+
+	# Make cursor visible
+	code_edit.center_viewport_to_caret()
+
+	# End complex operation
+	code_edit.end_complex_operation()
+
+	# Update UI
+	_update_modified_flag()
+
+	# Emit signal
+	undo_performed.emit(path)
+
+	is_processing_operation = false
 
 func perform_redo() -> void:
 	var path = file_manager.get_current_file_path()
-	if path.is_empty() or not history.has(path):
+	if path.is_empty() or not histories.has(path):
 		return
 
-	var current_history = history[path]
+	var history = histories[path]
+	if not history.can_redo():
+		return
 
-	# Check if we can redo
-	if current_history.index < current_history.states.size() - 1:
-		is_processing_operation = true
+	is_processing_operation = true
 
-		current_history.index += 1
-		var next_state = current_history.states[current_history.index]
+	var code_edit = file_manager.code_editor
 
-		# Apply the state to the editor
-		var code_edit = file_manager.code_editor
+	# Begin complex operation to avoid creating undo history during our redo
+	code_edit.begin_complex_operation()
 
-		# Apply state using a deferred call to handle async correctly
-		call_deferred("_process_state_change", next_state, code_edit, path, true)
+	# Get the state to restore
+	var state = history.redo()
+	if state.is_empty():
+		is_processing_operation = false
+		code_edit.end_complex_operation()
+		return
 
-# Helper method to process state changes with async operations
-func _process_state_change(state, code_edit, path: String, is_redo: bool) -> void:
-	# Create a new function to handle the async operations
-	_apply_state_async.call_deferred(state, code_edit, path, is_redo)
+	# Apply text change
+	previous_text = state.text
+	code_edit.set_text_and_preserve_state(state.text, false)
 
-# Async method to apply state and handle completion
-func _apply_state_async(state, code_edit, path: String, is_redo: bool) -> void:
-	await _apply_state(state, code_edit)
+	var cursor = state.cursor
+	print("Redoing with cursor at line: %d, column: %d" % [cursor.caret_line, cursor.caret_column])
 
-	# Update the modified flag
-	_update_modified_flag()
+	# Restore cursor position
+	code_edit.set_caret_line(cursor.caret_line)
+	code_edit.set_caret_column(cursor.caret_column)
 
-	# Emit appropriate signal
-	if is_redo:
-		redo_performed.emit(path)
-	else:
-		undo_performed.emit(path)
+	# Restore scroll position
+	code_edit.get_v_scroll_bar().value = cursor.scroll_v
+	code_edit.get_h_scroll_bar().value = cursor.scroll_h
 
-	# Reset processing flag
-	is_processing_operation = false
-
-# Helper method to apply a state to the code editor
-func _apply_state(state, code_edit) -> void:
-	# First, set the text content
-	code_edit.text = state.text
-
-	# Wait for the next frame to ensure text processing is complete
-	await code_edit.get_tree().process_frame
-
-	# Now restore cursor position after the text has been processed
-	if state.caret_line < code_edit.get_line_count():
-		code_edit.set_caret_line(state.caret_line)
-
-		var line_length = code_edit.get_line(state.caret_line).length()
-		if state.caret_column <= line_length:
-			code_edit.set_caret_column(state.caret_column)
-
-	# Restore scroll position (with a small delay to ensure the text is updated first)
-	await code_edit.get_tree().process_frame
-	code_edit.get_v_scroll_bar().value = state.scroll_v
-	code_edit.get_h_scroll_bar().value = state.scroll_h
-
-	# Make sure caret becomes visible
+	# Make cursor visible
 	code_edit.center_viewport_to_caret()
 
-func clear_history(path: String) -> void:
-	if history.has(path):
-		history.erase(path)
+	# End complex operation
+	code_edit.end_complex_operation()
+
+	# Update UI
+	_update_modified_flag()
+
+	# Emit signal
+	redo_performed.emit(path)
+
+	is_processing_operation = false
 
 func _update_modified_flag() -> void:
 	var path = file_manager.get_current_file_path()
-	if path.is_empty() or not history.has(path):
+	if path.is_empty() or not histories.has(path):
 		return
 
-	var current_history = history[path]
-	var is_modified = (current_history.index != current_history.saved_index)
-
-	# Only update if needed
-	file_manager.mark_current_modified(is_modified)
+	var history = histories[path]
+	file_manager.mark_current_modified(history.is_modified())
 
 func _on_file_opened(path: String) -> void:
 	# Initialize history for the new file
-	if not history.has(path):
-		var code_edit = file_manager.code_editor
+	if not histories.has(path):
+		# Get initial file content
+		var content = ""
+		if is_instance_valid(file_manager) and is_instance_valid(file_manager.code_editor):
+			content = file_manager.code_editor.text
+			previous_text = content
 
-		var initial_state = {
-			"text": code_edit.text,
-			"caret_line": code_edit.get_caret_line(),
-			"caret_column": code_edit.get_caret_column(),
-			"scroll_v": code_edit.get_v_scroll_bar().value,
-			"scroll_h": code_edit.get_h_scroll_bar().value
-		}
-
-		history[path] = {
-			"states": [initial_state],
-			"index": 0,
-			"saved_index": 0  # Initially, the file is in a saved state
-		}
+		# Create fresh history
+		histories[path] = FileHistory.new(content)
 
 func _on_file_closed(path: String) -> void:
-	# Clean up history for the closed file
-	clear_history(path)
+	if histories.has(path):
+		histories.erase(path)
 
 func _on_file_saved(path: String) -> void:
-	# Mark current state as saved
-	if history.has(path):
-		var current_history = history[path]
-		current_history.saved_index = current_history.index
-
-		# Update modified flag
+	if histories.has(path):
+		histories[path].mark_saved()
 		_update_modified_flag()
+
+func _on_file_renamed(old_path: String, new_path: String) -> void:
+	if histories.has(old_path):
+		histories[new_path] = histories[old_path]
+		histories.erase(old_path)
+
+func _on_current_file_changed(path: String) -> void:
+	# Make sure we have history for the current file
+	if not path.is_empty() and not histories.has(path):
+		_on_file_opened(path)
+
+	# Update the previous text for the new file
+	if is_instance_valid(file_manager) and is_instance_valid(file_manager.code_editor):
+		previous_text = file_manager.code_editor.text

@@ -8,11 +8,14 @@ const CONFIG_KEY_OPEN_FILES = "open_files"
 const CONFIG_KEY_SPLIT_OFFSET = "split_offset"  # New key for split position
 
 var file_manager: YAMLFileManager
+var file_system: YAMLFileSystem
 var config: ConfigFile
 var autosave_timer: Timer
 var resizable_container: HSplitContainer
 
 func _ready() -> void:
+	file_system = YAMLFileSystem.get_singleton()
+
 	config = ConfigFile.new()
 
 	# Setup autosave timer
@@ -27,9 +30,9 @@ func setup(p_file_manager: YAMLFileManager, p_resizable_container: HSplitContain
 	file_manager = p_file_manager
 	resizable_container = p_resizable_container
 
-	# Connect to file manager signals
-	file_manager.file_opened.connect(_on_session_changed)
-	file_manager.file_closed.connect(_on_session_changed)
+	# Connect to signals
+	file_system.file_opened.connect(_on_session_changed)
+	file_system.file_closed.connect(_on_session_changed)
 	file_manager.current_file_changed.connect(_on_session_changed)
 	resizable_container.dragged.connect(_on_split_dragged)
 
@@ -75,18 +78,25 @@ func load_session() -> void:
 
 	# Open each file
 	for path in file_paths:
-		if FileAccess.file_exists(path):
+		if file_system.file_exists(path):
 			file_manager.open_file(path)
 
 	# Set current file
 	var last_current = config.get_value(CONFIG_SECTION, "current_file", "")
 	if not last_current.is_empty() and file_manager.has_file_open(last_current):
+		# Force update UI after setting current file
 		file_manager.current_file_path = last_current
 		file_manager.load_current_file_content()
+
+		# Important: Force UI update after setting current file to ensure file_list selection is updated
+		file_manager.update_ui()
+
+		# Emit signal after UI is updated
 		file_manager.current_file_changed.emit(last_current)
 
 	# Restore split offset (deferred to ensure UI is ready)
 	call_deferred("_restore_split_offset")
+	print("Session restored with %d files" % file_paths.size())
 
 func _restore_split_offset() -> void:
 	if is_instance_valid(resizable_container):

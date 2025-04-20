@@ -1,12 +1,13 @@
-[gd_scene load_steps=11 format=3 uid="uid://b7wsl0ss24hvb"]
+[gd_scene load_steps=12 format=3 uid="uid://b7wsl0ss24hvb"]
 
 [ext_resource type="Script" path="res://addons/yaml/editor/yaml_editor.gd" id="1_jqpkv"]
-[ext_resource type="Script" path="res://addons/yaml/editor/yaml_syntax_highlighter.gd" id="2_0xmrl"]
+[ext_resource type="Script" path="res://addons/yaml/editor/syntax_highlighter.gd" id="2_0xmrl"]
 [ext_resource type="Script" path="res://addons/yaml/editor/yaml_code_edit.gd" id="2_lgcdy"]
-[ext_resource type="Script" path="res://addons/yaml/editor/file_list.gd" id="3_004qm"]
+[ext_resource type="Script" path="res://addons/yaml/editor/file_panel.gd" id="3_ufmqr"]
 [ext_resource type="Script" path="res://addons/yaml/editor/menu_bar.gd" id="5_bqqrn"]
+[ext_resource type="Script" path="res://addons/yaml/editor/status_panel.gd" id="6_rk03l"]
 
-[sub_resource type="Image" id="Image_ohjc6"]
+[sub_resource type="Image" id="Image_jxel8"]
 data = {
 "data": PackedByteArray(255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 255, 255, 0, 255, 94, 94, 127, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 255, 255, 0, 255, 93, 93, 255, 255, 94, 94, 127, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 255, 255, 0, 255, 93, 93, 255, 255, 93, 93, 255, 255, 94, 94, 127, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 255, 255, 0, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 94, 94, 127, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 93, 93, 231, 255, 94, 94, 54, 255, 94, 94, 57, 255, 93, 93, 233, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 231, 255, 94, 94, 54, 255, 94, 94, 57, 255, 93, 93, 233, 255, 93, 93, 255, 255, 93, 93, 255, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 97, 97, 42, 255, 255, 255, 0, 255, 255, 255, 0, 255, 97, 97, 42, 255, 93, 93, 233, 255, 93, 93, 232, 255, 93, 93, 41, 255, 255, 255, 0, 255, 255, 255, 0, 255, 97, 97, 42, 255, 93, 93, 233, 255, 93, 93, 232, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 96, 96, 45, 255, 93, 93, 44, 255, 255, 255, 0, 255, 97, 97, 42, 255, 97, 97, 42, 255, 255, 255, 0, 255, 96, 96, 45, 255, 93, 93, 44, 255, 255, 255, 0, 255, 97, 97, 42, 255, 97, 97, 42, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 96, 96, 45, 255, 93, 93, 235, 255, 94, 94, 234, 255, 95, 95, 43, 255, 255, 255, 0, 255, 255, 255, 0, 255, 96, 96, 45, 255, 93, 93, 235, 255, 94, 94, 234, 255, 95, 95, 43, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 93, 93, 235, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 233, 255, 95, 95, 59, 255, 96, 96, 61, 255, 93, 93, 235, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 233, 255, 95, 95, 59, 255, 96, 96, 61, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0),
 "format": "RGBA8",
@@ -15,8 +16,8 @@ data = {
 "width": 16
 }
 
-[sub_resource type="ImageTexture" id="ImageTexture_t0ci4"]
-image = SubResource("Image_ohjc6")
+[sub_resource type="ImageTexture" id="ImageTexture_8bwvq"]
+image = SubResource("Image_jxel8")
 
 [sub_resource type="EditorSyntaxHighlighter" id="EditorSyntaxHighlighter_68y40"]
 script = ExtResource("2_0xmrl")
@@ -25,7 +26,7 @@ script = ExtResource("2_0xmrl")
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_42q8o"]
 
-[node name="YamlEditor" type="Control"]
+[node name="YamlEditor" type="Control" node_paths=PackedStringArray("menu_bar", "file_list", "code_edit", "status_panel", "resizable_container")]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -35,6 +36,11 @@ grow_vertical = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 script = ExtResource("1_jqpkv")
+menu_bar = NodePath("MarginContainer/MainVBox/MarginContainer/MenuBar")
+file_list = NodePath("MarginContainer/MainVBox/ResizableContainer/FileList")
+code_edit = NodePath("MarginContainer/MainVBox/ResizableContainer/EditorPanel/YAMLCodeEdit")
+status_panel = NodePath("MarginContainer/MainVBox/ResizableContainer/EditorPanel/MarginContainer/StatusPanel")
+resizable_container = NodePath("MarginContainer/MainVBox/ResizableContainer")
 metadata/_edit_use_anchors_ = true
 
 [node name="MarginContainer" type="MarginContainer" parent="."]
@@ -57,14 +63,15 @@ layout_mode = 2
 layout_mode = 2
 theme_override_constants/margin_bottom = 1
 
-[node name="MenuBar" type="MenuBar" parent="MarginContainer/MainVBox/MarginContainer"]
-unique_name_in_owner = true
+[node name="MenuBar" type="MenuBar" parent="MarginContainer/MainVBox/MarginContainer" node_paths=PackedStringArray("file_menu", "edit_menu", "search_menu")]
 layout_mode = 2
 flat = true
 script = ExtResource("5_bqqrn")
+file_menu = NodePath("File")
+edit_menu = NodePath("Edit")
+search_menu = NodePath("Search")
 
 [node name="File" type="PopupMenu" parent="MarginContainer/MainVBox/MarginContainer/MenuBar"]
-unique_name_in_owner = true
 title = "File"
 hide_on_checkable_item_selection = false
 item_count = 7
@@ -83,7 +90,6 @@ item_6/text = "Close"
 item_6/id = 4
 
 [node name="Edit" type="PopupMenu" parent="MarginContainer/MainVBox/MarginContainer/MenuBar"]
-unique_name_in_owner = true
 auto_translate_mode = 1
 item_count = 6
 item_0/text = "Undo"
@@ -99,7 +105,6 @@ item_5/text = "Paste"
 item_5/id = 4
 
 [node name="Search" type="PopupMenu" parent="MarginContainer/MainVBox/MarginContainer/MenuBar"]
-unique_name_in_owner = true
 auto_translate_mode = 1
 item_count = 5
 item_0/text = "Find..."
@@ -113,25 +118,25 @@ item_4/text = "Replace..."
 item_4/id = 3
 
 [node name="ResizableContainer" type="HSplitContainer" parent="MarginContainer/MainVBox"]
-unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
 split_offset = 181
 
-[node name="FilePanel" type="VBoxContainer" parent="MarginContainer/MainVBox/ResizableContainer"]
+[node name="FileList" type="VBoxContainer" parent="MarginContainer/MainVBox/ResizableContainer" node_paths=PackedStringArray("filter_input", "file_list")]
 custom_minimum_size = Vector2(150, 0)
 layout_mode = 2
 size_flags_stretch_ratio = 0.25
+script = ExtResource("3_ufmqr")
+filter_input = NodePath("Filter")
+file_list = NodePath("ItemList")
 
-[node name="Filter" type="LineEdit" parent="MarginContainer/MainVBox/ResizableContainer/FilePanel"]
-unique_name_in_owner = true
+[node name="Filter" type="LineEdit" parent="MarginContainer/MainVBox/ResizableContainer/FileList"]
 layout_mode = 2
 placeholder_text = "Filter Files"
 clear_button_enabled = true
-right_icon = SubResource("ImageTexture_t0ci4")
+right_icon = SubResource("ImageTexture_8bwvq")
 
-[node name="FileList" type="ItemList" parent="MarginContainer/MainVBox/ResizableContainer/FilePanel" node_paths=PackedStringArray("filter_input")]
-unique_name_in_owner = true
+[node name="ItemList" type="ItemList" parent="MarginContainer/MainVBox/ResizableContainer/FileList"]
 layout_mode = 2
 size_flags_vertical = 3
 allow_rmb_select = true
@@ -140,115 +145,26 @@ item_count = 3
 item_0/text = "custom_class.yaml"
 item_1/text = "simple.yaml"
 item_2/text = "comprehensive.yaml"
-script = ExtResource("3_004qm")
-filter_input = NodePath("../Filter")
 
 [node name="EditorPanel" type="VBoxContainer" parent="MarginContainer/MainVBox/ResizableContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 
 [node name="YAMLCodeEdit" type="CodeEdit" parent="MarginContainer/MainVBox/ResizableContainer/EditorPanel"]
-unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
-text = "# Scalars
-string_value: \"Hello, World!\"
-unquoted_string: Hello World
-single_quoted: 'Hello, ''World'''
-folded_string: >
-  This is a long string
-  that will be folded
-  into a single line
-literal_string: |
-  This is a long string
-  that will preserve
-  newlines
-
-# Numeric types
-integer: 42
-float: 3.14159
-hex: 0xff
-octal: 0o700
-binary: 0b1010
-scientific_notation: 6.022e23
-infinity: .inf
-not_a_number: .nan
-
-# Boolean types
-boolean_true: true
-boolean_false: false
-
-# Null
-null_value: null
-null_value_2: ~
-
-# Dates and times
-date: 2023-04-01
-canonical_datetime: 2023-04-01T12:00:00Z
-iso8601_datetime: 2023-04-01t12:00:00.000-05:00
-
-# Collections
-## Lists
-fruits:
-- apple
-- banana
-- cherry
-
-
-nested_list:
-  - - nested
-  - items
-  - - more
-  - nested
-  - items
-
-## Dictionaries
-person:
-  name: John Doe
-  age: 30
-  occupation: Developer
-
-## Flow style list
-flow_style_list: [1, 2, 3, 4, 5]
-
-## Flow style dictionary
-flow_style_dict: {key1: value1, key2: value2, key3: 124.5}
-
-## Nested flow list
-nested_flow_style_list: [\"hello\", 10, {foo: bar}, [4.20, 6.9]]
-
-## Nested flow dictionary
-nested_flow_style_dictionary: { key1: {foo: 'bar'}, key2: [4.20, 6.9] }
-
-# Anchors and aliases
-anchor_example: &anchor_name
-  key1: value1
-  key2: value2
-
-alias_example: *anchor_name
-
-# Merge key
-base: &base
-  name: John Doe
-  age: 30
-
-merge_example:
-  <<: *base
-  occupation: Developer
-
-# Ordered maps
-ordered_map: !!omap
-  - key1: value1
-  - key2: value2
-
-# Binary data
-binary_data: !!binary |
-  R0lGODlhDAAMAIQAAP//9/X17unp5WZmZgAAAOfn515eXvPz7Y6OjuDg4J+fn5
-  OTk6enp56enmleECcgggoBADs=
-
-# Tags
-custom_tag: !my_custom_tag
-  key: value
+text = "string: string_value
+number: 1234
+list:
+  - apples
+  - oranges
+  - baz
+hello: world
+this:
+  - could
+  - be
+  - fun
+  - 
 "
 scroll_smooth = true
 minimap_draw = true
@@ -275,11 +191,13 @@ theme_override_constants/margin_top = 5
 theme_override_constants/margin_right = 0
 theme_override_constants/margin_bottom = 5
 
-[node name="StatusPanel" type="HBoxContainer" parent="MarginContainer/MainVBox/ResizableContainer/EditorPanel/MarginContainer"]
+[node name="StatusPanel" type="HBoxContainer" parent="MarginContainer/MainVBox/ResizableContainer/EditorPanel/MarginContainer" node_paths=PackedStringArray("status_label", "line_column_label")]
 layout_mode = 2
+script = ExtResource("6_rk03l")
+status_label = NodePath("StatusLabel")
+line_column_label = NodePath("LineColumnLabel")
 
 [node name="StatusLabel" type="Label" parent="MarginContainer/MainVBox/ResizableContainer/EditorPanel/MarginContainer/StatusPanel"]
-unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 2
 focus_mode = 2
@@ -287,9 +205,8 @@ theme_override_fonts/font = SubResource("FontVariation_o84u8")
 theme_override_styles/normal = SubResource("StyleBoxEmpty_42q8o")
 vertical_alignment = 1
 
-[node name="LineColLabel" type="Label" parent="MarginContainer/MainVBox/ResizableContainer/EditorPanel/MarginContainer/StatusPanel"]
-unique_name_in_owner = true
+[node name="LineColumnLabel" type="Label" parent="MarginContainer/MainVBox/ResizableContainer/EditorPanel/MarginContainer/StatusPanel"]
 layout_mode = 2
 size_flags_horizontal = 8
-text = "Ln 1, Col 1"
+text = "1 : 1"
 vertical_alignment = 1

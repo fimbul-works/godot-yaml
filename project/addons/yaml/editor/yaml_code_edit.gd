@@ -12,9 +12,12 @@ signal validation_requested
 var error_indicators = {}
 var snapshot_debounce_timer: Timer
 var error_line_color: Color = Color(1.0, 0.3, 0.3, 0.1)
-var syntax_highlighter_script = preload("res://addons/yaml/editor/yaml_syntax_highlighter.gd")
+var syntax_highlighter_script = preload("res://addons/yaml/editor/syntax_highlighter.gd")
 
 func _ready() -> void:
+	# Clear the text to start with
+	text = ""
+
 	# Configure YAML-specific settings
 	set_indent_size(2)
 	set_indent_using_spaces(true)
@@ -236,10 +239,10 @@ func clear_error_indicators() -> void:
 
 	error_indicators.clear()
 
-func get_current_line_col_info() -> String:
+func get_current_line_col_info() -> Array[int]:
 	var line = get_caret_line() + 1
 	var col = get_caret_column() + 1
-	return "Ln %d, Col %d" % [line, col]
+	return [line, col]
 
 func _request_code_completion(force: bool = false) -> void:
 	var line = get_caret_line()

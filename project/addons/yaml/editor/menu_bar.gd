@@ -20,9 +20,9 @@ signal find_next_requested
 signal find_previous_requested
 signal replace_requested
 
-@onready var file_menu = %File
-@onready var edit_menu = %Edit
-@onready var search_menu = %Search
+@export var file_menu: PopupMenu
+@export var edit_menu: PopupMenu
+@export var search_menu: PopupMenu
 
 func _ready() -> void:
 	# Wait for UI to be ready

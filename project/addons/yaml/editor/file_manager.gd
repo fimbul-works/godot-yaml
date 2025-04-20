@@ -1,11 +1,8 @@
 @tool
 class_name YAMLFileManager extends Node
 
-signal file_opened(path)
-signal file_closed(path)
-signal file_saved(path)
-signal file_modified(path, is_modified)
 signal current_file_changed(path)
+signal file_modified(path, is_modified)
 
 # Dictionary of open files: {path: {content, modified, saved_state}}
 var open_files: Dictionary = {}
@@ -15,10 +12,19 @@ var unsaved_changes: bool = false
 # UI components
 var file_list: YAMLFileList
 var code_editor: CodeEdit
-var status_label: Label
 var file_popup_menu: PopupMenu
 
+# Reference to the singleton
+var file_system: YAMLFileSystem
+
 func _ready() -> void:
+	# Get singleton reference
+	file_system = YAMLFileSystem.get_singleton()
+
+	# Listen for external file updates
+	file_system.file_updated.connect(_on_external_file_updated)
+	file_system.file_renamed.connect(_on_file_renamed)
+
 	# Create file popup menu
 	file_popup_menu = PopupMenu.new()
 	add_child(file_popup_menu)
@@ -34,10 +40,9 @@ func _ready() -> void:
 	# Connect popup menu signals
 	file_popup_menu.id_pressed.connect(_on_file_popup_menu_id_pressed)
 
-func setup(p_file_list: YAMLFileList, p_code_editor: CodeEdit, p_status_label: Label) -> void:
+func setup(p_file_list: YAMLFileList, p_code_editor: CodeEdit) -> void:
 	file_list = p_file_list
 	code_editor = p_code_editor
-	status_label = p_status_label
 
 	# Connect signals from file list component
 	file_list.file_selected.connect(_on_file_selected)
@@ -51,13 +56,11 @@ func open_file(path: String) -> void:
 		load_current_file_content()
 		return
 
-	# Open the file
-	var file := FileAccess.open(path, FileAccess.READ)
-	if not file:
+	# Use the file system singleton to read the file
+	var content = file_system.read_file(path)
+	if typeof(content) == TYPE_INT:  # Error code
 		push_error("Could not open file: ", path)
 		return
-
-	var content := file.get_as_text()
 
 	# Add to open files
 	open_files[path] = {
@@ -70,8 +73,8 @@ func open_file(path: String) -> void:
 	update_ui()
 	load_current_file_content()
 
-	# Emit signal
-	file_opened.emit(path)
+	# Notify the file system
+	file_system.notify_file_opened(path)
 
 func close_file(path: String) -> bool:
 	if not open_files.has(path):
@@ -132,9 +135,10 @@ func _close_file_internal(path: String) -> bool:
 
 	update_ui()
 
-	# Emit signal
-	file_closed.emit(path)
+	# Notify the file system
+	file_system.notify_file_closed(path)
 
+	# Update current file if needed
 	if current_file_path != path and !current_file_path.is_empty():
 		current_file_changed.emit(current_file_path)
 
@@ -148,12 +152,11 @@ func save_current_file() -> bool:
 	if current_file_path.begins_with("untitled"):
 		return false  # Caller should handle "Save As" dialog
 
-	var file = FileAccess.open(current_file_path, FileAccess.WRITE)
-	if not file:
+	# Use the file system singleton to save the file
+	var result = file_system.save_file(current_file_path, code_editor.text)
+	if result != OK:
 		push_error("Could not save file: ", current_file_path)
 		return false
-
-	file.store_string(code_editor.text)
 
 	# Update state
 	open_files[current_file_path].content = code_editor.text
@@ -162,10 +165,6 @@ func save_current_file() -> bool:
 	unsaved_changes = false
 
 	update_ui()
-	status_label.text = "Saved: " + current_file_path.get_file()
-
-	# Emit signal
-	file_saved.emit(current_file_path)
 
 	return true
 
@@ -180,13 +179,13 @@ func save_file_as(path: String) -> bool:
 		# If old path was temporary, remove it
 		if not old_path.is_empty() and old_path != path and old_path.begins_with("untitled"):
 			open_files.erase(old_path)
-			file_closed.emit(old_path)
+			file_system.notify_file_closed(old_path)
 
 		update_ui()
 
-		# If this is a new path, emit opened signal
+		# If this is a new path, notify opened
 		if old_path != path:
-			file_opened.emit(path)
+			file_system.notify_file_opened(path)
 			current_file_changed.emit(path)
 
 		return true
@@ -218,7 +217,7 @@ func new_file() -> void:
 	code_editor.grab_focus()
 
 	# Emit signals
-	file_opened.emit(untitled_name)
+	file_system.notify_file_opened(untitled_name)
 	current_file_changed.emit(untitled_name)
 	file_modified.emit(untitled_name, true)
 
@@ -264,7 +263,7 @@ func handle_filesystem_change() -> void:
 	var missing_files = []
 
 	for old_path in open_files.keys():
-		if old_path.begins_with("res://") and not FileAccess.file_exists(old_path):
+		if old_path.begins_with("res://") and not file_system.file_exists(old_path):
 			missing_files.append(old_path)
 
 	# Handle missing files
@@ -272,7 +271,7 @@ func handle_filesystem_change() -> void:
 		# Try to find a file with the same name but different path in the filesystem
 		var filename = old_path.get_file()
 		var filesystem_root = EditorInterface.get_resource_filesystem().get_filesystem()
-		var new_path = _find_file_in_filesystem(filesystem_root, filename)
+		var new_path = file_system.find_file_in_filesystem(filesystem_root, filename)
 
 		if not new_path.is_empty():
 			# Found potential match - update the file path
@@ -298,25 +297,71 @@ func _update_file_path(old_path: String, new_path: String) -> void:
 	# Update UI
 	update_ui()
 
-	# Emit signals
-	file_closed.emit(old_path)
-	file_opened.emit(new_path)
+	# Notify the file system
+	file_system.notify_file_closed(old_path)
+	file_system.notify_file_opened(new_path)
+	file_system.notify_file_renamed(old_path, new_path)
 
-func _find_file_in_filesystem(dir: EditorFileSystemDirectory, filename: String) -> String:
-	# Check files in current directory
-	for i in range(dir.get_file_count()):
-		var file_path = dir.get_file_path(i)
-		if file_path.get_file() == filename:
-			return file_path
+func _on_external_file_updated(path: String) -> void:
+	# Only process if the file is open and it's a YAML file
+	if open_files.has(path) and file_system.is_yaml_file(path):
+		# Check if the file has unsaved changes
+		if not open_files[path].modified:
+			# File is not modified locally, safe to reload
+			var content = file_system.read_file(path)
+			if typeof(content) != TYPE_INT:  # Not an error
+				open_files[path].content = content
+				open_files[path].saved_state = content
 
-	# Recursively check subdirectories
-	for i in range(dir.get_subdir_count()):
-		var subdir = dir.get_subdir(i)
-		var result = _find_file_in_filesystem(subdir, filename)
-		if not result.is_empty():
-			return result
+				# If this is the current file, update the editor
+				if path == current_file_path:
+					# Preserve cursor position and scroll state
+					var previous_caret_line = code_editor.get_caret_line()
+					var previous_caret_column = code_editor.get_caret_column()
+					var previous_scroll_v = code_editor.get_v_scroll_bar().value
+					var previous_scroll_h = code_editor.get_h_scroll_bar().value
 
-	return ""
+					code_editor.text = content
+
+					# Restore position if possible
+					if previous_caret_line < code_editor.get_line_count():
+						code_editor.set_caret_line(previous_caret_line)
+						var line_length = code_editor.get_line(previous_caret_line).length()
+						if previous_caret_column <= line_length:
+							code_editor.set_caret_column(previous_caret_column)
+
+					# Restore scroll position
+					code_editor.get_v_scroll_bar().value = previous_scroll_v
+					code_editor.get_h_scroll_bar().value = previous_scroll_h
+
+					unsaved_changes = false
+					update_ui()
+		else:
+			# File has unsaved changes, show conflict dialog
+			if path == current_file_path:
+				var dialog = ConfirmationDialog.new()
+				dialog.title = "External Changes Detected"
+				dialog.dialog_text = "The file '" + path.get_file() + "' has been modified externally. Do you want to reload it and lose your changes?"
+				dialog.confirmed.connect(
+					func():
+						var content = file_system.read_file(path)
+						if typeof(content) != TYPE_INT:
+							code_editor.text = content
+							open_files[path].content = content
+							open_files[path].modified = false
+							open_files[path].saved_state = content
+							unsaved_changes = false
+							update_ui()
+						dialog.queue_free()
+				)
+				dialog.canceled.connect(func(): dialog.queue_free())
+				add_child(dialog)
+				dialog.popup_centered()
+
+func _on_file_renamed(old_path: String, new_path: String) -> void:
+	# If we have this file open, update our references
+	if open_files.has(old_path):
+		_update_file_path(old_path, new_path)
 
 func update_ui() -> void:
 	if not is_instance_valid(file_list):

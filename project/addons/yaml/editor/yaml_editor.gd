@@ -1,5 +1,5 @@
 @tool
-extends Control
+class_name YAMLEditor extends Control
 
 # Components
 var file_manager: YAMLFileManager
@@ -7,23 +7,23 @@ var history_manager: YAMLHistoryManager
 var session_manager: YAMLSessionManager
 var validator: YAMLValidator
 
+# File system singleton
+var file_system: YAMLFileSystem
+
 # Editor reference
 var editor: EditorInterface
 
 # UI references
-@onready var menu_bar: YAMLMenuBar = %MenuBar
-@onready var file_menu := %File
-@onready var edit_menu := %Edit
-@onready var search_menu := %Search
-@onready var filter_input := %Filter
-
-@onready var file_list := %FileList
-@onready var code_edit := %YAMLCodeEdit
-@onready var status_label := %StatusLabel
-@onready var line_col_label := %LineColLabel
-@onready var resizable_container := %ResizableContainer
+@export var menu_bar: YAMLMenuBar
+@export var file_list: YAMLFileList
+@export var code_edit: YAMLCodeEditor
+@export var status_panel: YAMLEditorStatusPanel
+@export var resizable_container: HSplitContainer
 
 func _ready() -> void:
+	# Get reference to file system singleton first
+	file_system = YAMLFileSystem.get_singleton()
+
 	# Initialize components
 	file_manager = YAMLFileManager.new()
 	add_child(file_manager)
@@ -40,13 +40,11 @@ func _ready() -> void:
 	# Wait for UI to be ready
 	await get_tree().process_frame
 
-	filter_input.right_icon = get_theme_icon("Search", "EditorIcons")
-
 	# Set up components
-	file_manager.setup(file_list, code_edit, status_label)
+	file_manager.setup(file_list, code_edit)
 	history_manager.setup(file_manager)
 	session_manager.setup(file_manager, resizable_container)
-	validator.setup(code_edit, status_label)
+	validator.setup(code_edit)
 
 	# Connect toolbar signals
 	menu_bar.new_file.connect(_on_new_button_pressed)
@@ -139,11 +137,10 @@ func _on_redo_requested() -> void:
 	history_manager.perform_redo()
 
 func _on_caret_changed() -> void:
-	line_col_label.text = code_edit.get_current_line_col_info()
+	status_panel.set_line_column(code_edit.get_current_line_col_info())
 
 func _on_validation_completed(result) -> void:
-	# Validation is handled by the validator component
-	pass
+	status_panel.set_validation_result(result)
 
 func _has_unsaved_changes() -> bool:
 	return file_manager.has_unsaved_changes()
@@ -160,14 +157,14 @@ func _notification(what):
 		session_manager.save_session()
 
 func _on_undo_redo_performed(path: String) -> void:
-	if is_instance_valid(line_col_label) and is_instance_valid(code_edit):
+	if is_instance_valid(code_edit):
 		# Use call_deferred to ensure this happens after the editor state is fully updated
 		call_deferred("_update_line_col_label")
 
 func _update_line_col_label() -> void:
 	# Allow one frame to pass to ensure the UI is updated
 	await get_tree().process_frame
-	line_col_label.text = code_edit.get_current_line_col_info()
+	_on_caret_changed()
 
 	# Ensure the cursor is visible
 	code_edit.center_viewport_to_caret()
