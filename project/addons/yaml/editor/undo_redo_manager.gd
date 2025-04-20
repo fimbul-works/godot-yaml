@@ -5,7 +5,10 @@ extends Node
 signal undo_performed(path)
 signal redo_performed(path)
 
-# History structure: {path: {states: [], index: -1, saved_index: -1}}
+# Enhanced history structure:
+# {path: {states: [], index: -1, saved_index: -1}}
+# Where each state is now a dictionary with:
+# {text, caret_line, caret_column, scroll_v, scroll_h}
 var history: Dictionary = {}
 const MAX_UNDO_STATES = 100
 
@@ -46,20 +49,29 @@ func take_snapshot() -> void:
 		}
 
 	var current_history = history[path]
-	var current_text = file_manager.get_current_file_content()
+	var code_edit = file_manager.code_editor
+
+	# Create a state object with text and cursor/scroll information
+	var state = {
+		"text": code_edit.text,
+		"caret_line": code_edit.get_caret_line(),
+		"caret_column": code_edit.get_caret_column(),
+		"scroll_v": code_edit.get_v_scroll_bar().value,
+		"scroll_h": code_edit.get_h_scroll_bar().value
+	}
 
 	# If we're already processing an undo/redo, don't take a new snapshot
 	if is_processing_operation:
 		return
 
 	# If the current state is different from the last state
-	if current_history.states.is_empty() or current_text != current_history.states[current_history.index]:
+	if current_history.states.is_empty() or state.text != current_history.states[current_history.index].text:
 		# If we're not at the end of the history, truncate future states
 		if current_history.index < current_history.states.size() - 1:
 			current_history.states = current_history.states.slice(0, current_history.index + 1)
 
 		# Add the new state
-		current_history.states.append(current_text)
+		current_history.states.append(state)
 		current_history.index = current_history.states.size() - 1
 
 		# Limit the number of states to prevent memory issues
@@ -92,15 +104,10 @@ func perform_undo() -> void:
 		var previous_state = current_history.states[current_history.index]
 
 		# Apply the state to the editor
-		file_manager.set_current_file_content(previous_state)
+		var code_edit = file_manager.code_editor
 
-		# Update the modified flag based on whether current state matches saved state
-		_update_modified_flag()
-
-		# Emit signal for completion
-		undo_performed.emit(path)
-
-		is_processing_operation = false
+		# Apply state using a deferred call to handle async correctly
+		call_deferred("_process_state_change", previous_state, code_edit, path, false)
 
 func perform_redo() -> void:
 	var path = file_manager.get_current_file_path()
@@ -117,15 +124,55 @@ func perform_redo() -> void:
 		var next_state = current_history.states[current_history.index]
 
 		# Apply the state to the editor
-		file_manager.set_current_file_content(next_state)
+		var code_edit = file_manager.code_editor
 
-		# Update the modified flag based on whether current state matches saved state
-		_update_modified_flag()
+		# Apply state using a deferred call to handle async correctly
+		call_deferred("_process_state_change", next_state, code_edit, path, true)
 
-		# Emit signal for completion
+# Helper method to process state changes with async operations
+func _process_state_change(state, code_edit, path: String, is_redo: bool) -> void:
+	# Create a new function to handle the async operations
+	_apply_state_async.call_deferred(state, code_edit, path, is_redo)
+
+# Async method to apply state and handle completion
+func _apply_state_async(state, code_edit, path: String, is_redo: bool) -> void:
+	await _apply_state(state, code_edit)
+
+	# Update the modified flag
+	_update_modified_flag()
+
+	# Emit appropriate signal
+	if is_redo:
 		redo_performed.emit(path)
+	else:
+		undo_performed.emit(path)
 
-		is_processing_operation = false
+	# Reset processing flag
+	is_processing_operation = false
+
+# Helper method to apply a state to the code editor
+func _apply_state(state, code_edit) -> void:
+	# First, set the text content
+	code_edit.text = state.text
+
+	# Wait for the next frame to ensure text processing is complete
+	await code_edit.get_tree().process_frame
+
+	# Now restore cursor position after the text has been processed
+	if state.caret_line < code_edit.get_line_count():
+		code_edit.set_caret_line(state.caret_line)
+
+		var line_length = code_edit.get_line(state.caret_line).length()
+		if state.caret_column <= line_length:
+			code_edit.set_caret_column(state.caret_column)
+
+	# Restore scroll position (with a small delay to ensure the text is updated first)
+	await code_edit.get_tree().process_frame
+	code_edit.get_v_scroll_bar().value = state.scroll_v
+	code_edit.get_h_scroll_bar().value = state.scroll_h
+
+	# Make sure caret becomes visible
+	code_edit.center_viewport_to_caret()
 
 func clear_history(path: String) -> void:
 	if history.has(path):
@@ -145,9 +192,18 @@ func _update_modified_flag() -> void:
 func _on_file_opened(path: String) -> void:
 	# Initialize history for the new file
 	if not history.has(path):
-		var initial_content = file_manager.get_current_file_content()
+		var code_edit = file_manager.code_editor
+
+		var initial_state = {
+			"text": code_edit.text,
+			"caret_line": code_edit.get_caret_line(),
+			"caret_column": code_edit.get_caret_column(),
+			"scroll_v": code_edit.get_v_scroll_bar().value,
+			"scroll_h": code_edit.get_h_scroll_bar().value
+		}
+
 		history[path] = {
-			"states": [initial_content],
+			"states": [initial_state],
 			"index": 0,
 			"saved_index": 0  # Initially, the file is in a saved state
 		}

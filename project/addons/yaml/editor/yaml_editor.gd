@@ -64,6 +64,10 @@ func _ready() -> void:
 	code_edit.redo_requested.connect(_on_redo_requested)
 	code_edit.caret_changed.connect(_on_caret_changed)
 
+	# Connect undo/redo manager signals for proper UI updating
+	undo_redo_manager.undo_performed.connect(_on_undo_redo_performed)
+	undo_redo_manager.redo_performed.connect(_on_undo_redo_performed)
+
 	# Connect validation signals
 	validator.validation_completed.connect(_on_validation_completed)
 
@@ -154,3 +158,16 @@ func _notification(what):
 	if what == NOTIFICATION_WM_CLOSE_REQUEST:
 		# Save session when editor is closing
 		session_manager.save_session()
+
+func _on_undo_redo_performed(path: String) -> void:
+	if is_instance_valid(line_col_label) and is_instance_valid(code_edit):
+		# Use call_deferred to ensure this happens after the editor state is fully updated
+		call_deferred("_update_line_col_label")
+
+func _update_line_col_label() -> void:
+	# Allow one frame to pass to ensure the UI is updated
+	await get_tree().process_frame
+	line_col_label.text = code_edit.get_current_line_col_info()
+
+	# Ensure the cursor is visible
+	code_edit.center_viewport_to_caret()

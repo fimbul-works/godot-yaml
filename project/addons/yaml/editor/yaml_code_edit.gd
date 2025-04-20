@@ -82,25 +82,35 @@ func _gui_input(event: InputEvent) -> void:
 				redo_requested.emit()
 				get_viewport().set_input_as_handled()
 
-func set_text_and_preserve_state(new_text: String) -> void:
-	# Save current state
-	var previous_caret_pos = get_caret_column()
-	var previous_line = get_caret_line()
-	var previous_scroll_v = get_v_scroll_bar().value
-	var previous_scroll_h = get_h_scroll_bar().value
+func set_text_and_preserve_state(new_text: String, preserve_state: bool = true) -> void:
+	if preserve_state:
+		# Save current state
+		var previous_caret_pos = get_caret_column()
+		var previous_line = get_caret_line()
+		var previous_scroll_v = get_v_scroll_bar().value
+		var previous_scroll_h = get_h_scroll_bar().value
 
-	# Set text
-	text = new_text
+		# Set text
+		text = new_text
 
-	# Restore state if possible
-	if previous_line < get_line_count():
-		set_caret_line(previous_line)
-		if previous_caret_pos <= get_line(previous_line).length():
-			set_caret_column(previous_caret_pos)
+		# Restore state if possible
+		if previous_line < get_line_count():
+			set_caret_line(previous_line)
+			var line_length = get_line(previous_line).length()
+			if previous_caret_pos <= line_length:
+				set_caret_column(previous_caret_pos)
 
-	# Restore scroll position
-	get_v_scroll_bar().value = previous_scroll_v
-	get_h_scroll_bar().value = previous_scroll_h
+		# Restore scroll position (with a small delay to ensure the text is updated first)
+		call_deferred("_restore_scroll_position", previous_scroll_v, previous_scroll_h)
+	else:
+		# Just set the text without preserving state
+		text = new_text
+
+func _restore_scroll_position(v_scroll: float, h_scroll: float) -> void:
+	# Wait for one frame to ensure the text has been updated and rendered
+	await get_tree().process_frame
+	get_v_scroll_bar().value = v_scroll
+	get_h_scroll_bar().value = h_scroll
 
 func _handle_indent() -> void:
 	# Get current line and text
