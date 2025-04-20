@@ -13,7 +13,7 @@ var current_file_path: String = ""
 var unsaved_changes: bool = false
 
 # UI components
-var file_list: ItemList
+var file_list: YAMLFileList
 var code_editor: CodeEdit
 var status_label: Label
 var file_popup_menu: PopupMenu
@@ -34,17 +34,14 @@ func _ready() -> void:
 	# Connect popup menu signals
 	file_popup_menu.id_pressed.connect(_on_file_popup_menu_id_pressed)
 
-func setup(p_file_list: ItemList, p_code_editor: CodeEdit, p_status_label: Label) -> void:
+func setup(p_file_list: YAMLFileList, p_code_editor: CodeEdit, p_status_label: Label) -> void:
 	file_list = p_file_list
 	code_editor = p_code_editor
 	status_label = p_status_label
 
-	# Connect signals from UI
-	file_list.item_clicked.connect(_on_file_item_clicked)
-	file_list.item_selected.connect(_on_file_selected)
-
-	# Clear file list
-	file_list.clear()
+	# Connect signals from file list component
+	file_list.file_selected.connect(_on_file_selected)
+	file_list.file_context_requested.connect(_on_file_context_requested)
 
 func open_file(path: String) -> void:
 	# Check if already open
@@ -325,51 +322,34 @@ func update_ui() -> void:
 	if not is_instance_valid(file_list):
 		return
 
-	# Update file list
-	file_list.clear()
-
-	var current_index = -1
-	var index = 0
-
+	# Prepare file data for the file list component
+	var file_data = {}
 	for path in open_files:
-		var file_name = path.get_file()
-		var modified = open_files[path].modified
+		file_data[path] = {
+			"name": path.get_file(),
+			"modified": open_files[path].modified
+		}
 
-		if modified:
-			file_name += " (*)"
+	# Update the file list component
+	file_list.update_files(file_data, current_file_path)
 
-		file_list.add_item(file_name)
-		file_list.set_item_metadata(index, path)
-
-		if path == current_file_path:
-			current_index = index
-
-		index += 1
-
-	if current_index >= 0:
-		file_list.select(current_index)
-
-func _on_file_item_clicked(index: int, at_position: Vector2, mouse_button_index: int) -> void:
-	if mouse_button_index == MOUSE_BUTTON_RIGHT:
-		# Select the clicked item
-		file_list.select(index)
-		var path = file_list.get_item_metadata(index)
-
-		if path != current_file_path:
-			current_file_path = path
-			load_current_file_content()
-			current_file_changed.emit(path)
-
-		# Show context menu
-		file_popup_menu.position = file_list.global_position + at_position
-		file_popup_menu.popup()
-
-func _on_file_popup_menu_id_pressed(id: int) -> void:
-	var selected_idx = file_list.get_selected_items()
-	if selected_idx.is_empty():
+func _on_file_context_requested(path: String, at_position: Vector2) -> void:
+	if path.is_empty():
 		return
 
-	var path = file_list.get_item_metadata(selected_idx[0])
+	if path != current_file_path:
+		current_file_path = path
+		load_current_file_content()
+		current_file_changed.emit(path)
+
+	# Show context menu
+	file_popup_menu.position = file_list.global_position + at_position
+	file_popup_menu.popup()
+
+func _on_file_popup_menu_id_pressed(id: int) -> void:
+	var path = file_list.get_selected_file_path()
+	if path.is_empty():
+		return
 
 	match id:
 		0:  # Save
@@ -393,15 +373,13 @@ func _on_file_popup_menu_id_pressed(id: int) -> void:
 			if not path.begins_with("untitled") and path.begins_with("res://"):
 				EditorInterface.get_file_system_dock().navigate_to_path(path)
 
-func _on_file_selected(index: int) -> void:
-	if index < 0 or index >= file_list.get_item_count():
+func _on_file_selected(path: String) -> void:
+	if path.is_empty() or path == current_file_path:
 		return
 
-	var path = file_list.get_item_metadata(index)
-	if path != current_file_path:
-		current_file_path = path
-		load_current_file_content()
-		current_file_changed.emit(path)
+	current_file_path = path
+	load_current_file_content()
+	current_file_changed.emit(path)
 
 func has_unsaved_changes() -> bool:
 	return unsaved_changes
