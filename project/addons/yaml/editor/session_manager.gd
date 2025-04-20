@@ -43,8 +43,6 @@ func save_session() -> void:
 		return
 
 	var open_files = file_manager.get_open_files()
-	if open_files.is_empty():
-		return
 
 	# Create array of persistent file paths (skip untitled files)
 	var persistent_files = []
@@ -54,8 +52,7 @@ func save_session() -> void:
 
 	# Save to config file
 	config.set_value(CONFIG_SECTION, CONFIG_KEY_OPEN_FILES, persistent_files)
-	config.set_value(CONFIG_SECTION, "current_file",
-					 file_manager.get_current_file_path() if not file_manager.get_current_file_path().begins_with("untitled") else "")
+	config.set_value(CONFIG_SECTION, "current_file", file_manager.get_current_file_path() if not file_manager.get_current_file_path().begins_with("untitled") else "")
 
 	# Save the split offset
 	if is_instance_valid(resizable_container):

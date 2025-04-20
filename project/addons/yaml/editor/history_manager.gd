@@ -1,16 +1,15 @@
 @tool
-class_name YAMLUndoRedoManager
-extends Node
+class_name YAMLHistoryManager extends Node
 
 signal undo_performed(path)
 signal redo_performed(path)
 
-# Enhanced history structure:
+# History structure:
 # {path: {states: [], index: -1, saved_index: -1}}
 # Where each state is now a dictionary with:
 # {text, caret_line, caret_column, scroll_v, scroll_h}
 var history: Dictionary = {}
-const MAX_UNDO_STATES = 100
+const MAX_HISTORY_STATES = 100
 
 var file_manager: YAMLFileManager
 var snapshot_timestamp: int = 0
@@ -75,8 +74,8 @@ func take_snapshot() -> void:
 		current_history.index = current_history.states.size() - 1
 
 		# Limit the number of states to prevent memory issues
-		if current_history.states.size() > MAX_UNDO_STATES:
-			var excess = current_history.states.size() - MAX_UNDO_STATES
+		if current_history.states.size() > MAX_HISTORY_STATES:
+			var excess = current_history.states.size() - MAX_HISTORY_STATES
 			current_history.states = current_history.states.slice(excess)
 			current_history.index = current_history.states.size() - 1
 

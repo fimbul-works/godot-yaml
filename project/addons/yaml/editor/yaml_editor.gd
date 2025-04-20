@@ -3,7 +3,7 @@ extends Control
 
 # Components
 var file_manager: YAMLFileManager
-var undo_redo_manager: YAMLUndoRedoManager
+var history_manager: YAMLHistoryManager
 var session_manager: YAMLSessionManager
 var validator: YAMLValidator
 
@@ -28,8 +28,8 @@ func _ready() -> void:
 	file_manager = YAMLFileManager.new()
 	add_child(file_manager)
 
-	undo_redo_manager = YAMLUndoRedoManager.new()
-	add_child(undo_redo_manager)
+	history_manager = YAMLHistoryManager.new()
+	add_child(history_manager)
 
 	session_manager = YAMLSessionManager.new()
 	add_child(session_manager)
@@ -44,7 +44,7 @@ func _ready() -> void:
 
 	# Set up components
 	file_manager.setup(file_list, code_edit, status_label)
-	undo_redo_manager.setup(file_manager)
+	history_manager.setup(file_manager)
 	session_manager.setup(file_manager, resizable_container)
 	validator.setup(code_edit, status_label)
 
@@ -64,9 +64,9 @@ func _ready() -> void:
 	code_edit.redo_requested.connect(_on_redo_requested)
 	code_edit.caret_changed.connect(_on_caret_changed)
 
-	# Connect undo/redo manager signals for proper UI updating
-	undo_redo_manager.undo_performed.connect(_on_undo_redo_performed)
-	undo_redo_manager.redo_performed.connect(_on_undo_redo_performed)
+	# Connect history manager signals for proper UI updating
+	history_manager.undo_performed.connect(_on_undo_redo_performed)
+	history_manager.redo_performed.connect(_on_undo_redo_performed)
 
 	# Connect validation signals
 	validator.validation_completed.connect(_on_validation_completed)
@@ -127,16 +127,16 @@ func _on_validation_button_pressed() -> void:
 	validator.validate_async(code_edit.text)
 
 func _on_snapshot_requested() -> void:
-	undo_redo_manager.take_snapshot()
+	history_manager.take_snapshot()
 
 func _on_close_current_file() -> void:
 	file_manager.close_file(file_manager.get_current_file_path())
 
 func _on_undo_requested() -> void:
-	undo_redo_manager.perform_undo()
+	history_manager.perform_undo()
 
 func _on_redo_requested() -> void:
-	undo_redo_manager.perform_redo()
+	history_manager.perform_redo()
 
 func _on_caret_changed() -> void:
 	line_col_label.text = code_edit.get_current_line_col_info()

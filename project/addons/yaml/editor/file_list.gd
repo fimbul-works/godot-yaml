@@ -1,6 +1,5 @@
 @tool
-class_name YAMLFileList
-extends ItemList
+class_name YAMLFileList extends ItemList
 
 signal file_selected(path)
 signal file_context_requested(path, position)

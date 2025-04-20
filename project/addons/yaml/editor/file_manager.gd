@@ -54,7 +54,7 @@ func open_file(path: String) -> void:
 	# Open the file
 	var file := FileAccess.open(path, FileAccess.READ)
 	if not file:
-		printerr("Could not open file: ", path)
+		push_error("Could not open file: ", path)
 		return
 
 	var content := file.get_as_text()
@@ -150,7 +150,7 @@ func save_current_file() -> bool:
 
 	var file = FileAccess.open(current_file_path, FileAccess.WRITE)
 	if not file:
-		printerr("Could not save file: ", current_file_path)
+		push_error("Could not save file: ", current_file_path)
 		return false
 
 	file.store_string(code_editor.text)
@@ -342,9 +342,9 @@ func _on_file_context_requested(path: String, at_position: Vector2) -> void:
 		load_current_file_content()
 		current_file_changed.emit(path)
 
-	# Show context menu
-	file_popup_menu.position = file_list.global_position + at_position
-	file_popup_menu.popup()
+	# Calculate the global position for the popup
+	var global_rect = Rect2(file_list.get_global_mouse_position(), Vector2.ZERO)
+	file_popup_menu.popup_on_parent(global_rect)
 
 func _on_file_popup_menu_id_pressed(id: int) -> void:
 	var path = file_list.get_selected_file_path()

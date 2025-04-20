@@ -26,7 +26,6 @@ func _enter_tree() -> void:
 	_make_visible(false)
 
 	# Connect file system signals to detect file moves/renames
-	get_editor_interface().get_file_system_dock().file_selected.connect(_on_file_selected)
 	get_editor_interface().get_resource_filesystem().resources_reimported.connect(_on_resources_reimported)
 	get_editor_interface().get_resource_filesystem().filesystem_changed.connect(_on_filesystem_changed)
 
