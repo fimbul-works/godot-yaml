@@ -15,9 +15,10 @@ var editor: EditorInterface
 # UI references
 @export var menu_bar: YAMLMenuBar
 @export var file_list: YAMLFileList
+@export var resizable_container: HSplitContainer
 @export var code_edit: YAMLCodeEditor
 @export var status_panel: YAMLEditorStatusPanel
-@export var resizable_container: HSplitContainer
+@export var find_panel: YAMLEditorFindPanel
 
 func _ready() -> void:
 	# Get reference to file system singleton first
@@ -41,19 +42,26 @@ func _ready() -> void:
 	validator.setup(code_edit, file_manager)
 	session_manager.setup(file_manager, resizable_container)
 
-	# Connect toolbar signals
+	# Connect menu signals for file operations
 	menu_bar.new_file.connect(_on_new_button_pressed)
 	menu_bar.open_file.connect(_on_open_button_pressed)
 	menu_bar.save_requested.connect(_on_save_button_pressed)
 	menu_bar.save_as_requested.connect(_on_save_as_button_pressed)
 	menu_bar.close_requested.connect(_on_close_current_file)
 
+	# Connect menu signals for edit options
 	menu_bar.undo_requested.connect(_on_undo_requested)
 	menu_bar.redo_requested.connect(_on_redo_requested)
 	menu_bar.cut_requested.connect(_on_cut_requested)
 	menu_bar.copy_requested.connect(_on_copy_requested)
 	menu_bar.paste_requested.connect(_on_paste_requested)
 	menu_bar.select_all_requested.connect(_on_select_all_requested)
+
+	# Connect menu signals for search
+	menu_bar.find_requested.connect(_on_find_requested)
+	menu_bar.find_next_requested.connect(_on_find_next_requested)
+	menu_bar.find_previous_requested.connect(_on_find_previous_requested)
+	menu_bar.replace_requested.connect(_on_replace_requested)
 
 	# Connect code editor signals
 	code_edit.content_changed.connect(_on_content_changed)
@@ -77,8 +85,30 @@ func _ready() -> void:
 	if editor:
 		get_tree().set_meta("editor_interface", editor)
 
+	# Setup the find panel
+	if find_panel:
+		find_panel.editor = code_edit
+		find_panel.visible = false
+
 	# Load previous session
 	session_manager.load_session()
+
+func _unhandled_key_input(event: InputEvent) -> void:
+	if event is InputEventKey and event.pressed:
+		match event.get_keycode_with_modifiers():
+			KEY_MASK_CTRL | KEY_F:
+				_on_find_requested()
+				get_viewport().set_input_as_handled()
+			KEY_F3:
+				_on_find_next_requested()
+				get_viewport().set_input_as_handled()
+			KEY_MASK_SHIFT | KEY_F3:
+				_on_find_previous_requested()
+				get_viewport().set_input_as_handled()
+			KEY_ESCAPE:
+				if find_panel and find_panel.visible:
+					find_panel.hide_panel()
+					get_viewport().set_input_as_handled()
 
 func _on_zoom_changed(new_zoom_level: float) -> void:
 	status_panel.set_zoom_level(new_zoom_level)
@@ -202,6 +232,27 @@ func _on_paste_requested() -> void:
 
 func _on_select_all_requested() -> void:
 	code_edit.select_all()
+
+# Search-related methods
+func _on_find_requested() -> void:
+	if find_panel:
+		find_panel.show_panel()
+
+func _on_find_next_requested() -> void:
+	if find_panel and find_panel.visible:
+		find_panel.find_next()
+	else:
+		_on_find_requested()
+
+func _on_find_previous_requested() -> void:
+	if find_panel and find_panel.visible:
+		find_panel.find_previous()
+	else:
+		_on_find_requested()
+
+func _on_replace_requested() -> void:
+	# You can extend this later with replace functionality
+	_on_find_requested()
 
 func _on_document_changed(document: YAMLDocument) -> void:
 	# Update status panel with document info
