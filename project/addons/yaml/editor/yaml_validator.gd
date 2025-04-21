@@ -1,21 +1,20 @@
 @tool
 class_name YAMLValidator extends Node
 
-signal validation_completed(result)
+signal validation_completed(document)
 
 var _thread: Thread
-var _mutex: Mutex
 var _is_validating: bool = false
 var _pending_validation: bool = false
-var _current_text: String = ""
+var _validation_queue: Array = []
 
 var code_editor: YAMLCodeEditor
 var validation_timer: Timer
 var file_system: YAMLFileSystem
+var file_manager: YAMLFileManager
 
 func _ready() -> void:
 	file_system = YAMLFileSystem.get_singleton()
-	_mutex = Mutex.new()
 
 	# Create validation timer
 	validation_timer = Timer.new()
@@ -24,15 +23,16 @@ func _ready() -> void:
 	validation_timer.timeout.connect(_on_validation_timer_timeout)
 	add_child(validation_timer)
 
-	# Connect to file system signals
-	file_system.file_opened.connect(_on_file_opened)
-	file_system.file_updated.connect(_on_file_updated)
-
-func setup(p_code_editor: YAMLCodeEditor) -> void:
+func setup(p_code_editor: YAMLCodeEditor, p_file_manager: YAMLFileManager) -> void:
 	code_editor = p_code_editor
+	file_manager = p_file_manager
 
 	# Connect to code editor changes
 	code_editor.validation_requested.connect(_on_validation_requested)
+
+	# Connect to document changes
+	file_manager.document_changed.connect(_on_document_changed)
+	file_manager.document_created.connect(_on_document_created)
 
 func _on_validation_requested() -> void:
 	# Reset and start the validation timer
@@ -40,52 +40,66 @@ func _on_validation_requested() -> void:
 	validation_timer.start()
 
 func _on_validation_timer_timeout() -> void:
-	validate_async(code_editor.text)
+	var document = file_manager.get_current_document()
+	if document:
+		validate_document(document)
 
-func _on_file_opened(path: String) -> void:
-	# Validate file when opened
-	if is_instance_valid(code_editor) and file_system.is_yaml_file(path):
-		validate_async(code_editor.text)
+func _on_document_changed(document: YAMLDocument) -> void:
+	# Show any existing validation results
+	if document.validation_result:
+		validation_completed.emit(document)
 
-func _on_file_updated(path: String) -> void:
-	# Validate file when updated
-	if is_instance_valid(code_editor) and file_system.is_yaml_file(path):
-		validate_async(code_editor.text)
+	# Run validation if no results exist or document has errors
+	if document.validation_result == null or document.has_error():
+		validate_document(document)
 
-func validate_async(yaml_text: String) -> void:
-	_mutex.lock()
-	_current_text = yaml_text
+func _on_document_created(document: YAMLDocument) -> void:
+	# Validate new document
+	validate_document(document)
+
+func validate_document(document: YAMLDocument) -> void:
+	if document == null:
+		return
 
 	if _is_validating:
-		_pending_validation = true
-		_mutex.unlock()
+		# Add to validation queue
+		if not _validation_queue.has(document):
+			_validation_queue.append(document)
 		return
 
 	_is_validating = true
-	_mutex.unlock()
 
 	if _thread and _thread.is_started():
 		_thread.wait_to_finish()
 
 	_thread = Thread.new()
-	_thread.start(_validation_thread_function)
+	_thread.start(_validation_thread_function.bind(document))
 
-func _validation_thread_function() -> void:
-	var result = YAML.validate(_current_text)
+func _validation_thread_function(document: YAMLDocument) -> void:
+	# YAML validation is thread-safe
+	var result = YAML.validate(document.content)
 
-	_mutex.lock()
-	var is_validating = _is_validating
+	# Update document on main thread
+	call_deferred("_finish_validation", document, result)
+
+func _finish_validation(document: YAMLDocument, result: YAMLResult) -> void:
+	# Update document with validation result
+	document.set_validation_result(result)
+
+	# Emit signal
+	validation_completed.emit(document)
+
+	# Process any pending validations
 	_is_validating = false
 
-	var should_continue = _pending_validation
-	_pending_validation = false
-	_mutex.unlock()
+	if not _validation_queue.is_empty():
+		var next_document = _validation_queue.pop_front()
+		validate_document(next_document)
 
-	# Emit signal on main thread
-	call_deferred("_emit_validation_completed", result)
+func mark_error_in_editor(line: int, message: String) -> void:
+	if is_instance_valid(code_editor):
+		code_editor.mark_error_line(line, message)
 
-	if should_continue:
-		call_deferred("validate_async", _current_text)
-
-func _emit_validation_completed(result) -> void:
-	validation_completed.emit(result)
+func clear_errors_in_editor() -> void:
+	if is_instance_valid(code_editor):
+		code_editor.clear_error_indicators()

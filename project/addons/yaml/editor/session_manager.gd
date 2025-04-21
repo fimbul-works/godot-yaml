@@ -1,11 +1,11 @@
 @tool
-class_name YAMLSessionManager
-extends Node
+class_name YAMLSessionManager extends Node
 
 const CONFIG_PATH = "res://.godot/yaml_editor_session.cfg"
 const CONFIG_SECTION = "yaml_editor"
 const CONFIG_KEY_OPEN_FILES = "open_files"
-const CONFIG_KEY_SPLIT_OFFSET = "split_offset"  # New key for split position
+const CONFIG_KEY_SPLIT_OFFSET = "split_offset"
+const CONFIG_KEY_CURRENT_FILE = "current_file"
 
 var file_manager: YAMLFileManager
 var file_system: YAMLFileSystem
@@ -31,9 +31,9 @@ func setup(p_file_manager: YAMLFileManager, p_resizable_container: HSplitContain
 	resizable_container = p_resizable_container
 
 	# Connect to signals
-	file_system.file_opened.connect(_on_session_changed)
-	file_system.file_closed.connect(_on_session_changed)
-	file_manager.current_file_changed.connect(_on_session_changed)
+	file_manager.document_changed.connect(_on_session_changed)
+	file_manager.document_created.connect(_on_session_changed)
+	file_manager.document_closed.connect(_on_session_changed)
 	resizable_container.dragged.connect(_on_split_dragged)
 
 func _on_split_dragged(_offset: int) -> void:
@@ -45,17 +45,23 @@ func save_session() -> void:
 	if not is_instance_valid(file_manager):
 		return
 
-	var open_files = file_manager.get_open_files()
+	var documents = file_manager.get_open_documents()
 
 	# Create array of persistent file paths (skip untitled files)
 	var persistent_files = []
-	for path in open_files:
-		if not path.begins_with("untitled"):
-			persistent_files.append(path)
+	for document in documents:
+		if not document.is_untitled():
+			persistent_files.append(document.path)
+
+	# Get current file path
+	var current_path = ""
+	var current_document = file_manager.get_current_document()
+	if current_document and not current_document.is_untitled():
+		current_path = current_document.path
 
 	# Save to config file
 	config.set_value(CONFIG_SECTION, CONFIG_KEY_OPEN_FILES, persistent_files)
-	config.set_value(CONFIG_SECTION, "current_file", file_manager.get_current_file_path() if not file_manager.get_current_file_path().begins_with("untitled") else "")
+	config.set_value(CONFIG_SECTION, CONFIG_KEY_CURRENT_FILE, current_path)
 
 	# Save the split offset
 	if is_instance_valid(resizable_container):
@@ -82,17 +88,10 @@ func load_session() -> void:
 			file_manager.open_file(path)
 
 	# Set current file
-	var last_current = config.get_value(CONFIG_SECTION, "current_file", "")
-	if not last_current.is_empty() and file_manager.has_file_open(last_current):
-		# Force update UI after setting current file
-		file_manager.current_file_path = last_current
-		file_manager.load_current_file_content()
-
-		# Important: Force UI update after setting current file to ensure file_list selection is updated
-		file_manager.update_ui()
-
-		# Emit signal after UI is updated
-		file_manager.current_file_changed.emit(last_current)
+	var last_current = config.get_value(CONFIG_SECTION, CONFIG_KEY_CURRENT_FILE, "")
+	if not last_current.is_empty() and file_manager.has_document(last_current):
+		var document = file_manager.get_document(last_current)
+		file_manager.set_current_document(document)
 
 	# Restore split offset (deferred to ensure UI is ready)
 	call_deferred("_restore_split_offset")
@@ -103,7 +102,7 @@ func _restore_split_offset() -> void:
 		var saved_offset = config.get_value(CONFIG_SECTION, CONFIG_KEY_SPLIT_OFFSET, resizable_container.split_offset)
 		resizable_container.split_offset = saved_offset
 
-func _on_session_changed(_path = "") -> void:
+func _on_session_changed(_document = null) -> void:
 	# Set a short timer to prevent saving too frequently during batch operations
 	autosave_timer.start()
 

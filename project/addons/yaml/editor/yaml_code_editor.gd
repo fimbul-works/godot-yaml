@@ -2,7 +2,6 @@
 class_name YAMLCodeEditor extends CodeEdit
 
 signal content_changed
-signal snapshot_requested
 signal save_requested
 signal close_requested
 signal undo_requested
@@ -13,6 +12,7 @@ var error_indicators = {}
 var snapshot_debounce_timer: Timer
 var error_line_color: Color = Color(1.0, 0.3, 0.3, 0.1)
 var syntax_highlighter_script = preload("res://addons/yaml/editor/syntax_highlighter.gd")
+var suppress_text_changed: bool = false
 
 func _ready() -> void:
 	# Clear the text to start with
@@ -29,7 +29,7 @@ func _ready() -> void:
 	if not syntax_highlighter:
 		syntax_highlighter = syntax_highlighter_script.new()
 
-	# Create debounce timer for snapshot requests
+	# Create debounce timer for content changes
 	snapshot_debounce_timer = Timer.new()
 	snapshot_debounce_timer.one_shot = true
 	snapshot_debounce_timer.wait_time = 0.3  # 300ms
@@ -43,20 +43,21 @@ func _ready() -> void:
 	register_yaml_code_completion()
 
 func _on_text_changed() -> void:
+	if suppress_text_changed:
+		return
+
 	# Clear error indicators when text changes
 	clear_error_indicators()
-
-	# Emit content changed signal
-	content_changed.emit()
 
 	# Request a snapshot with debounce
 	snapshot_debounce_timer.start()
 
+func _on_snapshot_debounce_timeout() -> void:
+	# Emit content changed signal
+	content_changed.emit()
+
 	# Request validation
 	validation_requested.emit()
-
-func _on_snapshot_debounce_timeout() -> void:
-	snapshot_requested.emit()
 
 func _gui_input(event: InputEvent) -> void:
 	# Handle shortcuts for saving/closing
@@ -93,8 +94,10 @@ func set_text_and_preserve_state(new_text: String, preserve_state: bool = true) 
 		var previous_scroll_v = get_v_scroll_bar().value
 		var previous_scroll_h = get_h_scroll_bar().value
 
-		# Set text
+		# Set text without triggering our own text_changed handler
+		suppress_text_changed = true
 		text = new_text
+		suppress_text_changed = false
 
 		# Restore state if possible
 		if previous_line < get_line_count():
@@ -107,7 +110,9 @@ func set_text_and_preserve_state(new_text: String, preserve_state: bool = true) 
 		call_deferred("_restore_scroll_position", previous_scroll_v, previous_scroll_h)
 	else:
 		# Just set the text without preserving state
+		suppress_text_changed = true
 		text = new_text
+		suppress_text_changed = false
 
 func _restore_scroll_position(v_scroll: float, h_scroll: float) -> void:
 	# Wait for one frame to ensure the text has been updated and rendered
@@ -221,7 +226,8 @@ func mark_error_line(line: int, message: String) -> void:
 		return
 
 	# Set line background to error color
-	var error_color = get_theme_color("error_color", "Editor") if get_theme_color("error_color", "Editor") else error_line_color
+	var settings = EditorInterface.get_editor_settings()
+	var error_color = settings.get_setting("text_editor/theme/highlighting/mark_color")
 	set_line_background_color(line, error_color)
 
 	# Set gutter icon
@@ -243,15 +249,3 @@ func get_current_line_col_info() -> Array[int]:
 	var line = get_caret_line() + 1
 	var col = get_caret_column() + 1
 	return [line, col]
-
-func _request_code_completion(force: bool = false) -> void:
-	var line = get_caret_line()
-	var col = get_caret_column()
-	var text = get_line(line).substr(0, col)
-
-	# Auto-complete after special characters
-	if text.ends_with(": ") or text.ends_with("- "):
-		request_code_completion(force)
-	else:
-		# Default behavior
-		super.request_code_completion(force)
