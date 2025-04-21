@@ -23,6 +23,9 @@ func _ready() -> void:
 	# Clear text to reset the editor state
 	text = ""
 
+	# Do not lose selection when focus is lost
+	deselect_on_focus_loss_enabled = false
+
 	# Configure YAML-specific settings
 	set_indent_size(2)
 	set_indent_using_spaces(true)

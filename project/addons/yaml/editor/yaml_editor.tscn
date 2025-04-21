@@ -1,4 +1,4 @@
-[gd_scene load_steps=16 format=3 uid="uid://b7wsl0ss24hvb"]
+[gd_scene load_steps=27 format=3 uid="uid://b7wsl0ss24hvb"]
 
 [ext_resource type="Script" path="res://addons/yaml/editor/yaml_editor.gd" id="1_jqpkv"]
 [ext_resource type="Script" path="res://addons/yaml/editor/syntax_highlighter.gd" id="2_0xmrl"]
@@ -6,10 +6,9 @@
 [ext_resource type="Script" path="res://addons/yaml/editor/file_panel.gd" id="3_ufmqr"]
 [ext_resource type="Script" path="res://addons/yaml/editor/menu_bar.gd" id="5_bqqrn"]
 [ext_resource type="Script" path="res://addons/yaml/editor/status_panel.gd" id="6_rk03l"]
-[ext_resource type="Script" path="res://addons/yaml/editor/find_panel.gd" id="7_qy3r3"]
-[ext_resource type="Script" path="res://addons/yaml/editor/replace_panel.gd" id="8_sx0lk"]
+[ext_resource type="Script" path="res://addons/yaml/editor/find_replace_panel.gd" id="7_vo7uj"]
 
-[sub_resource type="Image" id="Image_iwnn7"]
+[sub_resource type="Image" id="Image_kp0u3"]
 data = {
 "data": PackedByteArray(255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 255, 255, 0, 255, 94, 94, 127, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 255, 255, 0, 255, 93, 93, 255, 255, 94, 94, 127, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 255, 255, 0, 255, 93, 93, 255, 255, 93, 93, 255, 255, 94, 94, 127, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 255, 255, 0, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 94, 94, 127, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 93, 93, 231, 255, 94, 94, 54, 255, 94, 94, 57, 255, 93, 93, 233, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 231, 255, 94, 94, 54, 255, 94, 94, 57, 255, 93, 93, 233, 255, 93, 93, 255, 255, 93, 93, 255, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 97, 97, 42, 255, 255, 255, 0, 255, 255, 255, 0, 255, 97, 97, 42, 255, 93, 93, 233, 255, 93, 93, 232, 255, 93, 93, 41, 255, 255, 255, 0, 255, 255, 255, 0, 255, 97, 97, 42, 255, 93, 93, 233, 255, 93, 93, 232, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 96, 96, 45, 255, 93, 93, 44, 255, 255, 255, 0, 255, 97, 97, 42, 255, 97, 97, 42, 255, 255, 255, 0, 255, 96, 96, 45, 255, 93, 93, 44, 255, 255, 255, 0, 255, 97, 97, 42, 255, 97, 97, 42, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 96, 96, 45, 255, 93, 93, 235, 255, 94, 94, 234, 255, 95, 95, 43, 255, 255, 255, 0, 255, 255, 255, 0, 255, 96, 96, 45, 255, 93, 93, 235, 255, 94, 94, 234, 255, 95, 95, 43, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 93, 93, 235, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 233, 255, 95, 95, 59, 255, 96, 96, 61, 255, 93, 93, 235, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 233, 255, 95, 95, 59, 255, 96, 96, 61, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0),
 "format": "RGBA8",
@@ -18,8 +17,8 @@ data = {
 "width": 16
 }
 
-[sub_resource type="ImageTexture" id="ImageTexture_pwnkk"]
-image = SubResource("Image_iwnn7")
+[sub_resource type="ImageTexture" id="ImageTexture_yi6rw"]
+image = SubResource("Image_kp0u3")
 
 [sub_resource type="EditorSyntaxHighlighter" id="EditorSyntaxHighlighter_68y40"]
 script = ExtResource("2_0xmrl")
@@ -38,7 +37,31 @@ fallbacks = Array[Font]([SubResource("SystemFont_k8p4n")])
 font_names = PackedStringArray("JetBrains Mono")
 subpixel_positioning = 0
 
-[node name="YamlEditor" type="Control" node_paths=PackedStringArray("menu_bar", "file_list", "resizable_container", "code_edit", "status_panel", "find_panel", "replace_panel")]
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_i8tps"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_r4bqd"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_3ksor"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_33vym"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_jwbjn"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_xhoyn"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_vnqw7"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_1i5or"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_vlfg7"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_ki2vh"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_ke1f7"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_v3fgn"]
+
+[node name="YamlEditor" type="Control" node_paths=PackedStringArray("menu_bar", "file_list", "resizable_container", "code_edit", "status_panel", "find_replace_panel")]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -51,10 +74,9 @@ script = ExtResource("1_jqpkv")
 menu_bar = NodePath("MarginContainer/MainVBox/MarginContainer/MenuBar")
 file_list = NodePath("MarginContainer/MainVBox/ResizableContainer/FileList")
 resizable_container = NodePath("MarginContainer/MainVBox/ResizableContainer")
-code_edit = NodePath("MarginContainer/MainVBox/ResizableContainer/EditorPanel/MarginContainer/YAMLCodeEdit")
-status_panel = NodePath("MarginContainer/MainVBox/ResizableContainer/EditorPanel/VBoxContainer/StatusPanelMargin/StatusPanel")
-find_panel = NodePath("MarginContainer/MainVBox/ResizableContainer/EditorPanel/VBoxContainer/FindPanel")
-replace_panel = NodePath("MarginContainer/MainVBox/ResizableContainer/EditorPanel/VBoxContainer/ReplacePanel")
+code_edit = NodePath("MarginContainer/MainVBox/ResizableContainer/EditorPanel/YAMLCodeEdit")
+status_panel = NodePath("MarginContainer/MainVBox/ResizableContainer/EditorPanel/BottomToolbar/StatusPanelMargin/StatusPanel")
+find_replace_panel = NodePath("MarginContainer/MainVBox/ResizableContainer/EditorPanel/BottomToolbar/FindReplacePanel")
 
 [node name="MarginContainer" type="MarginContainer" parent="."]
 layout_mode = 1
@@ -65,6 +87,7 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/margin_left = 4
 theme_override_constants/margin_top = 1
+theme_override_constants/margin_right = 4
 theme_override_constants/margin_bottom = 4
 metadata/_edit_use_anchors_ = true
 
@@ -151,7 +174,7 @@ file_list = NodePath("ItemList")
 layout_mode = 2
 placeholder_text = "Filter Files"
 clear_button_enabled = true
-right_icon = SubResource("ImageTexture_pwnkk")
+right_icon = SubResource("ImageTexture_yi6rw")
 
 [node name="ItemList" type="ItemList" parent="MarginContainer/MainVBox/ResizableContainer/FileList"]
 layout_mode = 2
@@ -167,12 +190,7 @@ item_2/text = "simple.yaml"
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="MarginContainer" type="MarginContainer" parent="MarginContainer/MainVBox/ResizableContainer/EditorPanel"]
-layout_mode = 2
-size_flags_vertical = 3
-theme_override_constants/margin_right = 4
-
-[node name="YAMLCodeEdit" type="CodeEdit" parent="MarginContainer/MainVBox/ResizableContainer/EditorPanel/MarginContainer"]
+[node name="YAMLCodeEdit" type="CodeEdit" parent="MarginContainer/MainVBox/ResizableContainer/EditorPanel"]
 layout_mode = 2
 size_flags_vertical = 3
 theme_override_font_sizes/font_size = 14
@@ -275,6 +293,7 @@ binary_data: !!binary |
 custom_tag: !my_custom_tag
   key: value
 "
+deselect_on_focus_loss_enabled = false
 scroll_smooth = true
 minimap_draw = true
 syntax_highlighter = SubResource("EditorSyntaxHighlighter_68y40")
@@ -284,7 +303,11 @@ draw_control_chars = true
 draw_tabs = true
 draw_spaces = true
 line_folding = true
+gutters_draw_breakpoints_gutter = true
+gutters_draw_bookmarks = true
+gutters_draw_executing_lines = true
 gutters_draw_line_numbers = true
+gutters_zero_pad_line_numbers = true
 gutters_draw_fold_gutter = true
 indent_size = 2
 indent_use_spaces = true
@@ -293,25 +316,25 @@ auto_brace_completion_enabled = true
 auto_brace_completion_highlight_matching = true
 script = ExtResource("2_lgcdy")
 
-[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/MainVBox/ResizableContainer/EditorPanel"]
+[node name="BottomToolbar" type="VBoxContainer" parent="MarginContainer/MainVBox/ResizableContainer/EditorPanel"]
 layout_mode = 2
 
-[node name="StatusPanelMargin" type="MarginContainer" parent="MarginContainer/MainVBox/ResizableContainer/EditorPanel/VBoxContainer"]
+[node name="StatusPanelMargin" type="MarginContainer" parent="MarginContainer/MainVBox/ResizableContainer/EditorPanel/BottomToolbar"]
 layout_mode = 2
 theme_override_constants/margin_left = 0
 theme_override_constants/margin_top = 2
 theme_override_constants/margin_right = 4
 theme_override_constants/margin_bottom = 2
 
-[node name="StatusPanel" type="HBoxContainer" parent="MarginContainer/MainVBox/ResizableContainer/EditorPanel/VBoxContainer/StatusPanelMargin" node_paths=PackedStringArray("editor", "status_label", "zoom_button", "line_column_label")]
+[node name="StatusPanel" type="HBoxContainer" parent="MarginContainer/MainVBox/ResizableContainer/EditorPanel/BottomToolbar/StatusPanelMargin" node_paths=PackedStringArray("editor", "status_label", "zoom_button", "line_column_label")]
 layout_mode = 2
 script = ExtResource("6_rk03l")
-editor = NodePath("../../../MarginContainer/YAMLCodeEdit")
+editor = NodePath("../../../YAMLCodeEdit")
 status_label = NodePath("StatusLabel")
 zoom_button = NodePath("ZoomButton")
 line_column_label = NodePath("LineColumnLabel")
 
-[node name="StatusLabel" type="Label" parent="MarginContainer/MainVBox/ResizableContainer/EditorPanel/VBoxContainer/StatusPanelMargin/StatusPanel"]
+[node name="StatusLabel" type="Label" parent="MarginContainer/MainVBox/ResizableContainer/EditorPanel/BottomToolbar/StatusPanelMargin/StatusPanel"]
 layout_mode = 2
 size_flags_horizontal = 2
 focus_mode = 2
@@ -319,103 +342,157 @@ theme_override_fonts/font = SubResource("SystemFont_k3025")
 theme_override_styles/normal = SubResource("StyleBoxEmpty_42q8o")
 vertical_alignment = 1
 
-[node name="ZoomButton" type="Button" parent="MarginContainer/MainVBox/ResizableContainer/EditorPanel/VBoxContainer/StatusPanelMargin/StatusPanel"]
+[node name="ZoomButton" type="Button" parent="MarginContainer/MainVBox/ResizableContainer/EditorPanel/BottomToolbar/StatusPanelMargin/StatusPanel"]
 layout_mode = 2
 theme_override_fonts/font = SubResource("SystemFont_wntl2")
 text = "100 %"
 flat = true
 
-[node name="VSeparator" type="VSeparator" parent="MarginContainer/MainVBox/ResizableContainer/EditorPanel/VBoxContainer/StatusPanelMargin/StatusPanel"]
+[node name="VSeparator" type="VSeparator" parent="MarginContainer/MainVBox/ResizableContainer/EditorPanel/BottomToolbar/StatusPanelMargin/StatusPanel"]
 layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="LineColumnLabel" type="Label" parent="MarginContainer/MainVBox/ResizableContainer/EditorPanel/VBoxContainer/StatusPanelMargin/StatusPanel"]
+[node name="LineColumnLabel" type="Label" parent="MarginContainer/MainVBox/ResizableContainer/EditorPanel/BottomToolbar/StatusPanelMargin/StatusPanel"]
 layout_mode = 2
 size_flags_horizontal = 8
 theme_override_fonts/font = SubResource("SystemFont_wntl2")
 text = "1 : 1"
 vertical_alignment = 1
 
-[node name="FindPanel" type="HBoxContainer" parent="MarginContainer/MainVBox/ResizableContainer/EditorPanel/VBoxContainer" node_paths=PackedStringArray("editor", "find_input", "matches_label", "previous_button", "next_button", "match_case_checkbox", "whole_words_checkbox", "hide_button")]
+[node name="FindReplacePanel" type="HBoxContainer" parent="MarginContainer/MainVBox/ResizableContainer/EditorPanel/BottomToolbar" node_paths=PackedStringArray("find_input", "matches_label", "previous_button", "next_button", "match_case_checkbox", "whole_words_checkbox", "find_button_container", "find_options_container", "replace_input", "replace_button", "replace_all_button", "selection_only_checkbox", "replace_button_container", "replace_options_container", "hide_button", "editor", "vbox_container", "find_panel", "replace_panel")]
 visible = false
 layout_mode = 2
-theme_override_constants/separation = 4
-script = ExtResource("7_qy3r3")
-editor = NodePath("../../MarginContainer/YAMLCodeEdit")
-find_input = NodePath("FindInput")
-matches_label = NodePath("MatchesLabel")
-previous_button = NodePath("PreviousButton")
-next_button = NodePath("NextButton")
-match_case_checkbox = NodePath("MatchCaseCheckbox")
-whole_words_checkbox = NodePath("WholeWordsCheckbox")
+script = ExtResource("7_vo7uj")
+find_input = NodePath("InputFieldContainer/FindInput")
+matches_label = NodePath("ButtonsContainer/MatchesContainer/MatchesLabel")
+previous_button = NodePath("ButtonsContainer/MatchesContainer/PreviousButton")
+next_button = NodePath("ButtonsContainer/MatchesContainer/NextButton")
+match_case_checkbox = NodePath("CheckBoxContainer/FindOptions/MatchCaseCheckbox")
+whole_words_checkbox = NodePath("CheckBoxContainer/FindOptions/WholeWordsCheckbox")
+find_button_container = NodePath("ButtonsContainer/MatchesContainer")
+find_options_container = NodePath("CheckBoxContainer/FindOptions")
+replace_input = NodePath("InputFieldContainer/ReplaceInput")
+replace_button = NodePath("ButtonsContainer/ReplaceButtonsContainer/ReplaceButton")
+replace_all_button = NodePath("ButtonsContainer/ReplaceButtonsContainer/ReplaceAllButton")
+selection_only_checkbox = NodePath("CheckBoxContainer/ReplaceOptions/SelectionOnlyCheckBox")
+replace_button_container = NodePath("ButtonsContainer/ReplaceButtonsContainer")
+replace_options_container = NodePath("CheckBoxContainer/ReplaceOptions")
 hide_button = NodePath("HideButton")
+editor = NodePath("../../YAMLCodeEdit")
+vbox_container = NodePath("CheckBoxContainer")
+find_panel = NodePath("CheckBoxContainer/FindOptions")
+replace_panel = NodePath("CheckBoxContainer/ReplaceOptions")
 
-[node name="FindInput" type="LineEdit" parent="MarginContainer/MainVBox/ResizableContainer/EditorPanel/VBoxContainer/FindPanel"]
-custom_minimum_size = Vector2(67.0625, 0)
+[node name="InputFieldContainer" type="VBoxContainer" parent="MarginContainer/MainVBox/ResizableContainer/EditorPanel/BottomToolbar/FindReplacePanel"]
 layout_mode = 2
 size_flags_horizontal = 3
+
+[node name="FindInput" type="LineEdit" parent="MarginContainer/MainVBox/ResizableContainer/EditorPanel/BottomToolbar/FindReplacePanel/InputFieldContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
 tooltip_text = "Find"
 placeholder_text = "Find"
 
-[node name="MatchesLabel" type="Label" parent="MarginContainer/MainVBox/ResizableContainer/EditorPanel/VBoxContainer/FindPanel"]
+[node name="ReplaceInput" type="LineEdit" parent="MarginContainer/MainVBox/ResizableContainer/EditorPanel/BottomToolbar/FindReplacePanel/InputFieldContainer"]
 layout_mode = 2
-theme_override_fonts/font = SubResource("SystemFont_k3025")
-text = "10 matches"
-
-[node name="PreviousButton" type="Button" parent="MarginContainer/MainVBox/ResizableContainer/EditorPanel/VBoxContainer/FindPanel"]
-layout_mode = 2
-tooltip_text = "Previous Match"
-disabled = true
-icon = SubResource("ImageTexture_pwnkk")
-flat = true
-
-[node name="NextButton" type="Button" parent="MarginContainer/MainVBox/ResizableContainer/EditorPanel/VBoxContainer/FindPanel"]
-layout_mode = 2
-tooltip_text = "Next Match"
-disabled = true
-icon = SubResource("ImageTexture_pwnkk")
-flat = true
-
-[node name="MatchCaseCheckbox" type="CheckBox" parent="MarginContainer/MainVBox/ResizableContainer/EditorPanel/VBoxContainer/FindPanel"]
-layout_mode = 2
-text = "Match Case"
-
-[node name="WholeWordsCheckbox" type="CheckBox" parent="MarginContainer/MainVBox/ResizableContainer/EditorPanel/VBoxContainer/FindPanel"]
-layout_mode = 2
-text = "Whole Words"
-
-[node name="HideButton" type="Button" parent="MarginContainer/MainVBox/ResizableContainer/EditorPanel/VBoxContainer/FindPanel"]
-layout_mode = 2
-tooltip_text = "Hide"
-icon = SubResource("ImageTexture_pwnkk")
-flat = true
-
-[node name="ReplacePanel" type="HBoxContainer" parent="MarginContainer/MainVBox/ResizableContainer/EditorPanel/VBoxContainer" node_paths=PackedStringArray("editor", "replace_input", "replace_button", "replace_all_button", "selection_only_checkbox")]
-visible = false
-layout_mode = 2
-script = ExtResource("8_sx0lk")
-editor = NodePath("../../MarginContainer/YAMLCodeEdit")
-replace_input = NodePath("ReplaceInput")
-replace_button = NodePath("ReplaceButton")
-replace_all_button = NodePath("ReplaceAllButton")
-selection_only_checkbox = NodePath("SelectionOnlyCheckBox")
-
-[node name="ReplaceInput" type="LineEdit" parent="MarginContainer/MainVBox/ResizableContainer/EditorPanel/VBoxContainer/ReplacePanel"]
-custom_minimum_size = Vector2(67.0625, 0)
-layout_mode = 2
+size_flags_vertical = 3
 placeholder_text = "Replace"
 
-[node name="ReplaceButton" type="Button" parent="MarginContainer/MainVBox/ResizableContainer/EditorPanel/VBoxContainer/ReplacePanel"]
+[node name="ButtonsContainer" type="VBoxContainer" parent="MarginContainer/MainVBox/ResizableContainer/EditorPanel/BottomToolbar/FindReplacePanel"]
 layout_mode = 2
+size_flags_horizontal = 0
+
+[node name="MatchesContainer" type="HBoxContainer" parent="MarginContainer/MainVBox/ResizableContainer/EditorPanel/BottomToolbar/FindReplacePanel/ButtonsContainer"]
+layout_mode = 2
+size_flags_horizontal = 8
+size_flags_vertical = 3
+theme_override_constants/separation = 16
+
+[node name="MatchesLabel" type="Label" parent="MarginContainer/MainVBox/ResizableContainer/EditorPanel/BottomToolbar/FindReplacePanel/ButtonsContainer/MatchesContainer"]
+layout_mode = 2
+size_flags_horizontal = 0
+size_flags_vertical = 1
+theme_override_fonts/font = SubResource("SystemFont_k3025")
+text = "10 matches"
+vertical_alignment = 1
+
+[node name="PreviousButton" type="Button" parent="MarginContainer/MainVBox/ResizableContainer/EditorPanel/BottomToolbar/FindReplacePanel/ButtonsContainer/MatchesContainer"]
+layout_mode = 2
+tooltip_text = "Previous Match"
+theme_override_styles/focus = SubResource("StyleBoxEmpty_i8tps")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_r4bqd")
+theme_override_styles/hover_pressed = SubResource("StyleBoxEmpty_3ksor")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_33vym")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_jwbjn")
+theme_override_styles/normal = SubResource("StyleBoxEmpty_xhoyn")
+disabled = true
+icon = SubResource("ImageTexture_yi6rw")
+flat = true
+
+[node name="NextButton" type="Button" parent="MarginContainer/MainVBox/ResizableContainer/EditorPanel/BottomToolbar/FindReplacePanel/ButtonsContainer/MatchesContainer"]
+layout_mode = 2
+tooltip_text = "Next Match"
+theme_override_styles/focus = SubResource("StyleBoxEmpty_vnqw7")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_1i5or")
+theme_override_styles/hover_pressed = SubResource("StyleBoxEmpty_vlfg7")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_ki2vh")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_ke1f7")
+theme_override_styles/normal = SubResource("StyleBoxEmpty_v3fgn")
+disabled = true
+icon = SubResource("ImageTexture_yi6rw")
+flat = true
+
+[node name="ReplaceButtonsContainer" type="HBoxContainer" parent="MarginContainer/MainVBox/ResizableContainer/EditorPanel/BottomToolbar/FindReplacePanel/ButtonsContainer"]
+layout_mode = 2
+size_flags_horizontal = 8
+size_flags_vertical = 3
+
+[node name="ReplaceButton" type="Button" parent="MarginContainer/MainVBox/ResizableContainer/EditorPanel/BottomToolbar/FindReplacePanel/ButtonsContainer/ReplaceButtonsContainer"]
+layout_mode = 2
+size_flags_horizontal = 8
+size_flags_vertical = 4
 disabled = true
 text = "Replace"
 
-[node name="ReplaceAllButton" type="Button" parent="MarginContainer/MainVBox/ResizableContainer/EditorPanel/VBoxContainer/ReplacePanel"]
+[node name="ReplaceAllButton" type="Button" parent="MarginContainer/MainVBox/ResizableContainer/EditorPanel/BottomToolbar/FindReplacePanel/ButtonsContainer/ReplaceButtonsContainer"]
 layout_mode = 2
+size_flags_horizontal = 8
+size_flags_vertical = 4
 disabled = true
 text = "Replace All"
 
-[node name="SelectionOnlyCheckBox" type="CheckBox" parent="MarginContainer/MainVBox/ResizableContainer/EditorPanel/VBoxContainer/ReplacePanel"]
+[node name="CheckBoxContainer" type="VBoxContainer" parent="MarginContainer/MainVBox/ResizableContainer/EditorPanel/BottomToolbar/FindReplacePanel"]
+layout_mode = 2
+
+[node name="FindOptions" type="HBoxContainer" parent="MarginContainer/MainVBox/ResizableContainer/EditorPanel/BottomToolbar/FindReplacePanel/CheckBoxContainer"]
+custom_minimum_size = Vector2(0, 30)
+layout_mode = 2
+size_flags_horizontal = 0
+size_flags_vertical = 3
+theme_override_constants/separation = 4
+
+[node name="MatchCaseCheckbox" type="CheckBox" parent="MarginContainer/MainVBox/ResizableContainer/EditorPanel/BottomToolbar/FindReplacePanel/CheckBoxContainer/FindOptions"]
+layout_mode = 2
+text = "Match Case"
+
+[node name="WholeWordsCheckbox" type="CheckBox" parent="MarginContainer/MainVBox/ResizableContainer/EditorPanel/BottomToolbar/FindReplacePanel/CheckBoxContainer/FindOptions"]
+layout_mode = 2
+text = "Whole Words"
+
+[node name="ReplaceOptions" type="HBoxContainer" parent="MarginContainer/MainVBox/ResizableContainer/EditorPanel/BottomToolbar/FindReplacePanel/CheckBoxContainer"]
+custom_minimum_size = Vector2(0, 30)
+layout_mode = 2
+size_flags_horizontal = 0
+size_flags_vertical = 3
+
+[node name="SelectionOnlyCheckBox" type="CheckBox" parent="MarginContainer/MainVBox/ResizableContainer/EditorPanel/BottomToolbar/FindReplacePanel/CheckBoxContainer/ReplaceOptions"]
 layout_mode = 2
 text = "Selection Only
 "
+
+[node name="HideButton" type="Button" parent="MarginContainer/MainVBox/ResizableContainer/EditorPanel/BottomToolbar/FindReplacePanel"]
+layout_mode = 2
+tooltip_text = "Hide"
+icon = SubResource("ImageTexture_yi6rw")
+flat = true

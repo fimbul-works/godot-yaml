@@ -18,8 +18,7 @@ var editor: EditorInterface
 @export var resizable_container: HSplitContainer
 @export var code_edit: YAMLCodeEditor
 @export var status_panel: YAMLEditorStatusPanel
-@export var find_panel: YAMLEditorFindPanel
-@export var replace_panel: YAMLEditorReplacePanel
+@export var find_replace_panel: YAMLEditorFindReplacePanel
 
 func _ready() -> void:
 	# Get reference to file system singleton first
@@ -87,48 +86,17 @@ func _ready() -> void:
 		get_tree().set_meta("editor_interface", editor)
 
 	# Setup the find and replace panels
-	replace_panel.setup(find_panel)
-	find_panel.visible = false
-	replace_panel.visible = false
-
-	# Synchronize the width
-	find_panel.find_input.resized.connect(_on_line_edit_resized)
-	replace_panel.replace_input.resized.connect(_on_line_edit_resized)
-	_sync_find_replace_width()
-
-	# Connect replace signals to update UI
-	replace_panel.replace_performed.connect(_on_replace_performed)
-	replace_panel.replace_all_performed.connect(_on_replace_all_performed)
+	find_replace_panel.replace_performed.connect(_on_replace_performed)
+	find_replace_panel.replace_all_performed.connect(_on_replace_all_performed)
 
 	# Load previous session
 	session_manager.load_session()
 
-func _on_replace_performed() -> void:
-	# After a replace, request validation
-	code_edit.validation_requested.emit()
-
-	# Update the current document
-	_on_content_changed()
-
-func _on_replace_all_performed() -> void:
-	# After replace all, request validation
-	code_edit.validation_requested.emit()
-
-	# Update the current document
-	_on_content_changed()
-
-	# Show a message in the status bar
-	if replace_panel.visible:
-		status_panel.set_status("Replacement complete", Color.GREEN)
-		# Clear the status after a delay
-		await get_tree().create_timer(2.0).timeout
-		status_panel.set_status("")
-
-func _on_line_edit_resized() -> void:
-	_sync_find_replace_width()
-
-func _sync_find_replace_width() -> void:
-	replace_panel.replace_input.custom_minimum_size.x = find_panel.find_input.size.x
+func _input(event):
+	if event is InputEventKey and event.keycode == KEY_ESCAPE and event.pressed:
+		if find_replace_panel.visible:
+			find_replace_panel.hide_panel()
+			get_viewport().set_input_as_handled()
 
 func _unhandled_key_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed:
@@ -145,11 +113,6 @@ func _unhandled_key_input(event: InputEvent) -> void:
 			KEY_MASK_SHIFT | KEY_F3:
 				_on_find_previous_requested()
 				get_viewport().set_input_as_handled()
-			KEY_ESCAPE:
-				if find_panel.visible or replace_panel.visible:
-					find_panel.hide_panel()
-					replace_panel.hide_panel()
-					get_viewport().set_input_as_handled()
 
 func _on_zoom_changed(new_zoom_level: float) -> void:
 	status_panel.set_zoom_level(new_zoom_level)
@@ -248,8 +211,8 @@ func _on_undo_requested() -> void:
 	validator.validate_document(document)
 
 	# And re-trigger search if we did undo
-	if find_panel.visible:
-		find_panel.trigger_search()
+	if find_replace_panel.visible:
+		find_replace_panel.trigger_search()
 
 func _on_redo_requested() -> void:
 	var document := file_manager.get_current_document()
@@ -273,8 +236,8 @@ func _on_redo_requested() -> void:
 	validator.validate_document(document)
 
 	# And re-trigger search if we did redo
-	if find_panel.visible:
-		find_panel.trigger_search()
+	if find_replace_panel.visible:
+		find_replace_panel.trigger_search()
 
 func _on_cut_requested() -> void:
 	code_edit.cut_selection()
@@ -290,24 +253,46 @@ func _on_select_all_requested() -> void:
 
 # Search-related methods
 func _on_find_requested() -> void:
-	find_panel.show_panel()
-	replace_panel.hide_panel()
+	find_replace_panel.show_find_panel()
+	# Hide replace panel if we request just search
+	if find_replace_panel.replace_panel_visible:
+		find_replace_panel.replace_panel_visible = false
 
 func _on_replace_requested() -> void:
-	find_panel.show_panel()
-	replace_panel.show_panel()
+	find_replace_panel.show_replace_panel()
 
 func _on_find_next_requested() -> void:
-	if find_panel and find_panel.visible:
-		find_panel.find_next()
+	if find_replace_panel and find_replace_panel.visible:
+		find_replace_panel.find_next()
 	else:
 		_on_find_requested()
 
 func _on_find_previous_requested() -> void:
-	if find_panel and find_panel.visible:
-		find_panel.find_previous()
+	if find_replace_panel and find_replace_panel.visible:
+		find_replace_panel.find_previous()
 	else:
 		_on_find_requested()
+
+func _on_replace_performed() -> void:
+	# After a replace, request validation
+	code_edit.validation_requested.emit()
+
+	# Update the current document
+	_on_content_changed()
+
+func _on_replace_all_performed() -> void:
+	# After replace all, request validation
+	code_edit.validation_requested.emit()
+
+	# Update the current document
+	_on_content_changed()
+
+	# Show a message in the status bar
+	if find_replace_panel.visible and find_replace_panel.replace_panel.visible:
+		status_panel.set_status("Replacement complete", Color.GREEN)
+		# Clear the status after a delay
+		await get_tree().create_timer(2.0).timeout
+		status_panel.set_status("")
 
 func _on_document_changed(document: YAMLDocument) -> void:
 	# Update status panel with document info
@@ -319,6 +304,10 @@ func _on_document_changed(document: YAMLDocument) -> void:
 	else:
 		status_panel.set_status("")
 		validator.clear_errors_in_editor()
+
+	# Re-trigger search
+	if find_replace_panel.visible:
+		find_replace_panel.trigger_search()
 
 func _on_caret_changed() -> void:
 	status_panel.set_line_column(code_edit.get_current_line_col_info())
