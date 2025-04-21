@@ -46,8 +46,14 @@ func _ready() -> void:
 	menu_bar.open_file.connect(_on_open_button_pressed)
 	menu_bar.save_requested.connect(_on_save_button_pressed)
 	menu_bar.save_as_requested.connect(_on_save_as_button_pressed)
+	menu_bar.close_requested.connect(_on_close_current_file)
+
 	menu_bar.undo_requested.connect(_on_undo_requested)
 	menu_bar.redo_requested.connect(_on_redo_requested)
+	menu_bar.cut_requested.connect(_on_cut_requested)
+	menu_bar.copy_requested.connect(_on_copy_requested)
+	menu_bar.paste_requested.connect(_on_paste_requested)
+	menu_bar.select_all_requested.connect(_on_select_all_requested)
 
 	# Connect code editor signals
 	code_edit.content_changed.connect(_on_content_changed)
@@ -56,6 +62,7 @@ func _ready() -> void:
 	code_edit.undo_requested.connect(_on_undo_requested)
 	code_edit.redo_requested.connect(_on_redo_requested)
 	code_edit.caret_changed.connect(_on_caret_changed)
+	code_edit.zoom_changed.connect(_on_zoom_changed)  # Connect to new zoom signal
 
 	# Connect file manager signals
 	file_manager.document_changed.connect(_on_document_changed)
@@ -63,12 +70,18 @@ func _ready() -> void:
 	# Connect validation signals
 	validator.validation_completed.connect(_on_validation_completed)
 
+	# Set initial zoom text
+	_on_zoom_changed(code_edit.zoom_level)
+
 	# Share editor interface with components via tree metadata
 	if editor:
 		get_tree().set_meta("editor_interface", editor)
 
 	# Load previous session
 	session_manager.load_session()
+
+func _on_zoom_changed(new_zoom_level: float) -> void:
+	status_panel.set_zoom_level(new_zoom_level)
 
 func _on_new_button_pressed() -> void:
 	file_manager.new_file()
@@ -157,6 +170,8 @@ func _on_undo_requested() -> void:
 				code_edit.set_caret_line(state.caret_line)
 				if state.caret_column <= code_edit.get_line(state.caret_line).length():
 					code_edit.set_caret_column(state.caret_column)
+		# Validate after undo
+		validator.validate_document(document)
 
 func _on_redo_requested() -> void:
 	var document := file_manager.get_current_document()
@@ -173,6 +188,20 @@ func _on_redo_requested() -> void:
 				code_edit.set_caret_line(state.caret_line)
 				if state.caret_column <= code_edit.get_line(state.caret_line).length():
 					code_edit.set_caret_column(state.caret_column)
+		# Validate after redo
+		validator.validate_document(document)
+
+func _on_cut_requested() -> void:
+	code_edit.cut_selection()
+
+func _on_copy_requested() -> void:
+	code_edit.copy_selection()
+
+func _on_paste_requested() -> void:
+	code_edit.paste_clipboard()
+
+func _on_select_all_requested() -> void:
+	code_edit.select_all()
 
 func _on_document_changed(document: YAMLDocument) -> void:
 	# Update status panel with document info
@@ -199,19 +228,15 @@ func _on_validation_completed(document: YAMLDocument) -> void:
 		validator.clear_errors_in_editor()
 
 func _display_validation_error(document: YAMLDocument) -> void:
+	status_panel.set_validation_result(document.validation_result)
+
 	var result := document.validation_result
 	if not result.has_error():
 		return
 
-	# Update status panel
+	# Mark error line in editor if possible
 	var error := result.get_error_message()
 	var line := result.get_error_line()
-	var col := result.get_error_column()
-
-	var error_status := "Error at (%d, %d): %s" % [line, col, error] if line >= 0 else "Error: %s" % error
-	status_panel.set_status(error_status, status_panel.ERROR_COLOR)
-
-	# Mark error line in editor if possible
 	if line >= 0:
 		validator.mark_error_in_editor(line - 1, error)  # Convert to 0-based line
 

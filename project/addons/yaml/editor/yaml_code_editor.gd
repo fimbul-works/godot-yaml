@@ -7,12 +7,17 @@ signal close_requested
 signal undo_requested
 signal redo_requested
 signal validation_requested
+signal zoom_changed(zoom_level)  # New signal for zoom changes
 
 var error_indicators := {}
 var snapshot_debounce_timer: Timer
 var error_line_color: Color = Color(1.0, 0.3, 0.3, 0.1)
 var syntax_highlighter_script = preload("res://addons/yaml/editor/syntax_highlighter.gd")
 var suppress_text_changed: bool = false
+
+# Zoom functionality variables
+var zoom_level: float = 1.0  # 100%
+var default_font_size: int = 14  # Default font size
 
 func _ready() -> void:
 	# Clear text to reset the editor state
@@ -42,6 +47,9 @@ func _ready() -> void:
 	# Register YAML code completion
 	register_yaml_code_completion()
 
+	# Apply initial font size
+	_update_font_size()
+
 func _on_text_changed() -> void:
 	if suppress_text_changed:
 		return
@@ -58,6 +66,78 @@ func _on_snapshot_debounce_timeout() -> void:
 
 	# Request validation
 	validation_requested.emit()
+
+func cut_selection() -> void:
+	if has_selection():
+		# Cut the selected text to clipboard
+		DisplayServer.clipboard_set(get_selected_text())
+		delete_selection()
+	else:
+		# If no selection, cut the current line (like default script editor)
+		var line := get_caret_line()
+		var line_text := get_line(line)
+		DisplayServer.clipboard_set(line_text)
+
+		# Delete the current line
+		select(line, 0, line, line_text.length())
+		delete_selection()
+
+		# If this isn't the last line, also remove the line break
+		if line < get_line_count() - 1:
+			select(line, 0, line + 1, 0)
+			delete_selection()
+
+	# Trigger content changed
+	text_changed.emit()
+
+func copy_selection() -> void:
+	if has_selection():
+		# Copy selected text to clipboard
+		DisplayServer.clipboard_set(get_selected_text())
+	else:
+		# If no selection, copy the current line
+		var line := get_caret_line()
+		var line_text := get_line(line)
+		DisplayServer.clipboard_set(line_text)
+
+func paste_clipboard() -> void:
+	# Get clipboard content
+	var clipboard = DisplayServer.clipboard_get()
+	if clipboard.is_empty():
+		return
+
+	if has_selection():
+		# Replace selected text with clipboard content
+		delete_selection()
+
+	# Insert clipboard content at caret position
+	insert_text_at_caret(clipboard)
+	text_changed.emit()
+
+# Zoom management functions
+func zoom_in() -> void:
+	zoom_level = min(zoom_level + 0.07, 3.0)  # Max 200%
+	_update_font_size()
+	zoom_changed.emit(zoom_level)
+
+func zoom_out() -> void:
+	zoom_level = max(zoom_level - 0.07, 0.25)  # Min 50%
+	_update_font_size()
+	zoom_changed.emit(zoom_level)
+
+func zoom_reset() -> void:
+	zoom_level = 1.0
+	_update_font_size()
+	zoom_changed.emit(zoom_level)
+
+func set_zoom(zoom: float) -> void:
+	zoom_level = max(0.25, min(3.0, zoom))
+	_update_font_size()
+	zoom_changed.emit(zoom_level)
+
+func _update_font_size() -> void:
+	var new_size = int(default_font_size * zoom_level)
+	add_theme_font_size_override("font_size", new_size)
 
 func _gui_input(event: InputEvent) -> void:
 	# Handle shortcuts for saving/closing
@@ -85,6 +165,12 @@ func _gui_input(event: InputEvent) -> void:
 				# Handle redo (supports both Ctrl+Y and Ctrl+Shift+Z)
 				redo_requested.emit()
 				get_viewport().set_input_as_handled()
+			KEY_MASK_CTRL | KEY_EQUAL, KEY_MASK_CTRL | KEY_KP_ADD:
+				zoom_in()
+			KEY_MASK_CTRL | KEY_MINUS, KEY_MASK_CTRL | KEY_KP_SUBTRACT:
+				zoom_out()
+			KEY_MASK_CTRL | KEY_0, KEY_MASK_CTRL | KEY_KP_0:
+				zoom_reset()
 
 func set_text_and_preserve_state(new_text: String, preserve_state: bool = true) -> void:
 	if preserve_state:
@@ -226,8 +312,7 @@ func mark_error_line(line: int, message: String) -> void:
 		return
 
 	# Set line background to error color
-	var settings := EditorInterface.get_editor_settings()
-	var error_color: Color = settings.get_setting("text_editor/theme/highlighting/mark_color")
+	var error_color: Color = EditorInterface.get_editor_settings().get_setting("text_editor/theme/highlighting/mark_color")
 	set_line_background_color(line, error_color)
 
 	# Set gutter icon

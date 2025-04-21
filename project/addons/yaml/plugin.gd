@@ -2,7 +2,7 @@
 extends EditorPlugin
 
 const YAMLEditorPanel = preload("res://addons/yaml/editor/yaml_editor.tscn")
-const ShortcutsClass = preload("res://addons/yaml/editor/yaml_editor_shortcuts.gd")
+const ShortcutsClass = preload("res://addons/yaml/editor/editor_shortcuts.gd")
 
 var yaml_editor_instance
 

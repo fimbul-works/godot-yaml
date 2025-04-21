@@ -35,10 +35,10 @@ func _setup_menus() -> void:
 	# File menu
 	file_menu.clear()
 	file_menu.add_item("New", 0, KEY_MASK_CTRL | KEY_N)
-	file_menu.add_item("Open...", 1)
+	file_menu.add_item("Open...", 1, KEY_MASK_CTRL | KEY_O)
 	file_menu.add_separator()
-	file_menu.add_item("Save", 2, KEY_MASK_CTRL | KEY_MASK_ALT | KEY_S)
-	file_menu.add_item("Save As...", 3)
+	file_menu.add_item("Save", 2, KEY_MASK_CTRL | KEY_S)
+	file_menu.add_item("Save As...", 3, KEY_MASK_CTRL | KEY_MASK_SHIFT | KEY_S)
 	file_menu.add_separator()
 	file_menu.add_item("Close", 4, KEY_MASK_CTRL | KEY_W)
 
@@ -50,6 +50,8 @@ func _setup_menus() -> void:
 	edit_menu.add_item("Cut", 2, KEY_MASK_CTRL | KEY_X)
 	edit_menu.add_item("Copy", 3, KEY_MASK_CTRL | KEY_C)
 	edit_menu.add_item("Paste", 4, KEY_MASK_CTRL | KEY_V)
+	edit_menu.add_separator()
+	edit_menu.add_item("Select All", 5, KEY_MASK_CTRL | KEY_A)
 
 	# Search menu
 	search_menu.clear()

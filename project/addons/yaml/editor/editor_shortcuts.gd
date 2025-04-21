@@ -33,6 +33,87 @@ const SHORTCUTS = [
 		"name": "Validate YAML",
 		"shortcut": KEY_F4,
 		"callback": "_on_validate_shortcut"
+	},
+	{
+		"name": "Undo",
+		"shortcut": KEY_MASK_CTRL | KEY_Z,
+		"callback": "_on_undo_shortcut"
+	},
+	{
+		"name": "Redo",
+		"shortcut": KEY_MASK_CTRL | KEY_MASK_SHIFT | KEY_Z,
+		"callback": "_on_redo_shortcut"
+	},
+	{
+		"name": "Cut",
+		"shortcut": KEY_MASK_CTRL | KEY_X,
+		"callback": "_on_cut_shortcut"
+	},
+	{
+		"name": "Copy",
+		"shortcut": KEY_MASK_CTRL | KEY_C,
+		"callback": "_on_copy_shortcut"
+	},
+	{
+		"name": "Paste",
+		"shortcut": KEY_MASK_CTRL | KEY_V,
+		"callback": "_on_paste_shortcut"
+	},
+	{
+		"name": "Select All",
+		"shortcut": KEY_MASK_CTRL | KEY_A,
+		"callback": "_on_select_all_shortcut"
+	},
+	{
+		"name": "Find",
+		"shortcut": KEY_MASK_CTRL | KEY_F,
+		"callback": "_on_find_shortcut"
+	},
+	{
+		"name": "Find Next",
+		"shortcut": KEY_F3,
+		"callback": "_on_find_next_shortcut"
+	},
+	{
+		"name": "Find Previous",
+		"shortcut": KEY_MASK_SHIFT | KEY_F3,
+		"callback": "_on_find_previous_shortcut"
+	},
+	{
+		"name": "Replace",
+		"shortcut": KEY_MASK_CTRL | KEY_R,
+		"callback": "_on_replace_shortcut"
+	},
+	# Zoom shortcuts
+	{
+		"name": "Zoom In",
+		"shortcut": KEY_MASK_CTRL | KEY_EQUAL,
+		"callback": "_on_zoom_in_shortcut"
+	},
+	{
+		"name": "Zoom In (Numpad)",
+		"shortcut": KEY_MASK_CTRL | KEY_KP_ADD,
+		"callback": "_on_zoom_in_shortcut"
+	},
+	{
+		"name": "Zoom Out",
+		"shortcut": KEY_MASK_CTRL | KEY_MINUS,
+		"callback": "_on_zoom_out_shortcut"
+	},
+	{
+		"name": "Zoom Out (Numpad)",
+		"shortcut": KEY_MASK_CTRL | KEY_KP_SUBTRACT,
+		"callback": "_on_zoom_out_shortcut"
+	},
+	{
+		"name": "Reset Zoom",
+		"shortcut": KEY_MASK_CTRL | KEY_0,
+		"callback": "_on_zoom_reset_shortcut"
+	},
+	{
+		"name": "Reset Zoom (Numpad)",
+		"shortcut": KEY_MASK_CTRL | KEY_KP_0,
+		"callback": "_on_zoom_reset_shortcut"
 	}
 ]
 
@@ -73,6 +154,7 @@ static func register_shortcuts(editor_plugin: EditorPlugin, target_object: Objec
 						if event is InputEventKey and event.pressed:
 							if event.get_keycode_with_modifiers() == shortcut_data.shortcut:
 								target_object.call(shortcut_data.callback)
+								print("called a thing")
 								root.get_viewport().set_input_as_handled()
 				)
 
