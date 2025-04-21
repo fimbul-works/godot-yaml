@@ -42,11 +42,11 @@ func get_selected_file_path() -> String:
 	if not is_instance_valid(file_list):
 		return ""
 
-	var selected_items = file_list.get_selected_items()
+	var selected_items := file_list.get_selected_items()
 	if selected_items.is_empty():
 		return ""
 
-	var selected_index = selected_items[0]
+	var selected_index := selected_items[0]
 	if selected_index >= 0 and selected_index < filtered_files.size():
 		return filtered_files[selected_index]
 
@@ -57,24 +57,24 @@ func _update_ui() -> void:
 	if not is_instance_valid(file_list):
 		return
 
-	var current_selection = get_selected_file_path()
+	var current_selection := get_selected_file_path()
 
 	file_list.clear()
 	filtered_files.clear()
 
-	var filter_text = filter_input.text.to_lower() if is_instance_valid(filter_input) else ""
+	var filter_text := filter_input.text.to_lower() if is_instance_valid(filter_input) else ""
 
-	var current_index = -1
-	var index = 0
+	var current_index := -1
+	var index := 0
 
-	for path in files.keys():
-		var file_data = files[path]
-		var file_name = path.get_file()
+	for path: String in files.keys():
+		var file_data: Dictionary = files[path]
+		var file_name := path.get_file()
 
 		if not filter_text.is_empty() and file_name.to_lower().find(filter_text) == -1:
 			continue
 
-		var display_name = file_name
+		var display_name := file_name
 		if file_data.modified:
 			display_name += " (*)"
 

@@ -22,7 +22,7 @@ class HistoryState extends RefCounted:
 		return "HistoryState(text_length=%d, line=%d, column=%d)" % [text.length(), caret_line, caret_column]
 
 # Limit history size to prevent excessive memory use
-const MAX_HISTORY = 100
+const MAX_HISTORY := 100
 
 var history_states: Array[HistoryState] = []
 var current_history_index: int = -1
@@ -88,7 +88,7 @@ func undo() -> HistoryState:
 		return null
 
 	current_history_index -= 1
-	var state = history_states[current_history_index]
+	var state := history_states[current_history_index]
 	content = state.text
 
 	# Update modification state
@@ -102,7 +102,7 @@ func redo() -> HistoryState:
 		return null
 
 	current_history_index += 1
-	var state = history_states[current_history_index]
+	var state := history_states[current_history_index]
 	content = state.text
 
 	# Update modification state
@@ -125,7 +125,7 @@ func _add_history_state(state: HistoryState) -> void:
 	current_history_index = history_states.size() - 1
 
 	if history_states.size() > MAX_HISTORY:
-		var excess = history_states.size() - MAX_HISTORY
+		var excess := history_states.size() - MAX_HISTORY
 		history_states = history_states.slice(excess)
 		current_history_index -= excess
 

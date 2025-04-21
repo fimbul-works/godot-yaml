@@ -60,7 +60,7 @@ func setup(p_file_list: YAMLFileList, p_code_editor: YAMLCodeEditor) -> void:
 	file_list.file_context_requested.connect(_on_file_context_requested)
 
 func create_document(path: String, content: String = "") -> YAMLDocument:
-	var document = YAMLDocument.new(path, content)
+	var document := YAMLDocument.new(path, content)
 
 	# Connect document signals
 	document.content_changed.connect(_on_document_content_changed)
@@ -79,13 +79,13 @@ func open_file(path: String) -> void:
 		return
 
 	# Use the file system singleton to read the file
-	var content = file_system.read_file(path)
+	var content := file_system.read_file(path)
 	if typeof(content) == TYPE_INT:  # Error code
-		push_error("Could not open file: ", path)
+		push_error("Could not open file '%s': %s" % [path, error_string(content)])
 		return
 
 	# Create new document
-	var document = create_document(path, content)
+	var document := create_document(path, content)
 	document.mark_saved()  # Initial state is saved
 
 	# Switch to the new document
@@ -100,7 +100,7 @@ func close_document(document: YAMLDocument) -> bool:
 
 	if document.is_modified:
 		# Show confirmation dialog for unsaved changes
-		var dialog = ConfirmationDialog.new()
+		var dialog := ConfirmationDialog.new()
 		dialog.title = "Unsaved Changes"
 		dialog.dialog_text = "Save changes to '" + document.get_file_name() + "' before closing?"
 		dialog.add_button("Don't Save", true, "dont_save")
@@ -171,9 +171,9 @@ func save_document(document: YAMLDocument) -> bool:
 	ignore_update_timer.start()
 
 	# Use the file system singleton to save the file
-	var result = file_system.save_file(document.path, document.content)
+	var result := file_system.save_file(document.path, document.content)
 	if result != OK:
-		push_error("Could not save file: ", document.path)
+		push_error("Could not save file '%s': %s" % [document.path, error_string(result)])
 		recently_saved_files.erase(document.path)  # Remove from recently saved if error
 		return false
 
@@ -190,7 +190,7 @@ func save_document_as(document: YAMLDocument, new_path: String) -> bool:
 		return false
 
 	# Remember the old path
-	var old_path = document.path
+	var old_path := document.path
 
 	# Update document path
 	document.path = new_path
@@ -224,15 +224,15 @@ func save_document_as(document: YAMLDocument, new_path: String) -> bool:
 
 func new_file() -> void:
 	# Create a new untitled file
-	var untitled_name = "untitled.yaml"
-	var index = 1
+	var untitled_name := "untitled.yaml"
+	var index := 1
 
 	while documents.has(untitled_name):
 		index += 1
 		untitled_name = "untitled%d.yaml" % index
 
 	# Create a new document
-	var document = create_document(untitled_name)
+	var document := create_document(untitled_name)
 	document.set_modified(true)  # New document is always modified
 
 	# Switch to the new document
@@ -264,8 +264,8 @@ func update_document_content(document: YAMLDocument, new_content: String) -> voi
 	if document == null:
 		return
 
-	var caret_line = 0
-	var caret_column = 0
+	var caret_line := 0
+	var caret_column := 0
 
 	if is_instance_valid(code_editor):
 		caret_line = code_editor.get_caret_line()
@@ -288,7 +288,7 @@ func update_ui() -> void:
 		return
 
 	# Prepare file data for the file list component
-	var file_data = {}
+	var file_data := {}
 	for path in documents:
 		var document = documents[path]
 		file_data[path] = {
@@ -313,15 +313,15 @@ func _on_file_context_requested(path: String, at_position: Vector2) -> void:
 	set_current_document(documents[path])
 
 	# Calculate the global position for the popup
-	var global_rect = Rect2(file_list.get_global_mouse_position(), Vector2.ZERO)
+	var global_rect := Rect2(file_list.get_global_mouse_position(), Vector2.ZERO)
 	file_popup_menu.popup_on_parent(global_rect)
 
 func _on_file_popup_menu_id_pressed(id: int) -> void:
-	var path = file_list.get_selected_file_path()
+	var path := file_list.get_selected_file_path()
 	if path.is_empty() or not documents.has(path):
 		return
 
-	var document = documents[path]
+	var document: YAMLDocument = documents[path]
 
 	match id:
 		0:  # Save
@@ -340,15 +340,15 @@ func _on_external_file_updated(path: String) -> void:
 	if documents.has(path) and file_system.is_yaml_file(path):
 		# Check if we just saved this file ourselves
 		if recently_saved_files.has(path):
-			var save_time = recently_saved_files[path]
-			var current_time = Time.get_unix_time_from_system()
+			var save_time: int = recently_saved_files[path]
+			var current_time := Time.get_unix_time_from_system()
 
 			# If saved less than 1 second ago, ignore this update
 			if current_time - save_time < 1.0:
 				print("Ignoring external update for recently saved file: ", path)
 				return
 
-		var document = documents[path]
+		var document: YAMLDocument = documents[path]
 
 		# Check if the document has unsaved changes
 		if not document.is_modified:
@@ -362,17 +362,17 @@ func _on_external_file_updated(path: String) -> void:
 				# If this is the current document, update the editor
 				if document == current_document:
 					# Preserve cursor position and scroll state
-					var previous_caret_line = code_editor.get_caret_line()
-					var previous_caret_column = code_editor.get_caret_column()
-					var previous_scroll_v = code_editor.get_v_scroll_bar().value
-					var previous_scroll_h = code_editor.get_h_scroll_bar().value
+					var previous_caret_line := code_editor.get_caret_line()
+					var previous_caret_column := code_editor.get_caret_column()
+					var previous_scroll_v := code_editor.get_v_scroll_bar().value
+					var previous_scroll_h := code_editor.get_h_scroll_bar().value
 
 					code_editor.text = content
 
 					# Restore position if possible
 					if previous_caret_line < code_editor.get_line_count():
 						code_editor.set_caret_line(previous_caret_line)
-						var line_length = code_editor.get_line(previous_caret_line).length()
+						var line_length := code_editor.get_line(previous_caret_line).length()
 						if previous_caret_column <= line_length:
 							code_editor.set_caret_column(previous_caret_column)
 
@@ -384,12 +384,12 @@ func _on_external_file_updated(path: String) -> void:
 		else:
 			# Document has unsaved changes, show conflict dialog
 			if document == current_document:
-				var dialog = ConfirmationDialog.new()
+				var dialog := ConfirmationDialog.new()
 				dialog.title = "External Changes Detected"
 				dialog.dialog_text = "The file '" + document.get_file_name() + "' has been modified externally. Do you want to reload it and lose your changes?"
 				dialog.confirmed.connect(
 					func():
-						var content = file_system.read_file(path)
+						var content := file_system.read_file(path)
 						if typeof(content) != TYPE_INT:
 							document.content = content
 							document.mark_saved()
@@ -406,8 +406,8 @@ func _on_external_file_updated(path: String) -> void:
 
 func _on_ignore_update_timer_timeout() -> void:
 	# Clear out any old saved entries
-	var current_time = Time.get_unix_time_from_system()
-	var keys_to_remove = []
+	var current_time := Time.get_unix_time_from_system()
+	var keys_to_remove: PackedStringArray = []
 
 	for path in recently_saved_files:
 		var save_time = recently_saved_files[path]
@@ -420,7 +420,7 @@ func _on_ignore_update_timer_timeout() -> void:
 func _on_file_renamed(old_path: String, new_path: String) -> void:
 	# If we have this document open, update our references
 	if documents.has(old_path):
-		var document = documents[old_path]
+		var document: YAMLDocument = documents[old_path]
 		document.path = new_path
 
 		documents.erase(old_path)
@@ -432,7 +432,7 @@ func handle_filesystem_change() -> void:
 	# Handle file renaming/moving
 
 	# Check if any of our open res:// files no longer exist
-	var missing_files = []
+	var missing_files: PackedStringArray = []
 
 	for path in documents.keys():
 		if path.begins_with("res://") and not file_system.file_exists(path):
@@ -440,12 +440,12 @@ func handle_filesystem_change() -> void:
 
 	# Handle missing files
 	for old_path in missing_files:
-		var document = documents[old_path]
+		var document: YAMLDocument = documents[old_path]
 
 		# Try to find a file with the same name but different path in the filesystem
-		var filename = old_path.get_file()
-		var filesystem_root = EditorInterface.get_resource_filesystem().get_filesystem()
-		var new_path = file_system.find_file_in_filesystem(filesystem_root, filename)
+		var filename := old_path.get_file()
+		var filesystem_root := EditorInterface.get_resource_filesystem().get_filesystem()
+		var new_path := file_system.find_file_in_filesystem(filesystem_root, filename)
 
 		if not new_path.is_empty():
 			# Found potential match - update the document path

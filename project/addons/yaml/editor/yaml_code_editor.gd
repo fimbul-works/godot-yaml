@@ -8,14 +8,14 @@ signal undo_requested
 signal redo_requested
 signal validation_requested
 
-var error_indicators = {}
+var error_indicators := {}
 var snapshot_debounce_timer: Timer
 var error_line_color: Color = Color(1.0, 0.3, 0.3, 0.1)
 var syntax_highlighter_script = preload("res://addons/yaml/editor/syntax_highlighter.gd")
 var suppress_text_changed: bool = false
 
 func _ready() -> void:
-	# Clear the text to start with
+	# Clear text to reset the editor state
 	text = ""
 
 	# Configure YAML-specific settings
@@ -89,10 +89,10 @@ func _gui_input(event: InputEvent) -> void:
 func set_text_and_preserve_state(new_text: String, preserve_state: bool = true) -> void:
 	if preserve_state:
 		# Save current state
-		var previous_caret_pos = get_caret_column()
-		var previous_line = get_caret_line()
-		var previous_scroll_v = get_v_scroll_bar().value
-		var previous_scroll_h = get_h_scroll_bar().value
+		var previous_caret_pos := get_caret_column()
+		var previous_line := get_caret_line()
+		var previous_scroll_v := get_v_scroll_bar().value
+		var previous_scroll_h := get_h_scroll_bar().value
 
 		# Set text without triggering our own text_changed handler
 		suppress_text_changed = true
@@ -102,7 +102,7 @@ func set_text_and_preserve_state(new_text: String, preserve_state: bool = true) 
 		# Restore state if possible
 		if previous_line < get_line_count():
 			set_caret_line(previous_line)
-			var line_length = get_line(previous_line).length()
+			var line_length := get_line(previous_line).length()
 			if previous_caret_pos <= line_length:
 				set_caret_column(previous_caret_pos)
 
@@ -122,13 +122,13 @@ func _restore_scroll_position(v_scroll: float, h_scroll: float) -> void:
 
 func _handle_indent() -> void:
 	# Get current line and text
-	var line = get_caret_line()
-	var text = get_line(line)
+	var line := get_caret_line()
+	var text := get_line(line)
 
 	# Get selection so we can handle multi-line indentation
-	var selection_active = has_selection()
-	var selection_from = get_selection_from_line()
-	var selection_to = get_selection_to_line()
+	var selection_active := has_selection()
+	var selection_from := get_selection_from_line()
+	var selection_to := get_selection_to_line()
 
 	if selection_active:
 		# Indent multiple lines
@@ -141,39 +141,39 @@ func _handle_indent() -> void:
 		insert_text_at_caret("  ")
 
 func _handle_enter_key() -> void:
-	var line = get_caret_line()
-	var text = get_line(line)
+	var line := get_caret_line()
+	var line_text := get_line(line)
 
 	# Auto-continuation for lists
-	if "- " in text:
-		var indent_level = 0
-		for c in text:
+	if "- " in line_text:
+		var indent_level := 0
+		for c in line_text:
 			if c == ' ':
 				indent_level += 1
 			else:
 				break
 
 		# Insert the line with the same indentation and list marker
-		var new_line = "\n" + " ".repeat(indent_level) + "- "
+		var new_line := "\n" + " ".repeat(indent_level) + "- "
 		insert_text_at_caret(new_line)
 	else:
 		# Regular line break with preserved indentation
-		var indent_level = 0
-		for c in text:
+		var indent_level := 0
+		for c in line_text:
 			if c == ' ':
 				indent_level += 1
 			else:
 				break
 
 		# Increased indentation if the line ends with a colon
-		if text.strip_edges().ends_with(":"):
+		if line_text.strip_edges().ends_with(":"):
 			indent_level += 2
 
 		insert_text_at_caret("\n" + " ".repeat(indent_level))
 
 func register_yaml_code_completion() -> void:
 	# Register common YAML keywords and patterns for code completion
-	var keyword_list = [
+	var keyword_list: PackedStringArray = [
 		"true",
 		"false",
 		"null",
@@ -187,7 +187,7 @@ func register_yaml_code_completion() -> void:
 		add_code_completion_option(CodeCompletionKind.KIND_CONSTANT, keyword, keyword)
 
 	## YAML tags
-	var tag_list = [
+	var tag_list: PackedStringArray = [
 		"!Resource",
 		"!AABB",
 		"!Basis",
@@ -226,12 +226,12 @@ func mark_error_line(line: int, message: String) -> void:
 		return
 
 	# Set line background to error color
-	var settings = EditorInterface.get_editor_settings()
-	var error_color = settings.get_setting("text_editor/theme/highlighting/mark_color")
+	var settings := EditorInterface.get_editor_settings()
+	var error_color: Color = settings.get_setting("text_editor/theme/highlighting/mark_color")
 	set_line_background_color(line, error_color)
 
 	# Set gutter icon
-	var error_icon = get_theme_icon("StatusError", "EditorIcons")
+	var error_icon := get_theme_icon("StatusError", "EditorIcons")
 	if error_icon:
 		set_line_gutter_icon(line, 0, error_icon)
 
@@ -239,13 +239,13 @@ func mark_error_line(line: int, message: String) -> void:
 	error_indicators[line] = message
 
 func clear_error_indicators() -> void:
-	for line in error_indicators:
+	for line: int in error_indicators:
 		set_line_background_color(line, Color(0, 0, 0, 0))
 		set_line_gutter_icon(line, 0, null)
 
 	error_indicators.clear()
 
 func get_current_line_col_info() -> Array[int]:
-	var line = get_caret_line() + 1
-	var col = get_caret_column() + 1
+	var line := get_caret_line() + 1
+	var col := get_caret_column() + 1
 	return [line, col]

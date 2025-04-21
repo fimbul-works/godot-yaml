@@ -74,7 +74,7 @@ func _on_new_button_pressed() -> void:
 	file_manager.new_file()
 
 func _on_open_button_pressed() -> void:
-	var file_dialog = EditorFileDialog.new()
+	var file_dialog := EditorFileDialog.new()
 	file_dialog.file_mode = EditorFileDialog.FILE_MODE_OPEN_FILE
 	file_dialog.access = EditorFileDialog.ACCESS_FILESYSTEM
 	file_dialog.add_filter("*.yaml;YAML Files")
@@ -92,7 +92,7 @@ func _on_open_button_pressed() -> void:
 	file_dialog.popup_centered_ratio(0.7)
 
 func _on_save_button_pressed() -> void:
-	var document = file_manager.get_current_document()
+	var document := file_manager.get_current_document()
 	if not document:
 		return
 
@@ -102,11 +102,11 @@ func _on_save_button_pressed() -> void:
 		file_manager.save_document(document)
 
 func _on_save_as_button_pressed() -> void:
-	var document = file_manager.get_current_document()
+	var document := file_manager.get_current_document()
 	if not document:
 		return
 
-	var file_dialog = EditorFileDialog.new()
+	var file_dialog := EditorFileDialog.new()
 	file_dialog.file_mode = EditorFileDialog.FILE_MODE_SAVE_FILE
 	file_dialog.access = EditorFileDialog.ACCESS_FILESYSTEM
 	file_dialog.add_filter("*.yaml;YAML Files")
@@ -127,7 +127,7 @@ func _on_save_as_button_pressed() -> void:
 	file_dialog.popup_centered_ratio(0.7)
 
 func _on_content_changed() -> void:
-	var document = file_manager.get_current_document()
+	var document := file_manager.get_current_document()
 	if not document:
 		return
 
@@ -138,16 +138,16 @@ func _on_content_changed() -> void:
 	validator.validate_document(document)
 
 func _on_close_current_file() -> void:
-	var document = file_manager.get_current_document()
+	var document := file_manager.get_current_document()
 	if document:
 		file_manager.close_document(document)
 
 func _on_undo_requested() -> void:
-	var document = file_manager.get_current_document()
+	var document := file_manager.get_current_document()
 	if not document:
 		return
 
-	var state = document.undo()
+	var state := document.undo()
 	if state:
 		code_edit.set_text_and_preserve_state(document.content)
 
@@ -159,11 +159,11 @@ func _on_undo_requested() -> void:
 					code_edit.set_caret_column(state.caret_column)
 
 func _on_redo_requested() -> void:
-	var document = file_manager.get_current_document()
+	var document := file_manager.get_current_document()
 	if not document:
 		return
 
-	var state = document.redo()
+	var state := document.redo()
 	if state:
 		code_edit.set_text_and_preserve_state(document.content)
 
@@ -199,14 +199,14 @@ func _on_validation_completed(document: YAMLDocument) -> void:
 		validator.clear_errors_in_editor()
 
 func _display_validation_error(document: YAMLDocument) -> void:
-	var result = document.validation_result
+	var result := document.validation_result
 	if not result.has_error():
 		return
 
 	# Update status panel
-	var error = result.get_error_message()
-	var line = result.get_error_line()
-	var col = result.get_error_column()
+	var error := result.get_error_message()
+	var line := result.get_error_line()
+	var col := result.get_error_column()
 
 	var error_status := "Error at (%d, %d): %s" % [line, col, error] if line >= 0 else "Error: %s" % error
 	status_panel.set_status(error_status, status_panel.ERROR_COLOR)

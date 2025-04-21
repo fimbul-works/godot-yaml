@@ -1,11 +1,11 @@
 @tool
 class_name YAMLSessionManager extends Node
 
-const CONFIG_PATH = "res://.godot/yaml_editor_session.cfg"
-const CONFIG_SECTION = "yaml_editor"
-const CONFIG_KEY_OPEN_FILES = "open_files"
-const CONFIG_KEY_SPLIT_OFFSET = "split_offset"
-const CONFIG_KEY_CURRENT_FILE = "current_file"
+const CONFIG_PATH := "res://.godot/yaml_editor_session.cfg"
+const CONFIG_SECTION := "yaml_editor"
+const CONFIG_KEY_OPEN_FILES := "open_files"
+const CONFIG_KEY_SPLIT_OFFSET := "split_offset"
+const CONFIG_KEY_CURRENT_FILE := "current_file"
 
 var file_manager: YAMLFileManager
 var file_system: YAMLFileSystem
@@ -45,17 +45,17 @@ func save_session() -> void:
 	if not is_instance_valid(file_manager):
 		return
 
-	var documents = file_manager.get_open_documents()
+	var documents: Array = file_manager.get_open_documents()
 
 	# Create array of persistent file paths (skip untitled files)
-	var persistent_files = []
+	var persistent_files: PackedStringArray = []
 	for document in documents:
 		if not document.is_untitled():
 			persistent_files.append(document.path)
 
 	# Get current file path
-	var current_path = ""
-	var current_document = file_manager.get_current_document()
+	var current_path := ""
+	var current_document := file_manager.get_current_document()
 	if current_document and not current_document.is_untitled():
 		current_path = current_document.path
 
@@ -67,20 +67,20 @@ func save_session() -> void:
 	if is_instance_valid(resizable_container):
 		config.set_value(CONFIG_SECTION, CONFIG_KEY_SPLIT_OFFSET, resizable_container.split_offset)
 
-	var error = config.save(CONFIG_PATH)
+	var error := config.save(CONFIG_PATH)
 	if error != OK:
-		printerr("Failed to save YAML editor session: ", error)
+		push_error("Failed to save YAML editor session: %s" % error_string(error))
 
 func load_session() -> void:
-	var error = config.load(CONFIG_PATH)
+	var error := config.load(CONFIG_PATH)
 	if error != OK:
 		# No saved session or error loading it
 		if error != ERR_FILE_NOT_FOUND:
-			printerr("Failed to load YAML editor session: ", error)
+			push_error("Failed to load YAML editor session: ", error_string(error))
 		return
 
 	# Get saved file paths
-	var file_paths = config.get_value(CONFIG_SECTION, CONFIG_KEY_OPEN_FILES, [])
+	var file_paths: PackedStringArray = config.get_value(CONFIG_SECTION, CONFIG_KEY_OPEN_FILES, [])
 
 	# Open each file
 	for path in file_paths:
@@ -88,18 +88,17 @@ func load_session() -> void:
 			file_manager.open_file(path)
 
 	# Set current file
-	var last_current = config.get_value(CONFIG_SECTION, CONFIG_KEY_CURRENT_FILE, "")
+	var last_current: String = config.get_value(CONFIG_SECTION, CONFIG_KEY_CURRENT_FILE, "")
 	if not last_current.is_empty() and file_manager.has_document(last_current):
-		var document = file_manager.get_document(last_current)
+		var document := file_manager.get_document(last_current)
 		file_manager.set_current_document(document)
 
 	# Restore split offset (deferred to ensure UI is ready)
 	call_deferred("_restore_split_offset")
-	print("Session restored with %d files" % file_paths.size())
 
 func _restore_split_offset() -> void:
 	if is_instance_valid(resizable_container):
-		var saved_offset = config.get_value(CONFIG_SECTION, CONFIG_KEY_SPLIT_OFFSET, resizable_container.split_offset)
+		var saved_offset: int = config.get_value(CONFIG_SECTION, CONFIG_KEY_SPLIT_OFFSET, resizable_container.split_offset)
 		resizable_container.split_offset = saved_offset
 
 func _on_session_changed(_document = null) -> void:

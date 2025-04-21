@@ -95,14 +95,14 @@ func _highlight_line(text: String) -> Dictionary:
 		return {0: {"color": _get_color_for_type(TokenType.COMMENT)}}
 
 	# Handle merge keys
-	var merge_match = re_patterns.merge_key.search(text)
+	var merge_match: RegExMatch = re_patterns.merge_key.search(text)
 	if merge_match:
 		return {
 			merge_match.get_start(0): {"color": _get_color_for_type(TokenType.KEYWORD)}
 		}
 
 	# Check for top-level tags (added this check)
-	var tag_match = re_patterns.top_level_tag.search(text)
+	var tag_match: RegExMatch = re_patterns.top_level_tag.search(text)
 	if tag_match:
 		var colors := {}
 		# Color just the tag part as keyword (red)
@@ -120,12 +120,12 @@ func _highlight_line(text: String) -> Dictionary:
 		return colors
 
 	# Handle regular key-value pairs first
-	var key_value_match = re_patterns.key_value.search(text)
+	var key_value_match: RegExMatch = re_patterns.key_value.search(text)
 	if key_value_match:
 		return _parse_key_value(text, key_value_match)
 
 	# Handle array items
-	var array_match = re_patterns.array_item.search(text)
+	var array_match: RegExMatch = re_patterns.array_item.search(text)
 	if array_match:
 		var colors := {}
 		_add_color(colors, array_match.get_start(1), array_match.get_end(1), TokenType.SYMBOL)
@@ -144,7 +144,7 @@ func _highlight_line(text: String) -> Dictionary:
 		return _parse_flow_style(text, 0)
 
 	# Handle multi-line string indicators
-	var multiline_match = re_patterns.multiline_indicator.search(text)
+	var multiline_match: RegExMatch = re_patterns.multiline_indicator.search(text)
 	if multiline_match:
 		var colors := {}
 		# Color the indicator (> or |) as symbol
@@ -237,20 +237,19 @@ func _parse_key_value(text: String, match: RegExMatch) -> Dictionary:
 		var value_start := text.find(value, match.get_end(1))
 		if value_start != -1:
 			# First check for and handle any tags
-			var tag_match = re_patterns.tag.search(value)
+			var tag_match: RegExMatch = re_patterns.tag.search(value)
 			if tag_match:
 				_add_color(colors, value_start + tag_match.get_start(0),
 						  value_start + tag_match.get_end(0), TokenType.KEYWORD)
 				# Get remaining content after tag
-				var after_tag = value.substr(tag_match.get_end(0)).strip_edges()
+				var after_tag := value.substr(tag_match.get_end(0)).strip_edges()
 				if after_tag:
 					var after_tag_start = text.find(after_tag, value_start + tag_match.get_end(0))
 					if after_tag_start != -1:
 						# Now check for multiline indicator in remaining content
-						var indicator_match = re_patterns.multiline_indicator.search(after_tag)
+						var indicator_match: RegExMatch = re_patterns.multiline_indicator.search(after_tag)
 						if indicator_match:
-							_add_color(colors, after_tag_start + indicator_match.get_start(1),
-									 after_tag_start + indicator_match.get_end(1), TokenType.SYMBOL)
+							_add_color(colors, after_tag_start + indicator_match.get_start(1), after_tag_start + indicator_match.get_end(1), TokenType.SYMBOL)
 						elif after_tag.begins_with("{") or after_tag.begins_with("["):
 							# Process flow style collections after the tag
 							colors.merge(_parse_flow_style(after_tag, after_tag_start))
@@ -260,10 +259,9 @@ func _parse_key_value(text: String, match: RegExMatch) -> Dictionary:
 					return colors
 
 			# If no tag, check for multiline indicator in full value
-			var indicator_match = re_patterns.multiline_indicator.search(value)
+			var indicator_match: RegExMatch = re_patterns.multiline_indicator.search(value)
 			if indicator_match:
-				_add_color(colors, value_start + indicator_match.get_start(1),
-						  value_start + indicator_match.get_end(1), TokenType.SYMBOL)
+				_add_color(colors, value_start + indicator_match.get_start(1), value_start + indicator_match.get_end(1), TokenType.SYMBOL)
 			elif value.begins_with("[") or value.begins_with("{"):
 				colors.merge(_parse_flow_style(value, value_start))
 			else:
@@ -282,17 +280,17 @@ func _add_scalar_color(colors: Dictionary, token: String, start_index: int) -> v
 		return  # Important: return early to prevent parsing tags inside strings
 
 	# Check for tags - improved handling to only color the tag portion
-	var tag_match = re_patterns.tag.search(token)
+	var tag_match: RegExMatch = re_patterns.tag.search(token)
 	if tag_match:
-		var tag_start = tag_match.get_start(0)
-		var tag_end = tag_match.get_end(0)
+		var tag_start := tag_match.get_start(0)
+		var tag_end := tag_match.get_end(0)
 
 		# Only color the tag portion
 		_add_color(colors, start_index + tag_start, start_index + tag_end, TokenType.KEYWORD)
 
 		# Process any remaining content after the tag
 		if tag_end < token.length():
-			var remaining = token.substr(tag_end).strip_edges()
+			var remaining := token.substr(tag_end).strip_edges()
 			if remaining:
 				var remaining_start = start_index + token.find(remaining, tag_end)
 				if remaining_start != -1:
@@ -324,7 +322,7 @@ func _add_color(colors: Dictionary, start: int, end: int, type: TokenType) -> vo
 
 func _sort_colors(colors: Dictionary) -> Dictionary:
 	# Get all indices as an array
-	var indices = colors.keys()
+	var indices := colors.keys()
 	indices.sort()  # Sort indices in ascending order
 
 	# Create new dictionary with sorted indices

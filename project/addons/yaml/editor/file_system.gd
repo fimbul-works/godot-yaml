@@ -26,7 +26,7 @@ func _init() -> void:
 
 # File operations with signals
 func save_file(path: String, content: String) -> Error:
-	var file = FileAccess.open(path, FileAccess.WRITE)
+	var file := FileAccess.open(path, FileAccess.WRITE)
 	if not file:
 		return FileAccess.get_open_error()
 
@@ -36,7 +36,7 @@ func save_file(path: String, content: String) -> Error:
 	return OK
 
 func read_file(path: String) -> Variant:
-	var file = FileAccess.open(path, FileAccess.READ)
+	var file := FileAccess.open(path, FileAccess.READ)
 	if not file:
 		return FileAccess.get_open_error()
 
@@ -48,7 +48,7 @@ func file_exists(path: String) -> bool:
 
 # Utility to check if a path is a YAML file
 func is_yaml_file(path: String) -> bool:
-	var extension = path.get_extension().to_lower()
+	var extension := path.get_extension().to_lower()
 	return extension in ["yaml", "yml"]
 
 # For external updates, allow code to manually trigger the signal
@@ -71,14 +71,14 @@ func notify_file_renamed(old_path: String, new_path: String) -> void:
 func find_file_in_filesystem(dir: EditorFileSystemDirectory, filename: String) -> String:
 	# Check files in current directory
 	for i in range(dir.get_file_count()):
-		var file_path = dir.get_file_path(i)
+		var file_path := dir.get_file_path(i)
 		if file_path.get_file() == filename:
 			return file_path
 
 	# Recursively check subdirectories
 	for i in range(dir.get_subdir_count()):
-		var subdir = dir.get_subdir(i)
-		var result = find_file_in_filesystem(subdir, filename)
+		var subdir := dir.get_subdir(i)
+		var result := find_file_in_filesystem(subdir, filename)
 		if not result.is_empty():
 			return result
 
