@@ -19,6 +19,7 @@ var editor: EditorInterface
 @export var code_edit: YAMLCodeEditor
 @export var status_panel: YAMLEditorStatusPanel
 @export var find_panel: YAMLEditorFindPanel
+@export var replace_panel: YAMLEditorReplacePanel
 
 func _ready() -> void:
 	# Get reference to file system singleton first
@@ -85,19 +86,58 @@ func _ready() -> void:
 	if editor:
 		get_tree().set_meta("editor_interface", editor)
 
-	# Setup the find panel
-	if find_panel:
-		find_panel.editor = code_edit
-		find_panel.visible = false
+	# Setup the find and replace panels
+	replace_panel.setup(find_panel)
+	find_panel.visible = false
+	replace_panel.visible = false
+
+	# Synchronize the width
+	find_panel.find_input.resized.connect(_on_line_edit_resized)
+	replace_panel.replace_input.resized.connect(_on_line_edit_resized)
+	_sync_find_replace_width()
+
+	# Connect replace signals to update UI
+	replace_panel.replace_performed.connect(_on_replace_performed)
+	replace_panel.replace_all_performed.connect(_on_replace_all_performed)
 
 	# Load previous session
 	session_manager.load_session()
+
+func _on_replace_performed() -> void:
+	# After a replace, request validation
+	code_edit.validation_requested.emit()
+
+	# Update the current document
+	_on_content_changed()
+
+func _on_replace_all_performed() -> void:
+	# After replace all, request validation
+	code_edit.validation_requested.emit()
+
+	# Update the current document
+	_on_content_changed()
+
+	# Show a message in the status bar
+	if replace_panel.visible:
+		status_panel.set_status("Replacement complete", Color.GREEN)
+		# Clear the status after a delay
+		await get_tree().create_timer(2.0).timeout
+		status_panel.set_status("")
+
+func _on_line_edit_resized() -> void:
+	_sync_find_replace_width()
+
+func _sync_find_replace_width() -> void:
+	replace_panel.replace_input.custom_minimum_size.x = find_panel.find_input.size.x
 
 func _unhandled_key_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed:
 		match event.get_keycode_with_modifiers():
 			KEY_MASK_CTRL | KEY_F:
 				_on_find_requested()
+				get_viewport().set_input_as_handled()
+			KEY_MASK_CTRL | KEY_R:
+				_on_replace_requested()
 				get_viewport().set_input_as_handled()
 			KEY_F3:
 				_on_find_next_requested()
@@ -106,8 +146,9 @@ func _unhandled_key_input(event: InputEvent) -> void:
 				_on_find_previous_requested()
 				get_viewport().set_input_as_handled()
 			KEY_ESCAPE:
-				if find_panel and find_panel.visible:
+				if find_panel.visible or replace_panel.visible:
 					find_panel.hide_panel()
+					replace_panel.hide_panel()
 					get_viewport().set_input_as_handled()
 
 func _on_zoom_changed(new_zoom_level: float) -> void:
@@ -191,17 +232,24 @@ func _on_undo_requested() -> void:
 		return
 
 	var state := document.undo()
-	if state:
-		code_edit.set_text_and_preserve_state(document.content)
+	if not state:
+		return
 
-		# Optionally restore caret position if needed
-		if state.caret_line > 0 and state.caret_column > 0:
-			if state.caret_line < code_edit.get_line_count():
-				code_edit.set_caret_line(state.caret_line)
-				if state.caret_column <= code_edit.get_line(state.caret_line).length():
-					code_edit.set_caret_column(state.caret_column)
-		# Validate after undo
-		validator.validate_document(document)
+	code_edit.set_text_and_preserve_state(document.content)
+
+	# Optionally restore caret position if needed
+	if state.caret_line > 0 and state.caret_column > 0:
+		if state.caret_line < code_edit.get_line_count():
+			code_edit.set_caret_line(state.caret_line)
+			if state.caret_column <= code_edit.get_line(state.caret_line).length():
+				code_edit.set_caret_column(state.caret_column)
+
+	# Validate after undo
+	validator.validate_document(document)
+
+	# And re-trigger search if we did undo
+	if find_panel.visible:
+		find_panel.trigger_search()
 
 func _on_redo_requested() -> void:
 	var document := file_manager.get_current_document()
@@ -209,17 +257,24 @@ func _on_redo_requested() -> void:
 		return
 
 	var state := document.redo()
-	if state:
-		code_edit.set_text_and_preserve_state(document.content)
+	if not state:
+		return
 
-		# Optionally restore caret position if needed
-		if state.caret_line > 0 and state.caret_column > 0:
-			if state.caret_line < code_edit.get_line_count():
-				code_edit.set_caret_line(state.caret_line)
-				if state.caret_column <= code_edit.get_line(state.caret_line).length():
-					code_edit.set_caret_column(state.caret_column)
-		# Validate after redo
-		validator.validate_document(document)
+	code_edit.set_text_and_preserve_state(document.content)
+
+	# Optionally restore caret position if needed
+	if state.caret_line > 0 and state.caret_column > 0:
+		if state.caret_line < code_edit.get_line_count():
+			code_edit.set_caret_line(state.caret_line)
+			if state.caret_column <= code_edit.get_line(state.caret_line).length():
+				code_edit.set_caret_column(state.caret_column)
+
+	# Validate after redo
+	validator.validate_document(document)
+
+	# And re-trigger search if we did redo
+	if find_panel.visible:
+		find_panel.trigger_search()
 
 func _on_cut_requested() -> void:
 	code_edit.cut_selection()
@@ -235,8 +290,12 @@ func _on_select_all_requested() -> void:
 
 # Search-related methods
 func _on_find_requested() -> void:
-	if find_panel:
-		find_panel.show_panel()
+	find_panel.show_panel()
+	replace_panel.hide_panel()
+
+func _on_replace_requested() -> void:
+	find_panel.show_panel()
+	replace_panel.show_panel()
 
 func _on_find_next_requested() -> void:
 	if find_panel and find_panel.visible:
@@ -249,10 +308,6 @@ func _on_find_previous_requested() -> void:
 		find_panel.find_previous()
 	else:
 		_on_find_requested()
-
-func _on_replace_requested() -> void:
-	# You can extend this later with replace functionality
-	_on_find_requested()
 
 func _on_document_changed(document: YAMLDocument) -> void:
 	# Update status panel with document info

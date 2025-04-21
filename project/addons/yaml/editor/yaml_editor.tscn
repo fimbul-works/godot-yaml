@@ -1,4 +1,4 @@
-[gd_scene load_steps=15 format=3 uid="uid://b7wsl0ss24hvb"]
+[gd_scene load_steps=16 format=3 uid="uid://b7wsl0ss24hvb"]
 
 [ext_resource type="Script" path="res://addons/yaml/editor/yaml_editor.gd" id="1_jqpkv"]
 [ext_resource type="Script" path="res://addons/yaml/editor/syntax_highlighter.gd" id="2_0xmrl"]
@@ -7,8 +7,9 @@
 [ext_resource type="Script" path="res://addons/yaml/editor/menu_bar.gd" id="5_bqqrn"]
 [ext_resource type="Script" path="res://addons/yaml/editor/status_panel.gd" id="6_rk03l"]
 [ext_resource type="Script" path="res://addons/yaml/editor/find_panel.gd" id="7_qy3r3"]
+[ext_resource type="Script" path="res://addons/yaml/editor/replace_panel.gd" id="8_sx0lk"]
 
-[sub_resource type="Image" id="Image_ipwi3"]
+[sub_resource type="Image" id="Image_iwnn7"]
 data = {
 "data": PackedByteArray(255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 255, 255, 0, 255, 94, 94, 127, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 255, 255, 0, 255, 93, 93, 255, 255, 94, 94, 127, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 255, 255, 0, 255, 93, 93, 255, 255, 93, 93, 255, 255, 94, 94, 127, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 255, 255, 0, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 94, 94, 127, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 93, 93, 231, 255, 94, 94, 54, 255, 94, 94, 57, 255, 93, 93, 233, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 231, 255, 94, 94, 54, 255, 94, 94, 57, 255, 93, 93, 233, 255, 93, 93, 255, 255, 93, 93, 255, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 97, 97, 42, 255, 255, 255, 0, 255, 255, 255, 0, 255, 97, 97, 42, 255, 93, 93, 233, 255, 93, 93, 232, 255, 93, 93, 41, 255, 255, 255, 0, 255, 255, 255, 0, 255, 97, 97, 42, 255, 93, 93, 233, 255, 93, 93, 232, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 96, 96, 45, 255, 93, 93, 44, 255, 255, 255, 0, 255, 97, 97, 42, 255, 97, 97, 42, 255, 255, 255, 0, 255, 96, 96, 45, 255, 93, 93, 44, 255, 255, 255, 0, 255, 97, 97, 42, 255, 97, 97, 42, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 96, 96, 45, 255, 93, 93, 235, 255, 94, 94, 234, 255, 95, 95, 43, 255, 255, 255, 0, 255, 255, 255, 0, 255, 96, 96, 45, 255, 93, 93, 235, 255, 94, 94, 234, 255, 95, 95, 43, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 93, 93, 235, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 233, 255, 95, 95, 59, 255, 96, 96, 61, 255, 93, 93, 235, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 233, 255, 95, 95, 59, 255, 96, 96, 61, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0),
 "format": "RGBA8",
@@ -17,8 +18,8 @@ data = {
 "width": 16
 }
 
-[sub_resource type="ImageTexture" id="ImageTexture_tcaup"]
-image = SubResource("Image_ipwi3")
+[sub_resource type="ImageTexture" id="ImageTexture_pwnkk"]
+image = SubResource("Image_iwnn7")
 
 [sub_resource type="EditorSyntaxHighlighter" id="EditorSyntaxHighlighter_68y40"]
 script = ExtResource("2_0xmrl")
@@ -37,7 +38,7 @@ fallbacks = Array[Font]([SubResource("SystemFont_k8p4n")])
 font_names = PackedStringArray("JetBrains Mono")
 subpixel_positioning = 0
 
-[node name="YamlEditor" type="Control" node_paths=PackedStringArray("menu_bar", "file_list", "resizable_container", "code_edit", "status_panel", "find_panel")]
+[node name="YamlEditor" type="Control" node_paths=PackedStringArray("menu_bar", "file_list", "resizable_container", "code_edit", "status_panel", "find_panel", "replace_panel")]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -53,7 +54,7 @@ resizable_container = NodePath("MarginContainer/MainVBox/ResizableContainer")
 code_edit = NodePath("MarginContainer/MainVBox/ResizableContainer/EditorPanel/MarginContainer/YAMLCodeEdit")
 status_panel = NodePath("MarginContainer/MainVBox/ResizableContainer/EditorPanel/VBoxContainer/StatusPanelMargin/StatusPanel")
 find_panel = NodePath("MarginContainer/MainVBox/ResizableContainer/EditorPanel/VBoxContainer/FindPanel")
-metadata/_edit_use_anchors_ = true
+replace_panel = NodePath("MarginContainer/MainVBox/ResizableContainer/EditorPanel/VBoxContainer/ReplacePanel")
 
 [node name="MarginContainer" type="MarginContainer" parent="."]
 layout_mode = 1
@@ -65,6 +66,7 @@ grow_vertical = 2
 theme_override_constants/margin_left = 4
 theme_override_constants/margin_top = 1
 theme_override_constants/margin_bottom = 4
+metadata/_edit_use_anchors_ = true
 
 [node name="MainVBox" type="VBoxContainer" parent="MarginContainer"]
 custom_minimum_size = Vector2(200, 0)
@@ -149,7 +151,7 @@ file_list = NodePath("ItemList")
 layout_mode = 2
 placeholder_text = "Filter Files"
 clear_button_enabled = true
-right_icon = SubResource("ImageTexture_tcaup")
+right_icon = SubResource("ImageTexture_pwnkk")
 
 [node name="ItemList" type="ItemList" parent="MarginContainer/MainVBox/ResizableContainer/FileList"]
 layout_mode = 2
@@ -349,6 +351,7 @@ whole_words_checkbox = NodePath("WholeWordsCheckbox")
 hide_button = NodePath("HideButton")
 
 [node name="FindInput" type="LineEdit" parent="MarginContainer/MainVBox/ResizableContainer/EditorPanel/VBoxContainer/FindPanel"]
+custom_minimum_size = Vector2(67.0625, 0)
 layout_mode = 2
 size_flags_horizontal = 3
 tooltip_text = "Find"
@@ -363,14 +366,14 @@ text = "10 matches"
 layout_mode = 2
 tooltip_text = "Previous Match"
 disabled = true
-icon = SubResource("ImageTexture_tcaup")
+icon = SubResource("ImageTexture_pwnkk")
 flat = true
 
 [node name="NextButton" type="Button" parent="MarginContainer/MainVBox/ResizableContainer/EditorPanel/VBoxContainer/FindPanel"]
 layout_mode = 2
 tooltip_text = "Next Match"
 disabled = true
-icon = SubResource("ImageTexture_tcaup")
+icon = SubResource("ImageTexture_pwnkk")
 flat = true
 
 [node name="MatchCaseCheckbox" type="CheckBox" parent="MarginContainer/MainVBox/ResizableContainer/EditorPanel/VBoxContainer/FindPanel"]
@@ -383,6 +386,36 @@ text = "Whole Words"
 
 [node name="HideButton" type="Button" parent="MarginContainer/MainVBox/ResizableContainer/EditorPanel/VBoxContainer/FindPanel"]
 layout_mode = 2
-tooltip_text = "Next Match"
-icon = SubResource("ImageTexture_tcaup")
+tooltip_text = "Hide"
+icon = SubResource("ImageTexture_pwnkk")
 flat = true
+
+[node name="ReplacePanel" type="HBoxContainer" parent="MarginContainer/MainVBox/ResizableContainer/EditorPanel/VBoxContainer" node_paths=PackedStringArray("editor", "replace_input", "replace_button", "replace_all_button", "selection_only_checkbox")]
+visible = false
+layout_mode = 2
+script = ExtResource("8_sx0lk")
+editor = NodePath("../../MarginContainer/YAMLCodeEdit")
+replace_input = NodePath("ReplaceInput")
+replace_button = NodePath("ReplaceButton")
+replace_all_button = NodePath("ReplaceAllButton")
+selection_only_checkbox = NodePath("SelectionOnlyCheckBox")
+
+[node name="ReplaceInput" type="LineEdit" parent="MarginContainer/MainVBox/ResizableContainer/EditorPanel/VBoxContainer/ReplacePanel"]
+custom_minimum_size = Vector2(67.0625, 0)
+layout_mode = 2
+placeholder_text = "Replace"
+
+[node name="ReplaceButton" type="Button" parent="MarginContainer/MainVBox/ResizableContainer/EditorPanel/VBoxContainer/ReplacePanel"]
+layout_mode = 2
+disabled = true
+text = "Replace"
+
+[node name="ReplaceAllButton" type="Button" parent="MarginContainer/MainVBox/ResizableContainer/EditorPanel/VBoxContainer/ReplacePanel"]
+layout_mode = 2
+disabled = true
+text = "Replace All"
+
+[node name="SelectionOnlyCheckBox" type="CheckBox" parent="MarginContainer/MainVBox/ResizableContainer/EditorPanel/VBoxContainer/ReplacePanel"]
+layout_mode = 2
+text = "Selection Only
+"

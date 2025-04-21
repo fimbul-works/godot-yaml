@@ -50,7 +50,7 @@ func show_panel() -> void:
 		find_input.text = editor.get_selected_text()
 
 	# Run initial search and update UI
-	_perform_search()
+	trigger_search()
 
 	# Focus the search input
 	find_input.grab_focus()
@@ -64,6 +64,9 @@ func hide_panel() -> void:
 		editor.set_search_text("")
 		editor.set_search_flags(0)
 		editor.queue_redraw()
+
+func get_search_text() -> String:
+	return find_input.text
 
 func find_next() -> void:
 	if matches.is_empty() or not is_instance_valid(editor):
@@ -87,7 +90,7 @@ func find_previous() -> void:
 
 	find_previous_requested.emit()
 
-func _perform_search() -> void:
+func trigger_search() -> void:
 	if not is_instance_valid(editor):
 		return
 
@@ -219,6 +222,8 @@ func _update_match_label() -> void:
 
 	var count = matches.size()
 
+	matches_label.visible = true
+
 	if count > 0:
 		matches_label.modulate = Color.WHITE
 		matches_label.text = "%d of %d matches" % [current_match_index + 1, count]
@@ -226,6 +231,7 @@ func _update_match_label() -> void:
 		matches_label.modulate = EditorInterface.get_editor_settings().get_setting("text_editor/theme/highlighting/brace_mismatch_color")
 		matches_label.text = "No matches"
 	else:
+		matches_label.visible = false
 		matches_label.text = ""
 
 func _update_ui_state() -> void:
@@ -235,13 +241,13 @@ func _update_ui_state() -> void:
 
 # Signal handlers
 func _on_find_input_changed(_text: String) -> void:
-	_perform_search()
+	trigger_search()
 
 func _on_find_input_submitted(_text: String) -> void:
 	find_next()
 
 func _on_option_changed(_toggled: bool) -> void:
-	_perform_search()
+	trigger_search()
 
 func _on_previous_button_pressed() -> void:
 	find_previous()
