@@ -6,11 +6,11 @@
 namespace godot {
 
 class NodePathVariantConverter : public VariantConverter {
-  public:
-  DEFINE_YAML_TAG("NodePath", Variant::NODE_PATH)
+public:
+	DEFINE_YAML_TAG("NodePath", Variant::NODE_PATH)
 
-  void encode(ryml::NodeRef& node, const Variant& v, const YAMLStyle::View& style) const override;
-  Variant decode(const ryml::ConstNodeRef& node) const override;
+	void encode(ryml::NodeRef &node, const Variant &v, const YAMLStyle::View &style) const override;
+	Variant decode(const ryml::ConstNodeRef &node) const override;
 };
 
 } // namespace godot

@@ -6,14 +6,14 @@
 namespace godot {
 
 class PackedInt64ArrayVariantConverter : public VariantConverter {
-  public:
-  DEFINE_YAML_TAG("PackedInt64Array", Variant::PACKED_INT64_ARRAY)
+public:
+	DEFINE_YAML_TAG("PackedInt64Array", Variant::PACKED_INT64_ARRAY)
 
-  void encode(ryml::NodeRef& node, const Variant& v, const YAMLStyle::View& style) const override;
-  Variant decode(const ryml::ConstNodeRef& node) const override;
+	void encode(ryml::NodeRef &node, const Variant &v, const YAMLStyle::View &style) const override;
+	Variant decode(const ryml::ConstNodeRef &node) const override;
 
-  private:
-  void emit_as_sequence(ryml::NodeRef& node, const PackedInt64Array& array, const YAMLStyle::View& style) const;
+private:
+	void emit_as_sequence(ryml::NodeRef &node, const PackedInt64Array &array, const YAMLStyle::View &style) const;
 };
 
 } // namespace godot

@@ -5,95 +5,88 @@
 
 using namespace godot;
 
-Rect2VariantConverter::Rect2VariantConverter(ConverterFactory* factory) :
-        vec2_converter(factory->create_converter_as<Vector2VariantConverter>(Variant::VECTOR2))
-{
-  ERR_FAIL_NULL(vec2_converter);
+Rect2VariantConverter::Rect2VariantConverter(ConverterFactory *factory) :
+		vec2_converter(factory->create_converter_as<Vector2VariantConverter>(Variant::VECTOR2)) {
+	ERR_FAIL_NULL(vec2_converter);
 }
 
-void Rect2VariantConverter::encode(ryml::NodeRef& node, const Variant& v, const YAMLStyle::View& style) const
-{
-  const Rect2 rect = v.operator Rect2();
+void Rect2VariantConverter::encode(ryml::NodeRef &node, const Variant &v, const YAMLStyle::View &style) const {
+	const Rect2 rect = v.operator Rect2();
 
-  if (!style.is_valid() || style.get_container_form() != YAMLStyle::FORM_SEQ) {
-    emit_as_map(node, rect, style);
-  } else {
-    emit_as_sequence(node, rect, style);
-  }
+	if (!style.is_valid() || style.get_container_form() != YAMLStyle::FORM_SEQ) {
+		emit_as_map(node, rect, style);
+	} else {
+		emit_as_sequence(node, rect, style);
+	}
 }
 
-void Rect2VariantConverter::emit_as_map(ryml::NodeRef& node, const Rect2& rect, const YAMLStyle::View& style) const
-{
-  node |= ryml::MAP;
+void Rect2VariantConverter::emit_as_map(ryml::NodeRef &node, const Rect2 &rect, const YAMLStyle::View &style) const {
+	node |= ryml::MAP;
 
-  // Flow style
-  style.apply_flow_style(node);
+	// Flow style
+	style.apply_flow_style(node);
 
-  // Pass child styles for position and size
-  YAMLStyle::View pos_style = style.is_valid() ? style.get_child("position") : YAMLStyle::View();
-  YAMLStyle::View size_style = style.is_valid() ? style.get_child("size") : YAMLStyle::View();
+	// Pass child styles for position and size
+	YAMLStyle::View pos_style = style.is_valid() ? style.get_child("position") : YAMLStyle::View();
+	YAMLStyle::View size_style = style.is_valid() ? style.get_child("size") : YAMLStyle::View();
 
-  ryml::NodeRef pos_node = node["position"];
-  vec2_converter->encode(pos_node, rect.position, pos_style);
+	ryml::NodeRef pos_node = node["position"];
+	vec2_converter->encode(pos_node, rect.position, pos_style);
 
-  ryml::NodeRef size_node = node["size"];
-  vec2_converter->encode(size_node, rect.size, size_style);
+	ryml::NodeRef size_node = node["size"];
+	vec2_converter->encode(size_node, rect.size, size_style);
 }
 
-void Rect2VariantConverter::emit_as_sequence(ryml::NodeRef& node, const Rect2& rect, const YAMLStyle::View& style) const
-{
-  node |= ryml::SEQ;
+void Rect2VariantConverter::emit_as_sequence(ryml::NodeRef &node, const Rect2 &rect, const YAMLStyle::View &style) const {
+	node |= ryml::SEQ;
 
-  // Flow style
-  style.apply_flow_style(node);
+	// Flow style
+	style.apply_flow_style(node);
 
-  // Pass child styles using numeric indices
-  YAMLStyle::View pos_style = style.is_valid() ? style.get_child("0") : YAMLStyle::View();
-  YAMLStyle::View size_style = style.is_valid() ? style.get_child("1") : YAMLStyle::View();
+	// Pass child styles using numeric indices
+	YAMLStyle::View pos_style = style.is_valid() ? style.get_child("0") : YAMLStyle::View();
+	YAMLStyle::View size_style = style.is_valid() ? style.get_child("1") : YAMLStyle::View();
 
-  ryml::NodeRef pos_node = node.append_child();
-  vec2_converter->encode(pos_node, rect.position, pos_style);
+	ryml::NodeRef pos_node = node.append_child();
+	vec2_converter->encode(pos_node, rect.position, pos_style);
 
-  ryml::NodeRef size_node = node.append_child();
-  vec2_converter->encode(size_node, rect.size, size_style);
+	ryml::NodeRef size_node = node.append_child();
+	vec2_converter->encode(size_node, rect.size, size_style);
 }
 
-Variant Rect2VariantConverter::decode(const ryml::ConstNodeRef& node) const
-{
-  try {
-    if (node.is_map()) {
-      return decode_from_map(node);
-    } else if (node.is_seq()) {
-      return decode_from_sequence(node);
-    }
-    throw YAMLException::create_invalid_format("Rect2");
-  } catch (const YAMLException&) {
-    throw;
-  } catch (const std::exception& e) {
-    throw YAMLException::create_decode_error("Rect2", e.what());
-  }
+Variant Rect2VariantConverter::decode(const ryml::ConstNodeRef &node) const {
+	try {
+		if (node.is_map()) {
+			return decode_from_map(node);
+		} else if (node.is_seq()) {
+			return decode_from_sequence(node);
+		}
+		throw YAMLException::create_invalid_format("Rect2");
+	} catch (const YAMLException &) {
+		throw;
+	} catch (const std::exception &e) {
+		throw YAMLException::create_decode_error("Rect2", e.what());
+	}
 }
 
-Variant Rect2VariantConverter::decode_from_map(const ryml::ConstNodeRef& node) const
-{
-  if (!node.has_child("position") || !node.has_child("size")) {
-    throw YAMLException::create_missing_field("Rect2", "position, size");
-  }
+Variant Rect2VariantConverter::decode_from_map(const ryml::ConstNodeRef &node) const {
+	if (!node.has_child("position") || !node.has_child("size")) {
+		throw YAMLException::create_missing_field("Rect2", "position, size");
+	}
 
-  Vector2 position = vec2_converter->decode(node["position"]).operator Vector2();
-  Vector2 size = vec2_converter->decode(node["size"]).operator Vector2();
+	Vector2 position = vec2_converter->decode(node["position"]).operator Vector2();
+	Vector2 size = vec2_converter->decode(node["size"]).operator Vector2();
 
-  return Rect2(position, size);
+	return Rect2(position, size);
 }
 
-Variant Rect2VariantConverter::decode_from_sequence(const ryml::ConstNodeRef& node) const
-{
-  if (node.num_children() != 2) {
-    throw YAMLException::create_invalid_sequence_length("Rect2", 2);
-  }
+Variant Rect2VariantConverter::decode_from_sequence(const ryml::ConstNodeRef &node) const {
+	if (node.num_children() != 2) {
+		throw YAMLException::create_invalid_sequence_length("Rect2", 2);
+	}
 
-  Vector2 position = vec2_converter->decode(node[0]).operator Vector2();
-  Vector2 size = vec2_converter->decode(node[1]).operator Vector2();
+	Vector2 position = vec2_converter->decode(node[0]).operator Vector2();
+	Vector2 size = vec2_converter->decode(node[1]).operator Vector2();
 
-  return Rect2(position, size);
+	return Rect2(position, size);
 }

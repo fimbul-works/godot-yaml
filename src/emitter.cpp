@@ -13,351 +13,334 @@
 
 using namespace godot;
 
-YAML::Emitter::Emitter()
-{
-  callbacks.m_error = error_callback;
-  callbacks.m_user_data = this;
-  evt_handler = std::make_unique<ryml::EventHandlerTree>(callbacks);
+YAML::Emitter::Emitter() {
+	callbacks.m_error = error_callback;
+	callbacks.m_user_data = this;
+	evt_handler = std::make_unique<ryml::EventHandlerTree>(callbacks);
 
-  init_converters();
+	init_converters();
 }
 
-void YAML::Emitter::init_converters()
-{
-  // Get converters by type
-  type_converters = factory.create_converter_set();
+void YAML::Emitter::init_converters() {
+	// Get converters by type
+	type_converters = factory.create_converter_set();
 
-  // Build tag lookup table
-  for (const auto& pair : type_converters) {
-    if (pair.second) {
-      tag_converters[pair.second->get_tag()] = pair.second.get();
-    }
-  }
+	// Build tag lookup table
+	for (const auto &pair : type_converters) {
+		if (pair.second) {
+			tag_converters[pair.second->get_tag()] = pair.second.get();
+		}
+	}
 }
 
-void YAML::Emitter::error_callback(const char* msg, size_t len, ryml::Location loc, void* user_data)
-{
-  ryml::csubstr error_msg(msg, len);
+void YAML::Emitter::error_callback(const char *msg, size_t len, ryml::Location loc, void *user_data) {
+	ryml::csubstr error_msg(msg, len);
 
-  // Strip "ERROR: " prefix if present
-  const ryml::csubstr strip_error_prefix = "ERROR: ";
-  if (error_msg.begins_with(strip_error_prefix)) {
-    error_msg = error_msg.sub(strip_error_prefix.len);
-  }
+	// Strip "ERROR: " prefix if present
+	const ryml::csubstr strip_error_prefix = "ERROR: ";
+	if (error_msg.begins_with(strip_error_prefix)) {
+		error_msg = error_msg.sub(strip_error_prefix.len);
+	}
 
-  // Get first line of error message
-  size_t newline_pos = error_msg.find('\n');
-  if (newline_pos != ryml::substr::npos) {
-    error_msg = error_msg.sub(0, newline_pos);
-  }
+	// Get first line of error message
+	size_t newline_pos = error_msg.find('\n');
+	if (newline_pos != ryml::substr::npos) {
+		error_msg = error_msg.sub(0, newline_pos);
+	}
 
-  // Get the emitter instance through user_data
-  auto* emitter = static_cast<Emitter*>(user_data);
-  if (!emitter) {
-    throw YAMLException(from_ryml_str(error_msg));
-  }
+	// Get the emitter instance through user_data
+	auto *emitter = static_cast<Emitter *>(user_data);
+	if (!emitter) {
+		throw YAMLException(from_ryml_str(error_msg));
+	}
 
-  // Set error in this specific emitter  instance
-  emitter->current_result = YAMLResult::error(
-          from_ryml_str(error_msg),
-          loc.line,
-          loc.col);
+	// Set error in this specific emitter  instance
+	emitter->current_result = YAMLResult::error(
+			from_ryml_str(error_msg),
+			loc.line,
+			loc.col);
 
-  throw YAMLException(emitter->current_result->get_error_message());
+	throw YAMLException(emitter->current_result->get_error_message());
 }
 
-ryml::csubstr YAML::Emitter::store_string(const String& str)
-{
-  return string_pool.store(str);
+ryml::csubstr YAML::Emitter::store_string(const String &str) {
+	return string_pool.store(str);
 }
 
-VariantConverter* YAML::Emitter::get_converter_for_type(Variant::Type type) const
-{
-  auto it = type_converters.find(type);
-  return it != type_converters.end() ? it->second.get() : nullptr;
+VariantConverter *YAML::Emitter::get_converter_for_type(Variant::Type type) const {
+	auto it = type_converters.find(type);
+	return it != type_converters.end() ? it->second.get() : nullptr;
 }
 
-VariantConverter* YAML::Emitter::get_converter_for_tag(const String& tag) const
-{
-  auto it = tag_converters.find(tag);
-  return it != tag_converters.end() ? it->second : nullptr;
+VariantConverter *YAML::Emitter::get_converter_for_tag(const String &tag) const {
+	auto it = tag_converters.find(tag);
+	return it != tag_converters.end() ? it->second : nullptr;
 }
 
-Ref<YAMLResult> YAML::Emitter::emit(const Variant& input, const YAMLStyle::View& style)
-{
-  try {
-    current_result = YAMLResult::success(Variant());
+Ref<YAMLResult> YAML::Emitter::emit(const Variant &input, const YAMLStyle::View &style) {
+	try {
+		current_result = YAMLResult::success(Variant());
 
-    // Emit value into tree
-    emit_value(tree.rootref(), input, style);
+		// Emit value into tree
+		emit_value(tree.rootref(), input, style);
 
-    // Check for errors that occurred during emission
-    if (current_result->has_error()) {
-      return current_result;
-    }
+		// Check for errors that occurred during emission
+		if (current_result->has_error()) {
+			return current_result;
+		}
 
-    // Convert to YAML string
-    std::string yaml_str = ryml::emitrs_yaml<std::string>(tree);
-    return YAMLResult::success(String::utf8(yaml_str.c_str(), yaml_str.length()), nullptr);
-  } catch (const YAMLException& e) {
-    return YAMLResult::error(e.get_godot_message());
-  } catch (const std::exception& e) {
-    return YAMLResult::error(e.what());
-  } catch (...) {
-    return YAMLResult::error("Unknown error occurred during emission");
-  }
+		// Convert to YAML string
+		std::string yaml_str = ryml::emitrs_yaml<std::string>(tree);
+		return YAMLResult::success(String::utf8(yaml_str.c_str(), yaml_str.length()), nullptr);
+	} catch (const YAMLException &e) {
+		return YAMLResult::error(e.get_godot_message());
+	} catch (const std::exception &e) {
+		return YAMLResult::error(e.what());
+	} catch (...) {
+		return YAMLResult::error("Unknown error occurred during emission");
+	}
 }
 
-void YAML::Emitter::emit_value(ryml::NodeRef node, const Variant& value, const YAMLStyle::View& style)
-{
-  static int depth = 0;
-  depth++;
+void YAML::Emitter::emit_value(ryml::NodeRef node, const Variant &value, const YAMLStyle::View &style) {
+	static int depth = 0;
+	depth++;
 
-  try {
-    check_depth(depth);
+	try {
+		check_depth(depth);
 
-    switch (value.get_type()) {
-      case Variant::NIL:
-        emit_nil(node);
-        break;
+		switch (value.get_type()) {
+			case Variant::NIL:
+				emit_nil(node);
+				break;
 
-      case Variant::BOOL:
-        emit_bool(node, value);
-        break;
+			case Variant::BOOL:
+				emit_bool(node, value);
+				break;
 
-      case Variant::INT:
-      case Variant::FLOAT:
-        emit_number(node, value, style);
-        break;
+			case Variant::INT:
+			case Variant::FLOAT:
+				emit_number(node, value, style);
+				break;
 
-      case Variant::STRING:
-        emit_string(node, value, style);
-        break;
+			case Variant::STRING:
+				emit_string(node, value, style);
+				break;
 
-      case Variant::ARRAY:
-        emit_array(node, value, style);
-        break;
+			case Variant::ARRAY:
+				emit_array(node, value, style);
+				break;
 
-      case Variant::DICTIONARY:
-        emit_dictionary(node, value, style);
-        break;
+			case Variant::DICTIONARY:
+				emit_dictionary(node, value, style);
+				break;
 
-      case Variant::OBJECT: {
-        Object* obj = value.operator Object*();
-        if (obj) {
-          emit_object(node, obj, style);
-        } else {
-          emit_nil(node);
-        }
-        break;
-      }
+			case Variant::OBJECT: {
+				Object *obj = value.operator Object *();
+				if (obj) {
+					emit_object(node, obj, style);
+				} else {
+					emit_nil(node);
+				}
+				break;
+			}
 
-      default: {
-        VariantConverter* converter = get_converter_for_type(value.get_type());
-        if (converter) {
-          node.set_val_tag(converter->get_full_tag());
-          converter->encode(node, value, style);
-        } else {
-          String type_name = Variant::get_type_name(value.get_type());
-          String error = vformat("Cannot serialize type: %s", type_name);
-          current_result = YAMLResult::error(error);
-          throw YAMLException(error);
-        }
-        break;
-      }
-    }
-  } catch (...) {
-    depth--;
-    throw;
-  }
+			default: {
+				VariantConverter *converter = get_converter_for_type(value.get_type());
+				if (converter) {
+					node.set_val_tag(converter->get_full_tag());
+					converter->encode(node, value, style);
+				} else {
+					String type_name = Variant::get_type_name(value.get_type());
+					String error = vformat("Cannot serialize type: %s", type_name);
+					current_result = YAMLResult::error(error);
+					throw YAMLException(error);
+				}
+				break;
+			}
+		}
+	} catch (...) {
+		depth--;
+		throw;
+	}
 
-  depth--;
+	depth--;
 
-  // Add custom tags last
-  if (style.is_valid() && !style.get_custom_settings().is_empty() && style.get_custom_settings().has("tag")) {
-    String tag = style.get_custom_settings()["tag"];
-    if (!tag.is_empty()) {
-      node.set_val_tag(store_string("!" + tag));
-    }
-  }
+	// Add custom tags last
+	if (style.is_valid() && !style.get_custom_settings().is_empty() && style.get_custom_settings().has("tag")) {
+		String tag = style.get_custom_settings()["tag"];
+		if (!tag.is_empty()) {
+			node.set_val_tag(store_string("!" + tag));
+		}
+	}
 }
 
-void YAML::Emitter::emit_nil(ryml::NodeRef& node)
-{
-  ryml::csubstr null = {};
-  node << null;
+void YAML::Emitter::emit_nil(ryml::NodeRef &node) {
+	ryml::csubstr null = {};
+	node << null;
 }
 
-void YAML::Emitter::emit_bool(ryml::NodeRef& node, bool value)
-{
-  node << (value ? "true" : "false");
+void YAML::Emitter::emit_bool(ryml::NodeRef &node, bool value) {
+	node << (value ? "true" : "false");
 }
 
-void YAML::Emitter::emit_number(ryml::NodeRef& node, const Variant& value, const YAMLStyle::View& style)
-{
-  YAMLStyle::NumberFormat format = style.is_valid() ? style.get_number_format() : YAMLStyle::NUM_DECIMAL;
+void YAML::Emitter::emit_number(ryml::NodeRef &node, const Variant &value, const YAMLStyle::View &style) {
+	YAMLStyle::NumberFormat format = style.is_valid() ? style.get_number_format() : YAMLStyle::NUM_DECIMAL;
 
-  if (value.get_type() == Variant::INT) {
-    int64_t int_val = static_cast<int64_t>(value.operator int64_t());
-    node << int_to_string(int_val, format);
-  } else {
-    double float_val = static_cast<double>(value.operator double());
-    node << float_to_string(float_val, format);
-  }
+	if (value.get_type() == Variant::INT) {
+		int64_t int_val = static_cast<int64_t>(value.operator int64_t());
+		node << int_to_string(int_val, format);
+	} else {
+		double float_val = static_cast<double>(value.operator double());
+		node << float_to_string(float_val, format);
+	}
 }
 
-void YAML::Emitter::emit_string(ryml::NodeRef& node, const String& value, const YAMLStyle::View& style)
-{
-  if (value.is_empty()) {
-    node << ryml::csubstr {};
-    return;
-  }
+void YAML::Emitter::emit_string(ryml::NodeRef &node, const String &value, const YAMLStyle::View &style) {
+	if (value.is_empty()) {
+		node << ryml::csubstr{};
+		return;
+	}
 
-  // First handle explicit style settings if provided
-  if (style.is_valid()) {
-    style.apply_scalar_style(node);
-    style.apply_quote_style(node);
-  } else {
-    // Auto-detect appropriate scalar style
-    if (value.contains("\n")) {
-      node |= ryml::BLOCK;
-      // If the string has significant whitespace or ends with newlines,
-      // use literal style, otherwise use folded
-      if (value.ends_with("\n") || value.contains("  ")) {
-        node |= ryml::VAL_LITERAL;
-      } else {
-        node |= ryml::VAL_FOLDED;
-      }
-    } else if (needs_block_style(value)) {
-      node |= ryml::BLOCK;
-    }
-    // Auto-detect quotes for non-block strings
-    if (!node.is_block()) {
-      if (needs_quotes(value)) {
-        node |= ryml::VAL_DQUO;
-      }
-    }
-  }
+	// First handle explicit style settings if provided
+	if (style.is_valid()) {
+		style.apply_scalar_style(node);
+		style.apply_quote_style(node);
+	} else {
+		// Auto-detect appropriate scalar style
+		if (value.contains("\n")) {
+			node |= ryml::BLOCK;
+			// If the string has significant whitespace or ends with newlines,
+			// use literal style, otherwise use folded
+			if (value.ends_with("\n") || value.contains("  ")) {
+				node |= ryml::VAL_LITERAL;
+			} else {
+				node |= ryml::VAL_FOLDED;
+			}
+		} else if (needs_block_style(value)) {
+			node |= ryml::BLOCK;
+		}
+		// Auto-detect quotes for non-block strings
+		if (!node.is_block()) {
+			if (needs_quotes(value)) {
+				node |= ryml::VAL_DQUO;
+			}
+		}
+	}
 
-  node << to_ryml_str(value);
+	node << to_ryml_str(value);
 }
 
-void YAML::Emitter::emit_array(ryml::NodeRef& node, const Array& array, const YAMLStyle::View& style)
-{
-  node |= ryml::SEQ;
+void YAML::Emitter::emit_array(ryml::NodeRef &node, const Array &array, const YAMLStyle::View &style) {
+	node |= ryml::SEQ;
 
-  if (array.size() == 0) {
-    return;
-  }
+	if (array.size() == 0) {
+		return;
+	}
 
-  if (style.is_valid()) {
-    style.apply_flow_style(node);
-  }
+	if (style.is_valid()) {
+		style.apply_flow_style(node);
+	}
 
-  // Get template style and shared item style
-  YAMLStyle::View template_style = style.is_valid() ? style.get_template_style() : YAMLStyle::View();
-  YAMLStyle::View shared_style = style.is_valid() ? style.get_child("_items") : YAMLStyle::View();
+	// Get template style and shared item style
+	YAMLStyle::View template_style = style.is_valid() ? style.get_template_style() : YAMLStyle::View();
+	YAMLStyle::View shared_style = style.is_valid() ? style.get_child("_items") : YAMLStyle::View();
 
-  for (int i = 0; i < array.size(); i++) {
-    // Check for individual item style, fall back to template, then shared style
-    YAMLStyle::View item_style;
-    if (style.is_valid()) {
-      item_style = style.get_child(String::num_int64(i));
-      if (!item_style.is_valid()) {
-        item_style = template_style.is_valid() ? template_style : shared_style;
-      }
-    }
-    ryml::NodeRef child = node.append_child();
-    emit_value(child, array[i], item_style);
-  }
+	for (int i = 0; i < array.size(); i++) {
+		// Check for individual item style, fall back to template, then shared style
+		YAMLStyle::View item_style;
+		if (style.is_valid()) {
+			item_style = style.get_child(String::num_int64(i));
+			if (!item_style.is_valid()) {
+				item_style = template_style.is_valid() ? template_style : shared_style;
+			}
+		}
+		ryml::NodeRef child = node.append_child();
+		emit_value(child, array[i], item_style);
+	}
 }
 
-void YAML::Emitter::emit_dictionary(ryml::NodeRef& node, const Dictionary& dict, const YAMLStyle::View& style)
-{
-  node |= ryml::MAP;
+void YAML::Emitter::emit_dictionary(ryml::NodeRef &node, const Dictionary &dict, const YAMLStyle::View &style) {
+	node |= ryml::MAP;
 
-  if (style.is_valid() && style.get_flow_style() == YAMLStyle::FLOW_SINGLE) {
-    node |= ryml::FLOW_SL;
-  }
+	if (style.is_valid() && style.get_flow_style() == YAMLStyle::FLOW_SINGLE) {
+		node |= ryml::FLOW_SL;
+	}
 
-  Array keys = dict.keys();
+	Array keys = dict.keys();
 
-  for (int i = 0; i < keys.size(); i++) {
-    ryml::NodeRef child = node.append_child();
-    ryml::csubstr key_str = store_string(keys[i]);
-    child << ryml::key(key_str);
-    emit_value(child, dict[keys[i]], style.get_child(String(keys[i])));
-  }
+	for (int i = 0; i < keys.size(); i++) {
+		ryml::NodeRef child = node.append_child();
+		ryml::csubstr key_str = store_string(keys[i]);
+		child << ryml::key(key_str);
+		emit_value(child, dict[keys[i]], style.get_child(String(keys[i])));
+	}
 }
 
-void YAML::Emitter::emit_object(ryml::NodeRef& node, Object* obj, const YAMLStyle::View& style)
-{
-  String class_name = obj->get_class();
+void YAML::Emitter::emit_object(ryml::NodeRef &node, Object *obj, const YAMLStyle::View &style) {
+	String class_name = obj->get_class();
 
-  // Handle custom classes
-  Ref<Script> script = obj->get_script();
-  if (script.is_valid() && !script->get_global_name().is_empty()) {
-    class_name = script->get_global_name();
+	// Handle custom classes
+	Ref<Script> script = obj->get_script();
+	if (script.is_valid() && !script->get_global_name().is_empty()) {
+		class_name = script->get_global_name();
 
-    // Check that the class is registered
-    if (YAMLClassRegistry::has_class(class_name)) {
-      YAMLClassRegistry::ClassInfo class_info = YAMLClassRegistry::get_class_info(class_name);
+		// Check that the class is registered
+		if (YAMLClassRegistry::has_class(class_name)) {
+			YAMLClassRegistry::ClassInfo class_info = YAMLClassRegistry::get_class_info(class_name);
 
-      // Class info exists and is valid
-      if (class_info.script_class.is_valid()) {
-        const StringName to_dict = class_info.to_dict_method;
-        Variant dict = obj->call(to_dict);
-        if (dict) {
-          node.set_val_tag(store_string("!" + class_name));
-          emit_dictionary(node, dict, style);
-          return;
-        }
-      }
-    }
-  }
+			// Class info exists and is valid
+			if (class_info.script_class.is_valid()) {
+				const StringName to_dict = class_info.to_dict_method;
+				Variant dict = obj->call(to_dict);
+				if (dict) {
+					node.set_val_tag(store_string("!" + class_name));
+					emit_dictionary(node, dict, style);
+					return;
+				}
+			}
+		}
+	}
 
-  // Handle resources
-  const Resource* res = Object::cast_to<const Resource>(obj);
-  if (res) {
-    emit_resource(node, res, style);
-    return;
-  }
+	// Handle resources
+	const Resource *res = Object::cast_to<const Resource>(obj);
+	if (res) {
+		emit_resource(node, res, style);
+		return;
+	}
 
-  // FIXME: Handle Object types
-  String error = vformat("Cannot emit Object of type: " + class_name);
-  current_result = YAMLResult::error(error);
-  throw YAMLException(error);
+	// FIXME: Handle Object types
+	String error = vformat("Cannot emit Object of type: " + class_name);
+	current_result = YAMLResult::error(error);
+	throw YAMLException(error);
 }
 
-void YAML::Emitter::emit_resource(ryml::NodeRef& node, const Resource* res, const YAMLStyle::View& style)
-{
-  String path = res->get_path();
-  bool is_local = res->is_local_to_scene();
+void YAML::Emitter::emit_resource(ryml::NodeRef &node, const Resource *res, const YAMLStyle::View &style) {
+	String path = res->get_path();
+	bool is_local = res->is_local_to_scene();
 
-  // Local resources cannot be serialized
-  if (is_local || path.to_lower().contains("::")) {
-    String error = vformat("Cannot serialize local Resource");
-    current_result = YAMLResult::error(error);
-    throw YAMLException(error);
-  }
+	// Local resources cannot be serialized
+	if (is_local || path.to_lower().contains("::")) {
+		String error = vformat("Cannot serialize local Resource");
+		current_result = YAMLResult::error(error);
+		throw YAMLException(error);
+	}
 
-  // Resources need a path
-  if (path.is_empty()) {
-    String error = vformat("Cannot serialize Resource without path");
-    current_result = YAMLResult::error(error);
-    throw YAMLException(error);
-  }
+	// Resources need a path
+	if (path.is_empty()) {
+		String error = vformat("Cannot serialize Resource without path");
+		current_result = YAMLResult::error(error);
+		throw YAMLException(error);
+	}
 
-  node.set_val_tag("!Resource");
-  node << ryml::VAL_DQUO;
-  node << to_ryml_str(path);
+	node.set_val_tag("!Resource");
+	node << ryml::VAL_DQUO;
+	node << to_ryml_str(path);
 }
 
-void YAML::Emitter::check_depth(int current_depth)
-{
-  if (current_depth > MAX_DEPTH) {
-    String error = vformat("Maximum nesting depth exceeded (%d). Possible circular reference?", MAX_DEPTH);
-    current_result = YAMLResult::error(error);
-    throw YAMLException(error);
-  }
+void YAML::Emitter::check_depth(int current_depth) {
+	if (current_depth > MAX_DEPTH) {
+		String error = vformat("Maximum nesting depth exceeded (%d). Possible circular reference?", MAX_DEPTH);
+		current_result = YAMLResult::error(error);
+		throw YAMLException(error);
+	}
 }

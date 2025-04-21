@@ -13,14 +13,14 @@ namespace godot {
  * Example: [1.0, -2.5, .inf, -.inf, .nan]
  */
 class PackedFloat32ArrayVariantConverter : public VariantConverter {
-  public:
-  DEFINE_YAML_TAG("PackedFloat32Array", Variant::PACKED_FLOAT32_ARRAY)
+public:
+	DEFINE_YAML_TAG("PackedFloat32Array", Variant::PACKED_FLOAT32_ARRAY)
 
-  void encode(ryml::NodeRef& node, const Variant& v, const YAMLStyle::View& style) const override;
-  Variant decode(const ryml::ConstNodeRef& node) const override;
+	void encode(ryml::NodeRef &node, const Variant &v, const YAMLStyle::View &style) const override;
+	Variant decode(const ryml::ConstNodeRef &node) const override;
 
-  private:
-  void emit_as_sequence(ryml::NodeRef& node, const PackedFloat32Array& array, const YAMLStyle::View& style) const;
+private:
+	void emit_as_sequence(ryml::NodeRef &node, const PackedFloat32Array &array, const YAMLStyle::View &style) const;
 };
 
 } // namespace godot

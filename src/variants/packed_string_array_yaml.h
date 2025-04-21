@@ -6,14 +6,14 @@
 namespace godot {
 
 class PackedStringArrayVariantConverter : public VariantConverter {
-  public:
-  DEFINE_YAML_TAG("PackedStringArray", Variant::PACKED_STRING_ARRAY)
+public:
+	DEFINE_YAML_TAG("PackedStringArray", Variant::PACKED_STRING_ARRAY)
 
-  void encode(ryml::NodeRef& node, const Variant& v, const YAMLStyle::View& style) const override;
-  Variant decode(const ryml::ConstNodeRef& node) const override;
+	void encode(ryml::NodeRef &node, const Variant &v, const YAMLStyle::View &style) const override;
+	Variant decode(const ryml::ConstNodeRef &node) const override;
 
-  private:
-  void emit_as_sequence(ryml::NodeRef& node, const PackedStringArray& array, const YAMLStyle::View& style) const;
+private:
+	void emit_as_sequence(ryml::NodeRef &node, const PackedStringArray &array, const YAMLStyle::View &style) const;
 };
 
 } // namespace godot

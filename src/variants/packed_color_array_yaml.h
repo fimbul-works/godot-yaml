@@ -8,16 +8,16 @@
 namespace godot {
 
 class PackedColorArrayVariantConverter : public VariantConverter {
-  public:
-  explicit PackedColorArrayVariantConverter(ConverterFactory* factory);
+public:
+	explicit PackedColorArrayVariantConverter(ConverterFactory *factory);
 
-  DEFINE_YAML_TAG("PackedColorArray", Variant::PACKED_COLOR_ARRAY)
+	DEFINE_YAML_TAG("PackedColorArray", Variant::PACKED_COLOR_ARRAY)
 
-  void encode(ryml::NodeRef& node, const Variant& v, const YAMLStyle::View& style) const override;
-  Variant decode(const ryml::ConstNodeRef& node) const override;
+	void encode(ryml::NodeRef &node, const Variant &v, const YAMLStyle::View &style) const override;
+	Variant decode(const ryml::ConstNodeRef &node) const override;
 
-  private:
-  std::unique_ptr<ColorVariantConverter> color_converter;
+private:
+	std::unique_ptr<ColorVariantConverter> color_converter;
 };
 
 } // namespace godot

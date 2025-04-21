@@ -8,22 +8,22 @@
 namespace godot {
 
 class Rect2VariantConverter : public VariantConverter {
-  public:
-  explicit Rect2VariantConverter(ConverterFactory* factory);
+public:
+	explicit Rect2VariantConverter(ConverterFactory *factory);
 
-  DEFINE_YAML_TAG("Rect2", Variant::RECT2)
+	DEFINE_YAML_TAG("Rect2", Variant::RECT2)
 
-  void encode(ryml::NodeRef& node, const Variant& v, const YAMLStyle::View& style) const override;
-  Variant decode(const ryml::ConstNodeRef& node) const override;
+	void encode(ryml::NodeRef &node, const Variant &v, const YAMLStyle::View &style) const override;
+	Variant decode(const ryml::ConstNodeRef &node) const override;
 
-  private:
-  void emit_as_map(ryml::NodeRef& node, const Rect2& rect, const YAMLStyle::View& style) const;
-  void emit_as_sequence(ryml::NodeRef& node, const Rect2& rect, const YAMLStyle::View& style) const;
+private:
+	void emit_as_map(ryml::NodeRef &node, const Rect2 &rect, const YAMLStyle::View &style) const;
+	void emit_as_sequence(ryml::NodeRef &node, const Rect2 &rect, const YAMLStyle::View &style) const;
 
-  Variant decode_from_map(const ryml::ConstNodeRef& node) const;
-  Variant decode_from_sequence(const ryml::ConstNodeRef& node) const;
+	Variant decode_from_map(const ryml::ConstNodeRef &node) const;
+	Variant decode_from_sequence(const ryml::ConstNodeRef &node) const;
 
-  std::unique_ptr<Vector2VariantConverter> vec2_converter;
+	std::unique_ptr<Vector2VariantConverter> vec2_converter;
 };
 
 } // namespace godot

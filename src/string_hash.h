@@ -7,31 +7,27 @@
 namespace godot {
 
 struct StringHasher {
-  size_t operator()(const String& str) const
-  {
-    return str.hash();
-  }
+	size_t operator()(const String &str) const {
+		return str.hash();
+	}
 };
 
 struct StringNameHasher {
-  size_t operator()(const StringName& str) const
-  {
-    return str.hash();
-  }
+	size_t operator()(const StringName &str) const {
+		return str.hash();
+	}
 };
 
 struct StringEqual {
-  bool operator()(const String& lhs, const String& rhs) const
-  {
-    return lhs == rhs;
-  }
+	bool operator()(const String &lhs, const String &rhs) const {
+		return lhs == rhs;
+	}
 };
 
 struct StringNameEqual {
-  bool operator()(const StringName& lhs, const StringName& rhs) const
-  {
-    return lhs == rhs;
-  }
+	bool operator()(const StringName &lhs, const StringName &rhs) const {
+		return lhs == rhs;
+	}
 };
 
 } // namespace godot

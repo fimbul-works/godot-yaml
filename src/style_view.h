@@ -14,67 +14,67 @@ namespace godot {
 
 // Style view implementation that doesn't need complete YAMLStyle definition
 class YAMLStyle::View {
-  public:
-  // Default constructor creates an empty view
-  View() = default;
-  bool is_valid() const;
+public:
+	// Default constructor creates an empty view
+	View() = default;
+	bool is_valid() const;
 
-  static View create_view(const Ref<YAMLStyle>& style = Ref<YAMLStyle>());
+	static View create_view(const Ref<YAMLStyle> &style = Ref<YAMLStyle>());
 
-  // Const accessors
-  YAMLStyle::ScalarStyle get_scalar_style() const;
-  YAMLStyle::QuoteStyle get_quote_style() const;
-  YAMLStyle::ContainerForm get_container_form() const;
-  YAMLStyle::FlowStyle get_flow_style() const;
-  YAMLStyle::NumberFormat get_number_format() const;
-  YAMLStyle::BinaryEncoding get_binary_encoding() const;
-  YAMLStyle::View get_template_style() const;
+	// Const accessors
+	YAMLStyle::ScalarStyle get_scalar_style() const;
+	YAMLStyle::QuoteStyle get_quote_style() const;
+	YAMLStyle::ContainerForm get_container_form() const;
+	YAMLStyle::FlowStyle get_flow_style() const;
+	YAMLStyle::NumberFormat get_number_format() const;
+	YAMLStyle::BinaryEncoding get_binary_encoding() const;
+	YAMLStyle::View get_template_style() const;
 
-  // Helper methods
-  bool is_block_style() const;
-  bool uses_quotes() const;
-  bool uses_flow() const;
+	// Helper methods
+	bool is_block_style() const;
+	bool uses_quotes() const;
+	bool uses_flow() const;
 
-  // Style helpers
-  void apply_scalar_style(ryml::NodeRef& node) const;
-  void apply_quote_style(ryml::NodeRef& node) const;
-  void apply_flow_style(ryml::NodeRef& node) const;
+	// Style helpers
+	void apply_scalar_style(ryml::NodeRef &node) const;
+	void apply_quote_style(ryml::NodeRef &node) const;
+	void apply_flow_style(ryml::NodeRef &node) const;
 
-  // Child style access
-  View get_child(const String& key) const;
-  bool has_child(const String& key) const;
+	// Child style access
+	View get_child(const String &key) const;
+	bool has_child(const String &key) const;
 
-  // Custom settings access
-  const Dictionary& get_custom_settings() const;
+	// Custom settings access
+	const Dictionary &get_custom_settings() const;
 
-  private:
-  struct ViewData {
-    bool has_scalar_style = false;
-    ScalarStyle scalar_style;
+private:
+	struct ViewData {
+		bool has_scalar_style = false;
+		ScalarStyle scalar_style;
 
-    bool has_quote_style = false;
-    QuoteStyle quote_style;
+		bool has_quote_style = false;
+		QuoteStyle quote_style;
 
-    bool has_container_form = false;
-    ContainerForm container_form;
+		bool has_container_form = false;
+		ContainerForm container_form;
 
-    bool has_flow_style = false;
-    FlowStyle flow_style;
+		bool has_flow_style = false;
+		FlowStyle flow_style;
 
-    bool has_number_format = false;
-    NumberFormat number_format;
+		bool has_number_format = false;
+		NumberFormat number_format;
 
-    bool has_binary_encoding = false;
-    BinaryEncoding binary_encoding;
+		bool has_binary_encoding = false;
+		BinaryEncoding binary_encoding;
 
-    bool has_custom_settings = false;
-    Dictionary custom_settings;
-    std::unordered_map<String, std::shared_ptr<const ViewData>, StringHasher, StringEqual> children;
-  };
+		bool has_custom_settings = false;
+		Dictionary custom_settings;
+		std::unordered_map<String, std::shared_ptr<const ViewData>, StringHasher, StringEqual> children;
+	};
 
-  explicit View(std::shared_ptr<const ViewData> p_data);
+	explicit View(std::shared_ptr<const ViewData> p_data);
 
-  std::shared_ptr<const ViewData> data;
+	std::shared_ptr<const ViewData> data;
 };
 
 } // namespace godot
