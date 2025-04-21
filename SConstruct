@@ -62,6 +62,16 @@ def setup_build_env(base_env):
     env.Append(CPPPATH=['src'])
     return env
 
+def get_build_path(env):
+    """Create a unique build path based on platform, target, and architecture"""
+    platform = env.get('platform', 'unknown')
+    target = env.get('target', 'unknown')
+    arch = env.get('arch', 'unknown')
+
+    # Create a unique directory name
+    build_path = os.path.join('build', f"{platform}_{target}_{arch}")
+    return os.path.abspath(build_path)
+
 def build_rapidyaml(env, variant_dir):
     platform = env.get('platform', '')
     target = env.get('target', '')
@@ -70,9 +80,9 @@ def build_rapidyaml(env, variant_dir):
     # Configure CMake
     cmake_build_type = 'Release' if target == 'template_release' else 'Debug'
 
-    # Separate build directories
-    rapidyaml_build_dir = os.path.join(variant_dir, f'rapidyaml_build_{cmake_build_type.lower()}')
-    rapidyaml_install_dir = os.path.join(variant_dir, f'rapidyaml_install_{cmake_build_type.lower()}')
+    # Separate build directories using the variant_dir which now includes platform and architecture
+    rapidyaml_build_dir = os.path.join(variant_dir, 'rapidyaml_build')
+    rapidyaml_install_dir = os.path.join(variant_dir, 'rapidyaml_install')
 
     if not os.path.exists(rapidyaml_build_dir):
         os.makedirs(rapidyaml_build_dir)
@@ -123,7 +133,7 @@ def clean_rapidyaml(env, variant_dir):
     if os.path.exists(rapidyaml_install_dir):
         shutil.rmtree(rapidyaml_install_dir)
 
-    print("Cleaned RapidYAML build directories")
+    print(f"Cleaned RapidYAML build directories for {variant_dir}")
 
 def build_config(env, variant_dir):
     # Set up variant dir for our sources
@@ -146,6 +156,9 @@ def build_config(env, variant_dir):
 
     # Set up output directories
     output_lib_dir = os.path.join(variant_dir, 'lib')
+    if not os.path.exists(output_lib_dir):
+        os.makedirs(output_lib_dir)
+
     env.Append(LIBPATH=[output_lib_dir])
 
     # Build the library
@@ -160,6 +173,9 @@ def build_config(env, variant_dir):
 
     # Install the built library to the bin directory
     bin_dir = os.path.join('project', 'addons', 'yaml', 'bin')
+    if not os.path.exists(bin_dir):
+        os.makedirs(bin_dir)
+
     installed_lib = env.Install(bin_dir, library)
     env.Alias('install', installed_lib)
 
@@ -168,12 +184,12 @@ def build_config(env, variant_dir):
 # Setup the build environment
 env = setup_build_env(base_env)
 
-# Establish the variant directory based on the target
-variant_dir = os.path.abspath(os.path.join('build', env["target"]))
+# Establish the variant directory based on platform, target, and architecture
+variant_dir = get_build_path(env)
 if not os.path.exists(variant_dir):
     os.makedirs(variant_dir)
 
-# OBJPREFIX placees object files in the variant directory
+# OBJPREFIX places object files in the variant directory
 env['OBJPREFIX'] = os.path.join(variant_dir, '')
 
 target = build_config(env, variant_dir)
