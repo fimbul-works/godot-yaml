@@ -1,0 +1,440 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="YAMLStyle" inherits="RefCounted" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+		Controls formatting options for YAML serialization.
+	</brief_description>
+	<description>
+		Controls formatting options for YAML serialization, letting you customize how Godot data structures appear in YAML text. Provides control over scalar styles, quoting, container formats, and more.
+		Use [YAMLStyle] with [method YAML.stringify] to customize YAML output. You can also get style information from parsed YAML when style detection is enabled, preserving the original formatting when modifying and re-serializing YAML.
+		Style options can be applied hierarchically through child styles, allowing different formatting for different parts of the YAML document.
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="clear_child">
+			<return type="void" />
+			<param index="0" name="key" type="String" />
+			<description>
+				Removes a specific child style by key.
+				[codeblocks]
+				[gdscript]
+				var style = YAML.create_style()
+
+				# Add a child style
+				var child_style = YAML.create_style()
+				child_style.set_flow_style(YAMLStyle.FLOW_SINGLE)
+				style.set_child("items", child_style)
+
+				# Remove the child style
+				style.clear_child("items")
+				print(style.has_child("items"))  # Output: false
+				[/gdscript]
+				[/codeblocks]
+			</description>
+		</method>
+		<method name="clear_children">
+			<return type="void" />
+			<description>
+				Removes all child styles.
+				[codeblocks]
+				[gdscript]
+				var style = YAML.create_style()
+
+				# Add multiple child styles
+				var child1 = YAML.create_style()
+				var child2 = YAML.create_style()
+				style.set_child("items", child1)
+				style.set_child("config", child2)
+
+				# Clear all children
+				style.clear_children()
+				print(style.get_children_keys())  # Output: []
+				[/gdscript]
+				[/codeblocks]
+			</description>
+		</method>
+		<method name="get_binary_encoding_string" qualifiers="static">
+			<return type="String" />
+			<param index="0" name="p_style" type="int" enum="YAMLStyle.BinaryEncoding" />
+			<description>
+				Returns a string representation of the specified binary encoding style. Useful for debugging and diagnostic purposes.
+				[codeblocks]
+				[gdscript]
+				# Get string representations of binary encoding styles
+				print(YAMLStyle.get_binary_encoding_string(YAMLStyle.BIN_ANY))      # Output: ANY
+				print(YAMLStyle.get_binary_encoding_string(YAMLStyle.BIN_STRING))   # Output: STRING
+				print(YAMLStyle.get_binary_encoding_string(YAMLStyle.BIN_BASE64))   # Output: BASE64
+				print(YAMLStyle.get_binary_encoding_string(YAMLStyle.BIN_HEX))      # Output: HEX
+				[/gdscript]
+				[/codeblocks]
+			</description>
+		</method>
+		<method name="get_child" qualifiers="const">
+			<return type="YAMLStyle" />
+			<param index="0" name="key" type="String" />
+			<description>
+				Returns a child style by key. Returns [code]null[/code] if no child style exists for the given key.
+				[codeblocks]
+				[gdscript]
+				var style = YAML.create_style()
+
+				# Add a child style
+				var list_style = YAML.create_style()
+				list_style.set_flow_style(YAMLStyle.FLOW_SINGLE)
+				style.set_child("items", list_style)
+
+				# Get the child style
+				var child = style.get_child("items")
+				if child:
+				    print(child.get_flow_style() == YAMLStyle.FLOW_SINGLE)  # Output: true
+				[/gdscript]
+				[/codeblocks]
+			</description>
+		</method>
+		<method name="get_children_keys" qualifiers="const">
+			<return type="Array" />
+			<description>
+				Returns all child style keys as an array of strings.
+				[codeblocks]
+				[gdscript]
+				var style = YAML.create_style()
+
+				# Add multiple child styles
+				var child1 = YAML.create_style()
+				var child2 = YAML.create_style()
+				style.set_child("items", child1)
+				style.set_child("config", child2)
+
+				# Get all child keys
+				var keys = style.get_children_keys()
+				print(keys)  # Output: ["items", "config"]
+				[/gdscript]
+				[/codeblocks]
+			</description>
+		</method>
+		<method name="get_container_form_string" qualifiers="static">
+			<return type="String" />
+			<param index="0" name="p_style" type="int" enum="YAMLStyle.ContainerForm" />
+			<description>
+				Returns a string representation of the specified container form style. Useful for debugging and diagnostic purposes.
+				[codeblocks]
+				[gdscript]
+				# Get string representations of container form styles
+				print(YAMLStyle.get_container_form_string(YAMLStyle.FORM_ANY))  # Output: ANY
+				print(YAMLStyle.get_container_form_string(YAMLStyle.FORM_SEQ))  # Output: SEQ
+				print(YAMLStyle.get_container_form_string(YAMLStyle.FORM_MAP))  # Output: MAP
+				[/gdscript]
+				[/codeblocks]
+			</description>
+		</method>
+		<method name="get_debug_string" qualifiers="const">
+			<return type="String" />
+			<description>
+				Returns a detailed string representation of all style settings, including child styles. Useful for debugging and inspecting style configurations.
+				[codeblocks]
+				[gdscript]
+				var style = YAML.create_style()
+				style.set_scalar_style(YAMLStyle.SCALAR_LITERAL)
+				style.set_quote_style(YAMLStyle.QUOTE_DOUBLE)
+
+				var child_style = YAML.create_style()
+				child_style.set_flow_style(YAMLStyle.FLOW_SINGLE)
+				style.set_child("list", child_style)
+
+				print(style.get_debug_string())
+				[/gdscript]
+				[/codeblocks]
+			</description>
+		</method>
+		<method name="get_flow_style_string" qualifiers="static">
+			<return type="String" />
+			<param index="0" name="p_style" type="int" enum="YAMLStyle.FlowStyle" />
+			<description>
+				Returns a string representation of the specified flow style. Useful for debugging and diagnostic purposes.
+				[codeblocks]
+				[gdscript]
+				# Get string representations of flow styles
+				print(YAMLStyle.get_flow_style_string(YAMLStyle.FLOW_ANY))    # Output: ANY
+				print(YAMLStyle.get_flow_style_string(YAMLStyle.FLOW_NONE))   # Output: NONE
+				print(YAMLStyle.get_flow_style_string(YAMLStyle.FLOW_SINGLE)) # Output: SINGLE
+				[/gdscript]
+				[/codeblocks]
+			</description>
+		</method>
+		<method name="get_number_format_string" qualifiers="static">
+			<return type="String" />
+			<param index="0" name="p_style" type="int" enum="YAMLStyle.NumberFormat" />
+			<description>
+				Returns a string representation of the specified number format. Useful for debugging and diagnostic purposes.
+				[codeblocks]
+				[gdscript]
+				# Get string representations of number formats
+				print(YAMLStyle.get_number_format_string(YAMLStyle.NUM_ANY))        # Output: ANY
+				print(YAMLStyle.get_number_format_string(YAMLStyle.NUM_DECIMAL))    # Output: DECIMAL
+				print(YAMLStyle.get_number_format_string(YAMLStyle.NUM_HEX))        # Output: HEX
+				print(YAMLStyle.get_number_format_string(YAMLStyle.NUM_OCTAL))      # Output: OCTAL
+				print(YAMLStyle.get_number_format_string(YAMLStyle.NUM_BINARY))     # Output: BINARY
+				print(YAMLStyle.get_number_format_string(YAMLStyle.NUM_SCIENTIFIC)) # Output: SCIENTIFIC
+				[/gdscript]
+				[/codeblocks]
+			</description>
+		</method>
+		<method name="get_quote_style_string" qualifiers="static">
+			<return type="String" />
+			<param index="0" name="p_style" type="int" enum="YAMLStyle.QuoteStyle" />
+			<description>
+				Returns a string representation of the specified quote style. Useful for debugging and diagnostic purposes.
+				[codeblocks]
+				[gdscript]
+				# Get string representations of quote styles
+				print(YAMLStyle.get_quote_style_string(YAMLStyle.QUOTE_ANY))    # Output: ANY
+				print(YAMLStyle.get_quote_style_string(YAMLStyle.QUOTE_NONE))   # Output: NONE
+				print(YAMLStyle.get_quote_style_string(YAMLStyle.QUOTE_SINGLE)) # Output: SINGLE
+				print(YAMLStyle.get_quote_style_string(YAMLStyle.QUOTE_DOUBLE)) # Output: DOUBLE
+				[/gdscript]
+				[/codeblocks]
+			</description>
+		</method>
+		<method name="get_scalar_style_string" qualifiers="static">
+			<return type="String" />
+			<param index="0" name="p_style" type="int" enum="YAMLStyle.ScalarStyle" />
+			<description>
+				Returns a string representation of the specified scalar style. Useful for debugging and diagnostic purposes.
+				[codeblocks]
+				[gdscript]
+				# Get string representations of scalar styles
+				print(YAMLStyle.get_scalar_style_string(YAMLStyle.SCALAR_ANY))     # Output: ANY
+				print(YAMLStyle.get_scalar_style_string(YAMLStyle.SCALAR_PLAIN))   # Output: PLAIN
+				print(YAMLStyle.get_scalar_style_string(YAMLStyle.SCALAR_BLOCK))   # Output: BLOCK
+				print(YAMLStyle.get_scalar_style_string(YAMLStyle.SCALAR_LITERAL)) # Output: LITERAL
+				print(YAMLStyle.get_scalar_style_string(YAMLStyle.SCALAR_FOLDED))  # Output: FOLDED
+				[/gdscript]
+				[/codeblocks]
+			</description>
+		</method>
+		<method name="has_child" qualifiers="const">
+			<return type="bool" />
+			<param index="0" name="key" type="String" />
+			<description>
+				Returns [code]true[/code] if a child style exists for the given key.
+				[codeblocks]
+				[gdscript]
+				var style = YAML.create_style()
+
+				# Add a child style
+				var child_style = YAML.create_style()
+				style.set_child("items", child_style)
+
+				print(style.has_child("items"))  # Output: true
+				print(style.has_child("config")) # Output: false
+				[/gdscript]
+				[/codeblocks]
+			</description>
+		</method>
+		<method name="is_block_style" qualifiers="const">
+			<return type="bool" />
+			<description>
+				Returns [code]true[/code] if the current scalar style is a block style (SCALAR_BLOCK, SCALAR_LITERAL, or SCALAR_FOLDED).
+				[codeblocks]
+				[gdscript]
+				var style = YAML.create_style()
+
+				# Check default style
+				print(style.is_block_style())  # Output: false (default is SCALAR_ANY)
+
+				# Set and check literal style
+				style.set_scalar_style(YAMLStyle.SCALAR_LITERAL)
+				print(style.is_block_style())  # Output: true
+
+				# Set and check plain style
+				style.set_scalar_style(YAMLStyle.SCALAR_PLAIN)
+				print(style.is_block_style())  # Output: false
+				[/gdscript]
+				[/codeblocks]
+			</description>
+		</method>
+		<method name="set_child">
+			<return type="void" />
+			<param index="0" name="key" type="String" />
+			<param index="1" name="style" type="YAMLStyle" />
+			<description>
+				Sets a child style for the given key. If [param style] is [code]null[/code], removes the child style if it exists.
+				[codeblocks]
+				[gdscript]
+				var style = YAML.create_style()
+
+				# Create a child style for list elements
+				var list_style = YAML.create_style()
+				list_style.set_flow_style(YAMLStyle.FLOW_SINGLE)
+
+				# Set the child style
+				style.set_child("items", list_style)
+
+				# When serializing, elements under the "items" key will use this style
+				var data = {
+				    "title": "Shopping List",
+				    "items": ["apples", "bananas", "oranges"]
+				}
+
+				var result = YAML.stringify(data, style)
+				# Output will use flow style for the items list:
+				# title: Shopping List
+				# items: [apples, bananas, oranges]
+				[/gdscript]
+				[/codeblocks]
+			</description>
+		</method>
+		<method name="uses_flow" qualifiers="const">
+			<return type="bool" />
+			<description>
+				Returns [code]true[/code] if the current flow style is FLOW_SINGLE.
+				[codeblocks]
+				[gdscript]
+				var style = YAML.create_style()
+
+				# Check default style
+				print(style.uses_flow())  # Output: false (default is FLOW_ANY)
+
+				# Set and check flow single style
+				style.set_flow_style(YAMLStyle.FLOW_SINGLE)
+				print(style.uses_flow())  # Output: true
+
+				# Set and check flow none style
+				style.set_flow_style(YAMLStyle.FLOW_NONE)
+				print(style.uses_flow())  # Output: false
+				[/gdscript]
+				[/codeblocks]
+			</description>
+		</method>
+		<method name="uses_quotes" qualifiers="const">
+			<return type="bool" />
+			<description>
+				Returns [code]true[/code] if the current quote style is QUOTE_SINGLE or QUOTE_DOUBLE.
+				[codeblocks]
+				[gdscript]
+				var style = YAML.create_style()
+
+				# Check default style
+				print(style.uses_quotes())  # Output: false (default is QUOTE_ANY)
+
+				# Set and check single quotes
+				style.set_quote_style(YAMLStyle.QUOTE_SINGLE)
+				print(style.uses_quotes())  # Output: true
+
+				# Set and check double quotes
+				style.set_quote_style(YAMLStyle.QUOTE_DOUBLE)
+				print(style.uses_quotes())  # Output: true
+
+				# Set and check no quotes
+				style.set_quote_style(YAMLStyle.QUOTE_NONE)
+				print(style.uses_quotes())  # Output: false
+				[/gdscript]
+				[/codeblocks]
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="binary_encoding" type="int" setter="set_binary_encoding" getter="get_binary_encoding" enum="YAMLStyle.BinaryEncoding" default="0">
+			Controls how binary data is encoded in YAML. Default is [constant BIN_ANY], which lets the emitter decide.
+		</member>
+		<member name="container_form" type="int" setter="set_container_form" getter="get_container_form" enum="YAMLStyle.ContainerForm" default="0">
+			Specifies the form for containers (sequence or mapping). Default is [constant FORM_ANY], which lets the emitter decide.
+		</member>
+		<member name="custom_settings" type="Dictionary" setter="set_custom_settings" getter="get_custom_settings" default="{}">
+			Stores custom styling settings as a Dictionary. Can be used to store additional style information not covered by the main style properties.
+		</member>
+		<member name="flow_style" type="int" setter="set_flow_style" getter="get_flow_style" enum="YAMLStyle.FlowStyle" default="0">
+			Controls the flow style for containers. Default is [constant FLOW_ANY], which lets the emitter decide.
+		</member>
+		<member name="number_format" type="int" setter="set_number_format" getter="get_number_format" enum="YAMLStyle.NumberFormat" default="0">
+			Specifies the format for numeric values. Default is [constant NUM_ANY], which lets the emitter decide.
+		</member>
+		<member name="quote_style" type="int" setter="set_quote_style" getter="get_quote_style" enum="YAMLStyle.QuoteStyle" default="0">
+			Controls the quoting style for string values. Default is [constant QUOTE_ANY], which lets the emitter decide.
+		</member>
+		<member name="scalar_style" type="int" setter="set_scalar_style" getter="get_scalar_style" enum="YAMLStyle.ScalarStyle" default="0">
+			Specifies the scalar style for values. Default is [constant SCALAR_ANY], which lets the emitter decide.
+		</member>
+	</members>
+	<constants>
+		<constant name="SCALAR_ANY" value="0" enum="ScalarStyle">
+			Let the emitter decide the scalar style automatically.
+		</constant>
+		<constant name="SCALAR_PLAIN" value="1" enum="ScalarStyle">
+			Regular unquoted scalar style, e.g., [code]value[/code].
+		</constant>
+		<constant name="SCALAR_BLOCK" value="2" enum="ScalarStyle">
+			Basic block scalar style.
+		</constant>
+		<constant name="SCALAR_LITERAL" value="3" enum="ScalarStyle">
+			Literal block scalar style with [code]|[/code] indicator, preserves newlines, e.g., [code]|
+  Line 1
+  Line 2[/code].
+		</constant>
+		<constant name="SCALAR_FOLDED" value="4" enum="ScalarStyle">
+			Folded block scalar style with [code]>[/code] indicator, folds newlines, e.g., [code]>
+  Line 1
+  Line 2[/code].
+		</constant>
+		<constant name="QUOTE_ANY" value="0" enum="QuoteStyle">
+			Let the emitter decide when and how to quote strings.
+		</constant>
+		<constant name="QUOTE_NONE" value="1" enum="QuoteStyle">
+			Avoid using quotes whenever possible.
+		</constant>
+		<constant name="QUOTE_SINGLE" value="2" enum="QuoteStyle">
+			Force the use of single quotes for strings, e.g., [code]'value'[/code].
+		</constant>
+		<constant name="QUOTE_DOUBLE" value="3" enum="QuoteStyle">
+			Force the use of double quotes for strings, e.g., [code]"value"[/code].
+		</constant>
+		<constant name="FORM_ANY" value="0" enum="ContainerForm">
+			Let the emitter decide the container form automatically.
+		</constant>
+		<constant name="FORM_SEQ" value="1" enum="ContainerForm">
+			Force sequence/array style for the container.
+		</constant>
+		<constant name="FORM_MAP" value="2" enum="ContainerForm">
+			Force mapping/dictionary style for the container.
+		</constant>
+		<constant name="FLOW_ANY" value="0" enum="FlowStyle">
+			Let the emitter decide the flow style automatically.
+		</constant>
+		<constant name="FLOW_NONE" value="1" enum="FlowStyle">
+			Use block style for containers (one element per line).
+		</constant>
+		<constant name="FLOW_SINGLE" value="2" enum="FlowStyle">
+			Use compact flow style for containers, e.g., [code][a, b, c][/code] or [code]{key: value}[/code].
+		</constant>
+		<constant name="NUM_ANY" value="0" enum="NumberFormat">
+			Let the emitter decide the number format automatically.
+		</constant>
+		<constant name="NUM_DECIMAL" value="1" enum="NumberFormat">
+			Force standard decimal notation for numbers, e.g., [code]42[/code], [code]3.14[/code].
+		</constant>
+		<constant name="NUM_HEX" value="2" enum="NumberFormat">
+			Force hexadecimal notation for numbers, e.g., [code]0xFF[/code].
+		</constant>
+		<constant name="NUM_OCTAL" value="3" enum="NumberFormat">
+			Force octal notation for numbers, e.g., [code]0o700[/code].
+		</constant>
+		<constant name="NUM_BINARY" value="4" enum="NumberFormat">
+			Force binary notation for numbers, e.g., [code]0b1010[/code].
+		</constant>
+		<constant name="NUM_SCIENTIFIC" value="5" enum="NumberFormat">
+			Force scientific notation for numbers, e.g., [code]1.23e+4[/code].
+		</constant>
+		<constant name="BIN_ANY" value="0" enum="BinaryEncoding">
+			Let the emitter decide the binary encoding automatically.
+		</constant>
+		<constant name="BIN_STRING" value="1" enum="BinaryEncoding">
+			Encode binary data as a plain string.
+		</constant>
+		<constant name="BIN_BASE64" value="2" enum="BinaryEncoding">
+			Encode binary data using Base64 encoding.
+		</constant>
+		<constant name="BIN_HEX" value="3" enum="BinaryEncoding">
+			Encode binary data using hexadecimal encoding.
+		</constant>
+	</constants>
+</class>

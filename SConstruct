@@ -154,6 +154,14 @@ def build_config(env, variant_dir):
     sources = Glob(os.path.join(variant_dir, 'src', '*.cpp'))
     sources += Glob(os.path.join(variant_dir, 'src', 'variants', '*.cpp'))
 
+    # Embed documentation
+    if env["target"] in ["editor", "template_debug"]:
+        try:
+            doc_data = env.GodotCPPDocData("src/gen/doc_data.gen.cpp", source=Glob("doc_classes/*.xml"))
+            sources.append(doc_data)
+        except AttributeError:
+            print("Not including class reference as we're targeting a pre-4.3 baseline.")
+
     # Set up output directories
     output_lib_dir = os.path.join(variant_dir, 'lib')
     if not os.path.exists(output_lib_dir):

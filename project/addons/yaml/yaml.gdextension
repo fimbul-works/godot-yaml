@@ -13,3 +13,10 @@ windows.release.x86_64 = "res://addons/yaml/bin/libgdyaml.windows.release.x86_64
 
 linux.debug.x86_64 = "res://addons/yaml/bin/libgdyaml.linux.debug.x86_64.so"
 linux.release.x86_64 = "res://addons/yaml/bin/libgdyaml.linux.release.x86_64.so"
+
+[icons]
+
+YAML = "res://addons/yaml/assets/icon.svg"
+YAMLResult = "res://addons/yaml/assets/icon.svg"
+YAMLSecurity = "res://addons/yaml/assets/icon.svg"
+YAMLStyle = "res://addons/yaml/assets/icon.svg"

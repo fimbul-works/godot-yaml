@@ -1,7 +1,6 @@
 # Generated directories with binaries
 build
 bin
-*.zip
 
 # Scons
 .sconsign.dblite
@@ -12,3 +11,9 @@ bin
 
 # VSCode
 .vscode
+
+# Generated files
+src/gen/doc_data.gen.cpp
+
+# Release files
+*.zip
