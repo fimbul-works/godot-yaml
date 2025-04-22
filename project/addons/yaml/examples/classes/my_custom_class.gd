@@ -14,7 +14,11 @@ func _init(p_string := "", p_int := 0, p_float := 0.0, p_color = Color.WHITE) ->
 func hello():
 	print(string_val)
 
-static func from_dict(dict: Dictionary):
+static func deserialize(data: Variant):
+	if typeof(data) != TYPE_DICTIONARY:
+		return YAMLResult.error("Deserializing MyCustomClass expects Dictionary, received %s" % [type_string(typeof(data))])
+
+	var dict: Dictionary = data
 	var string_val: String = dict.get("string_val", "")
 	var int_val: int = dict.get("int_val", 0)
 	var float_val: float = dict.get("float_val", 0.0)
@@ -35,7 +39,7 @@ static func from_dict(dict: Dictionary):
 		color_val
 	)
 
-func to_dict() -> Dictionary:
+func serialize() -> Dictionary:
 	return {
 		"string_val": string_val,
 		"int_val": int_val,

@@ -290,11 +290,11 @@ void YAML::Emitter::emit_object(ryml::NodeRef &node, Object *obj, const YAMLStyl
 
 			// Class info exists and is valid
 			if (class_info.script_class.is_valid()) {
-				const StringName to_dict = class_info.to_dict_method;
-				Variant dict = obj->call(to_dict);
-				if (dict) {
+				const StringName serialize = class_info.serialize_method;
+				Variant data = obj->call(serialize);
+				if (data) {
 					node.set_val_tag(store_string("!" + class_name));
-					emit_dictionary(node, dict, style);
+					emit_value(node, data, style);
 					return;
 				}
 			}

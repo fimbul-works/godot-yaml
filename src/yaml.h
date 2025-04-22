@@ -30,7 +30,7 @@ public:
 	static Ref<YAMLResult> stringify(const Variant &input, const Ref<YAMLStyle> &format);
 	static Ref<YAMLStyle> create_style();
 
-	static void register_class(Ref<Script> p_class, const Variant &p_to_dict, const Variant &p_from_dict);
+	static void register_class(Ref<Script> p_class, const Variant &p_serialize, const Variant &p_deserialize);
 	static bool has_registered_class(const String &class_name);
 
 	// Simplified security API

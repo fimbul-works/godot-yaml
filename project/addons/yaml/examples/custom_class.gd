@@ -9,10 +9,17 @@ func _ready() -> void:
 	# Register the class constructor
 	YAML.register_class(MyCustomClass)
 	YAML.register_class(MyCustomResource)
+	YAML.register_class(MyStringClass)
 
 	# You can also pass alternative method names
-	#YAML.register_class(MyCustomClass, "serialize", "deserialize")
+	#YAML.register_class(MyCustomClass, "emit", "parse")
 
+	test_custom_class()
+	test_custom_resource()
+	test_string_class()
+	test_deserialize_error()
+
+func test_custom_class() -> void:
 	# Custom (Node) class
 	var object = MyCustomClass.new("hello world", 123, PI)
 
@@ -35,7 +42,29 @@ func _ready() -> void:
 	print_rich("\n[b]MyCustomClass Parse Result:[/b]\n%s" % parsed_obj)
 	parsed_obj.hello()
 
-	# Custom (Resource) class
+func test_string_class() -> void:
+	# Custom (String-based) class
+	var object = MyStringClass.new("hello world")
+
+	# Stringify data
+	var obj_str_result := YAML.stringify(object)
+	if obj_str_result.has_error():
+		push_error(obj_str_result.get_error_message())
+		return
+
+	var obj_yaml: String = obj_str_result.get_data()
+	print_rich("\n[b]MyStringClass Stringify Result:[/b]\n%s" % obj_yaml)
+
+	# Parse YAML string
+	var obj_parse_result := YAML.parse(obj_yaml)
+	if obj_parse_result.has_error():
+		push_error(obj_parse_result.get_error_message())
+		return
+	var parsed_obj: MyStringClass = obj_parse_result.get_data()
+
+	print_rich("\n[b]MyStringClass Parse Result:[/b]\n%s" % parsed_obj)
+
+func test_custom_resource() -> void:	# Custom (Resource) class
 	var resource = MyCustomResource.new("I am resource", 42, 69.69)
 	var res_str_result := YAML.stringify(resource)
 	if res_str_result.has_error():
@@ -55,6 +84,7 @@ func _ready() -> void:
 	print_rich("\n[b]MyCustomResource Parse Result:[/b]\n%s" % parsed_res)
 	parsed_res.hello()
 
+func test_deserialize_error() -> void:
 	# Try parsing an invalid resource
 	var invalid_yaml := """
 !MyCustomClass

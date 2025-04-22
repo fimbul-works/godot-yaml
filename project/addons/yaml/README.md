@@ -184,12 +184,12 @@ func _init(p_name: String = "", p_level: int = 1) -> void:
 	level = p_level
 	inventory = []
 
-static func from_dict(dict: Dictionary) -> Player:
+static func deserialize(dict) -> Player:
 	var player = Player.new(dict.get("name", ""), dict.get("level", 1))
 	player.inventory = dict.get("inventory", [])
 	return player
 
-func to_dict() -> Dictionary:
+func serialize() -> Dictionary:
 	return {
 		"name": name,
 		"level": level,
@@ -198,11 +198,11 @@ func to_dict() -> Dictionary:
 
 # Register the class with YAML
 func _ready() -> void:
-	# Default registration using to_dict() and from_dict() methods
+	# Default registration using serialize() and deserialize() methods
 	YAML.register_class(Player)
 
 	# Or with custom method names
-	# YAML.register_class(Player, "serialize", "deserialize")
+	# YAML.register_class(Player, "to_dict", "from_dict")
 
 	# Now you can serialize and deserialize Player objects
 	var player = Player.new("Hero", 10)
@@ -230,20 +230,24 @@ func _ready() -> void:
 
 ### Error Handling for Custom Classes
 
-You can add validation and return detailed error messages from your `from_dict` method by returning a `YAMLResult` object:
+You can add validation and return detailed error messages from your `deserialize` method by returning a `YAMLResult` object:
 
 ```gdscript
-static func from_dict(dict: Dictionary):
+static func deserialize(data: Variant):
+	# Validate data type
+	if typeof(data) != TYPE_DICTIONARY:
+		return YAMLResult.error("Deserializing Player expects Dictionary, %s received" % type_string(typeof(data)))
+
 	# Validate required fields
-	if !dict.has("name"):
+	if !data.has("name"):
 		return YAMLResult.error("Player class missing required 'name' field")
 
-	if typeof(dict.get("level", 0)) != TYPE_INT:
+	if typeof(data.get("level")) != TYPE_INT:
 		return YAMLResult.error("Player 'level' must be an integer")
 
 	# Create object if validation passes
-	var player = Player.new(dict.name, dict.get("level", 1))
-	player.inventory = dict.get("inventory", [])
+	var player = Player.new(data.name, data.get("level", 1))
+	player.inventory = data.get("inventory", [])
 
 	# Return the object as usual
 	return player
@@ -251,7 +255,7 @@ static func from_dict(dict: Dictionary):
 
 When parsing YAML with a custom class that returns a `YAMLResult`:
 
-- If `from_dict` returns a `YAMLResult` with an error, the entire parse operation will fail
+- If `deserialize` returns a `YAMLResult` with an error, the entire parse operation will fail
 - The error message from your custom class will be propagated to the parse result
 - This allows for detailed validation errors with custom messages
 

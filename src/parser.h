@@ -51,6 +51,7 @@ private:
 
 	// Node processing methods
 	Variant process_node(const ryml::ConstNodeRef &node) const;
+	Variant process_common(const ryml::ConstNodeRef &node) const;
 	Variant process_map(const ryml::ConstNodeRef &node) const;
 	Variant process_sequence(const ryml::ConstNodeRef &node) const;
 	Variant process_key(const ryml::ConstNodeRef &node) const;

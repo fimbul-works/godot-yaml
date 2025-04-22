@@ -10,7 +10,7 @@ std::mutex YAMLClassRegistry::registry_mutex;
 std::unordered_map<String, YAMLClassRegistry::ClassInfo, StringHasher, StringEqual> YAMLClassRegistry::class_registry;
 
 // Register a class with the registry
-void YAMLClassRegistry::register_class(Ref<Script> p_class, const Variant &p_to_dict, const Variant &p_from_dict) {
+void YAMLClassRegistry::register_class(Ref<Script> p_class, const Variant &p_serialize, const Variant &p_deserialize) {
 	if (!p_class.is_valid()) {
 		ERR_PRINT("Cannot register null class");
 		return;
@@ -30,9 +30,9 @@ void YAMLClassRegistry::register_class(Ref<Script> p_class, const Variant &p_to_
 	}
 
 	// Check static from_dict method
-	const StringName from_dict = p_from_dict.get_type() == Variant::STRING || p_from_dict.get_type() == Variant::STRING_NAME ? p_from_dict : "from_dict";
-	if (!p_class->has_method(from_dict)) {
-		ERR_PRINT(vformat("Static method '%s' not found in class %s", from_dict, class_name));
+	const StringName deserialize = p_deserialize.get_type() == Variant::STRING || p_deserialize.get_type() == Variant::STRING_NAME ? p_deserialize : "deserialize";
+	if (!p_class->has_method(deserialize)) {
+		ERR_PRINT(vformat("Static method '%s' not found in class %s", deserialize, class_name));
 		return;
 	}
 
@@ -42,7 +42,7 @@ void YAMLClassRegistry::register_class(Ref<Script> p_class, const Variant &p_to_
 	}
 
 	// Check instance method
-	const StringName to_dict = p_to_dict.get_type() == Variant::STRING || p_to_dict.get_type() == Variant::STRING_NAME ? p_to_dict : "to_dict";
+	const StringName serialize = p_serialize.get_type() == Variant::STRING || p_serialize.get_type() == Variant::STRING_NAME ? p_serialize : "serialize";
 
 	// Create an instance
 	StringName base_type = p_class->get_instance_base_type();
@@ -53,8 +53,8 @@ void YAMLClassRegistry::register_class(Ref<Script> p_class, const Variant &p_to_
 		res.instantiate();
 		res->set_script(p_class);
 
-		if (!res->has_method(to_dict)) {
-			ERR_PRINT(vformat("Method '%s' not found in resource class %s", to_dict, class_name));
+		if (!res->has_method(serialize)) {
+			ERR_PRINT(vformat("Method '%s' not found in resource class %s", serialize, class_name));
 			return;
 		}
 		// Ref will clean up automatically when it goes out of scope
@@ -69,8 +69,8 @@ void YAMLClassRegistry::register_class(Ref<Script> p_class, const Variant &p_to_
 		// Attach the script
 		instance->set_script(p_class);
 
-		if (!instance->has_method(to_dict)) {
-			ERR_PRINT(vformat("Method '%s' not found in class %s", to_dict, class_name));
+		if (!instance->has_method(serialize)) {
+			ERR_PRINT(vformat("Method '%s' not found in class %s", serialize, class_name));
 			memdelete(instance);
 			return;
 		}
@@ -82,8 +82,8 @@ void YAMLClassRegistry::register_class(Ref<Script> p_class, const Variant &p_to_
 	// Create the class info
 	ClassInfo info;
 	info.script_class = p_class;
-	info.to_dict_method = to_dict;
-	info.from_dict_method = from_dict;
+	info.serialize_method = serialize;
+	info.deserialize_method = deserialize;
 
 	// Add to registry with thread safety
 	{

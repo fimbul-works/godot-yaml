@@ -134,7 +134,10 @@ Variant YAML::Parser::process_node(const ryml::ConstNodeRef &node) const {
 		return *tagged;
 	}
 
-	// Handle different node types
+	return process_common(node);
+}
+
+Variant YAML::Parser::process_common(const ryml::ConstNodeRef &node) const {
 	if (node.is_keyval()) {
 		return process_value(node);
 	} else if (node.is_map()) {
@@ -316,18 +319,12 @@ std::optional<Variant> YAML::Parser::try_parse_tagged_value(const ryml::ConstNod
 
 	// Check for custom converters
 	if (YAMLClassRegistry::has_class(tag)) {
-		// Only allow map-types
-		if (!node.is_map()) {
-			ERR_PRINT(vformat("Invalid node format for class %s - expected map", tag));
-			return Variant();
-		}
-
 		YAMLClassRegistry::ClassInfo class_info = YAMLClassRegistry::get_class_info(tag);
 
 		// Class info exists and is valid
 		if (class_info.script_class.is_valid()) {
-			Dictionary dict = process_map(node);
-			Variant result = class_info.script_class->call(class_info.from_dict_method, dict);
+			Variant data = process_common(node);
+			Variant result = class_info.script_class->call(class_info.deserialize_method, data);
 
 			// Is it a YAMLResult?
 			if (result.get_type() == Variant::OBJECT && Object::cast_to<YAMLResult>(result.operator Object *())) {

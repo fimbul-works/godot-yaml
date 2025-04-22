@@ -13,11 +13,11 @@ class YAMLClassRegistry {
 public:
 	struct ClassInfo {
 		Ref<Script> script_class;
-		StringName to_dict_method;
-		StringName from_dict_method;
+		StringName serialize_method;
+		StringName deserialize_method;
 	};
 
-	static void register_class(Ref<Script> p_class, const Variant &p_to_dict, const Variant &p_from_dict);
+	static void register_class(Ref<Script> p_class, const Variant &p_serialize, const Variant &p_deserialize);
 
 	static bool has_class(const String &class_name);
 
