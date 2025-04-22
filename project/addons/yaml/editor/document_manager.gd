@@ -1,11 +1,8 @@
 @tool
 class_name YAMLEditorDocumentManager extends Node
 
-## Signal emitted when switching between documents
 signal document_changed(document)
-## Signal emitted when a new document is created
 signal document_created(document)
-## Signal emitted when a document is closed
 signal document_closed(document)
 
 # Dictionary of open documents: {path: YAMLEditorDocument}
@@ -348,7 +345,6 @@ func _on_external_file_updated(path: String) -> void:
 
 			# If saved less than 1 second ago, ignore this update
 			if current_time - save_time < 1.0:
-				print("Ignoring external update for recently saved file: ", path)
 				return
 
 		var document: YAMLEditorDocument = documents[path]

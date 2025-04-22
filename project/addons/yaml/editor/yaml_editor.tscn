@@ -8,7 +8,7 @@
 [ext_resource type="Script" path="res://addons/yaml/editor/status_bar.gd" id="6_rk03l"]
 [ext_resource type="Script" path="res://addons/yaml/editor/find_replace_bar.gd" id="7_vo7uj"]
 
-[sub_resource type="Image" id="Image_dxnfl"]
+[sub_resource type="Image" id="Image_n6nvt"]
 data = {
 "data": PackedByteArray(255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 255, 255, 0, 255, 94, 94, 127, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 255, 255, 0, 255, 93, 93, 255, 255, 94, 94, 127, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 255, 255, 0, 255, 93, 93, 255, 255, 93, 93, 255, 255, 94, 94, 127, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 255, 255, 0, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 94, 94, 127, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 93, 93, 231, 255, 94, 94, 54, 255, 94, 94, 57, 255, 93, 93, 233, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 231, 255, 94, 94, 54, 255, 94, 94, 57, 255, 93, 93, 233, 255, 93, 93, 255, 255, 93, 93, 255, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 97, 97, 42, 255, 255, 255, 0, 255, 255, 255, 0, 255, 97, 97, 42, 255, 93, 93, 233, 255, 93, 93, 232, 255, 93, 93, 41, 255, 255, 255, 0, 255, 255, 255, 0, 255, 97, 97, 42, 255, 93, 93, 233, 255, 93, 93, 232, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 96, 96, 45, 255, 93, 93, 44, 255, 255, 255, 0, 255, 97, 97, 42, 255, 97, 97, 42, 255, 255, 255, 0, 255, 96, 96, 45, 255, 93, 93, 44, 255, 255, 255, 0, 255, 97, 97, 42, 255, 97, 97, 42, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 96, 96, 45, 255, 93, 93, 235, 255, 94, 94, 234, 255, 95, 95, 43, 255, 255, 255, 0, 255, 255, 255, 0, 255, 96, 96, 45, 255, 93, 93, 235, 255, 94, 94, 234, 255, 95, 95, 43, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 93, 93, 235, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 233, 255, 95, 95, 59, 255, 96, 96, 61, 255, 93, 93, 235, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 233, 255, 95, 95, 59, 255, 96, 96, 61, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0),
 "format": "RGBA8",
@@ -17,8 +17,8 @@ data = {
 "width": 16
 }
 
-[sub_resource type="ImageTexture" id="ImageTexture_y3r76"]
-image = SubResource("Image_dxnfl")
+[sub_resource type="ImageTexture" id="ImageTexture_b1pyl"]
+image = SubResource("Image_n6nvt")
 
 [sub_resource type="EditorSyntaxHighlighter" id="EditorSyntaxHighlighter_68y40"]
 script = ExtResource("2_0xmrl")
@@ -174,17 +174,13 @@ file_list = NodePath("ItemList")
 layout_mode = 2
 placeholder_text = "Filter Files"
 clear_button_enabled = true
-right_icon = SubResource("ImageTexture_y3r76")
+right_icon = SubResource("ImageTexture_b1pyl")
 
 [node name="ItemList" type="ItemList" parent="MainMargin/MainVBox/ResizableContainer/FileList"]
 layout_mode = 2
 size_flags_vertical = 3
 allow_rmb_select = true
 auto_height = true
-item_count = 3
-item_0/text = "comprehensive.yaml"
-item_1/text = "custom_class.yaml"
-item_2/text = "simple.yaml"
 
 [node name="EditorPanel" type="VBoxContainer" parent="MainMargin/MainVBox/ResizableContainer"]
 layout_mode = 2
@@ -194,105 +190,6 @@ size_flags_horizontal = 3
 layout_mode = 2
 size_flags_vertical = 3
 theme_override_font_sizes/font_size = 14
-text = "# Scalars
-string_value: \"Hello, World!\"
-unquoted_string: Hello World
-single_quoted: 'Hello, ''World'''
-folded_string: >
-  This is a long string
-  that will be folded
-  into a single line
-literal_string: |
-  This is a long string
-  that will preserve
-  newlines
-
-# Numeric types
-integer: 42
-float: 3.14159
-hex: 0xff
-octal: 0o700
-binary: 0b1010
-scientific_notation: 6.022e23
-infinity: .inf
-not_a_number: .nan
-
-# Boolean types
-boolean_true: true
-boolean_false: false
-
-# Null
-null_value: null
-null_value_2: ~
-
-# Dates and times
-date: 2023-04-01
-canonical_datetime: 2023-04-01T12:00:00Z
-iso8601_datetime: 2023-04-01t12:00:00.000-05:00
-
-# Collections
-## Lists
-fruits:
-- apple
-- banana
-- cherry
-
-
-nested_list:
-  - - nested
-  - items
-  - - more
-  - nested
-  - items
-
-## Dictionaries
-person:
-  name: John Doe
-  age: 30
-  occupation: Developer
-
-## Flow style list
-flow_style_list: [1, 2, 3, 4, 5]
-
-## Flow style dictionary
-flow_style_dict: {key1: value1, key2: value2, key3: 124.5}
-
-## Nested flow list
-nested_flow_style_list: [\"hello\", 10, {foo: bar}, [4.20, 6.9]]
-
-## Nested flow dictionary
-nested_flow_style_dictionary: { key1: {foo: 'bar'}, key2: [4.20, 6.9] }
-
-# Anchors and aliases
-anchor_example: &anchor_name
-  key1: value1
-  key2: value2
-
-alias_example: *anchor_name
-
-# Merge key
-base: &base
-  name: John Doe
-  age: 30
-
-merge_example:
-  <<: *base
-  occupation: Developer
-
-# Ordered maps
-ordered_map: !!omap
-  - key1: value1
-  - key2: value2
-
-# Binary data
-binary_data: !!binary |
-  R0lGODlhDAAMAIQAAP//9/X17unp5WZmZgAAAOfn515eXvPz7Y6OjuDg4J+fn5
-  OTk6enp56enmleECcgggoBADs=
-
-# Tags
-custom_tag: !my_custom_tag
-  key: value
-"
 deselect_on_focus_loss_enabled = false
 scroll_smooth = true
 minimap_draw = true
@@ -427,7 +324,7 @@ theme_override_styles/hover = SubResource("StyleBoxEmpty_33vym")
 theme_override_styles/pressed = SubResource("StyleBoxEmpty_jwbjn")
 theme_override_styles/normal = SubResource("StyleBoxEmpty_xhoyn")
 disabled = true
-icon = SubResource("ImageTexture_y3r76")
+icon = SubResource("ImageTexture_b1pyl")
 flat = true
 
 [node name="NextButton" type="Button" parent="MainMargin/MainVBox/ResizableContainer/EditorPanel/BottomToolbar/FindReplaceBar/ButtonsContainer/MatchesContainer"]
@@ -440,7 +337,7 @@ theme_override_styles/hover = SubResource("StyleBoxEmpty_ki2vh")
 theme_override_styles/pressed = SubResource("StyleBoxEmpty_ke1f7")
 theme_override_styles/normal = SubResource("StyleBoxEmpty_v3fgn")
 disabled = true
-icon = SubResource("ImageTexture_y3r76")
+icon = SubResource("ImageTexture_b1pyl")
 flat = true
 
 [node name="ReplaceButtonsContainer" type="HBoxContainer" parent="MainMargin/MainVBox/ResizableContainer/EditorPanel/BottomToolbar/FindReplaceBar/ButtonsContainer"]
@@ -494,5 +391,5 @@ text = "Selection Only
 [node name="HideButton" type="Button" parent="MainMargin/MainVBox/ResizableContainer/EditorPanel/BottomToolbar/FindReplaceBar"]
 layout_mode = 2
 tooltip_text = "Hide"
-icon = SubResource("ImageTexture_y3r76")
+icon = SubResource("ImageTexture_b1pyl")
 flat = true

@@ -32,10 +32,6 @@ func _enter_tree() -> void:
 	get_editor_interface().get_resource_filesystem().resources_reimported.connect(_on_resources_reimported)
 	get_editor_interface().get_resource_filesystem().filesystem_changed.connect(_on_filesystem_changed)
 
-	# Also make sure the file system dock's file selection is connected
-	# THIS SIGNAL DOES NOT EXISTS
-	#get_editor_interface().get_file_system_dock().file_selected.connect(_on_file_selected)
-
 func _exit_tree() -> void:
 	# Unregister shortcuts
 	ShortcutsClass.unregister_shortcuts()
@@ -48,7 +44,6 @@ func _exit_tree() -> void:
 		yaml_editor_instance.queue_free()
 
 	# Clean up other resources
-	get_editor_interface().get_file_system_dock().file_selected.disconnect(_on_file_selected)
 	get_editor_interface().get_resource_filesystem().resources_reimported.disconnect(_on_resources_reimported)
 	get_editor_interface().get_resource_filesystem().filesystem_changed.disconnect(_on_filesystem_changed)
 	remove_custom_type("YAMLFile")
@@ -97,9 +92,3 @@ func get_plugin_path() -> String:
 
 func _get_plugin_icon() -> Texture2D:
 	return load(get_plugin_path() + "/assets/icon.svg")
-
-func _on_file_selected(file_path: String) -> void:
-	var file_system = YAMLFileSystem.get_singleton()
-	if file_system.is_yaml_file(file_path):
-		_make_visible(true)
-		yaml_editor_instance.file_manager.open_file(file_path)

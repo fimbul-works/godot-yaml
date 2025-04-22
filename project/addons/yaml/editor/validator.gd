@@ -23,6 +23,10 @@ func _ready() -> void:
 	validation_timer.timeout.connect(_on_validation_timer_timeout)
 	add_child(validation_timer)
 
+func _exit_tree() -> void:
+	if _thread and _thread.is_started():
+		_thread.wait_to_finish()
+
 func setup(p_code_editor: YAMLCodeEditor, p_file_manager: YAMLEditorDocumentManager) -> void:
 	code_editor = p_code_editor
 	file_manager = p_file_manager
