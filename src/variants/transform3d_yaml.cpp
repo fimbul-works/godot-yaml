@@ -63,21 +63,22 @@ Variant Transform3DVariantConverter::decode(const ryml::ConstNodeRef &node) cons
 	try {
 		if (node.is_map()) {
 			return decode_from_map(node);
-		} else if (node.is_seq()) {
+		}
+
+		if (node.is_seq()) {
 			return decode_from_sequence(node);
 		}
+
 		throw YAMLException::create_invalid_format("Transform3D");
 	} catch (const YAMLException &) {
-		throw;
+		throw; // Re-throw YAML exceptions
 	} catch (const std::exception &e) {
 		throw YAMLException::create_decode_error("Transform3D", e.what());
 	}
 }
 
 Variant Transform3DVariantConverter::decode_from_map(const ryml::ConstNodeRef &node) const {
-	if (!node.has_child("basis") || !node.has_child("origin")) {
-		throw YAMLException::create_missing_field("Transform3D", "basis, origin");
-	}
+	check_required_fields(node, { "basis", "origin" });
 
 	Basis basis = basis_converter->decode(node["basis"]).operator Basis();
 	Vector3 origin = vec3_converter->decode(node["origin"]).operator Vector3();

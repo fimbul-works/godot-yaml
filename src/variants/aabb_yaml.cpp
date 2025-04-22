@@ -56,39 +56,39 @@ void AABBVariantConverter::emit_as_sequence(ryml::NodeRef &node, const AABB &aab
 }
 
 Variant AABBVariantConverter::decode(const ryml::ConstNodeRef &node) const {
-	if (node.is_map()) {
-		return decode_from_map(node);
-	} else if (node.is_seq()) {
-		return decode_from_sequence(node);
+	try {
+		if (node.is_map()) {
+			return decode_from_map(node);
+		}
+
+		if (node.is_seq()) {
+			return decode_from_sequence(node);
+		}
+
+		throw YAMLException::create_invalid_format("AABB");
+	} catch (const YAMLException &) {
+		throw; // Re-throw YAML exceptions
+	} catch (const std::exception &e) {
+		throw YAMLException::create_decode_error("AABB", e.what());
 	}
-	throw YAMLException("Invalid AABB format: expected map or sequence");
 }
 
 Variant AABBVariantConverter::decode_from_map(const ryml::ConstNodeRef &node) const {
-	const auto position_node = node["position"];
-	const auto size_node = node["size"];
+	check_required_fields(node, { "position", "size" });
 
-	if (position_node.invalid()) {
-		throw YAMLException("Missing required field 'position' in AABB");
-	}
-
-	if (size_node.invalid()) {
-		throw YAMLException("Missing required field 'size' in AABB");
-	}
-
-	const Vector3 position = vec3_converter->decode(position_node).operator Vector3();
-	const Vector3 size = vec3_converter->decode(size_node).operator Vector3();
+	Vector3 position = vec3_converter->decode(node["position"]).operator Vector3();
+	Vector3 size = vec3_converter->decode(node["size"]).operator Vector3();
 
 	return AABB(position, size);
 }
 
 Variant AABBVariantConverter::decode_from_sequence(const ryml::ConstNodeRef &node) const {
 	if (node.num_children() != 2) {
-		throw YAMLException("Invalid AABB sequence: expected exactly 2 elements");
+		throw YAMLException::create_invalid_sequence_length("AABB", 2);
 	}
 
-	const Vector3 position = vec3_converter->decode(node[0]).operator Vector3();
-	const Vector3 size = vec3_converter->decode(node[1]).operator Vector3();
+	Vector3 position = vec3_converter->decode(node[0]).operator Vector3();
+	Vector3 size = vec3_converter->decode(node[1]).operator Vector3();
 
 	return AABB(position, size);
 }

@@ -58,21 +58,22 @@ Variant Rect2iVariantConverter::decode(const ryml::ConstNodeRef &node) const {
 	try {
 		if (node.is_map()) {
 			return decode_from_map(node);
-		} else if (node.is_seq()) {
+		}
+
+		if (node.is_seq()) {
 			return decode_from_sequence(node);
 		}
+
 		throw YAMLException::create_invalid_format("Rect2i");
 	} catch (const YAMLException &) {
-		throw;
+		throw; // Re-throw YAML exceptions
 	} catch (const std::exception &e) {
 		throw YAMLException::create_decode_error("Rect2i", e.what());
 	}
 }
 
 Variant Rect2iVariantConverter::decode_from_map(const ryml::ConstNodeRef &node) const {
-	if (!node.has_child("position") || !node.has_child("size")) {
-		throw YAMLException::create_missing_field("Rect2i", "position, size");
-	}
+	check_required_fields(node, { "position", "size" });
 
 	Vector2i position = vec2i_converter->decode(node["position"]).operator Vector2i();
 	Vector2i size = vec2i_converter->decode(node["size"]).operator Vector2i();

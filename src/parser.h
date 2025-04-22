@@ -66,7 +66,7 @@ private:
 	// Object type handlers
 	Variant parse_object_or_resource(const ryml::ConstNodeRef &node, const String &class_name) const;
 	Variant load_resource(const String &path) const;
-	bool populate_object_properties(Object *obj, const ryml::ConstNodeRef &node) const;
+	void populate_object_properties(Object *obj, const ryml::ConstNodeRef &node) const;
 
 	// Style detection methods
 	void detect_node_style(const ryml::ConstNodeRef &node);

@@ -52,20 +52,16 @@ T string_to_int(const ryml::csubstr &value) {
 		// Convert to std::string for easier handling
 		std::string str(value.begin(), value.end());
 
-		try {
-			// For int64_t, we can use strtoll which handles hex values correctly
-			char *end;
-			int64_t result = std::strtoll(str.c_str(), &end, 0);
+		// For int64_t, we can use strtoll which handles hex values correctly
+		char *end;
+		int64_t result = std::strtoll(str.c_str(), &end, 0);
 
-			// Check if conversion was successful
-			if (end == str.c_str() || *end != '\0') {
-				throw YAMLException("Invalid integer format");
-			}
-
-			return result;
-		} catch (...) {
-			throw YAMLException("Integer value out of range");
+		// Check if conversion was successful
+		if (end == str.c_str() || *end != '\0') {
+			throw YAMLException("Invalid integer format");
 		}
+
+		return result;
 	}
 
 	T result;

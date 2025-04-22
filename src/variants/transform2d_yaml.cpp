@@ -68,21 +68,22 @@ Variant Transform2DVariantConverter::decode(const ryml::ConstNodeRef &node) cons
 	try {
 		if (node.is_map()) {
 			return decode_from_map(node);
-		} else if (node.is_seq()) {
+		}
+
+		if (node.is_seq()) {
 			return decode_from_sequence(node);
 		}
+
 		throw YAMLException::create_invalid_format("Transform2D");
 	} catch (const YAMLException &) {
-		throw;
+		throw; // Re-throw YAML exceptions
 	} catch (const std::exception &e) {
 		throw YAMLException::create_decode_error("Transform2D", e.what());
 	}
 }
 
 Variant Transform2DVariantConverter::decode_from_map(const ryml::ConstNodeRef &node) const {
-	if (!node.has_child("x") || !node.has_child("y") || !node.has_child("origin")) {
-		throw YAMLException::create_missing_field("Transform2D", "x, y, origin");
-	}
+	check_required_fields(node, { "x", "y", "origin" });
 
 	Vector2 x = vec2_converter->decode(node["x"]).operator Vector2();
 	Vector2 y = vec2_converter->decode(node["y"]).operator Vector2();

@@ -60,7 +60,7 @@ Variant PackedInt64ArrayVariantConverter::decode(const ryml::ConstNodeRef &node)
 		try {
 			array.set(i, string_to_int<int64_t>(node[i].val()));
 		} catch (const std::exception &e) {
-			throw YAMLException::create_decode_error(String("64-bit integer at index " + String::num_uint64(i)).utf8().get_data(), e.what());
+			throw YAMLException::create_decode_error(String("PackedInt64Array value at index " + String::num_uint64(i)).utf8().get_data(), e.what());
 		}
 	}
 

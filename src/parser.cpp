@@ -390,11 +390,7 @@ Variant YAML::Parser::parse_object_or_resource(const ryml::ConstNodeRef &node, c
 	}
 
 	// Process the object's properties
-	bool success = populate_object_properties(obj, node);
-	if (!success) {
-		memdelete(obj);
-		return Variant();
-	}
+	populate_object_properties(obj, node);
 
 	// Handle Resources vs regular Objects
 	if (Object::cast_to<Resource>(obj)) {
@@ -415,8 +411,7 @@ Variant YAML::Parser::load_resource(const String &path) const {
 	}
 
 	if (!security_view.is_path_allowed(path)) {
-		String error = vformat("Resource path not allowed: %s", path);
-		throw YAMLException(error);
+		throw YAMLException(vformat("Resource path not allowed: %s", path));
 	}
 
 	// Check if the path exists
@@ -447,7 +442,7 @@ Variant YAML::Parser::load_resource(const String &path) const {
 	return resource;
 }
 
-bool YAML::Parser::populate_object_properties(Object *obj, const ryml::ConstNodeRef &node) const {
+void YAML::Parser::populate_object_properties(Object *obj, const ryml::ConstNodeRef &node) const {
 	for (const auto &child : node.children()) {
 		String key = from_ryml_str(child.key());
 		Variant value = process_node(child);
@@ -460,8 +455,6 @@ bool YAML::Parser::populate_object_properties(Object *obj, const ryml::ConstNode
 		// Try to set the property
 		obj->set(key, value);
 	}
-
-	return true;
 }
 
 String YAML::Parser::extract_tag(const ryml::ConstNodeRef &node) const {

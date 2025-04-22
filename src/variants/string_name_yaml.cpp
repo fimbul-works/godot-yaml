@@ -32,17 +32,13 @@ Variant StringNameVariantConverter::decode(const ryml::ConstNodeRef &node) const
 
 		return decode_from_string(node.val());
 	} catch (const YAMLException &) {
-		throw;
+		throw; // Re-throw YAML exceptions
 	} catch (const std::exception &e) {
 		throw YAMLException::create_decode_error("StringName", e.what());
 	}
 }
 
 Variant StringNameVariantConverter::decode_from_string(const ryml::csubstr &val) const {
-	try {
-		String string_val = String::utf8(val.str, val.len);
-		return StringName(string_val);
-	} catch (const std::exception &e) {
-		throw YAMLException(String("Invalid StringName format: ") + e.what());
-	}
+	String string_val = String::utf8(val.str, val.len);
+	return StringName(string_val);
 }

@@ -62,7 +62,7 @@ Variant PackedVector2ArrayVariantConverter::decode(const ryml::ConstNodeRef &nod
 				Vector2 vec2 = vec2_converter->decode(node[i]);
 				array.set(i, vec2);
 			} catch (const std::exception &e) {
-				throw YAMLException::create_decode_error(String("Vector2 at index " + String::num_uint64(i)).utf8().get_data(), e.what());
+				throw YAMLException::create_decode_error(String("PackedVector2Array value at index " + String::num_uint64(i)).utf8().get_data(), e.what());
 			}
 		}
 	}

@@ -40,21 +40,22 @@ Variant Vector2VariantConverter::decode(const ryml::ConstNodeRef &node) const {
 	try {
 		if (node.is_map()) {
 			return decode_from_map(node);
-		} else if (node.is_seq()) {
+		}
+
+		if (node.is_seq()) {
 			return decode_from_sequence(node);
 		}
+
 		throw YAMLException::create_invalid_format("Vector2");
 	} catch (const YAMLException &) {
-		throw;
+		throw; // Re-throw YAML exceptions
 	} catch (const std::exception &e) {
 		throw YAMLException::create_decode_error("Vector2", e.what());
 	}
 }
 
 Variant Vector2VariantConverter::decode_from_map(const ryml::ConstNodeRef &node) const {
-	if (!node.has_child("x") || !node.has_child("y")) {
-		throw YAMLException::create_missing_field("Vector2", "x, y");
-	}
+	check_required_fields(node, { "x", "y" });
 
 	return Vector2(
 			string_to_float<real_t>(node["x"].val()),

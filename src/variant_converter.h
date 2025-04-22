@@ -1,6 +1,7 @@
 #ifndef VARIANT_CONVERTER_H
 #define VARIANT_CONVERTER_H
 
+#include "exception.h"
 #include "string_pool.h"
 #include "style_view.h"
 #include "yaml.h"
@@ -48,6 +49,28 @@ protected:
 
 	ryml::csubstr store_string(const String &str) const {
 		return string_pool.store(str);
+	}
+
+	inline void check_required_fields(const ryml::ConstNodeRef &node, const std::vector<const char *> &required_fields) const {
+		std::vector<String> missing_fields;
+
+		for (const char *field : required_fields) {
+			if (!node.has_child(field)) {
+				missing_fields.push_back(String(field));
+			}
+		}
+
+		if (!missing_fields.empty()) {
+			String missing_list;
+			for (size_t i = 0; i < missing_fields.size(); i++) {
+				missing_list += missing_fields[i];
+				if (i < missing_fields.size() - 1) {
+					missing_list += "', '";
+				}
+			}
+
+			throw YAMLException(String(get_tag()) + " missing required field" + (missing_fields.size() > 1 ? "s" : "") + ": '" + missing_list + "'");
+		}
 	}
 };
 

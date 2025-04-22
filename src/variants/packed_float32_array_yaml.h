@@ -18,9 +18,6 @@ public:
 
 	void encode(ryml::NodeRef &node, const Variant &v, const YAMLStyle::View &style) const override;
 	Variant decode(const ryml::ConstNodeRef &node) const override;
-
-private:
-	void emit_as_sequence(ryml::NodeRef &node, const PackedFloat32Array &array, const YAMLStyle::View &style) const;
 };
 
 } // namespace godot

@@ -62,7 +62,7 @@ Variant PackedColorArrayVariantConverter::decode(const ryml::ConstNodeRef &node)
 				Color color = color_converter->decode(node[i]);
 				array.set(i, color);
 			} catch (const std::exception &e) {
-				throw YAMLException::create_decode_error(String("Color at index " + String::num_uint64(i)).utf8().get_data(), e.what());
+				throw YAMLException::create_decode_error(String("PackedColorArray value at index " + String::num_uint64(i)).utf8().get_data(), e.what());
 			}
 		}
 	}

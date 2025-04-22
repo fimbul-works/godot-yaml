@@ -64,21 +64,22 @@ Variant PlaneVariantConverter::decode(const ryml::ConstNodeRef &node) const {
 	try {
 		if (node.is_map()) {
 			return decode_from_map(node);
-		} else if (node.is_seq()) {
+		}
+
+		if (node.is_seq()) {
 			return decode_from_sequence(node);
 		}
+
 		throw YAMLException::create_invalid_format("Plane");
 	} catch (const YAMLException &) {
-		throw;
+		throw; // Re-throw YAML exceptions
 	} catch (const std::exception &e) {
 		throw YAMLException::create_decode_error("Plane", e.what());
 	}
 }
 
 Variant PlaneVariantConverter::decode_from_map(const ryml::ConstNodeRef &node) const {
-	if (!node.has_child("normal") || !node.has_child("d")) {
-		throw YAMLException::create_missing_field("Plane", "normal, d");
-	}
+	check_required_fields(node, { "normal", "d" });
 
 	Vector3 normal = vec3_converter->decode(node["normal"]).operator Vector3();
 	real_t d = string_to_float<real_t>(node["d"].val());

@@ -55,9 +55,7 @@ Variant QuaternionVariantConverter::decode(const ryml::ConstNodeRef &node) const
 }
 
 Variant QuaternionVariantConverter::decode_from_map(const ryml::ConstNodeRef &node) const {
-	if (!node.has_child("x") || !node.has_child("y") || !node.has_child("z") || !node.has_child("w")) {
-		throw YAMLException::create_missing_field("Quaternion", "x, y, z, w");
-	}
+	check_required_fields(node, { "x", "y", "z", "w" });
 
 	return Quaternion(
 			string_to_float<real_t>(node["x"].val()),

@@ -75,7 +75,7 @@ Variant PackedStringArrayVariantConverter::decode(const ryml::ConstNodeRef &node
 				array.set(i, from_ryml_str(child.val()));
 			}
 		} catch (const std::exception &e) {
-			throw YAMLException::create_decode_error(String("string at index " + String::num_uint64(i)).utf8().get_data(), e.what());
+			throw YAMLException::create_decode_error(String("PackedStringArray value at index " + String::num_uint64(i)).utf8().get_data(), e.what());
 		}
 	}
 

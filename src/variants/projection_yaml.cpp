@@ -64,21 +64,22 @@ Variant ProjectionVariantConverter::decode(const ryml::ConstNodeRef &node) const
 	try {
 		if (node.is_map()) {
 			return decode_from_map(node);
-		} else if (node.is_seq()) {
+		}
+
+		if (node.is_seq()) {
 			return decode_from_sequence(node);
 		}
+
 		throw YAMLException::create_invalid_format("Projection");
 	} catch (const YAMLException &) {
-		throw;
+		throw; // Re-throw YAML exceptions
 	} catch (const std::exception &e) {
 		throw YAMLException::create_decode_error("Projection", e.what());
 	}
 }
 
 Variant ProjectionVariantConverter::decode_from_map(const ryml::ConstNodeRef &node) const {
-	if (!node.has_child("x") || !node.has_child("y") || !node.has_child("z") || !node.has_child("w")) {
-		throw YAMLException::create_missing_field("Projection", "x, y, z, w");
-	}
+	check_required_fields(node, { "x", "y", "z", "w" });
 
 	// Create projection from columns
 	Projection proj;
@@ -115,7 +116,7 @@ Vector4 ProjectionVariantConverter::decode_column(const ryml::ConstNodeRef &node
 
 Vector4 ProjectionVariantConverter::decode_array_column(const ryml::ConstNodeRef &node) const {
 	if (node.num_children() != 4) {
-		throw YAMLException("Projection column array must have exactly 4 elements");
+		throw YAMLException::create_invalid_sequence_length("Projection column", 4);
 	}
 
 	return Vector4(

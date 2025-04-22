@@ -78,7 +78,7 @@ Variant ColorVariantConverter::decode(const ryml::ConstNodeRef &node) const {
 
 		throw YAMLException::create_invalid_format("Color");
 	} catch (const YAMLException &) {
-		throw;
+		throw; // Re-throw YAML exceptions
 	} catch (const std::exception &e) {
 		throw YAMLException::create_decode_error("Color", e.what());
 	}
@@ -122,9 +122,7 @@ Variant ColorVariantConverter::decode_hex(const ryml::csubstr &val) const {
 }
 
 Variant ColorVariantConverter::decode_map(const ryml::ConstNodeRef &node) const {
-	if (!node.has_child("r") || !node.has_child("g") || !node.has_child("b")) {
-		throw YAMLException::create_missing_field("Color", "r, g, b");
-	}
+	check_required_fields(node, { "r", "g", "b" });
 
 	real_t r = string_to_float<real_t>(node["r"].val());
 	real_t g = string_to_float<real_t>(node["g"].val());

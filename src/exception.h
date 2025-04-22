@@ -26,10 +26,6 @@ public:
 		return YAMLException(String("Invalid ") + type_name + " format");
 	}
 
-	static YAMLException create_missing_field(const char *type_name, const char *field_name) {
-		return YAMLException(String(type_name) + " must have '" + field_name + "' field");
-	}
-
 	static YAMLException create_invalid_sequence_length(const char *type_name, int expected_length) {
 		return YAMLException(String(type_name) + " sequence must have " + String::num_int64(expected_length) + " elements");
 	}
