@@ -23,8 +23,6 @@ public:
 
 	static ClassInfo get_class_info(const String &class_name);
 
-	static std::unordered_map<String, ClassInfo, StringHasher, StringEqual> get_all_classes();
-
 private:
 	static std::mutex registry_mutex;
 	static std::unordered_map<String, ClassInfo, StringHasher, StringEqual> class_registry;

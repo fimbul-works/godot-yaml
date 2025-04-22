@@ -32,4 +32,15 @@ struct StringNameEqual {
 
 } // namespace godot
 
+namespace std {
+
+template <>
+struct hash<godot::String> {
+	size_t operator()(const godot::String &s) const {
+		return s.hash();
+	}
+};
+
+} //namespace std
+
 #endif // STRING_HASH_H

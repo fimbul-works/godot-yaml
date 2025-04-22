@@ -109,8 +109,3 @@ YAMLClassRegistry::ClassInfo YAMLClassRegistry::get_class_info(const String &tag
 	}
 	return ClassInfo(); // Return empty info if not found
 }
-
-std::unordered_map<String, YAMLClassRegistry::ClassInfo, StringHasher, StringEqual> YAMLClassRegistry::get_all_classes() {
-	std::lock_guard<std::mutex> lock(registry_mutex);
-	return class_registry; // Return a copy
-}
