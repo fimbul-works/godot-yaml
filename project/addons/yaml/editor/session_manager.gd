@@ -1,5 +1,5 @@
 @tool
-class_name YAMLSessionManager extends Node
+class_name YAMLEditorSessionManager extends Node
 
 const CONFIG_PATH := "res://.godot/yaml_editor_session.cfg"
 const CONFIG_SECTION := "yaml_editor"
@@ -7,7 +7,7 @@ const CONFIG_KEY_OPEN_FILES := "open_files"
 const CONFIG_KEY_SPLIT_OFFSET := "split_offset"
 const CONFIG_KEY_CURRENT_FILE := "current_file"
 
-var file_manager: YAMLFileManager
+var file_manager: YAMLEditorDocumentManager
 var file_system: YAMLFileSystem
 var config: ConfigFile
 var autosave_timer: Timer
@@ -26,7 +26,7 @@ func _ready() -> void:
 	autosave_timer.timeout.connect(_on_autosave_timer_timeout)
 	add_child(autosave_timer)
 
-func setup(p_file_manager: YAMLFileManager, p_resizable_container: HSplitContainer) -> void:
+func setup(p_file_manager: YAMLEditorDocumentManager, p_resizable_container: HSplitContainer) -> void:
 	file_manager = p_file_manager
 	resizable_container = p_resizable_container
 

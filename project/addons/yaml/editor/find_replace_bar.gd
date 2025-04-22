@@ -1,5 +1,5 @@
 @tool
-class_name YAMLEditorFindReplacePanel extends Control
+class_name YAMLEditorFindReplaceBar extends Control
 
 signal replace_performed
 signal replace_all_performed

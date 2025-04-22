@@ -1,5 +1,5 @@
 @tool
-class_name YAMLEditorStatusPanel extends HBoxContainer
+class_name YAMLEditorStatusBar extends HBoxContainer
 
 @export var editor: YAMLCodeEditor
 @export var status_label: Label

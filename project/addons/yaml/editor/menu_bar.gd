@@ -1,5 +1,5 @@
 @tool
-class_name YAMLMenuBar extends MenuBar
+class_name YAMLEditorMenuBar extends MenuBar
 
 signal new_file
 signal open_file

@@ -1,6 +1,5 @@
 @tool
-extends VBoxContainer
-class_name YAMLFileList
+class_name YAMLEditorFileList extends VBoxContainer
 
 signal file_selected(path)
 signal file_context_requested(path, position)

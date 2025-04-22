@@ -1,5 +1,5 @@
 @tool
-class_name YAMLValidator extends Node
+class_name YAMLEditorValidator extends Node
 
 signal validation_completed(document)
 
@@ -11,7 +11,7 @@ var _validation_queue: Array = []
 var code_editor: YAMLCodeEditor
 var validation_timer: Timer
 var file_system: YAMLFileSystem
-var file_manager: YAMLFileManager
+var file_manager: YAMLEditorDocumentManager
 
 func _ready() -> void:
 	file_system = YAMLFileSystem.get_singleton()
@@ -23,7 +23,7 @@ func _ready() -> void:
 	validation_timer.timeout.connect(_on_validation_timer_timeout)
 	add_child(validation_timer)
 
-func setup(p_code_editor: YAMLCodeEditor, p_file_manager: YAMLFileManager) -> void:
+func setup(p_code_editor: YAMLCodeEditor, p_file_manager: YAMLEditorDocumentManager) -> void:
 	code_editor = p_code_editor
 	file_manager = p_file_manager
 
@@ -44,7 +44,7 @@ func _on_validation_timer_timeout() -> void:
 	if document:
 		validate_document(document)
 
-func _on_document_changed(document: YAMLDocument) -> void:
+func _on_document_changed(document: YAMLEditorDocument) -> void:
 	# Show any existing validation results
 	if document.validation_result:
 		validation_completed.emit(document)
@@ -53,11 +53,11 @@ func _on_document_changed(document: YAMLDocument) -> void:
 	if document.validation_result == null or document.has_error():
 		validate_document(document)
 
-func _on_document_created(document: YAMLDocument) -> void:
+func _on_document_created(document: YAMLEditorDocument) -> void:
 	# Validate new document
 	validate_document(document)
 
-func validate_document(document: YAMLDocument) -> void:
+func validate_document(document: YAMLEditorDocument) -> void:
 	if document == null:
 		return
 
@@ -75,14 +75,14 @@ func validate_document(document: YAMLDocument) -> void:
 	_thread = Thread.new()
 	_thread.start(_validation_thread_function.bind(document))
 
-func _validation_thread_function(document: YAMLDocument) -> void:
+func _validation_thread_function(document: YAMLEditorDocument) -> void:
 	# YAML validation is thread-safe
 	var result = YAML.validate(document.content)
 
 	# Update document on main thread
 	call_deferred("_finish_validation", document, result)
 
-func _finish_validation(document: YAMLDocument, result: YAMLResult) -> void:
+func _finish_validation(document: YAMLEditorDocument, result: YAMLResult) -> void:
 	# Update document with validation result
 	document.set_validation_result(result)
 

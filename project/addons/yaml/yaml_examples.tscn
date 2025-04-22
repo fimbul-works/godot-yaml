@@ -39,4 +39,3 @@ local_texture = SubResource("PlaceholderTexture2D_grb45")
 
 [node name="Tests" parent="." instance=ExtResource("9_ltyb8")]
 unique_name_in_owner = true
-visible = false

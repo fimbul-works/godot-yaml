@@ -2,9 +2,9 @@
 class_name YAMLEditor extends Control
 
 # Components
-var file_manager: YAMLFileManager
-var validator: YAMLValidator
-var session_manager: YAMLSessionManager
+var file_manager: YAMLEditorDocumentManager
+var validator: YAMLEditorValidator
+var session_manager: YAMLEditorSessionManager
 
 # File system singleton
 var file_system: YAMLFileSystem
@@ -13,25 +13,25 @@ var file_system: YAMLFileSystem
 var editor: EditorInterface
 
 # UI references
-@export var menu_bar: YAMLMenuBar
-@export var file_list: YAMLFileList
+@export var menu_bar: YAMLEditorMenuBar
+@export var file_list: YAMLEditorFileList
 @export var resizable_container: HSplitContainer
 @export var code_edit: YAMLCodeEditor
-@export var status_panel: YAMLEditorStatusPanel
-@export var find_replace_panel: YAMLEditorFindReplacePanel
+@export var status_panel: YAMLEditorStatusBar
+@export var find_replace_panel: YAMLEditorFindReplaceBar
 
 func _ready() -> void:
 	# Get reference to file system singleton first
 	file_system = YAMLFileSystem.get_singleton()
 
 	# Initialize components
-	file_manager = YAMLFileManager.new()
+	file_manager = YAMLEditorDocumentManager.new()
 	add_child(file_manager)
 
-	validator = YAMLValidator.new()
+	validator = YAMLEditorValidator.new()
 	add_child(validator)
 
-	session_manager = YAMLSessionManager.new()
+	session_manager = YAMLEditorSessionManager.new()
 	add_child(session_manager)
 
 	# Wait for UI to be ready
@@ -294,7 +294,7 @@ func _on_replace_all_performed() -> void:
 		await get_tree().create_timer(2.0).timeout
 		status_panel.set_status("")
 
-func _on_document_changed(document: YAMLDocument) -> void:
+func _on_document_changed(document: YAMLEditorDocument) -> void:
 	# Update status panel with document info
 	_update_line_col_label()
 
@@ -312,7 +312,7 @@ func _on_document_changed(document: YAMLDocument) -> void:
 func _on_caret_changed() -> void:
 	status_panel.set_line_column(code_edit.get_current_line_col_info())
 
-func _on_validation_completed(document: YAMLDocument) -> void:
+func _on_validation_completed(document: YAMLEditorDocument) -> void:
 	if document != file_manager.get_current_document():
 		return
 
@@ -322,7 +322,7 @@ func _on_validation_completed(document: YAMLDocument) -> void:
 		status_panel.set_status("")
 		validator.clear_errors_in_editor()
 
-func _display_validation_error(document: YAMLDocument) -> void:
+func _display_validation_error(document: YAMLEditorDocument) -> void:
 	status_panel.set_validation_result(document.validation_result)
 
 	var result := document.validation_result

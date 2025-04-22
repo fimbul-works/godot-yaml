@@ -1,5 +1,5 @@
 @tool
-class_name YAMLDocument extends RefCounted
+class_name YAMLEditorDocument extends RefCounted
 
 # Primary document data
 var path: String

@@ -1,16 +1,19 @@
 @tool
-class_name YAMLFileManager extends Node
+class_name YAMLEditorDocumentManager extends Node
 
-signal document_changed(document)  # When switching between documents
-signal document_created(document)  # When a new document is created
-signal document_closed(document)   # When a document is closed
+## Signal emitted when switching between documents
+signal document_changed(document)
+## Signal emitted when a new document is created
+signal document_created(document)
+## Signal emitted when a document is closed
+signal document_closed(document)
 
-# Dictionary of open documents: {path: YAMLDocument}
+# Dictionary of open documents: {path: YAMLEditorDocument}
 var documents: Dictionary = {}
-var current_document: YAMLDocument = null
+var current_document: YAMLEditorDocument = null
 
 # UI components
-var file_list: YAMLFileList
+var file_list: YAMLEditorFileList
 var code_editor: YAMLCodeEditor
 var file_popup_menu: PopupMenu
 
@@ -51,7 +54,7 @@ func _ready() -> void:
 	ignore_update_timer.timeout.connect(_on_ignore_update_timer_timeout)
 	add_child(ignore_update_timer)
 
-func setup(p_file_list: YAMLFileList, p_code_editor: YAMLCodeEditor) -> void:
+func setup(p_file_list: YAMLEditorFileList, p_code_editor: YAMLCodeEditor) -> void:
 	file_list = p_file_list
 	code_editor = p_code_editor
 
@@ -59,8 +62,8 @@ func setup(p_file_list: YAMLFileList, p_code_editor: YAMLCodeEditor) -> void:
 	file_list.file_selected.connect(_on_file_selected)
 	file_list.file_context_requested.connect(_on_file_context_requested)
 
-func create_document(path: String, content: String = "") -> YAMLDocument:
-	var document := YAMLDocument.new(path, content)
+func create_document(path: String, content: String = "") -> YAMLEditorDocument:
+	var document := YAMLEditorDocument.new(path, content)
 
 	# Connect document signals
 	document.content_changed.connect(_on_document_content_changed)
@@ -94,7 +97,7 @@ func open_file(path: String) -> void:
 	# Notify the file system
 	file_system.notify_file_opened(path)
 
-func close_document(document: YAMLDocument) -> bool:
+func close_document(document: YAMLEditorDocument) -> bool:
 	if document == null:
 		return true
 
@@ -129,7 +132,7 @@ func close_document(document: YAMLDocument) -> bool:
 
 	return _close_document_internal(document)
 
-func _close_document_internal(document: YAMLDocument) -> bool:
+func _close_document_internal(document: YAMLEditorDocument) -> bool:
 	if document == null or not documents.has(document.path):
 		return false
 
@@ -158,7 +161,7 @@ func _close_document_internal(document: YAMLDocument) -> bool:
 
 	return true
 
-func save_document(document: YAMLDocument) -> bool:
+func save_document(document: YAMLEditorDocument) -> bool:
 	if document == null:
 		return false
 
@@ -185,7 +188,7 @@ func save_document(document: YAMLDocument) -> bool:
 
 	return true
 
-func save_document_as(document: YAMLDocument, new_path: String) -> bool:
+func save_document_as(document: YAMLEditorDocument, new_path: String) -> bool:
 	if document == null or new_path.is_empty():
 		return false
 
@@ -244,7 +247,7 @@ func new_file() -> void:
 	# Notify the file system
 	file_system.notify_file_opened(untitled_name)
 
-func set_current_document(document: YAMLDocument) -> void:
+func set_current_document(document: YAMLEditorDocument) -> void:
 	if document == null or document == current_document:
 		return
 
@@ -260,7 +263,7 @@ func set_current_document(document: YAMLDocument) -> void:
 	# Emit signal
 	document_changed.emit(document)
 
-func update_document_content(document: YAMLDocument, new_content: String) -> void:
+func update_document_content(document: YAMLEditorDocument, new_content: String) -> void:
 	if document == null:
 		return
 
@@ -273,12 +276,12 @@ func update_document_content(document: YAMLDocument, new_content: String) -> voi
 
 	document.set_content(new_content, caret_line, caret_column)
 
-func _on_document_content_changed(document: YAMLDocument) -> void:
+func _on_document_content_changed(document: YAMLEditorDocument) -> void:
 	# Update UI if this is the current document
 	if document == current_document:
 		update_ui()
 
-func _on_document_modified_changed(document: YAMLDocument) -> void:
+func _on_document_modified_changed(document: YAMLEditorDocument) -> void:
 	# Update UI if this is the current document
 	if document == current_document:
 		update_ui()
@@ -321,7 +324,7 @@ func _on_file_popup_menu_id_pressed(id: int) -> void:
 	if path.is_empty() or not documents.has(path):
 		return
 
-	var document: YAMLDocument = documents[path]
+	var document: YAMLEditorDocument = documents[path]
 
 	match id:
 		0:  # Save
@@ -348,7 +351,7 @@ func _on_external_file_updated(path: String) -> void:
 				print("Ignoring external update for recently saved file: ", path)
 				return
 
-		var document: YAMLDocument = documents[path]
+		var document: YAMLEditorDocument = documents[path]
 
 		# Check if the document has unsaved changes
 		if not document.is_modified:
@@ -420,7 +423,7 @@ func _on_ignore_update_timer_timeout() -> void:
 func _on_file_renamed(old_path: String, new_path: String) -> void:
 	# If we have this document open, update our references
 	if documents.has(old_path):
-		var document: YAMLDocument = documents[old_path]
+		var document: YAMLEditorDocument = documents[old_path]
 		document.path = new_path
 
 		documents.erase(old_path)
@@ -440,7 +443,7 @@ func handle_filesystem_change() -> void:
 
 	# Handle missing files
 	for old_path in missing_files:
-		var document: YAMLDocument = documents[old_path]
+		var document: YAMLEditorDocument = documents[old_path]
 
 		# Try to find a file with the same name but different path in the filesystem
 		var filename := old_path.get_file()
@@ -483,8 +486,8 @@ func get_open_paths() -> Array:
 func has_document(path: String) -> bool:
 	return documents.has(path)
 
-func get_document(path: String) -> YAMLDocument:
+func get_document(path: String) -> YAMLEditorDocument:
 	return documents.get(path, null)
 
-func get_current_document() -> YAMLDocument:
+func get_current_document() -> YAMLEditorDocument:
 	return current_document
