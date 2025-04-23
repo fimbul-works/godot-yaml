@@ -27,6 +27,7 @@ A high-performance YAML parsing and serialization plugin for Godot 4.3, powered 
 - 🗂️ [**Resource References**](#referencing-external-resources) – Use `!Resource` to auto-load scenes, textures, audio, and other assets via `ResourceLoader`.
 - 📑 [**Multi-Document Support**](#multi-document-yaml-support) – Parse YAML files with multiple `---` separated documents.
 - 🎨 [**Style Customization**](#style-customization): Control how YAML is formatted with customizable style options with `YAMLStyle`.
+- 🛡️ [**Security Controls**](#security-controls): Manage resource loading security during YAML parsing.
 - 📌 **Tagged Types**: Support for custom YAML tags and automatic tagging of Godot types.
 - 🛡️ **Error Handling**: Comprehensive error reporting with line and column information.
 - 🧵 **Thread-Safe**: Fully supports multi-threaded parsing and emission without locking.
@@ -45,41 +46,51 @@ player:
   name: Hero
   level: 10
   inventory:
-	- Sword
-	- Shield
-	- Potion
+    - Sword
+    - Shield
 """
 
 var result = YAML.parse(yaml_string)
 if result.has_error():
-	print("Error: ", result.get_error_message())
-	print("At line: ", result.get_error_line(), ", column: ", result.get_error_column())
+    print("Error: ", result.get_error_message())
 else:
-	var data = result.get_data()
-	print("Player name: ", data.player.name)
-	print("Inventory: ", data.player.inventory)
+    var data = result.get_data()
+    print("Player name: ", data.player.name)
 ```
 
 ### Generating YAML
 
 ```gdscript
-# Create a dictionary to convert to YAML
+# Convert dictionary to YAML
 var data = {
-	"name": "Stranger",
-	"dialogue": ["Hello, traveler.", "What brings you here?"]
+    "name": "Stranger",
+    "dialogue": ["Hello, traveler.", "What brings you here?"]
 }
 
-# Convert to YAML
-var stringify_result = YAML.stringify(data)
-if stringify_result.has_error():
-	print("Error: ", stringify_result.get_error_message())
+var result = YAML.stringify(data)
+if !result.has_error():
+    var yaml = result.get_data()
+    print(yaml)
+```
+
+### Working with Files
+
+```gdscript
+# Load YAML from a file
+var load_result = YAML.load_file("res://data/config.yaml")
+if load_result.has_error():
+    print("Error loading file: ", load_result.get_error_message())
 else:
-	var yaml = stringify_result.get_data()
-	# name: Stranger
-	# dialogue:
-	#   - "Hello, traveler."
-	#   - "What brings you here?"
-	print(yaml)
+    var config = load_result.get_data()
+    print("Loaded config: ", config)
+
+# Save data to a YAML file
+var data = {"settings": {"volume": 0.8, "fullscreen": true}}
+var save_result = YAML.save_file(data, "user://settings.yaml")
+if save_result.has_error():
+    print("Error saving file: ", save_result.get_error_message())
+else:
+    print("File saved successfully")
 ```
 
 ### Validation
@@ -89,10 +100,9 @@ else:
 var yaml_string = "key: value\ninvalid -list"
 var validation = YAML.validate(yaml_string)
 if validation.has_error():
-	print("Invalid YAML: ", validation.get_error_message())
-	print("At line: ", validation.get_error_line(), ", column: ", validation.get_error_column())
+    print("Invalid YAML: ", validation.get_error_message())
 else:
-	print("YAML syntax is valid")
+    print("YAML syntax is valid")
 ```
 
 ## Installation
@@ -134,39 +144,6 @@ print(data.sprite.texture is Texture2D)  # true
 print(data.sprite.scene is PackedScene)  # true
 ```
 
-## Using Helper Classes
-
-The plugin provides convenient helper classes for common operations:
-
-### YAMLLoader
-
-```gdscript
-# Load YAML from a file
-var data = YAMLLoader.load_file("res://data.yaml")
-if YAMLLoader.last_error != null:
-	print("Error loading file: ", YAMLLoader.last_error)
-else:
-	print("Loaded data: ", data)
-
-# Load from string
-var yaml_string = "key: value\nlist: [1, 2, 3]"
-data = YAMLLoader.load_string(yaml_string)
-```
-
-### YAMLWriter
-
-```gdscript
-# Save data to a YAML file
-var data = {"key": "value", "list": [1, 2, 3]}
-var success = YAMLWriter.save_file(data, "user://output.yaml")
-if !success:
-	print("Error saving file: ", YAMLWriter.last_error)
-
-# Convert to YAML string
-var yaml_string = YAMLWriter.save_string(data)
-print(yaml_string)
-```
-
 ## Custom Class Serialization
 
 You can register your custom GDScript classes for seamless serialization:
@@ -179,53 +156,38 @@ var name: String
 var level: int
 var inventory: Array
 
-func _init(p_name: String = "", p_level: int = 1) -> void:
-	name = p_name
-	level = p_level
-	inventory = []
-
 static func deserialize(dict) -> Player:
-	var player = Player.new(dict.get("name", ""), dict.get("level", 1))
-	player.inventory = dict.get("inventory", [])
-	return player
+    var player = Player.new()
+    player.name = dict.get("name", "")
+    player.level = dict.get("level", 1)
+    player.inventory = dict.get("inventory", [])
+    return player
 
 func serialize() -> Dictionary:
-	return {
-		"name": name,
-		"level": level,
-		"inventory": inventory
-	}
+    return {
+        "name": name,
+        "level": level,
+        "inventory": inventory
+    }
 
 # Register the class with YAML
 func _ready() -> void:
-	# Default registration using serialize() and deserialize() methods
-	YAML.register_class(Player)
+    YAML.register_class(Player)
 
-	# Or with custom method names
-	# YAML.register_class(Player, "to_dict", "from_dict")
+    # Now you can serialize and deserialize Player objects
+    var player = Player.new()
+    player.name = "Hero"
+    player.level = 10
+    player.inventory = ["Sword", "Shield"]
 
-	# Now you can serialize and deserialize Player objects
-	var player = Player.new("Hero", 10)
-	player.inventory = ["Sword", "Shield", "Potion"]
+    var data = {"player": player}
+    var yaml = YAML.stringify(data).get_data()
+    print(yaml)
 
-	var data = {"player": player}
-
-	# Serialize to YAML
-	var yaml = YAML.stringify(data).get_data()
-	print(yaml)
-	# Output:
-	# player: !Player
-	#   name: Hero
-	#   level: 10
-	#   inventory:
-	#     - Sword
-	#     - Shield
-	#     - Potion
-
-	# Deserialize from YAML
-	var parsed = YAML.parse(yaml).get_data()
-	var restored_player = parsed.player
-	print(restored_player.name)  # Hero
+    # Deserialize from YAML
+    var parsed = YAML.parse(yaml).get_data()
+    var restored_player = parsed.player
+    print(restored_player.name)  # Hero
 ```
 
 ### Error Handling for Custom Classes
@@ -234,44 +196,57 @@ You can add validation and return detailed error messages from your `deserialize
 
 ```gdscript
 static func deserialize(data: Variant):
-	# Validate data type
-	if typeof(data) != TYPE_DICTIONARY:
-		return YAMLResult.error("Deserializing Player expects Dictionary, %s received" % type_string(typeof(data)))
+    # Validate data type
+    if typeof(data) != TYPE_DICTIONARY:
+        return YAMLResult.error("Deserializing Player expects Dictionary")
 
-	# Validate required fields
-	if !data.has("name"):
-		return YAMLResult.error("Player class missing required 'name' field")
+    # Validate required fields
+    if !data.has("name"):
+        return YAMLResult.error("Player class missing required 'name' field")
 
-	if typeof(data.get("level")) != TYPE_INT:
-		return YAMLResult.error("Player 'level' must be an integer")
-
-	# Create object if validation passes
-	var player = Player.new(data.name, data.get("level", 1))
-	player.inventory = data.get("inventory", [])
-
-	# Return the object as usual
-	return player
+    # Create object if validation passes
+    var player = Player.new()
+    player.name = data.get("name", "")
+    player.level = data.get("level", 1)
+    return player
 ```
 
-When parsing YAML with a custom class that returns a `YAMLResult`:
+## Security Controls
 
-- If `deserialize` returns a `YAMLResult` with an error, the entire parse operation will fail
-- The error message from your custom class will be propagated to the parse result
-- This allows for detailed validation errors with custom messages
-
-Example:
+The plugin provides security controls for resource loading via the `YAMLSecurity` class. This helps protect against potential security vulnerabilities when loading YAML from untrusted sources.
 
 ```gdscript
-var invalid_yaml = """
-player: !Player
-  # Missing name field
-  level: ten  # Invalid type
-"""
+# Create custom security settings
+var security = YAML.create_security()
 
-var result = YAML.parse(invalid_yaml)
-if result.has_error():
-	print("Error: " + result.get_error_message())
-	# Output: "Error: Player 'level' must be an integer"
+# Allow resources from specific directories
+security.allow_path("res://assets/")
+security.allow_path("res://textures/", ["Texture2D", "Image"])
+
+# Block specific resource types
+security.block_type("Script")
+security.block_type("AudioStreamMP3")
+
+# Parse YAML with custom security settings
+var yaml_string = """
+player:
+  sprite: !Resource res://assets/player.png
+  script: !Resource res://scripts/player.gd
+"""
+var result = YAML.parse(yaml_string, false, security)
+```
+
+### Default Security
+
+By default, Script and GDExtension resource types are blocked for security reasons. You can also use the static methods of the YAML class for simple security management:
+
+```gdscript
+# Using the default security instance
+YAML.allow_resource_path("res://assets/")
+YAML.block_resource_type("AudioStreamMP3")
+
+# Reset to defaults (blocks only Script and GDExtension)
+YAML.reset_security()
 ```
 
 ## Style Customization
@@ -291,9 +266,6 @@ style.set_quote_style(YAMLStyle.QUOTE_DOUBLE)     # Use " for strings
 # Set flow style (FLOW_NONE, FLOW_SINGLE)
 style.set_flow_style(YAMLStyle.FLOW_SINGLE)       # Use [] and {} style
 
-# Set number format (NUM_DECIMAL, NUM_HEX, NUM_OCTAL, NUM_BINARY, NUM_SCIENTIFIC)
-style.set_number_format(YAMLStyle.NUM_HEX)        # Output numbers in hex format
-
 # Apply style to specific child nodes
 var nested_style = YAML.create_style()
 nested_style.set_flow_style(YAMLStyle.FLOW_NONE)  # Use block style for this child
@@ -301,15 +273,14 @@ style.set_child("nested", nested_style)
 
 # Apply the style when generating YAML
 var data = {
-	"string": "Hello\nWorld",
-	"nested": {
-		"list": [1, 2, 3],
-		"mapping": {"a": 1, "b": 2}
-	}
+    "string": "Hello\nWorld",
+    "nested": {"list": [1, 2, 3]}
 }
-var result = YAML.stringify(data, style)
-var yaml = result.get_data()
+var yaml = YAML.stringify(data, style).get_data()
 print(yaml)
+
+# Apply style to file output
+var file_result = YAML.save_file(data, "user://styled_output.yaml", style)
 ```
 
 ### Style Detection
@@ -321,79 +292,55 @@ You can automatically detect and preserve the styling of parsed YAML:
 var yaml_string = """
 list:
   - item1
-  - item2
-nested: {key1: value1, key2: value2}  # Flow style
-multiline: |                          # Literal style
+nested: {key1: value1}  # Flow style
+multiline: |            # Literal style
   This is a multiline
-  string that preserves
-  line breaks
+  string
 """
 
 var result = YAML.parse(yaml_string, true)  # Enable style detection
 if !result.has_error() && result.has_style():
-	var data = result.get_data()
-	var style = result.get_style()
+    var data = result.get_data()
+    var style = result.get_style()
 
-	# Modify data while preserving style
-	data.list.append("item3")
+    # Modify data while preserving style
+    data.list.append("item2")
 
-	# Re-emit with preserved style
-	var output = YAML.stringify(data, style).get_data()
-	print(output)
+    # Re-emit with preserved style
+    var output = YAML.stringify(data, style).get_data()
+    print(output)
+
+    # Or save to file with preserved style
+    YAML.save_file(data, "user://preserved_style.yaml", style)
 ```
 
 ## Multi-Document YAML Support
 
-The plugin fully supports YAML files containing multiple documents separated by `---` delimiters. This is particularly useful for any scenario where related but separate data structures need to be kept together.
-
-### Parsing Multiple Documents
+The plugin fully supports YAML files containing multiple documents separated by `---` delimiters.
 
 ```gdscript
 # Parse a multi-document YAML string
 var yaml_string = """
 # First document
 title: Document 1
-data:
-  - item1
-  - item2
 ---
 # Second document
 title: Document 2
-config:
-  enabled: true
----
-# Third document
-title: Document 3
-message: "Final document"
 """
 
 var result = YAML.parse(yaml_string)
-if result.has_error():
-	print("Error: ", result.get_error_message())
-else:
-	# Get number of documents
-	var doc_count = result.get_document_count()
-	print("Number of documents: ", doc_count)  # Output: 3
+if !result.has_error():
+    # Get number of documents
+    var doc_count = result.get_document_count()
+    print("Number of documents: ", doc_count)  # Output: 2
 
-	# Process each document
-	for i in range(doc_count):
-		var doc = result.get_document(i)
-		print("Document %d title: %s" % [i, doc.title])
+    # Access documents by index
+    var first_doc = result.get_document(0)
+    var second_doc = result.get_document(1)
 
-	# You can also access documents directly by index
-	var first_doc = result.get_document(0)   # First document
-	var second_doc = result.get_document(1)  # Second document
-
-	# The original get_data() method still works, now with optional index
-	var third_doc = result.get_data(2)       # Third document
+    print(first_doc.title)   # Output: Document 1
+    print(second_doc.title)  # Output: Document 2
 ```
-
-### Notes on Multi-Document Usage
-
-- Documents are indexed starting from `0`
-- For backward compatibility, `get_data()` without an index returns the first document
-- `get_document_count()` returns the number of documents (at least `1` for valid YAML), or `0` if the result has an error
-- When parsing single-document YAML, `get_document(0)` and `get_data()` return identical results
 
 ## Error Handling and Troubleshooting
 

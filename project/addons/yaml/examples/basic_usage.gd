@@ -16,21 +16,29 @@ func _ready():
 
 	# Parse YAML string
 	var parse_result := YAML.parse(yaml_text)
-	assert(!parse_result.get_error_message(), parse_result.get_error_message())
+	assert(!parse_result.has_error(), parse_result.get_error_message())
 
 	var data := parse_result.get_data()
 	print_rich("\n[b]Parse Result:[/b]\n%s" % data)
 
 	# Stringify data
 	var stringify_result := YAML.stringify(data)
-	assert(!stringify_result.get_error_message(), stringify_result.get_error_message())
+	assert(!stringify_result.has_error(), stringify_result.get_error_message())
 
 	var yaml := stringify_result.get_data()
 	print_rich("\n[b]Stringify Result:[/b]\n%s" % yaml)
 
 	# Validate YAML
 	var validate_result := YAML.validate(yaml)
-	assert(!validate_result.get_error_message(), validate_result.get_error_message())
+	assert(!validate_result.has_error(), validate_result.get_error_message())
 
-	# Show version information
-	print_rich("[b]YAML Version:[/b]\n%s" % YAML.version())
+	# Load YAML file
+	var load_result := YAML.load_file("res://addons/yaml/data/simple.yaml")
+	assert(!load_result.has_error(), stringify_result.get_error_message())
+
+	var loaded_data := load_result.get_data()
+	print_rich("\n[b]Loaded data:[/b]\n%s" % loaded_data)
+
+	# Save YAML file
+	var save_result := YAML.save_file(loaded_data, "user://simple.yaml")
+	assert(!load_result.has_error(), stringify_result.get_error_message())

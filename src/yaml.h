@@ -25,15 +25,19 @@ public:
 	class Emitter;
 
 	static String version();
+
 	static Ref<YAMLResult> validate(const String &input);
 	static Ref<YAMLResult> parse(const String &input, const bool detect_style = false, const Ref<YAMLSecurity> security = nullptr);
 	static Ref<YAMLResult> stringify(const Variant &input, const Ref<YAMLStyle> &format);
-	static Ref<YAMLStyle> create_style();
+
+	static Ref<YAMLResult> load_file(const String &path, const bool detect_style = false, const Ref<YAMLSecurity> security = nullptr);
+	static Ref<YAMLResult> save_file(const Variant &data, const String &path, const Ref<YAMLStyle> &style = nullptr);
 
 	static void register_class(Ref<Script> p_class, const Variant &p_serialize, const Variant &p_deserialize);
 	static bool has_registered_class(const String &class_name);
 
-	// Simplified security API
+	static Ref<YAMLStyle> create_style();
+
 	static Ref<YAMLSecurity> create_security();
 	static void allow_resource_path(const String &path_prefix, const Array &type_names = Array());
 	static void block_resource_type(const StringName &type_name);

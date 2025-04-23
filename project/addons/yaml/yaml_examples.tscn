@@ -1,8 +1,7 @@
-[gd_scene load_steps=11 format=3 uid="uid://dogc1x0c3re7o"]
+[gd_scene load_steps=10 format=3 uid="uid://dogc1x0c3re7o"]
 
 [ext_resource type="Script" path="res://addons/yaml/examples/examples.gd" id="1_7nxqb"]
 [ext_resource type="Script" path="res://addons/yaml/examples/basic_usage.gd" id="1_iyu1q"]
-[ext_resource type="Script" path="res://addons/yaml/examples/loader_writer.gd" id="2_6ij2c"]
 [ext_resource type="PackedScene" uid="uid://cnu3gk1llwbuv" path="res://addons/yaml/tests/yaml_tests.tscn" id="9_ltyb8"]
 [ext_resource type="Script" path="res://addons/yaml/examples/error_handling.gd" id="31_xr2li"]
 [ext_resource type="Script" path="res://addons/yaml/examples/speed_benchmark.gd" id="32_umwpu"]
@@ -17,9 +16,6 @@ script = ExtResource("1_7nxqb")
 
 [node name="Basic Usage" type="Node2D" parent="."]
 script = ExtResource("1_iyu1q")
-
-[node name="Loader and Writer" type="Node2D" parent="."]
-script = ExtResource("2_6ij2c")
 
 [node name="Error Handling" type="Node2D" parent="."]
 script = ExtResource("31_xr2li")
@@ -39,3 +35,4 @@ local_texture = SubResource("PlaceholderTexture2D_grb45")
 
 [node name="Tests" parent="." instance=ExtResource("9_ltyb8")]
 unique_name_in_owner = true
+visible = false

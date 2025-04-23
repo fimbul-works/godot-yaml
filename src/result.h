@@ -26,6 +26,7 @@ public:
 	// Static factory methods
 	static Ref<YAMLResult> success(const Variant &data, const Ref<YAMLStyle> &style = nullptr);
 	static Ref<YAMLResult> error(const String &msg, int line = -1, int column = -1);
+	static Ref<YAMLResult> user_error(const String &msg);
 
 	// Immutable accessors
 	Variant get_data(int index = 0) const;

@@ -14,10 +14,8 @@
 		<method name="error" qualifiers="static">
 			<return type="YAMLResult" />
 			<param index="0" name="msg" type="String" />
-			<param index="1" name="line" type="int" default="-1" />
-			<param index="2" name="column" type="int" default="-1" />
 			<description>
-				Creates an error result with the specified error message and optional line and column information.
+				Creates an error result with the specified error message.
 			</description>
 		</method>
 		<method name="get_data" qualifiers="const">

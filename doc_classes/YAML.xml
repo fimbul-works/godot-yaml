@@ -64,6 +64,29 @@
 				Returns [code]true[/code] if a class is registered for YAML serialization with the given tag name.
 			</description>
 		</method>
+		<method name="load_file" qualifiers="static">
+			<return type="YAMLResult" />
+			<param index="0" name="path" type="String" />
+			<param index="1" name="detect_style" type="bool" default="false" />
+			<param index="2" name="security" type="YAMLSecurity" default="null" />
+			<description>
+				Loads and parses a YAML file from the given path. Returns a [YAMLResult] containing either the parsed data or error information.
+				If [param detect_style] is [code]true[/code], the method also detects and returns style information that can be used to preserve formatting when modifying and re-serializing the YAML.
+				If [param security] is provided, it will be used to validate resource loading. Otherwise, the default security settings will be used.
+				[codeblocks]
+				[gdscript]
+				# Load and parse a YAML file
+				var result = YAML.load_file("res://data/config.yaml")
+				if result.has_error():
+						print("Error: ", result.get_error_message())
+						print("At line: ", result.get_error_line())
+				else:
+						var data = result.get_data()
+						print("Loaded configuration: ", data)
+				[/gdscript]
+				[/codeblocks]
+			</description>
+		</method>
 		<method name="parse" qualifiers="static">
 			<return type="YAMLResult" />
 			<param index="0" name="input" type="String" />
@@ -141,6 +164,37 @@
 			<description>
 				Resets the default security settings to defaults. Clears all custom settings and re-adds the default blocked types (Script and GDExtension).
 				This method delegates to the default [YAMLSecurity] instance.
+			</description>
+		</method>
+		<method name="save_file" qualifiers="static">
+			<return type="YAMLResult" />
+			<param index="0" name="data" type="Variant" />
+			<param index="1" name="path" type="String" />
+			<param index="2" name="style" type="YAMLStyle" default="null" />
+			<description>
+				Converts Godot data to YAML and saves it to a file at the specified path. Returns a [YAMLResult] containing either the YAML string that was written or error information.
+				If [param style] is provided, it will be used to customize the formatting of the YAML output. Otherwise, default formatting will be used.
+				[codeblocks]
+				[gdscript]
+				# Save data to a YAML file
+				var data = {
+						"settings": {
+								"volume": 0.8,
+								"fullscreen": true
+						},
+						"player": {
+								"name": "Hero",
+								"level": 5
+						}
+				}
+
+				var result = YAML.save_file(data, "user://settings.yaml")
+				if result.has_error():
+						print("Error saving file: ", result.get_error_message())
+				else:
+						print("File saved successfully")
+				[/gdscript]
+				[/codeblocks]
 			</description>
 		</method>
 		<method name="stringify" qualifiers="static">
