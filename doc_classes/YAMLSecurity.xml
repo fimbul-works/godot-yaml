@@ -19,20 +19,14 @@
 				Permits resource loading from the specified path prefix. If [param type_names] is empty, allows all non-blocked resource types from this path.
 				[codeblocks]
 				[gdscript]
-				# Allow all non-blocked resource types from the assets directory
+				# Create security settings
 				var security = YAML.create_security()
+
+				# Allow all non-blocked resource types from assets directory
 				security.allow_path("res://assets/")
 
-				# Allow only specific resource types from the textures directory
+				# Allow only specific resource types from textures directory
 				security.allow_path("res://textures/", ["Texture2D", "Image"])
-
-				# Parse YAML with custom security settings
-				var yaml_string = """
-				sprite:
-				  texture: !Resource res://textures/hero.png
-				  scene: !Resource res://scenes/npc.tscn
-				"""
-				var result = YAML.parse(yaml_string, false, security)
 				[/gdscript]
 				[/codeblocks]
 			</description>
@@ -42,43 +36,12 @@
 			<param index="0" name="type_name" type="StringName" />
 			<description>
 				Blocks a specific resource type globally, regardless of path. YAML parsing rejects any resource of this type.
-				[codeblocks]
-				[gdscript]
-				# Create security settings and block AudioStreamMP3
-				var security = YAML.create_security()
-				security.block_type("AudioStreamMP3")
-
-				# Parse YAML with custom security settings
-				var yaml_string = """
-				resources:
-				  image: !Resource res://textures/sprite.png
-				  audio: !Resource res://sounds/music.mp3
-				"""
-
-				var result = YAML.parse(yaml_string, false, security)
-				# The audio resource won't load due to type restriction
-				[/gdscript]
-				[/codeblocks]
 			</description>
 		</method>
 		<method name="clear_path_restrictions">
 			<return type="void" />
 			<description>
-				Removes all path restrictions. After calling this method, no paths will be allowed until you call [method allow_path].
-				[codeblocks]
-				[gdscript]
-				var security = YAML.create_security()
-
-				# Allow some paths
-				security.allow_path("res://assets/")
-				security.allow_path("res://textures/")
-
-				# Clear all path restrictions
-				security.clear_path_restrictions()
-
-				# Now no paths are allowed
-				[/gdscript]
-				[/codeblocks]
+				Removes all path restrictions. After calling this method, all paths will be allowed until you call [method allow_path].
 			</description>
 		</method>
 		<method name="clear_type_restrictions">
@@ -86,40 +49,12 @@
 			<description>
 				Removes all type restrictions. After this call, all resource types will be allowed unless explicitly blocked again.
 				[b]Note:[/b] By default, Script and GDExtension types are blocked for security reasons. Calling this method removes these default restrictions, which may introduce security vulnerabilities.
-				[codeblocks]
-				[gdscript]
-				var security = YAML.create_security()
-
-				# Block some types
-				security.block_type("AudioStreamMP3")
-				security.block_type("VideoStream")
-
-				# Clear all type restrictions (including default ones)
-				security.clear_type_restrictions()
-
-				# Now all resource types are allowed (including potentially unsafe ones)
-				[/gdscript]
-				[/codeblocks]
 			</description>
 		</method>
 		<method name="reset">
 			<return type="void" />
 			<description>
 				Resets security settings to defaults. Clears all custom settings and re-adds the default blocked types (Script and GDExtension).
-				[codeblocks]
-				[gdscript]
-				var security = YAML.create_security()
-
-				# Customize security settings
-				security.allow_path("res://assets/")
-				security.block_type("AudioStreamMP3")
-
-				# Reset to defaults
-				security.reset()
-
-				# Now only the default restrictions apply (Script and GDExtension blocked)
-				[/gdscript]
-				[/codeblocks]
 			</description>
 		</method>
 	</methods>

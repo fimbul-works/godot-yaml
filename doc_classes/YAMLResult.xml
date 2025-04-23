@@ -18,16 +18,6 @@
 			<param index="2" name="column" type="int" default="-1" />
 			<description>
 				Creates an error result with the specified error message and optional line and column information.
-				[codeblocks]
-				[gdscript]
-				# Create an error result
-				var result = YAMLResult.error("Invalid YAML syntax", 5, 10)
-				print(result.has_error())         # Output: true
-				print(result.get_error_message()) # Output: Invalid YAML syntax
-				print(result.get_error_line())    # Output: 5
-				print(result.get_error_column())  # Output: 10
-				[/gdscript]
-				[/codeblocks]
 			</description>
 		</method>
 		<method name="get_data" qualifiers="const">
@@ -49,11 +39,9 @@
 
 				var result = YAML.parse(yaml_string)
 				if !result.has_error():
-				    var first_doc = result.get_data(0)  # Access first document
-				    var second_doc = result.get_data(1) # Access second document
-
+				    var first_doc = result.get_data(0)
+				    var second_doc = result.get_data(1)
 				    print(first_doc.title)  # Output: Document 1
-				    print(second_doc.title) # Output: Document 2
 				[/gdscript]
 				[/codeblocks]
 			</description>
@@ -63,112 +51,30 @@
 			<param index="0" name="index" type="int" default="0" />
 			<description>
 				Alias for [method get_data] for semantic clarity. Returns a specific document from multi-document YAML results. Returns [code]null[/code] for error results or if the index is out of range.
-				[codeblocks]
-				[gdscript]
-				# Parse a multi-document YAML string
-				var yaml_string = """
-				# First document
-				name: Alice
-				---
-				# Second document
-				name: Bob
-				"""
-
-				var result = YAML.parse(yaml_string)
-				if !result.has_error():
-				    # Same as using get_data()
-				    var doc1 = result.get_document(0)
-				    var doc2 = result.get_document(1)
-
-				    print("Documents: %s and %s" % [doc1.name, doc2.name])
-				    # Output: Documents: Alice and Bob
-				[/gdscript]
-				[/codeblocks]
 			</description>
 		</method>
 		<method name="get_document_count" qualifiers="const">
 			<return type="int" />
 			<description>
 				Returns the number of documents in the result. Returns [code]0[/code] for error cases, [code]1[/code] for single document results, and the document count for multi-document results.
-				[codeblocks]
-				[gdscript]
-				# Parse a multi-document YAML string
-				var yaml_string = """
-				# First document
-				title: Document 1
-				---
-				# Second document
-				title: Document 2
-				---
-				# Third document
-				title: Document 3
-				"""
-
-				var result = YAML.parse(yaml_string)
-				if !result.has_error():
-				    var count = result.get_document_count()
-				    print("Number of documents: %d" % count)
-				    # Output: Number of documents: 3
-
-				    for i in range(count):
-				        var doc = result.get_document(i)
-				        print("Document %d: %s" % [i, doc.title])
-				[/gdscript]
-				[/codeblocks]
 			</description>
 		</method>
 		<method name="get_error_column" qualifiers="const">
 			<return type="int" />
 			<description>
 				Returns the error column number if any. Returns [code]-1[/code] if not applicable or if there is no error.
-				[codeblocks]
-				[gdscript]
-				var yaml_string = "key: value\ninvalid field"
-				var result = YAML.validate(yaml_string)
-
-				if result.has_error():
-				    print("Error at line %d, column %d: %s" % [
-				        result.get_error_line(),
-				        result.get_error_column(),
-				        result.get_error_message()
-				    ])
-				[/gdscript]
-				[/codeblocks]
 			</description>
 		</method>
 		<method name="get_error_line" qualifiers="const">
 			<return type="int" />
 			<description>
 				Returns the error line number if any. Returns [code]-1[/code] if not applicable or if there is no error.
-				[codeblocks]
-				[gdscript]
-				var yaml_string = "player:\n  name: Hero\n  level: invalid"
-				var result = YAML.parse(yaml_string)
-
-				if result.has_error():
-				    print("Error at line %d: %s" % [
-				        result.get_error_line(),
-				        result.get_error_message()
-				    ])
-				[/gdscript]
-				[/codeblocks]
 			</description>
 		</method>
 		<method name="get_error_message" qualifiers="const">
 			<return type="String" />
 			<description>
 				Returns the error message if any. Returns an empty string if there is no error.
-				[codeblocks]
-				[gdscript]
-				var yaml_string = "invalid: [yaml: syntax"
-				var result = YAML.validate(yaml_string)
-
-				if result.has_error():
-				    print("YAML error: " + result.get_error_message())
-				else:
-				    print("YAML is valid")
-				[/gdscript]
-				[/codeblocks]
 			</description>
 		</method>
 		<method name="get_style" qualifiers="const">
@@ -182,12 +88,10 @@
 				var yaml_string = """
 				list:
 				  - item1
-				  - item2
-				nested: {key1: value1, key2: value2}  # Flow style
-				multiline: |                          # Literal style
+				nested: {key1: value1}  # Flow style
+				multiline: |            # Literal style
 				  This is a multiline
-				  string that preserves
-				  line breaks
+				  string
 				"""
 
 				var result = YAML.parse(yaml_string, true)  # Enable style detection
@@ -196,11 +100,10 @@
 				    var style = result.get_style()
 
 				    # Modify data while preserving style
-				    data.list.append("item3")
+				    data.list.append("item2")
 
 				    # Re-emit with preserved style
 				    var output = YAML.stringify(data, style).get_data()
-				    print(output)
 				[/gdscript]
 				[/codeblocks]
 			</description>
@@ -209,19 +112,6 @@
 			<return type="bool" />
 			<description>
 				Returns [code]true[/code] if the result contains an error.
-				[codeblocks]
-				[gdscript]
-				# Parse a YAML string
-				var yaml_string = "key: value"
-				var result = YAML.parse(yaml_string)
-
-				if result.has_error():
-				    print("Error: " + result.get_error_message())
-				else:
-				    var data = result.get_data()
-				    print("Parsed data: " + str(data))
-				[/gdscript]
-				[/codeblocks]
 			</description>
 		</method>
 		<method name="has_style" qualifiers="const">
@@ -229,29 +119,6 @@
 			<description>
 				Returns [code]true[/code] if the result contains style information.
 				Style information is only available if style detection was enabled during parsing using the [code]detect_style[/code] parameter of [method YAML.parse].
-				[codeblocks]
-				[gdscript]
-				var yaml_string = """
-				regular: value
-				flow_style: {a: 1, b: 2}
-				block_scalar: |
-				  This is a multiline
-				  string with preserved newlines
-				"""
-
-				# Parse with style detection enabled
-				var result = YAML.parse(yaml_string, true)
-
-				if !result.has_error():
-				    print("Has style information: " + str(result.has_style()))
-				    # Output: Has style information: true
-
-				    if result.has_style():
-				        var style = result.get_style()
-				        # Use style for emitting
-				        var output = YAML.stringify(result.get_data(), style)
-				[/gdscript]
-				[/codeblocks]
 			</description>
 		</method>
 		<method name="success" qualifiers="static">
@@ -260,23 +127,6 @@
 			<param index="1" name="style" type="YAMLStyle" default="null" />
 			<description>
 				Creates a success result with the specified data and optional style information.
-				[codeblocks]
-				[gdscript]
-				# Create a success result
-				var data = {"key": "value", "list": [1, 2, 3]}
-				var result = YAMLResult.success(data)
-
-				print(result.has_error())  # Output: false
-				print(result.get_data())   # Output: {key:value, list:[1, 2, 3]}
-
-				# Create a success result with style
-				var style = YAMLStyle.new()
-				style.set_flow_style(YAMLStyle.FLOW_SINGLE)
-				var styled_result = YAMLResult.success(data, style)
-
-				print(styled_result.has_style())  # Output: true
-				[/gdscript]
-				[/codeblocks]
 			</description>
 		</method>
 	</methods>
