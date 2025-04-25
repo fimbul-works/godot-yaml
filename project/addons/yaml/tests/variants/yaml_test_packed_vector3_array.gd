@@ -133,8 +133,8 @@ func test_item_styles() -> void:
 	var parent_style = YAML.create_style()
 
 	# Create special style for all items
-	var items_style = YAML.create_style()
-	items_style.set_flow_style(YAMLStyle.FLOW_SINGLE)  # Use flow style for vector2 elements
+	var template = YAML.create_style()
+	template.set_flow_style(YAMLStyle.FLOW_SINGLE)  # Use flow style for vector2 elements
 
 	# Create specific style for one item
 	var item0_style = YAML.create_style()
@@ -144,9 +144,9 @@ func test_item_styles() -> void:
 	item1_style.set_container_form(YAMLStyle.FORM_MAP)  # Second item as map
 
 	# Apply styles
-	parent_style.set_child("_items", items_style)  # Apply to all items
-	parent_style.set_child("0", item0_style)       # Apply to first item
-	parent_style.set_child("1", item1_style)       # Apply to second item
+	parent_style.set_child("_template", template) # Apply to all items
+	parent_style.set_child("0", item0_style)            # Apply to first item
+	parent_style.set_child("1", item1_style)            # Apply to second item
 
 	var result = YAML.stringify(vec_array, parent_style)
 
@@ -158,8 +158,8 @@ func test_item_styles() -> void:
 	# Test roundtrip
 	assert_roundtrip(YAML.parse(result.get_data()), vec_array, is_packed_vector2_array_equal, "item styles")
 
-## Test _items container forms
-func test_items_container_forms() -> void:
+## Test template container forms
+func test_template_container_forms() -> void:
 	# Create a vector array
 	var vec_array = PackedVector3Array([
 		Vector3(1.5, 2.5, 3.5),
@@ -168,9 +168,9 @@ func test_items_container_forms() -> void:
 
 	# Test with FORM_SEQ for items
 	var seq_style = YAML.create_style()
-	var items_seq_style = YAML.create_style()
-	items_seq_style.set_container_form(YAMLStyle.FORM_SEQ)
-	seq_style.set_child("_items", items_seq_style)
+	var template_seq = YAML.create_style()
+	template_seq.set_container_form(YAMLStyle.FORM_SEQ)
+	seq_style.set_child("_template", template_seq)
 
 	var seq_result = YAML.stringify(vec_array, seq_style)
 	assert_stringify_success(seq_result, "array with items in sequence form")
@@ -196,9 +196,9 @@ func test_items_container_forms() -> void:
 
 	# Test with FORM_MAP for items (default, but let's be explicit)
 	var map_style = YAML.create_style()
-	var items_map_style = YAML.create_style()
-	items_map_style.set_container_form(YAMLStyle.FORM_MAP)
-	map_style.set_child("_items", items_map_style)
+	var template_map = YAML.create_style()
+	template_map.set_container_form(YAMLStyle.FORM_MAP)
+	map_style.set_child("_template", template_map)
 
 	var map_result = YAML.stringify(vec_array, map_style)
 	assert_stringify_success(map_result, "array with items in map form")
@@ -230,9 +230,9 @@ func test_item_flow_styles() -> void:
 	style.set_flow_style(YAMLStyle.FLOW_NONE)
 
 	# But make each Vector3 item use flow style
-	var items_style = YAML.create_style()
-	items_style.set_flow_style(YAMLStyle.FLOW_SINGLE)
-	style.set_child("_items", items_style)
+	var template = YAML.create_style()
+	template.set_flow_style(YAMLStyle.FLOW_SINGLE)
+	style.set_child("_template", template)
 
 	var result = YAML.stringify(vec_array, style)
 	assert_stringify_success(result, "array with flow style items")
@@ -295,9 +295,9 @@ func test_large_array() -> void:
 			"style": func():
 				var s = YAML.create_style()
 				s.set_flow_style(YAMLStyle.FLOW_NONE)
-				var items = YAML.create_style()
-				items.set_flow_style(YAMLStyle.FLOW_SINGLE)
-				s.set_child("_items", items)
+				var template = YAML.create_style()
+				template.set_flow_style(YAMLStyle.FLOW_SINGLE)
+				s.set_child("_template", template)
 				return s,
 		}
 	]

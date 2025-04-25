@@ -8,20 +8,20 @@
 using namespace godot;
 
 YAMLStyle::YAMLStyle() :
-		scalar_style(SCALAR_ANY),
-		quote_style(QUOTE_ANY),
 		container_form(FORM_ANY),
 		flow_style(FLOW_ANY),
-		number_format(NUM_ANY),
+		string_style(STRING_ANY),
+		integer_format(INT_ANY),
+		float_format(FLOAT_ANY),
 		binary_encoding(BIN_ANY) {
 }
 
 bool YAMLStyle::is_block_style() const {
-	return scalar_style == SCALAR_BLOCK || scalar_style == SCALAR_LITERAL || scalar_style == SCALAR_FOLDED;
+	return string_style == STRING_LITERAL || string_style == STRING_FOLDED;
 }
 
 bool YAMLStyle::uses_quotes() const {
-	return quote_style == QUOTE_SINGLE || quote_style == QUOTE_DOUBLE;
+	return string_style == STRING_QUOTE_SINGLE || string_style == STRING_QUOTE_DOUBLE;
 }
 
 bool YAMLStyle::uses_flow() const {
@@ -30,17 +30,6 @@ bool YAMLStyle::uses_flow() const {
 
 void YAMLStyle::_bind_methods() {
 	// Bind enums
-	BIND_ENUM_CONSTANT(SCALAR_ANY);
-	BIND_ENUM_CONSTANT(SCALAR_PLAIN);
-	BIND_ENUM_CONSTANT(SCALAR_BLOCK);
-	BIND_ENUM_CONSTANT(SCALAR_LITERAL);
-	BIND_ENUM_CONSTANT(SCALAR_FOLDED);
-
-	BIND_ENUM_CONSTANT(QUOTE_ANY);
-	BIND_ENUM_CONSTANT(QUOTE_NONE);
-	BIND_ENUM_CONSTANT(QUOTE_SINGLE);
-	BIND_ENUM_CONSTANT(QUOTE_DOUBLE);
-
 	BIND_ENUM_CONSTANT(FORM_ANY);
 	BIND_ENUM_CONSTANT(FORM_SEQ);
 	BIND_ENUM_CONSTANT(FORM_MAP);
@@ -49,29 +38,39 @@ void YAMLStyle::_bind_methods() {
 	BIND_ENUM_CONSTANT(FLOW_NONE);
 	BIND_ENUM_CONSTANT(FLOW_SINGLE);
 
-	BIND_ENUM_CONSTANT(NUM_ANY);
-	BIND_ENUM_CONSTANT(NUM_DECIMAL);
-	BIND_ENUM_CONSTANT(NUM_HEX);
-	BIND_ENUM_CONSTANT(NUM_OCTAL);
-	BIND_ENUM_CONSTANT(NUM_BINARY);
-	BIND_ENUM_CONSTANT(NUM_SCIENTIFIC);
+	BIND_ENUM_CONSTANT(STRING_ANY);
+	BIND_ENUM_CONSTANT(STRING_PLAIN);
+	BIND_ENUM_CONSTANT(STRING_QUOTE_SINGLE);
+	BIND_ENUM_CONSTANT(STRING_QUOTE_DOUBLE);
+	BIND_ENUM_CONSTANT(STRING_LITERAL);
+	BIND_ENUM_CONSTANT(STRING_FOLDED);
+
+	BIND_ENUM_CONSTANT(INT_ANY);
+	BIND_ENUM_CONSTANT(INT_DECIMAL);
+	BIND_ENUM_CONSTANT(INT_HEX);
+	BIND_ENUM_CONSTANT(INT_OCTAL);
+	BIND_ENUM_CONSTANT(INT_BINARY);
+	BIND_ENUM_CONSTANT(INT_SCIENTIFIC);
+
+	BIND_ENUM_CONSTANT(FLOAT_ANY);
+	BIND_ENUM_CONSTANT(FLOAT_DECIMAL);
+	BIND_ENUM_CONSTANT(FLOAT_SCIENTIFIC);
 
 	BIND_ENUM_CONSTANT(BIN_ANY);
-	BIND_ENUM_CONSTANT(BIN_STRING);
 	BIND_ENUM_CONSTANT(BIN_BASE64);
 	BIND_ENUM_CONSTANT(BIN_HEX);
 
 	// Bind methods
-	ClassDB::bind_method(D_METHOD("set_scalar_style", "style"), &YAMLStyle::set_scalar_style);
-	ClassDB::bind_method(D_METHOD("get_scalar_style"), &YAMLStyle::get_scalar_style);
-	ClassDB::bind_method(D_METHOD("set_quote_style", "style"), &YAMLStyle::set_quote_style);
-	ClassDB::bind_method(D_METHOD("get_quote_style"), &YAMLStyle::get_quote_style);
 	ClassDB::bind_method(D_METHOD("set_container_form", "style"), &YAMLStyle::set_container_form);
 	ClassDB::bind_method(D_METHOD("get_container_form"), &YAMLStyle::get_container_form);
 	ClassDB::bind_method(D_METHOD("set_flow_style", "style"), &YAMLStyle::set_flow_style);
 	ClassDB::bind_method(D_METHOD("get_flow_style"), &YAMLStyle::get_flow_style);
-	ClassDB::bind_method(D_METHOD("set_number_format", "format"), &YAMLStyle::set_number_format);
-	ClassDB::bind_method(D_METHOD("get_number_format"), &YAMLStyle::get_number_format);
+	ClassDB::bind_method(D_METHOD("set_string_style", "style"), &YAMLStyle::set_string_style);
+	ClassDB::bind_method(D_METHOD("get_string_style"), &YAMLStyle::get_string_style);
+	ClassDB::bind_method(D_METHOD("set_integer_format", "format"), &YAMLStyle::set_integer_format);
+	ClassDB::bind_method(D_METHOD("get_integer_format"), &YAMLStyle::get_integer_format);
+	ClassDB::bind_method(D_METHOD("set_float_format", "format"), &YAMLStyle::set_float_format);
+	ClassDB::bind_method(D_METHOD("get_float_format"), &YAMLStyle::get_float_format);
 	ClassDB::bind_method(D_METHOD("set_binary_encoding", "encoding"), &YAMLStyle::set_binary_encoding);
 	ClassDB::bind_method(D_METHOD("get_binary_encoding"), &YAMLStyle::get_binary_encoding);
 	ClassDB::bind_method(D_METHOD("set_custom_settings", "style"), &YAMLStyle::set_custom_settings);
@@ -89,19 +88,19 @@ void YAMLStyle::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_children_keys"), &YAMLStyle::get_children_keys);
 
 	ClassDB::bind_method(D_METHOD("get_debug_string"), &YAMLStyle::get_debug_string);
-	ClassDB::bind_static_method("YAMLStyle", D_METHOD("get_scalar_style_string", "p_style"), &YAMLStyle::get_scalar_style_string);
-	ClassDB::bind_static_method("YAMLStyle", D_METHOD("get_quote_style_string", "p_style"), &YAMLStyle::get_quote_style_string);
 	ClassDB::bind_static_method("YAMLStyle", D_METHOD("get_container_form_string", "p_style"), &YAMLStyle::get_container_form_string);
 	ClassDB::bind_static_method("YAMLStyle", D_METHOD("get_flow_style_string", "p_style"), &YAMLStyle::get_flow_style_string);
-	ClassDB::bind_static_method("YAMLStyle", D_METHOD("get_number_format_string", "p_style"), &YAMLStyle::get_number_format_string);
+	ClassDB::bind_static_method("YAMLStyle", D_METHOD("get_string_style_string", "p_style"), &YAMLStyle::get_string_style_string);
+	ClassDB::bind_static_method("YAMLStyle", D_METHOD("get_integer_format_string", "p_style"), &YAMLStyle::get_integer_format_string);
+	ClassDB::bind_static_method("YAMLStyle", D_METHOD("get_float_format_string", "p_style"), &YAMLStyle::get_float_format_string);
 	ClassDB::bind_static_method("YAMLStyle", D_METHOD("get_binary_encoding_string", "p_style"), &YAMLStyle::get_binary_encoding_string);
 
-	ADD_PROPERTY(PropertyInfo(Variant::INT, "scalar_style", PROPERTY_HINT_ENUM, "Any,Plain,Block,Literal,Folded"), "set_scalar_style", "get_scalar_style");
-	ADD_PROPERTY(PropertyInfo(Variant::INT, "quote_style", PROPERTY_HINT_ENUM, "Any,None,Single,Double"), "set_quote_style", "get_quote_style");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "container_form", PROPERTY_HINT_ENUM, "Any,Sequence,Mapping"), "set_container_form", "get_container_form");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "flow_style", PROPERTY_HINT_ENUM, "Any,None,Single"), "set_flow_style", "get_flow_style");
-	ADD_PROPERTY(PropertyInfo(Variant::INT, "number_format", PROPERTY_HINT_ENUM, "Any,Decimal,Hex,Octal,Binary,Scientific"), "set_number_format", "get_number_format");
-	ADD_PROPERTY(PropertyInfo(Variant::INT, "binary_encoding", PROPERTY_HINT_ENUM, "Any,String,Base64,Hex"), "set_binary_encoding", "get_binary_encoding");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "string_style", PROPERTY_HINT_ENUM, "Any,Plain,Single Quoted,Double Quoted,Literal,Folded"), "set_string_style", "get_string_style");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "integer_format", PROPERTY_HINT_ENUM, "Any,Decimal,Hex,Octal,Binary,Scientific"), "set_integer_format", "get_integer_format");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "float_format", PROPERTY_HINT_ENUM, "Any,Decimal,Scientific"), "set_float_format", "get_float_format");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "binary_encoding", PROPERTY_HINT_ENUM, "Any,Base64,Hex"), "set_binary_encoding", "get_binary_encoding");
 	ADD_PROPERTY(PropertyInfo(Variant::DICTIONARY, "custom_settings"), "set_custom_settings", "get_custom_settings");
 }
 
@@ -139,39 +138,6 @@ Array YAMLStyle::get_children_keys() const {
 	return keys;
 }
 
-// Debug string helpers
-String YAMLStyle::get_scalar_style_string(ScalarStyle p_style) {
-	switch (p_style) {
-		case SCALAR_ANY:
-			return "Any";
-		case SCALAR_PLAIN:
-			return "Plain";
-		case SCALAR_BLOCK:
-			return "Block";
-		case SCALAR_LITERAL:
-			return "Literal";
-		case SCALAR_FOLDED:
-			return "Folded";
-		default:
-			return "Unknown";
-	}
-}
-
-String YAMLStyle::get_quote_style_string(QuoteStyle p_style) {
-	switch (p_style) {
-		case QUOTE_ANY:
-			return "Any";
-		case QUOTE_NONE:
-			return "None";
-		case QUOTE_SINGLE:
-			return "Single";
-		case QUOTE_DOUBLE:
-			return "Double";
-		default:
-			return "Unknown";
-	}
-}
-
 String YAMLStyle::get_container_form_string(ContainerForm p_style) {
 	switch (p_style) {
 		case FORM_ANY:
@@ -198,19 +164,52 @@ String YAMLStyle::get_flow_style_string(FlowStyle p_style) {
 	}
 }
 
-String YAMLStyle::get_number_format_string(NumberFormat p_format) {
-	switch (p_format) {
-		case NUM_ANY:
+// Debug string helpers
+String YAMLStyle::get_string_style_string(StringStyle p_style) {
+	switch (p_style) {
+		case STRING_ANY:
 			return "Any";
-		case NUM_DECIMAL:
+		case STRING_PLAIN:
+			return "Plain";
+		case STRING_QUOTE_SINGLE:
+			return "Single Quoted";
+		case STRING_QUOTE_DOUBLE:
+			return "Double Quoted";
+		case STRING_LITERAL:
+			return "Literal";
+		case STRING_FOLDED:
+			return "Folded";
+		default:
+			return "Unknown";
+	}
+}
+
+String YAMLStyle::get_integer_format_string(IntegerFormat p_format) {
+	switch (p_format) {
+		case INT_ANY:
+			return "Any";
+		case INT_DECIMAL:
 			return "Decimal";
-		case NUM_HEX:
+		case INT_HEX:
 			return "Hex";
-		case NUM_OCTAL:
+		case INT_OCTAL:
 			return "Octal";
-		case NUM_BINARY:
+		case INT_BINARY:
 			return "Binary";
-		case NUM_SCIENTIFIC:
+		case INT_SCIENTIFIC:
+			return "Scientific";
+		default:
+			return "Unknown";
+	}
+}
+
+String YAMLStyle::get_float_format_string(FloatFormat p_format) {
+	switch (p_format) {
+		case FLOAT_ANY:
+			return "Any";
+		case FLOAT_DECIMAL:
+			return "Decimal";
+		case FLOAT_SCIENTIFIC:
 			return "Scientific";
 		default:
 			return "Unknown";
@@ -221,8 +220,6 @@ String YAMLStyle::get_binary_encoding_string(BinaryEncoding p_encoding) {
 	switch (p_encoding) {
 		case BIN_ANY:
 			return "Any";
-		case BIN_STRING:
-			return "String";
 		case BIN_BASE64:
 			return "Base64";
 		case BIN_HEX:
@@ -236,11 +233,11 @@ String YAMLStyle::get_debug_string() const {
 	String debug;
 	debug += "YAML Style Configuration:\n";
 	debug += "-----------------------\n";
-	debug += vformat("Scalar Style:     %s (%s)\n", get_scalar_style_string(scalar_style), has_scalar_style ? "Explicit" : "Inherited");
-	debug += vformat("Quote Style:      %s (%s)\n", get_quote_style_string(quote_style), has_quote_style ? "Explicit" : "Inherited");
 	debug += vformat("Collection Style: %s (%s)\n", get_container_form_string(container_form), has_container_form ? "Explicit" : "Inherited");
 	debug += vformat("Flow Style:       %s (%s)\n", get_flow_style_string(flow_style), has_flow_style ? "Explicit" : "Inherited");
-	debug += vformat("Number Format:    %s (%s)\n", get_number_format_string(number_format), has_number_format ? "Explicit" : "Inherited");
+	debug += vformat("String Style:     %s (%s)\n", get_string_style_string(string_style), has_string_style ? "Explicit" : "Inherited");
+	debug += vformat("Integer Format:   %s (%s)\n", get_integer_format_string(integer_format), has_integer_format ? "Explicit" : "Inherited");
+	debug += vformat("Float Format:     %s (%s)\n", get_float_format_string(float_format), has_float_format ? "Explicit" : "Inherited");
 	debug += vformat("Binary Encoding:  %s (%s)\n", get_binary_encoding_string(binary_encoding), has_binary_encoding ? "Explicit" : "Inherited");
 
 	if (!custom_settings.is_empty()) {

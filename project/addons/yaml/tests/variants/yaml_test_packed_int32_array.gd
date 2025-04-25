@@ -114,17 +114,18 @@ func test_number_formats() -> void:
 
 	# Test different number formats
 	var formats = {
-		"Decimal": YAMLStyle.NUM_DECIMAL,
-		"Hex": YAMLStyle.NUM_HEX,
-		"Octal": YAMLStyle.NUM_OCTAL,
-		"Binary": YAMLStyle.NUM_BINARY
+		"Decimal": YAMLStyle.INT_DECIMAL,
+		"Hex": YAMLStyle.INT_HEX,
+		"Octal": YAMLStyle.INT_OCTAL,
+		"Binary": YAMLStyle.INT_BINARY,
+		"Scientific": YAMLStyle.INT_SCIENTIFIC
 	}
 
 	for format_name in formats:
 		var number_style = YAML.create_style()
-		var items_style = YAML.create_style()
-		items_style.set_number_format(formats[format_name])
-		number_style.set_child("_items", items_style)
+		var template = YAML.create_style()
+		template.set_integer_format(formats[format_name])
+		number_style.set_child("_template", template)
 
 		var result = YAML.stringify(int_array, number_style)
 		assert_stringify_success(result, format_name + " format")
@@ -135,27 +136,34 @@ func test_number_formats() -> void:
 
 			# Check format specific features
 			match formats[format_name]:
-				YAMLStyle.NUM_HEX:
+				YAMLStyle.INT_HEX:
 					# Look for hex notation (0x)
 					var has_hex = result.get_data().find("0x") != -1
 					if has_hex:
 						assert_true(has_hex, "Uses hex notation")
 					else:
 						print_rich("[color=yellow]⚠ Hex notation not detected (may be implemented differently)[/color]")
-				YAMLStyle.NUM_OCTAL:
+				YAMLStyle.INT_OCTAL:
 					# Look for octal notation (0o)
 					var has_octal = result.get_data().find("0o") != -1
 					if has_octal:
 						assert_true(has_octal, "Uses octal notation")
 					else:
 						print_rich("[color=yellow]⚠ Octal notation not detected (may be implemented differently)[/color]")
-				YAMLStyle.NUM_BINARY:
+				YAMLStyle.INT_BINARY:
 					# Look for binary notation (0b)
 					var has_binary = result.get_data().find("0b") != -1
 					if has_binary:
 						assert_true(has_binary, "Uses binary notation")
 					else:
 						print_rich("[color=yellow]⚠ Binary notation not detected (may be implemented differently)[/color]")
+				YAMLStyle.INT_SCIENTIFIC:
+					# Look for scientific notation (3e10)
+					var has_scientific = result.get_data().find("e") != -1
+					if has_scientific:
+						assert_true(has_scientific, "Uses scientific notation")
+					else:
+						print_rich("[color=yellow]⚠ Scientific notation not detected (may be implemented differently)[/color]")
 
 			# Test roundtrip
 			assert_roundtrip(YAML.parse(result.get_data()), int_array, is_packed_int32_array_equal, format_name)
@@ -173,13 +181,13 @@ func test_item_styles() -> void:
 
 	# Create different styles for each item
 	var item0_style = YAML.create_style()
-	item0_style.set_number_format(YAMLStyle.NUM_DECIMAL)
+	item0_style.set_integer_format(YAMLStyle.INT_DECIMAL)
 
 	var item1_style = YAML.create_style()
-	item1_style.set_number_format(YAMLStyle.NUM_HEX)
+	item1_style.set_integer_format(YAMLStyle.INT_HEX)
 
 	var item2_style = YAML.create_style()
-	item2_style.set_number_format(YAMLStyle.NUM_BINARY)
+	item2_style.set_integer_format(YAMLStyle.INT_BINARY)
 
 	# Apply styles
 	parent_style.set_child("0", item0_style)
@@ -278,9 +286,9 @@ func test_large_array_hex_format() -> void:
 
 	# Apply hex format
 	var hex_style = YAML.create_style()
-	var items_style = YAML.create_style()
-	items_style.set_number_format(YAMLStyle.NUM_HEX)
-	hex_style.set_child("_items", items_style)
+	var template = YAML.create_style()
+	template.set_integer_format(YAMLStyle.INT_HEX)
+	hex_style.set_child("_template", template)
 
 	var result = YAML.stringify(array, hex_style)
 	assert_stringify_success(result, "hex format")
@@ -339,7 +347,7 @@ func test_roundtrip_with_styles() -> void:
 
 	# Create item style for the first element
 	var item_style = YAML.create_style()
-	item_style.set_number_format(YAMLStyle.NUM_HEX)
+	item_style.set_integer_format(YAMLStyle.INT_HEX)
 	original_style.set_child("0", item_style)
 
 	# Emit YAML with the style

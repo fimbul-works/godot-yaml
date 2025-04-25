@@ -23,41 +23,27 @@ void PlaneVariantConverter::encode(ryml::NodeRef &node, const Variant &v, const 
 void PlaneVariantConverter::emit_as_map(ryml::NodeRef &node, const Plane &plane, const YAMLStyle::View &style) const {
 	node |= ryml::MAP;
 
-	// Flow style
 	style.apply_flow_style(node);
 
-	// Pass child styles for nested components
 	YAMLStyle::View normal_style = style.is_valid() ? style.get_child("normal") : YAMLStyle::View();
 	ryml::NodeRef normal_node = node["normal"];
 	vec3_converter->encode(normal_node, plane.normal, normal_style);
 
-	// The d component gets its own style
 	YAMLStyle::View d_style = style.is_valid() ? style.get_child("d") : YAMLStyle::View();
-	if (d_style.is_valid()) {
-		node["d"] << float_to_string(plane.d, d_style.get_number_format());
-	} else {
-		node["d"] << float_to_string(plane.d);
-	}
+	node["d"] << float_to_string(plane.d, d_style.get_float_format());
 }
 
 void PlaneVariantConverter::emit_as_sequence(ryml::NodeRef &node, const Plane &plane, const YAMLStyle::View &style) const {
 	node |= ryml::SEQ;
 
-	// Flow style
 	style.apply_flow_style(node);
 
-	// Pass child styles for nested components using numeric indices
 	YAMLStyle::View normal_style = style.is_valid() ? style.get_child("0") : YAMLStyle::View();
 	ryml::NodeRef normal_node = node.append_child();
 	vec3_converter->encode(normal_node, plane.normal, normal_style);
 
-	// Style for d component
 	YAMLStyle::View d_style = style.is_valid() ? style.get_child("1") : YAMLStyle::View();
-	if (d_style.is_valid()) {
-		node.append_child() << float_to_string(plane.d, d_style.get_number_format());
-	} else {
-		node.append_child() << float_to_string(plane.d);
-	}
+	node.append_child() << float_to_string(plane.d, d_style.get_float_format());
 }
 
 Variant PlaneVariantConverter::decode(const ryml::ConstNodeRef &node) const {

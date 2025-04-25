@@ -7,32 +7,19 @@ using namespace godot;
 void Vector2iVariantConverter::encode(ryml::NodeRef &node, const Variant &v, const YAMLStyle::View &style) const {
 	const Vector2i vec = v.operator Vector2i();
 
+	YAMLStyle::IntegerFormat int_format = style.get_integer_format();
+	style.apply_flow_style(node);
+
 	if (!style.is_valid() || style.get_container_form() != YAMLStyle::FORM_SEQ) {
-		// Map styles
 		node |= ryml::MAP;
 
-		// Flow style
-		if (!style.is_valid()) {
-			node |= ryml::FLOW_SL;
-		} else {
-			style.apply_flow_style(node);
-		}
-
-		node["x"] << int_to_string(vec.x);
-		node["y"] << int_to_string(vec.y);
+		node["x"] << int_to_string(vec.x, int_format);
+		node["y"] << int_to_string(vec.y, int_format);
 	} else {
-		// Collection styles
 		node |= ryml::SEQ;
 
-		// Flow style
-		if (!style.is_valid()) {
-			node |= ryml::FLOW_SL;
-		} else {
-			style.apply_flow_style(node);
-		}
-
-		node.append_child() << int_to_string(vec.x);
-		node.append_child() << int_to_string(vec.y);
+		node.append_child() << int_to_string(vec.x, int_format);
+		node.append_child() << int_to_string(vec.y, int_format);
 	}
 }
 

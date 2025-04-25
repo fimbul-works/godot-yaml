@@ -119,7 +119,7 @@ func test_hex_formats() -> void:
 
 	# Test hex format with 0x prefix
 	var hex0x_style = YAML.create_style()
-	hex0x_style.set_number_format(YAMLStyle.NUM_HEX)
+	hex0x_style.set_integer_format(YAMLStyle.INT_HEX)
 	var hex0x_result = YAML.stringify(color, hex0x_style)
 
 	assert_stringify_success(hex0x_result, "hex format with 0x prefix")

@@ -57,6 +57,13 @@
 				Returns a detailed string representation of all style settings, including child styles. Useful for debugging and inspecting style configurations.
 			</description>
 		</method>
+		<method name="get_float_format_string" qualifiers="static">
+			<return type="String" />
+			<param index="0" name="p_style" type="int" enum="YAMLStyle.FloatFormat" />
+			<description>
+				Returns a string representation of the specified float format. Useful for debugging and diagnostic purposes.
+			</description>
+		</method>
 		<method name="get_flow_style_string" qualifiers="static">
 			<return type="String" />
 			<param index="0" name="p_style" type="int" enum="YAMLStyle.FlowStyle" />
@@ -64,25 +71,18 @@
 				Returns a string representation of the specified flow style. Useful for debugging and diagnostic purposes.
 			</description>
 		</method>
-		<method name="get_number_format_string" qualifiers="static">
+		<method name="get_int_format_string" qualifiers="static">
 			<return type="String" />
-			<param index="0" name="p_style" type="int" enum="YAMLStyle.NumberFormat" />
+			<param index="0" name="p_style" type="int" enum="YAMLStyle.IntegerFormat" />
 			<description>
-				Returns a string representation of the specified number format. Useful for debugging and diagnostic purposes.
+				Returns a string representation of the specified integer format. Useful for debugging and diagnostic purposes.
 			</description>
 		</method>
-		<method name="get_quote_style_string" qualifiers="static">
+		<method name="get_string_style_string" qualifiers="static">
 			<return type="String" />
-			<param index="0" name="p_style" type="int" enum="YAMLStyle.QuoteStyle" />
+			<param index="0" name="p_style" type="int" enum="YAMLStyle.StringStyle" />
 			<description>
-				Returns a string representation of the specified quote style. Useful for debugging and diagnostic purposes.
-			</description>
-		</method>
-		<method name="get_scalar_style_string" qualifiers="static">
-			<return type="String" />
-			<param index="0" name="p_style" type="int" enum="YAMLStyle.ScalarStyle" />
-			<description>
-				Returns a string representation of the specified scalar style. Useful for debugging and diagnostic purposes.
+				Returns a string representation of the specified string style. Useful for debugging and diagnostic purposes.
 			</description>
 		</method>
 		<method name="has_child" qualifiers="const">
@@ -95,7 +95,7 @@
 		<method name="is_block_style" qualifiers="const">
 			<return type="bool" />
 			<description>
-				Returns [code]true[/code] if the current scalar style is a block style (SCALAR_BLOCK, SCALAR_LITERAL, or SCALAR_FOLDED).
+				Returns [code]true[/code] if the current scalar style is a block style ([constant STRING_LITERAL], or [constant STRING_FOLDED]).
 			</description>
 		</method>
 		<method name="set_child">
@@ -125,13 +125,13 @@
 		<method name="uses_flow" qualifiers="const">
 			<return type="bool" />
 			<description>
-				Returns [code]true[/code] if the current flow style is FLOW_SINGLE.
+				Returns [code]true[/code] if the current flow style is [constant FLOW_SINGLE].
 			</description>
 		</method>
 		<method name="uses_quotes" qualifiers="const">
 			<return type="bool" />
 			<description>
-				Returns [code]true[/code] if the current quote style is QUOTE_SINGLE or QUOTE_DOUBLE.
+				Returns [code]true[/code] if the current string style is [constant STRING_QUOTE_SINGLE] or [constant STRING_QUOTE_DOUBLE].
 			</description>
 		</method>
 	</methods>
@@ -145,50 +145,41 @@
 		<member name="custom_settings" type="Dictionary" setter="set_custom_settings" getter="get_custom_settings" default="{}">
 			Stores custom styling settings as a Dictionary. Can be used to store additional style information not covered by the main style properties.
 		</member>
+		<member name="float_format" type="int" setter="set_float_format" getter="get_float_format" enum="YAMLStyle.FloatFormat" default="0">
+			Specifies the format for floating point values. Default is [constant FLOAT_ANY], which lets the emitter decide.
+		</member>
 		<member name="flow_style" type="int" setter="set_flow_style" getter="get_flow_style" enum="YAMLStyle.FlowStyle" default="0">
 			Controls the flow style for containers. Default is [constant FLOW_ANY], which lets the emitter decide.
 		</member>
-		<member name="number_format" type="int" setter="set_number_format" getter="get_number_format" enum="YAMLStyle.NumberFormat" default="0">
-			Specifies the format for numeric values. Default is [constant NUM_ANY], which lets the emitter decide.
+		<member name="integer_format" type="int" setter="set_integer_format" getter="get_integer_format" enum="YAMLStyle.IntegerFormat" default="0">
+			Specifies the format for integer values. Default is [constant INT_ANY], which lets the emitter decide.
 		</member>
-		<member name="quote_style" type="int" setter="set_quote_style" getter="get_quote_style" enum="YAMLStyle.QuoteStyle" default="0">
-			Controls the quoting style for string values. Default is [constant QUOTE_ANY], which lets the emitter decide.
-		</member>
-		<member name="scalar_style" type="int" setter="set_scalar_style" getter="get_scalar_style" enum="YAMLStyle.ScalarStyle" default="0">
-			Specifies the scalar style for values. Default is [constant SCALAR_ANY], which lets the emitter decide.
+		<member name="string_style" type="int" setter="set_string_style" getter="get_string_style" enum="YAMLStyle.StringStyle" default="0">
+			Specifies the string style. Default is [constant STRING_ANY], which lets the emitter decide.
 		</member>
 	</members>
 	<constants>
-		<constant name="SCALAR_ANY" value="0" enum="ScalarStyle">
-			Let the emitter decide the scalar style automatically.
+		<constant name="STRING_ANY" value="0" enum="StringStyle">
+			Let the emitter decide the string style automatically.
 		</constant>
-		<constant name="SCALAR_PLAIN" value="1" enum="ScalarStyle">
-			Regular unquoted scalar style, e.g., [code]value[/code].
+		<constant name="STRING_PLAIN" value="1" enum="StringStyle">
+			Regular unquoted string, e.g., [code]value[/code].
 		</constant>
-		<constant name="SCALAR_BLOCK" value="2" enum="ScalarStyle">
-			Basic block scalar style.
-		</constant>
-		<constant name="SCALAR_LITERAL" value="3" enum="ScalarStyle">
-			Literal block scalar style with [code]|[/code] indicator, preserves newlines, e.g., [code]|
-  Line 1
-  Line 2[/code].
-		</constant>
-		<constant name="SCALAR_FOLDED" value="4" enum="ScalarStyle">
-			Folded block scalar style with [code]>[/code] indicator, folds newlines, e.g., [code]>
-  Line 1
-  Line 2[/code].
-		</constant>
-		<constant name="QUOTE_ANY" value="0" enum="QuoteStyle">
-			Let the emitter decide when and how to quote strings.
-		</constant>
-		<constant name="QUOTE_NONE" value="1" enum="QuoteStyle">
-			Avoid using quotes whenever possible.
-		</constant>
-		<constant name="QUOTE_SINGLE" value="2" enum="QuoteStyle">
+		<constant name="STRING_QUOTE_SINGLE" value="2" enum="StringStyle">
 			Force the use of single quotes for strings, e.g., [code]'value'[/code].
 		</constant>
-		<constant name="QUOTE_DOUBLE" value="3" enum="QuoteStyle">
+		<constant name="STRING_QUOTE_DOUBLE" value="3" enum="StringStyle">
 			Force the use of double quotes for strings, e.g., [code]"value"[/code].
+		</constant>
+		<constant name="STRING_LITERAL" value="4" enum="StringStyle">
+			Literal block string style with [code]|[/code] indicator, preserves newlines, e.g., [code]|
+  Line 1
+  Line 2[/code].
+		</constant>
+		<constant name="STRING_FOLDED" value="5" enum="StringStyle">
+			Folded block string style with [code]>[/code] indicator, folds newlines, e.g., [code]>
+  Line 1
+  Line 2[/code].
 		</constant>
 		<constant name="FORM_ANY" value="0" enum="ContainerForm">
 			Let the emitter decide the container form automatically.
@@ -199,6 +190,15 @@
 		<constant name="FORM_MAP" value="2" enum="ContainerForm">
 			Force mapping/dictionary style for the container.
 		</constant>
+		<constant name="FLOAT_ANY" value="0" enum="FloatFormat">
+			Let the emitter decide the floating point format automatically.
+		</constant>
+		<constant name="FLOAT_DECIMAL" value="1" enum="FloatFormat">
+			Force standard decimal notation for floating point numbers, e.g., [code]3.14[/code].
+		</constant>
+		<constant name="FLOAT_SCIENTIFIC" value="5" enum="IntegerFormat">
+			Force scientific notation for floating point numbers, e.g., [code]1.23e+4[/code].
+		</constant>
 		<constant name="FLOW_ANY" value="0" enum="FlowStyle">
 			Let the emitter decide the flow style automatically.
 		</constant>
@@ -208,23 +208,23 @@
 		<constant name="FLOW_SINGLE" value="2" enum="FlowStyle">
 			Use compact flow style for containers, e.g., [code][a, b, c][/code] or [code]{key: value}[/code].
 		</constant>
-		<constant name="NUM_ANY" value="0" enum="NumberFormat">
-			Let the emitter decide the number format automatically.
+		<constant name="INT_ANY" value="0" enum="IntegerFormat">
+			Let the emitter decide the integer format automatically.
 		</constant>
-		<constant name="NUM_DECIMAL" value="1" enum="NumberFormat">
-			Force standard decimal notation for numbers, e.g., [code]42[/code], [code]3.14[/code].
+		<constant name="INT_DECIMAL" value="1" enum="IntegerFormat">
+			Force standard decimal notation for integers, e.g., [code]42[/code], [code]3.14[/code].
 		</constant>
-		<constant name="NUM_HEX" value="2" enum="NumberFormat">
-			Force hexadecimal notation for numbers, e.g., [code]0xFF[/code].
+		<constant name="INT_HEX" value="2" enum="IntegerFormat">
+			Force hexadecimal notation for integers, e.g., [code]0xFF[/code].
 		</constant>
-		<constant name="NUM_OCTAL" value="3" enum="NumberFormat">
-			Force octal notation for numbers, e.g., [code]0o700[/code].
+		<constant name="INT_OCTAL" value="3" enum="IntegerFormat">
+			Force octal notation for integers, e.g., [code]0o700[/code].
 		</constant>
-		<constant name="NUM_BINARY" value="4" enum="NumberFormat">
-			Force binary notation for numbers, e.g., [code]0b1010[/code].
+		<constant name="INT_BINARY" value="4" enum="IntegerFormat">
+			Force binary notation for integers, e.g., [code]0b1010[/code].
 		</constant>
-		<constant name="NUM_SCIENTIFIC" value="5" enum="NumberFormat">
-			Force scientific notation for numbers, e.g., [code]1.23e+4[/code].
+		<constant name="INT_SCIENTIFIC" value="5" enum="IntegerFormat">
+			Force scientific notation for integers, e.g., [code]1.23e+4[/code].
 		</constant>
 		<constant name="BIN_ANY" value="0" enum="BinaryEncoding">
 			Let the emitter decide the binary encoding automatically.

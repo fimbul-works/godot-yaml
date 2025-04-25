@@ -23,20 +23,20 @@ YAMLStyle::View YAMLStyle::View::create_view(const Ref<YAMLStyle> &style) {
 	}
 
 	// Copy all style values
-	view_data->has_scalar_style = style->has_scalar_style;
-	view_data->scalar_style = style->scalar_style;
-
-	view_data->has_quote_style = style->has_quote_style;
-	view_data->quote_style = style->quote_style;
-
 	view_data->has_container_form = style->has_container_form;
 	view_data->container_form = style->container_form;
 
 	view_data->has_flow_style = style->has_flow_style;
 	view_data->flow_style = style->flow_style;
 
-	view_data->has_number_format = style->has_number_format;
-	view_data->number_format = style->number_format;
+	view_data->has_string_style = style->has_string_style;
+	view_data->string_style = style->string_style;
+
+	view_data->has_integer_format = style->has_integer_format;
+	view_data->integer_format = style->integer_format;
+
+	view_data->has_float_format = style->has_float_format;
+	view_data->float_format = style->float_format;
 
 	view_data->has_binary_encoding = style->has_binary_encoding;
 	view_data->binary_encoding = style->binary_encoding;
@@ -65,32 +65,6 @@ YAMLStyle::View YAMLStyle::View::create_view(const Ref<YAMLStyle> &style) {
 }
 
 // YAMLStyleView accessors
-YAMLStyle::ScalarStyle YAMLStyle::View::get_scalar_style() const {
-	if (data && data->has_scalar_style) {
-		return data->scalar_style;
-	}
-
-	auto template_style = get_template_style();
-	if (template_style.is_valid()) {
-		return template_style.get_scalar_style();
-	}
-
-	return YAMLStyle::SCALAR_ANY;
-}
-
-YAMLStyle::QuoteStyle YAMLStyle::View::get_quote_style() const {
-	if (data && data->has_quote_style) {
-		return data->quote_style;
-	}
-
-	auto template_style = get_template_style();
-	if (template_style.is_valid()) {
-		return template_style.get_quote_style();
-	}
-
-	return YAMLStyle::QUOTE_ANY;
-}
-
 YAMLStyle::ContainerForm YAMLStyle::View::get_container_form() const {
 	if (data && data->has_container_form) {
 		return data->container_form;
@@ -117,17 +91,43 @@ YAMLStyle::FlowStyle YAMLStyle::View::get_flow_style() const {
 	return YAMLStyle::FLOW_ANY;
 }
 
-YAMLStyle::NumberFormat YAMLStyle::View::get_number_format() const {
-	if (data && data->has_number_format) {
-		return data->number_format;
+YAMLStyle::StringStyle YAMLStyle::View::get_string_style() const {
+	if (data && data->has_string_style) {
+		return data->string_style;
 	}
 
 	auto template_style = get_template_style();
 	if (template_style.is_valid()) {
-		return template_style.get_number_format();
+		return template_style.get_string_style();
 	}
 
-	return YAMLStyle::NUM_ANY;
+	return YAMLStyle::STRING_ANY;
+}
+
+YAMLStyle::IntegerFormat YAMLStyle::View::get_integer_format() const {
+	if (data && data->has_integer_format) {
+		return data->integer_format;
+	}
+
+	auto template_style = get_template_style();
+	if (template_style.is_valid()) {
+		return template_style.get_integer_format();
+	}
+
+	return YAMLStyle::INT_ANY;
+}
+
+YAMLStyle::FloatFormat YAMLStyle::View::get_float_format() const {
+	if (data && data->has_float_format) {
+		return data->float_format;
+	}
+
+	auto template_style = get_template_style();
+	if (template_style.is_valid()) {
+		return template_style.get_float_format();
+	}
+
+	return YAMLStyle::FLOAT_ANY;
 }
 
 YAMLStyle::BinaryEncoding YAMLStyle::View::get_binary_encoding() const {
@@ -150,68 +150,16 @@ YAMLStyle::View YAMLStyle::View::get_template_style() const {
 	return View();
 }
 
-// Helper methods
 bool YAMLStyle::View::is_block_style() const {
-	return get_scalar_style() == YAMLStyle::SCALAR_BLOCK || get_scalar_style() == YAMLStyle::SCALAR_LITERAL || get_scalar_style() == YAMLStyle::SCALAR_FOLDED;
+	return get_string_style() == YAMLStyle::STRING_LITERAL || get_string_style() == YAMLStyle::STRING_FOLDED;
 }
 
 bool YAMLStyle::View::uses_quotes() const {
-	return get_quote_style() == YAMLStyle::QUOTE_SINGLE || get_quote_style() == YAMLStyle::QUOTE_DOUBLE;
+	return get_string_style() == YAMLStyle::STRING_QUOTE_SINGLE || get_string_style() == YAMLStyle::STRING_QUOTE_DOUBLE;
 }
 
 bool YAMLStyle::View::uses_flow() const {
 	return get_flow_style() == YAMLStyle::FLOW_SINGLE;
-}
-
-void YAMLStyle::View::apply_scalar_style(ryml::NodeRef &node) const {
-	// Only apply styles when requested
-	if (!is_valid()) {
-		return;
-	}
-
-	// Scalar styles
-	if (data->scalar_style != YAMLStyle::SCALAR_ANY) {
-		switch (data->scalar_style) {
-			case YAMLStyle::SCALAR_BLOCK:
-				node |= ryml::BLOCK;
-				break;
-			case YAMLStyle::SCALAR_LITERAL:
-				node |= ryml::VAL_LITERAL | ryml::BLOCK;
-				break;
-			case YAMLStyle::SCALAR_FOLDED:
-				node |= ryml::VAL_FOLDED;
-				break;
-			case YAMLStyle::SCALAR_PLAIN:
-				break;
-			default:
-				break;
-		}
-	}
-}
-
-void YAMLStyle::View::apply_quote_style(ryml::NodeRef &node) const {
-	// Only apply styles when requested
-	if (!is_valid()) {
-		return;
-	}
-
-	// Handle quote style - this can be combined with scalar style
-	if (data->quote_style != YAMLStyle::QUOTE_ANY) {
-		// User explicitly specified quote style
-		switch (data->quote_style) {
-			case YAMLStyle::QUOTE_SINGLE:
-				node |= ryml::VAL_SQUO;
-				break;
-			case YAMLStyle::QUOTE_DOUBLE:
-				node |= ryml::VAL_DQUO;
-				break;
-			case YAMLStyle::QUOTE_NONE:
-				// No quotes - no action needed
-				break;
-			default:
-				break;
-		}
-	}
 }
 
 void YAMLStyle::View::apply_flow_style(ryml::NodeRef &node) const {
@@ -224,15 +172,38 @@ void YAMLStyle::View::apply_flow_style(ryml::NodeRef &node) const {
 	}
 }
 
+void YAMLStyle::View::apply_string_style(ryml::NodeRef &node) const {
+	if (!is_valid()) {
+		return;
+	}
+
+	switch (data->string_style) {
+		case YAMLStyle::STRING_QUOTE_SINGLE:
+			node |= ryml::VAL_SQUO;
+			break;
+		case YAMLStyle::STRING_QUOTE_DOUBLE:
+			node |= ryml::VAL_DQUO;
+			break;
+		case YAMLStyle::STRING_LITERAL:
+			node |= ryml::VAL_LITERAL | ryml::BLOCK;
+			break;
+		case YAMLStyle::STRING_FOLDED:
+			node |= ryml::VAL_FOLDED | ryml::BLOCK;
+			break;
+		default:
+			break;
+	}
+}
+
 bool YAMLStyle::View::is_valid() const {
 	return data != nullptr;
 }
 
-// Child management
 YAMLStyle::View YAMLStyle::View::get_child(const String &key) const {
 	if (data && data->children.count(key)) {
 		return YAMLStyle::View(data->children.at(key));
 	}
+
 	// If no specific child style exists, return the current style
 	return *this;
 }

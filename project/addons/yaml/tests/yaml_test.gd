@@ -148,6 +148,35 @@ func assert_yaml_lacks_feature(yaml_string: String, feature: String, message: St
 	var lacks_feature = yaml_string.find(feature) == -1
 	assert_true(lacks_feature, message)
 
+## Deeply compare values of any type
+func is_deep_equal(a: Variant, b: Variant, epsilon: float = 0.00001) -> bool:
+	# Handle different types
+	if typeof(a) != typeof(b) and not typeof(a) in [TYPE_INT, TYPE_FLOAT] and not typeof(b) in [TYPE_INT, TYPE_FLOAT]:
+		return false
+
+	match typeof(a):
+		TYPE_ARRAY:
+			if a.size() != b.size():
+				return false
+			for i in range(a.size()):
+				if not is_deep_equal(a[i], b[i]):
+					return false
+			return true
+
+		TYPE_DICTIONARY:
+			if a.size() != b.size():
+				return false
+			for key in a:
+				if not b.has(key) or not is_deep_equal(a[key], b[key]):
+					return false
+			return true
+
+		TYPE_FLOAT:
+			return abs(a - b) < epsilon
+
+		_:  # Default case for other types
+			return a == b
+
 ## Trunate text
 func truncate(str: String, len := 100) -> String:
 	if str.length() > len:

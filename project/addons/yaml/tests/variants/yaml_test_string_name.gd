@@ -32,9 +32,26 @@ func test_basic_serialization() -> void:
 func test_quote_styles() -> void:
 	var str = &"quoted"
 
+	# Plain string
+	var plain_style = YAML.create_style()
+	plain_style.set_string_style(YAMLStyle.STRING_PLAIN)
+	var plain_result = YAML.stringify(str, plain_style)
+
+	assert_stringify_success(plain_result, "plain string")
+	if not plain_result.has_error():
+		print_rich("• Plain string:")
+		print_rich(plain_result.get_data())
+
+		# Verify it doesn't contain quotes
+		# Note: This may not work if the StringName requires quotes for valid YAML
+		if plain_result.get_data().find("\"") == -1 && plain_result.get_data().find("'") == -1:
+			print_rich("[color=green]✓ No quotes used[/color]")
+		else:
+			print_rich("[color=yellow]⚠ Quotes were needed for valid YAML[/color]")
+
 	# Double quotes (default)
 	var double_style = YAML.create_style()
-	double_style.set_quote_style(YAMLStyle.QUOTE_DOUBLE)
+	double_style.set_string_style(YAMLStyle.STRING_QUOTE_DOUBLE)
 	var double_result = YAML.stringify(str, double_style)
 
 	assert_stringify_success(double_result, "double quotes")
@@ -47,7 +64,7 @@ func test_quote_styles() -> void:
 
 	# Single quotes
 	var single_style = YAML.create_style()
-	single_style.set_quote_style(YAMLStyle.QUOTE_SINGLE)
+	single_style.set_string_style(YAMLStyle.STRING_QUOTE_SINGLE)
 	var single_result = YAML.stringify(str, single_style)
 
 	assert_stringify_success(single_result, "single quotes")
@@ -58,45 +75,18 @@ func test_quote_styles() -> void:
 		# Verify it contains single quotes
 		assert_yaml_has_feature(single_result.get_data(), "'", "Contains single quotes")
 
-	# No quotes (plain style)
-	var plain_style = YAML.create_style()
-	plain_style.set_quote_style(YAMLStyle.QUOTE_NONE)
-	var plain_result = YAML.stringify(str, plain_style)
-
-	assert_stringify_success(plain_result, "no quotes")
-	if not plain_result.has_error():
-		print_rich("• No quotes:")
-		print_rich(plain_result.get_data())
-
-		# Verify it doesn't contain quotes
-		# Note: This may not work if the StringName requires quotes for valid YAML
-		if plain_result.get_data().find("\"") == -1 && plain_result.get_data().find("'") == -1:
-			print_rich("[color=green]✓ No quotes used[/color]")
-		else:
-			print_rich("[color=yellow]⚠ Quotes were needed for valid YAML[/color]")
-
 	# Test roundtrip for all styles
+	assert_roundtrip(YAML.parse(plain_result.get_data()), str, is_string_name_equal, "no quotes")
 	assert_roundtrip(YAML.parse(double_result.get_data()), str, is_string_name_equal, "double quotes")
 	assert_roundtrip(YAML.parse(single_result.get_data()), str, is_string_name_equal, "single quotes")
-	assert_roundtrip(YAML.parse(plain_result.get_data()), str, is_string_name_equal, "no quotes")
 
-## Test different scalar styles (plain vs literal vs folded)
-func test_scalar_styles() -> void:
-	var str = &"scalar_styles"
-
-	# Plain style (default)
-	var plain_style = YAML.create_style()
-	plain_style.set_scalar_style(YAMLStyle.SCALAR_PLAIN)
-	var plain_result = YAML.stringify(str, plain_style)
-
-	assert_stringify_success(plain_result, "plain style")
-	if not plain_result.has_error():
-		print_rich("• Plain style:")
-		print_rich(plain_result.get_data())
+## Test different block styles (plain vs literal vs folded)
+func test_block_styles() -> void:
+	var str = &"block_styles"
 
 	# Literal style (|)
 	var literal_style = YAML.create_style()
-	literal_style.set_scalar_style(YAMLStyle.SCALAR_LITERAL)
+	literal_style.set_string_style(YAMLStyle.STRING_LITERAL)
 	var literal_result = YAML.stringify(str, literal_style)
 
 	assert_stringify_success(literal_result, "literal style")
@@ -112,7 +102,7 @@ func test_scalar_styles() -> void:
 
 	# Folded style (>)
 	var folded_style = YAML.create_style()
-	folded_style.set_scalar_style(YAMLStyle.SCALAR_FOLDED)
+	folded_style.set_string_style(YAMLStyle.STRING_FOLDED)
 	var folded_result = YAML.stringify(str, folded_style)
 
 	assert_stringify_success(folded_result, "folded style")
@@ -127,7 +117,6 @@ func test_scalar_styles() -> void:
 			print_rich("[color=yellow]⚠ Folded style not applied[/color]")
 
 	# Test roundtrip for all styles
-	assert_roundtrip(YAML.parse(plain_result.get_data()), str, is_string_name_equal, "plain style")
 	assert_roundtrip(YAML.parse(literal_result.get_data()), str, is_string_name_equal, "literal style")
 	assert_roundtrip(YAML.parse(folded_result.get_data()), str, is_string_name_equal, "folded style")
 
@@ -137,7 +126,7 @@ func test_roundtrip_with_styles() -> void:
 
 	# Create a style with specific formatting
 	var original_style = YAML.create_style()
-	original_style.set_quote_style(YAMLStyle.QUOTE_SINGLE)
+	original_style.set_string_style(YAMLStyle.STRING_QUOTE_SINGLE)
 
 	# Emit YAML with the style
 	var emit_result = YAML.stringify(str, original_style)

@@ -17,13 +17,12 @@ void PackedColorArrayVariantConverter::encode(ryml::NodeRef &node, const Variant
 		return; // Empty sequence
 	}
 
-	// Apply flow style to the sequence itself if specified
 	style.apply_flow_style(node);
 
-	// Get shared item style if it exists (key "_items" is a convention for shared array item styling)
+	// Get shared item style if it exists (key "_template" is a convention for shared array item styling)
 	YAMLStyle::View shared_item_style;
 	if (style.is_valid()) {
-		shared_item_style = style.get_child("_items");
+		shared_item_style = style.get_child("_template");
 	}
 
 	for (int i = 0; i < array.size(); ++i) {

@@ -24,7 +24,6 @@ void BasisVariantConverter::emit_as_map(ryml::NodeRef &node, const Basis &basis,
 	node |= ryml::MAP;
 	style.apply_flow_style(node);
 
-	// Pass child styles for each column
 	YAMLStyle::View x_style = style.is_valid() ? style.get_child("x") : YAMLStyle::View();
 	YAMLStyle::View y_style = style.is_valid() ? style.get_child("y") : YAMLStyle::View();
 	YAMLStyle::View z_style = style.is_valid() ? style.get_child("z") : YAMLStyle::View();
@@ -43,7 +42,6 @@ void BasisVariantConverter::emit_as_sequence(ryml::NodeRef &node, const Basis &b
 	node |= ryml::SEQ;
 	style.apply_flow_style(node);
 
-	// Pass child styles using numeric indices
 	YAMLStyle::View x_style = style.is_valid() ? style.get_child("0") : YAMLStyle::View();
 	YAMLStyle::View y_style = style.is_valid() ? style.get_child("1") : YAMLStyle::View();
 	YAMLStyle::View z_style = style.is_valid() ? style.get_child("2") : YAMLStyle::View();

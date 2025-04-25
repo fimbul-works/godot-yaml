@@ -3,6 +3,7 @@
 #include "converter_factory.h"
 #include "security.h"
 #include "util_numeric.h"
+
 #include <godot_cpp/classes/resource.hpp>
 #include <godot_cpp/classes/resource_loader.hpp>
 #include <godot_cpp/variant/utility_functions.hpp>
@@ -10,23 +11,17 @@
 using namespace godot;
 
 YAML::Parser::Parser() {
-	// Setup ryml callbacks
 	callbacks.m_error = error_callback;
 	callbacks.m_user_data = this;
-
-	// Initialize ryml components
 	evt_handler = std::make_unique<ryml::EventHandlerTree>(callbacks);
 	ryml_parser = std::make_unique<ryml::Parser>(evt_handler.get(), ryml::ParserOptions().locations(true));
 
-	// Initialize converters
 	init_converters();
 }
 
 void YAML::Parser::init_converters() {
-	// Get converters by type
 	type_converters = factory.create_converter_set();
 
-	// Build tag lookup table
 	for (const auto &pair : type_converters) {
 		if (pair.second) {
 			tag_converters[pair.second->get_tag()] = pair.second.get();
@@ -48,19 +43,17 @@ void YAML::Parser::error_callback(const char *msg, size_t len, ryml::Location lo
 		error_msg = ryml::to_csubstr("unsupported complex key");
 	}
 
-	// Only return the first line, which has the relevent error message
+	// Get first line of error message
 	size_t newline_pos = error_msg.find('\n');
 	if (newline_pos != ryml::substr::npos) {
 		error_msg = error_msg.sub(0, newline_pos);
 	}
 
-	// Get the parser instance through user_data
 	auto *parser = static_cast<Parser *>(user_data);
 	if (!parser) {
 		throw YAMLException(from_ryml_str(error_msg));
 	}
 
-	// Set error in this specific parser instance
 	parser->current_result = YAMLResult::error(
 			from_ryml_str(error_msg),
 			loc.line,
@@ -80,7 +73,6 @@ Ref<YAMLResult> YAML::Parser::parse(const String &input, const bool p_detect_sty
 		tree.clear();
 		current_path.clear();
 
-		// Parse input into tree
 		ryml::parse_in_arena(
 				ryml_parser.get(),
 				input.utf8().get_data(),
@@ -90,6 +82,7 @@ Ref<YAMLResult> YAML::Parser::parse(const String &input, const bool p_detect_sty
 			return YAMLResult::error("Empty YAML document");
 		}
 
+		// Resolve anchors and aliases
 		tree.resolve();
 
 		// Disable style detection if multiple documents
@@ -103,21 +96,19 @@ Ref<YAMLResult> YAML::Parser::parse(const String &input, const bool p_detect_sty
 
 		if (!current_result->has_error()) {
 			if (tree.rootref().is_stream() && tree.rootref().num_children() > 1) {
-				// Multi-document case
 				Array documents;
 				for (const auto &child : tree.rootref().children()) {
 					documents.push_back(process_node(child));
 				}
+
 				current_result = YAMLResult::success(documents, style);
 			} else {
-				// Single document case
 				Variant parsed_data = process_node(tree.rootref());
 				current_result = YAMLResult::success(parsed_data, style);
 			}
 		}
 
 		return current_result;
-
 	} catch (const YAMLException &e) {
 		return YAMLResult::error(e.what());
 	} catch (const std::exception &e) {
@@ -195,7 +186,6 @@ Variant YAML::Parser::process_key(const ryml::ConstNodeRef &node) const {
 }
 
 Variant YAML::Parser::process_value(const ryml::ConstNodeRef &node) const {
-	// Handle null/empty values
 	if (!node.has_val() || node.val().empty() || node.val_is_null()) {
 		return Variant();
 	}
@@ -203,41 +193,38 @@ Variant YAML::Parser::process_value(const ryml::ConstNodeRef &node) const {
 	ryml::csubstr val = node.val();
 	String str_val = from_ryml_str(val);
 
-	// Handle special values first
 	if (auto special_val = try_parse_special_value(str_val)) {
 		return *special_val;
 	}
 
-	// Try numeric conversion
 	if (auto num_val = try_parse_numeric_value(str_val, val)) {
 		return *num_val;
 	}
 
-	// Return as string if no other type matches
 	return str_val;
 }
 
 std::optional<Variant> YAML::Parser::try_parse_special_value(const String &str_val) const {
-	// Boolean values
 	if (str_val == "true") {
 		return true;
 	}
+
 	if (str_val == "false") {
 		return false;
 	}
 
-	// Null values
 	if (str_val == "null" || str_val == "~") {
 		return Variant();
 	}
 
-	// Special float values
 	if (str_val == ".inf" || str_val == "+.inf") {
 		return Math_INF;
 	}
+
 	if (str_val == "-.inf") {
 		return -Math_INF;
 	}
+
 	if (str_val == ".nan") {
 		return Math_NAN;
 	}
@@ -246,7 +233,6 @@ std::optional<Variant> YAML::Parser::try_parse_special_value(const String &str_v
 }
 
 std::optional<Variant> YAML::Parser::try_parse_numeric_value(const String &str_val, const ryml::csubstr &val) const {
-	// Handle different integer formats
 	if (str_val.begins_with("0b") || str_val.begins_with("0B") || // Binary
 			str_val.begins_with("0o") || str_val.begins_with("0O") || // Octal
 			str_val.begins_with("0x") || str_val.begins_with("0X") || // Hexadecimal
@@ -259,7 +245,6 @@ std::optional<Variant> YAML::Parser::try_parse_numeric_value(const String &str_v
 		}
 	}
 
-	// Handle decimal numbers
 	if (str_val.is_valid_int()) {
 		try {
 			return string_to_int<int64_t>(val);
@@ -287,11 +272,10 @@ std::optional<Variant> YAML::Parser::try_parse_tagged_value(const ryml::ConstNod
 
 	// Detect PackedByteArray encoding
 	if (detect_style && style.is_valid() && (tag == "PackedByteArray" || tag == "!binary")) {
-		// Check if content looks like hex
 		String value = from_ryml_str(node.val());
 		bool is_hex = true;
 
-		// Simple hex detection (could use a more robust method)
+		// Simple hex detection
 		for (int i = 0; i < value.length(); i++) {
 			char32_t c = value[i];
 			if (!is_whitespace(c) && !is_hex_digit(c)) {
@@ -311,17 +295,14 @@ std::optional<Variant> YAML::Parser::try_parse_tagged_value(const ryml::ConstNod
 		}
 	}
 
-	// Attempt to parse with a converter
 	VariantConverter *converter = get_converter_for_tag(tag);
 	if (converter) {
 		return converter->decode(node);
 	}
 
-	// Check for custom converters
 	if (YAMLClassRegistry::has_class(tag)) {
 		YAMLClassRegistry::ClassInfo class_info = YAMLClassRegistry::get_class_info(tag);
 
-		// Class info exists and is valid
 		if (class_info.script_class.is_valid()) {
 			Variant data = process_common(node);
 			Variant result = class_info.script_class->call(class_info.deserialize_method, data);
@@ -329,17 +310,18 @@ std::optional<Variant> YAML::Parser::try_parse_tagged_value(const ryml::ConstNod
 			// Is it a YAMLResult?
 			if (result.get_type() == Variant::OBJECT && Object::cast_to<YAMLResult>(result.operator Object *())) {
 				Ref<YAMLResult> yaml_result = result;
+
 				if (yaml_result->has_error()) {
 					throw YAMLException(yaml_result->get_error_message());
 				}
-				return yaml_result->get_data(); // Return the actual object
+
+				return yaml_result->get_data();
 			}
 
 			return result;
 		}
 	}
 
-	// Check if this is a registered class name
 	if (ClassDB::class_exists(tag)) {
 		return parse_object_or_resource(node, tag);
 	}
@@ -414,27 +396,22 @@ Variant YAML::Parser::load_resource(const String &path) const {
 		throw YAMLException(vformat("Resource path not allowed: %s", path));
 	}
 
-	// Check if the path exists
 	if (!loader->exists(path)) {
 		throw YAMLException(vformat("Resource does not exist at path: %s", path));
 	}
 
-	// Load the resource
 	Ref<Resource> resource = loader->load(path);
 	if (!resource.is_valid()) {
 		throw YAMLException(vformat("Failed to load resource from path: %s", path));
 	}
 
-	// Get the resource class name
 	String class_name = resource->get_class();
 
-	// Handle custom classes with scripts
 	Ref<Script> script = resource->get_script();
 	if (script.is_valid() && !script->get_global_name().is_empty()) {
 		class_name = script->get_global_name();
 	}
 
-	// Check if the resource type is allowed for this path
 	if (!security_view.is_resource_allowed(path, class_name)) {
 		throw YAMLException(vformat("Resource type %s not allowed from path %s", class_name, path));
 	}
@@ -447,12 +424,10 @@ void YAML::Parser::populate_object_properties(Object *obj, const ryml::ConstNode
 		String key = from_ryml_str(child.key());
 		Variant value = process_node(child);
 
-		// Skip null values
 		if (value.get_type() == Variant::NIL) {
 			continue;
 		}
 
-		// Try to set the property
 		obj->set(key, value);
 	}
 }
@@ -466,6 +441,7 @@ String YAML::Parser::extract_tag(const ryml::ConstNodeRef &node) const {
 	if (tag.begins_with('!')) {
 		return String::utf8(tag.sub(1).str, tag.len - 1);
 	}
+
 	return String::utf8(tag.str, tag.len);
 }
 
@@ -498,6 +474,7 @@ void YAML::Parser::detect_node_style(const ryml::ConstNodeRef &node) {
 				child.instantiate();
 				current_style->set_child(path_element, child);
 			}
+
 			current_style = child;
 		}
 	}
@@ -517,7 +494,6 @@ void YAML::Parser::detect_node_style_internal(const ryml::ConstNodeRef &node, co
 	// Detect styles for this node
 	detect_scalar_style(node, current_style);
 	detect_container_form(node, current_style);
-	detect_anchor_style(node, current_style);
 
 	// Store custom tag if present
 	String tag = extract_tag(node);
@@ -561,41 +537,45 @@ void YAML::Parser::detect_scalar_style(const ryml::ConstNodeRef &node, const Ref
 		return;
 	}
 
-	// Set scalar style
-	if (node.is_block()) {
-		style->set_scalar_style(YAMLStyle::SCALAR_BLOCK);
-	} else if (node.is_val_literal()) {
-		style->set_scalar_style(YAMLStyle::SCALAR_LITERAL);
+	if (node.is_val_literal()) {
+		style->set_string_style(YAMLStyle::STRING_LITERAL);
+		return;
 	} else if (node.is_val_folded()) {
-		style->set_scalar_style(YAMLStyle::SCALAR_FOLDED);
-	} else {
-		style->set_scalar_style(YAMLStyle::SCALAR_PLAIN);
+		style->set_string_style(YAMLStyle::STRING_FOLDED);
+		return;
+	} else if (node.is_val_quoted()) {
+		style->set_string_style(node.is_val_squo() ? YAMLStyle::STRING_QUOTE_SINGLE : YAMLStyle::STRING_QUOTE_DOUBLE);
+		return;
 	}
 
-	// Handle quoted styles
-	if (node.is_val_quoted()) {
-		style->set_quote_style(node.is_val_squo() ? YAMLStyle::QUOTE_SINGLE : YAMLStyle::QUOTE_DOUBLE);
-	}
-
-	// Detect number format
 	String value = from_ryml_str(node.val());
-	if (value.is_valid_float() || value.is_valid_int()) {
-		if (value.begins_with("0x") || value.begins_with("0X")) {
-			style->set_number_format(YAMLStyle::NUM_HEX);
-		} else if (value.begins_with("0o") || value.begins_with("0O")) {
-			style->set_number_format(YAMLStyle::NUM_OCTAL);
-		} else if (value.begins_with("0b") || value.begins_with("0B")) {
-			style->set_number_format(YAMLStyle::NUM_BINARY);
-		} else if (value.find("e") != -1 || value.find("E") != -1) {
-			style->set_number_format(YAMLStyle::NUM_SCIENTIFIC);
+
+	if (value.is_valid_float()) {
+		if (value.find("e") != -1 || value.find("E") != -1) {
+			style->set_float_format(YAMLStyle::FLOAT_SCIENTIFIC);
 		} else {
-			style->set_number_format(YAMLStyle::NUM_DECIMAL);
+			style->set_float_format(YAMLStyle::FLOAT_DECIMAL);
 		}
+		return;
+	}
+
+	if (value.is_valid_int()) {
+		if (value.begins_with("0x") || value.begins_with("0X")) {
+			style->set_integer_format(YAMLStyle::INT_HEX);
+		} else if (value.begins_with("0o") || value.begins_with("0O")) {
+			style->set_integer_format(YAMLStyle::INT_OCTAL);
+		} else if (value.begins_with("0b") || value.begins_with("0B")) {
+			style->set_integer_format(YAMLStyle::INT_BINARY);
+		} else if (value.find("e") != -1 || value.find("E") != -1) {
+			style->set_integer_format(YAMLStyle::INT_SCIENTIFIC);
+		} else {
+			style->set_integer_format(YAMLStyle::INT_DECIMAL);
+		}
+		return;
 	}
 }
 
 void YAML::Parser::detect_container_form(const ryml::ConstNodeRef &node, const Ref<YAMLStyle> &style) {
-	// Detect collection style
 	if (node.is_seq()) {
 		style->set_container_form(YAMLStyle::FORM_SEQ);
 	} else if (node.is_map()) {
@@ -604,29 +584,10 @@ void YAML::Parser::detect_container_form(const ryml::ConstNodeRef &node, const R
 		style->set_container_form(YAMLStyle::FORM_ANY);
 	}
 
-	// Detect flow stye
 	if (node.is_flow()) {
 		style->set_flow_style(YAMLStyle::FLOW_SINGLE);
 	} else {
 		style->set_flow_style(YAMLStyle::FLOW_NONE);
-	}
-}
-
-void YAML::Parser::detect_anchor_style(const ryml::ConstNodeRef &node, const Ref<YAMLStyle> &style) {
-	Dictionary custom_settings;
-
-	// Check for anchors and aliases
-	if (node.has_anchor()) {
-		custom_settings["anchor"] = from_ryml_str(node.val_anchor());
-	}
-
-	if (node.is_ref()) {
-		custom_settings["alias"] = from_ryml_str(node.val_ref());
-	}
-
-	// Store custom settings if any were detected
-	if (!custom_settings.is_empty()) {
-		style->custom_settings = custom_settings;
 	}
 }
 
@@ -635,20 +596,15 @@ void YAML::Parser::detect_array_template_style(const ryml::ConstNodeRef &node, c
 		return;
 	}
 
-	// Create template style for the first element
 	Ref<YAMLStyle> template_style;
 	template_style.instantiate();
 
 	// Save current path
 	auto saved_path = current_path;
-
-	// Clear path for template detection to avoid nesting
 	current_path.clear();
 
-	// Detect style from first element
+	// Detect style for the first element
 	detect_node_style(node[0], template_style);
-
-	// Store template in parent style
 	current_style->set_child("_template", template_style);
 
 	// Restore path

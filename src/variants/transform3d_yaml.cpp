@@ -6,9 +6,7 @@ using namespace godot;
 
 Transform3DVariantConverter::Transform3DVariantConverter(ConverterFactory *factory) :
 		basis_converter(factory->create_converter_as<BasisVariantConverter>(Variant::BASIS)),
-		vec3_converter(factory->create_converter_as<Vector3VariantConverter>(Variant::VECTOR3))
-
-{
+		vec3_converter(factory->create_converter_as<Vector3VariantConverter>(Variant::VECTOR3)) {
 	ERR_FAIL_NULL(basis_converter);
 	ERR_FAIL_NULL(vec3_converter);
 }
@@ -26,10 +24,8 @@ void Transform3DVariantConverter::encode(ryml::NodeRef &node, const Variant &v, 
 void Transform3DVariantConverter::emit_as_map(ryml::NodeRef &node, const Transform3D &transform, const YAMLStyle::View &style) const {
 	node |= ryml::MAP;
 
-	// Flow style
 	style.apply_flow_style(node);
 
-	// Pass child styles for basis and origin
 	YAMLStyle::View basis_style = style.is_valid() ? style.get_child("basis") : YAMLStyle::View();
 	YAMLStyle::View origin_style = style.is_valid() ? style.get_child("origin") : YAMLStyle::View();
 
@@ -43,17 +39,14 @@ void Transform3DVariantConverter::emit_as_map(ryml::NodeRef &node, const Transfo
 void Transform3DVariantConverter::emit_as_sequence(ryml::NodeRef &node, const Transform3D &transform, const YAMLStyle::View &style) const {
 	node |= ryml::SEQ;
 
-	// Flow style
 	style.apply_flow_style(node);
 
-	// Pass child styles for each vector using indices
 	for (int i = 0; i < 3; i++) {
 		const YAMLStyle::View &row_style = style.is_valid() ? style.get_child(String::num_int64(i)) : YAMLStyle::View();
 		ryml::NodeRef col_node = node.append_child();
 		vec3_converter->encode(col_node, transform.basis.rows[i], row_style);
 	}
 
-	// Origin gets index 3
 	YAMLStyle::View origin_style = style.is_valid() ? style.get_child("3") : YAMLStyle::View();
 	ryml::NodeRef origin_node = node.append_child();
 	vec3_converter->encode(origin_node, transform.origin, origin_style);
@@ -93,12 +86,10 @@ Variant Transform3DVariantConverter::decode_from_sequence(const ryml::ConstNodeR
 
 	Basis basis;
 
-	// Read basis columns
 	for (int i = 0; i < 3; i++) {
 		basis.rows[i] = vec3_converter->decode(node[i]).operator Vector3();
 	}
 
-	// Read origin
 	Vector3 origin = vec3_converter->decode(node[3]).operator Vector3();
 
 	return Transform3D(basis, origin);

@@ -103,15 +103,15 @@ func test_item_styles() -> void:
 	var parent_style = YAML.create_style()
 
 	# Create special style for all items
-	var items_style = YAML.create_style()
-	items_style.set_binary_encoding(YAMLStyle.BIN_HEX)  # Use hex representation for colors
+	var template = YAML.create_style()
+	template.set_binary_encoding(YAMLStyle.BIN_HEX)  # Use hex representation for colors
 
 	# Create specific style for one item
 	var item0_style = YAML.create_style()
-	item0_style.set_quote_style(YAMLStyle.QUOTE_DOUBLE)
+	item0_style.set_string_style(YAMLStyle.STRING_QUOTE_DOUBLE)
 
 	# Apply styles
-	parent_style.set_child("_items", items_style)  # Apply to all items
+	parent_style.set_child("_template", template)  # Apply to all items
 	parent_style.set_child("0", item0_style)       # Apply to first item
 
 	var result = YAML.stringify(color_array, parent_style)
@@ -127,8 +127,8 @@ func test_item_styles() -> void:
 	# Test roundtrip
 	assert_roundtrip(YAML.parse(result.get_data()), color_array, is_packed_color_array_equal, "item styles")
 
-## Test _items child style with FORM_SEQ and FORM_MAP
-func test_items_container_forms() -> void:
+## Test _template child style with FORM_SEQ and FORM_MAP
+func test_template_container_forms() -> void:
 	# Create a color array with colors that have multiple components
 	var color_array = PackedColorArray([
 		Color(1.0, 0.5, 0.2, 0.8),  # Orange with alpha
@@ -139,7 +139,7 @@ func test_items_container_forms() -> void:
 	var seq_style = YAML.create_style()
 	var items_seq_style = YAML.create_style()
 	items_seq_style.set_container_form(YAMLStyle.FORM_SEQ)
-	seq_style.set_child("_items", items_seq_style)
+	seq_style.set_child("_template", items_seq_style)
 
 	var seq_result = YAML.stringify(color_array, seq_style)
 	assert_stringify_success(seq_result, "array with items in sequence form")
@@ -165,9 +165,9 @@ func test_items_container_forms() -> void:
 
 	# Test with FORM_MAP for items (default, but let's be explicit)
 	var map_style = YAML.create_style()
-	var items_map_style = YAML.create_style()
-	items_map_style.set_container_form(YAMLStyle.FORM_MAP)
-	map_style.set_child("_items", items_map_style)
+	var template_map = YAML.create_style()
+	template_map.set_container_form(YAMLStyle.FORM_MAP)
+	map_style.set_child("_template", template_map)
 
 	var map_result = YAML.stringify(color_array, map_style)
 	assert_stringify_success(map_result, "array with items in map form")
@@ -197,7 +197,7 @@ func test_color_formats() -> void:
 	var styles = {
 		"Default": null,  # No specific style
 		"Hex String": YAMLStyle.BIN_HEX,
-		"Hex Number": YAMLStyle.NUM_HEX
+		"Hex Integer": YAMLStyle.INT_HEX
 	}
 
 	for style_name in styles:
@@ -205,7 +205,7 @@ func test_color_formats() -> void:
 		if styles[style_name] != null:
 			if styles[style_name] == YAMLStyle.BIN_HEX:
 				format_style.set_binary_encoding(styles[style_name])
-			elif styles[style_name] == YAMLStyle.NUM_HEX:
+			elif styles[style_name] == YAMLStyle.INT_HEX:
 				format_style.set_number_format(styles[style_name])
 
 		var result = YAML.stringify(color_array, format_style)

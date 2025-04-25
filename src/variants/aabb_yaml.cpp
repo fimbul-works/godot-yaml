@@ -24,10 +24,8 @@ void AABBVariantConverter::encode(ryml::NodeRef &node, const Variant &v, const Y
 void AABBVariantConverter::emit_as_map(ryml::NodeRef &node, const AABB &aabb, const YAMLStyle::View &style) const {
 	node |= ryml::MAP;
 
-	// Flow style
 	style.apply_flow_style(node);
 
-	// Pass child styles down to nested converters
 	YAMLStyle::View position_style = style.is_valid() ? style.get_child("position") : YAMLStyle::View();
 	YAMLStyle::View size_style = style.is_valid() ? style.get_child("size") : YAMLStyle::View();
 
@@ -41,10 +39,8 @@ void AABBVariantConverter::emit_as_map(ryml::NodeRef &node, const AABB &aabb, co
 void AABBVariantConverter::emit_as_sequence(ryml::NodeRef &node, const AABB &aabb, const YAMLStyle::View &style) const {
 	node |= ryml::SEQ;
 
-	// Flow style
 	style.apply_flow_style(node);
 
-	// Pass child styles down to nested converters using numeric indices
 	YAMLStyle::View position_style = style.is_valid() ? style.get_child("0") : YAMLStyle::View();
 	YAMLStyle::View size_style = style.is_valid() ? style.get_child("1") : YAMLStyle::View();
 

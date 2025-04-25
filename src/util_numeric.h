@@ -46,6 +46,27 @@ template <typename T>
 T string_to_int(const ryml::csubstr &value) {
 	static_assert(std::is_integral<T>::value, "Type must be integral");
 
+	// Check for scientific notation format (e.g., 1e3, 1.5e2)
+	if (!value.begins_with("0x") && !value.begins_with("0X") && std::find_if(value.begin(), value.end(), [](char c) { return c == 'e' || c == 'E'; }) != value.end()) {
+		try {
+			// Handle scientific notation by first converting to double, then to integer
+			double float_val = string_to_float<double>(value);
+
+			// Check for overflow/underflow
+			if (float_val > static_cast<double>(std::numeric_limits<T>::max()) ||
+					float_val < static_cast<double>(std::numeric_limits<T>::lowest())) {
+				throw YAMLException("Integer value out of range");
+			}
+
+			// Convert to the target integer type
+			return static_cast<T>(float_val);
+		} catch (const YAMLException &e) {
+			throw; // Re-throw the same exception
+		} catch (...) {
+			throw YAMLException("Invalid integer format in scientific notation");
+		}
+	}
+
 	// For int64_t with known large hexadecimal values that would overflow,
 	// use a special case approach
 	if (std::is_same_v<T, int64_t> && (value.begins_with("0x") || value.begins_with("0X"))) {
@@ -106,7 +127,49 @@ T string_to_int(const ryml::csubstr &value) {
 }
 
 template <typename T>
-ryml::csubstr float_to_string(const T value, YAMLStyle::NumberFormat format = YAMLStyle::NUM_DECIMAL) {
+ryml::csubstr int_to_string(const T value, YAMLStyle::IntegerFormat format = YAMLStyle::INT_DECIMAL) {
+	static_assert(std::is_integral<T>::value, "Type must be integral");
+	static thread_local char buf[64];
+
+	switch (format) {
+		case YAMLStyle::INT_HEX:
+			snprintf(buf, sizeof(buf), "0x%llx", (uint64_t)value);
+			break;
+		case YAMLStyle::INT_OCTAL:
+			snprintf(buf, sizeof(buf), "0o%llo", (uint64_t)value);
+			break;
+		case YAMLStyle::INT_BINARY: {
+			// Handle binary format manually since snprintf doesn't support it
+			char binary[65]; // max 64 bits plus null terminator
+			T temp = value;
+			int i = 0;
+			do {
+				binary[i++] = '0' + (temp & 1);
+				temp >>= 1;
+			} while (temp && i < 64);
+
+			// Reverse and add prefix
+			snprintf(buf, sizeof(buf), "0b");
+			for (int j = i - 1; j >= 0; j--) {
+				size_t len = strlen(buf);
+				buf[len] = binary[j];
+				buf[len + 1] = '\0';
+			}
+			break;
+		}
+		case YAMLStyle::INT_SCIENTIFIC:
+			snprintf(buf, sizeof(buf), "%e", (double)value);
+			break;
+		default:
+			snprintf(buf, sizeof(buf), "%lld", (int64_t)value);
+			break;
+	}
+
+	return ryml::csubstr(buf, strlen(buf));
+}
+
+template <typename T>
+ryml::csubstr float_to_string(const T value, YAMLStyle::FloatFormat format = YAMLStyle::FLOAT_DECIMAL) {
 	static_assert(std::is_floating_point<T>::value, "Type must be floating point");
 
 	if (std::isnan(value)) {
@@ -118,7 +181,7 @@ ryml::csubstr float_to_string(const T value, YAMLStyle::NumberFormat format = YA
 		const char *format_str;
 
 		switch (format) {
-			case YAMLStyle::NUM_SCIENTIFIC: {
+			case YAMLStyle::FLOAT_SCIENTIFIC: {
 				// Manual scientific notation formatting
 				int exp = 0;
 				T mantissa = value;
@@ -145,48 +208,6 @@ ryml::csubstr float_to_string(const T value, YAMLStyle::NumberFormat format = YA
 		size_t len = ryml::format(buf, format_str, value);
 		return ryml::csubstr(buf, len);
 	}
-}
-
-template <typename T>
-ryml::csubstr int_to_string(const T value, YAMLStyle::NumberFormat format = YAMLStyle::NUM_DECIMAL) {
-	static_assert(std::is_integral<T>::value, "Type must be integral");
-	static thread_local char buf[64];
-
-	switch (format) {
-		case YAMLStyle::NUM_HEX:
-			snprintf(buf, sizeof(buf), "0x%llx", (uint64_t)value);
-			break;
-		case YAMLStyle::NUM_OCTAL:
-			snprintf(buf, sizeof(buf), "0o%llo", (uint64_t)value);
-			break;
-		case YAMLStyle::NUM_BINARY: {
-			// Handle binary format manually since snprintf doesn't support it
-			char binary[65]; // max 64 bits plus null terminator
-			T temp = value;
-			int i = 0;
-			do {
-				binary[i++] = '0' + (temp & 1);
-				temp >>= 1;
-			} while (temp && i < 64);
-
-			// Reverse and add prefix
-			snprintf(buf, sizeof(buf), "0b");
-			for (int j = i - 1; j >= 0; j--) {
-				size_t len = strlen(buf);
-				buf[len] = binary[j];
-				buf[len + 1] = '\0';
-			}
-			break;
-		}
-		case YAMLStyle::NUM_SCIENTIFIC:
-			snprintf(buf, sizeof(buf), "%e", (double)value);
-			break;
-		default:
-			snprintf(buf, sizeof(buf), "%lld", (int64_t)value);
-			break;
-	}
-
-	return ryml::csubstr(buf, strlen(buf));
 }
 
 // Overloads for different input types

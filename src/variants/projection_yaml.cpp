@@ -23,10 +23,8 @@ void ProjectionVariantConverter::encode(ryml::NodeRef &node, const Variant &v, c
 void ProjectionVariantConverter::emit_as_map(ryml::NodeRef &node, const Projection &proj, const YAMLStyle::View &style) const {
 	node |= ryml::MAP;
 
-	// Flow style
 	style.apply_flow_style(node);
 
-	// Pass child styles for each column
 	YAMLStyle::View x_style = style.is_valid() ? style.get_child("x") : YAMLStyle::View();
 	YAMLStyle::View y_style = style.is_valid() ? style.get_child("y") : YAMLStyle::View();
 	YAMLStyle::View z_style = style.is_valid() ? style.get_child("z") : YAMLStyle::View();
@@ -45,10 +43,8 @@ void ProjectionVariantConverter::emit_as_map(ryml::NodeRef &node, const Projecti
 void ProjectionVariantConverter::emit_as_sequence(ryml::NodeRef &node, const Projection &proj, const YAMLStyle::View &style) const {
 	node |= ryml::SEQ;
 
-	// Flow style
 	style.apply_flow_style(node);
 
-	// Pass child styles using numeric indices
 	for (int i = 0; i < 4; i++) {
 		YAMLStyle::View col_style = style.is_valid() ? style.get_child(String::num_int64(i)) : YAMLStyle::View();
 		ryml::NodeRef col_node = node.append_child();

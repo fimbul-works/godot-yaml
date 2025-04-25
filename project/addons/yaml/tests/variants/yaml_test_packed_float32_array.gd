@@ -126,18 +126,15 @@ func test_number_formats() -> void:
 
 	# Test different number formats
 	var formats = {
-		"Decimal": YAMLStyle.NUM_DECIMAL,
-		"Scientific": YAMLStyle.NUM_SCIENTIFIC,
-		"Hex": YAMLStyle.NUM_HEX,
-		# Using Hex, Octal, and Binary for floats isn't intuitive
-		# but we'll test them to ensure they don't cause errors
+		"Decimal": YAMLStyle.FLOAT_DECIMAL,
+		"Scientific": YAMLStyle.FLOAT_SCIENTIFIC,
 	}
 
 	for format_name in formats:
 		var number_style = YAML.create_style()
-		var items_style = YAML.create_style()
-		items_style.set_number_format(formats[format_name])
-		number_style.set_child("_items", items_style)
+		var template = YAML.create_style()
+		template.set_float_format(formats[format_name])
+		number_style.set_child("_template", template)
 
 		var result = YAML.stringify(float_array, number_style)
 		assert_stringify_success(result, format_name + " format")
@@ -148,16 +145,13 @@ func test_number_formats() -> void:
 
 			# Check format specific features
 			match formats[format_name]:
-				YAMLStyle.NUM_SCIENTIFIC:
+				YAMLStyle.FLOAT_SCIENTIFIC:
 					# Look for scientific notation (e or E)
 					var has_scientific = result.get_data().find("e") != -1 || result.get_data().find("E") != -1
 					if has_scientific:
 						assert_true(has_scientific, "Uses scientific notation")
 					else:
 						print_rich("[color=yellow]⚠ Scientific notation not detected (may be implemented differently)[/color]")
-				YAMLStyle.NUM_HEX:
-					# May or may not be implemented for floats, just check it doesn't error
-					print_rich("  (Note: Hex format for floats may not be directly supported)")
 
 			# Test roundtrip
 			assert_roundtrip(YAML.parse(result.get_data()), float_array, is_packed_float32_array_equal, format_name)
@@ -221,18 +215,14 @@ func test_item_styles() -> void:
 
 	# Create different styles for each item
 	var item0_style = YAML.create_style()
-	item0_style.set_number_format(YAMLStyle.NUM_DECIMAL)
+	item0_style.set_float_format(YAMLStyle.FLOAT_DECIMAL)
 
 	var item1_style = YAML.create_style()
-	item1_style.set_number_format(YAMLStyle.NUM_SCIENTIFIC)
-
-	var item2_style = YAML.create_style()
-	item2_style.set_number_format(YAMLStyle.NUM_HEX)
+	item1_style.set_float_format(YAMLStyle.FLOAT_SCIENTIFIC)
 
 	# Apply styles
 	parent_style.set_child("0", item0_style)
 	parent_style.set_child("1", item1_style)
-	parent_style.set_child("2", item2_style)
 
 	var result = YAML.stringify(float_array, parent_style)
 
@@ -327,9 +317,9 @@ func test_large_array() -> void:
 			"style": func():
 				var s = YAML.create_style()
 				s.set_flow_style(YAMLStyle.FLOW_NONE)
-				var items = YAML.create_style()
-				items.set_number_format(YAMLStyle.NUM_SCIENTIFIC)
-				s.set_child("_items", items)
+				var template = YAML.create_style()
+				template.set_float_format(YAMLStyle.FLOAT_SCIENTIFIC)
+				s.set_child("_template", template)
 				return s,
 		}
 	]
@@ -388,7 +378,7 @@ func test_roundtrip_with_styles() -> void:
 
 	# Create item style for the first element
 	var item_style = YAML.create_style()
-	item_style.set_number_format(YAMLStyle.NUM_SCIENTIFIC)
+	item_style.set_float_format(YAMLStyle.FLOAT_SCIENTIFIC)
 	original_style.set_child("0", item_style)
 
 	# Emit YAML with the style

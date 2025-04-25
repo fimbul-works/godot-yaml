@@ -1,5 +1,5 @@
 extends YAMLTest
-## Test suite for YAML style handling and customization options
+# Test suite for YAML style handling and customization options
 
 # Dictionary with test data for style tests
 var test_data = {
@@ -23,7 +23,7 @@ var test_data = {
 	"integers": {
 		"decimal": 255,
 		"byte": 15,
-		"large": 1048576  # 2^20
+		"large": 1048576 # 2^20
 	},
 	"floats": {
 		"pi": 3.14159,
@@ -35,7 +35,7 @@ var test_data = {
 func _init():
 	test_name = "YAML Style Handling Tests"
 
-## Test style detection and preservation
+# Test style detection and preservation
 func test_style_detection() -> void:
 	print_rich("\n[b]Testing Style Detection:[/b]")
 
@@ -98,7 +98,7 @@ nested:
 		assert_yaml_has_feature(re_emit_result.get_data(), "folded: >", "Folded block style was preserved")
 		assert_yaml_has_feature(re_emit_result.get_data(), "[1,2,3]", "Flow sequence style was preserved")
 
-## Test creating and applying custom styles
+# Test creating and applying custom styles
 func test_style_customization() -> void:
 	var data = test_data.mixed_types.duplicate(true)
 
@@ -115,11 +115,11 @@ func test_style_customization() -> void:
 	var root_style = YAML.create_style()
 
 	var string_style := YAML.create_style()
-	string_style.set_quote_style(YAMLStyle.QUOTE_DOUBLE) # Use " for string
+	string_style.set_string_style(YAMLStyle.STRING_QUOTE_DOUBLE) # Use " for string
 	root_style.set_child("string", string_style)
 
 	var multiline_style = YAML.create_style()
-	multiline_style.set_scalar_style(YAMLStyle.SCALAR_LITERAL) # Use | for multiline strings
+	multiline_style.set_string_style(YAMLStyle.STRING_LITERAL) # Use | for multiline strings
 	root_style.set_child("multiline", multiline_style)
 
 	var nested_style = YAML.create_style()
@@ -156,7 +156,7 @@ func test_style_customization() -> void:
 		"Data integrity is maintained through custom styling"
 	)
 
-## Test different flow styles (block vs flow)
+# Test different flow styles (block vs flow)
 func test_flow_styles() -> void:
 	var data = {
 		"mapping": {"key1": "value1", "key2": "value2"},
@@ -199,14 +199,14 @@ func test_flow_styles() -> void:
 	assert_roundtrip(YAML.parse(block_result.get_data()), data, is_deep_equal, "block style")
 	assert_roundtrip(YAML.parse(flow_result.get_data()), data, is_deep_equal, "flow style")
 
-## Test different scalar styles
-func test_scalar_styles() -> void:
+# Test different block string styles
+func test_block_styles() -> void:
 	var multiline_text = "line 1\nline 2\nline 3\nline 4"
 	var data = {"text": multiline_text}
 
 	# Test plain style
 	var plain_style = YAML.create_style()
-	plain_style.set_scalar_style(YAMLStyle.SCALAR_PLAIN)
+	plain_style.set_string_style(YAMLStyle.STRING_PLAIN)
 	var plain_result = YAML.stringify(data, plain_style)
 
 	assert_stringify_success(plain_result, "plain style")
@@ -216,7 +216,7 @@ func test_scalar_styles() -> void:
 
 	# Test literal style (|) - preserves newlines
 	var literal_style = YAML.create_style()
-	literal_style.set_scalar_style(YAMLStyle.SCALAR_LITERAL)
+	literal_style.set_string_style(YAMLStyle.STRING_LITERAL)
 	var literal_result = YAML.stringify(data, literal_style)
 
 	assert_stringify_success(literal_result, "literal style")
@@ -230,7 +230,7 @@ func test_scalar_styles() -> void:
 
 	# Test folded style (>) - folds newlines to spaces
 	var folded_style = YAML.create_style()
-	folded_style.set_scalar_style(YAMLStyle.SCALAR_FOLDED)
+	folded_style.set_string_style(YAMLStyle.STRING_FOLDED)
 	var folded_result = YAML.stringify(data, folded_style)
 
 	assert_stringify_success(folded_result, "folded style")
@@ -246,23 +246,22 @@ func test_scalar_styles() -> void:
 	assert_roundtrip(YAML.parse(literal_result.get_data()), data, is_deep_equal, "literal style")
 	assert_roundtrip(YAML.parse(folded_result.get_data()), data, is_deep_equal, "folded style")
 
-## Test different number formats
-func test_number_formats() -> void:
+# Test integer formats
+func test_integer_formats() -> void:
+	print_rich("\n[b]Testing Integer Formats:[/b]")
+
 	var data = test_data.integers.duplicate(true)
-
-	print_rich("\n[b]Testing Number Formats:[/b]")
-
-	# Test different number formats
-	var formats = [
-		{"name": "Decimal", "format": YAMLStyle.NUM_DECIMAL},
-		{"name": "Hexadecimal", "format": YAMLStyle.NUM_HEX},
-		{"name": "Octal", "format": YAMLStyle.NUM_OCTAL},
-		{"name": "Binary", "format": YAMLStyle.NUM_BINARY}
+	var int_formats = [
+		{"name": "Decimal", "format": YAMLStyle.INT_DECIMAL},
+		{"name": "Hexadecimal", "format": YAMLStyle.INT_HEX},
+		{"name": "Octal", "format": YAMLStyle.INT_OCTAL},
+		{"name": "Binary", "format": YAMLStyle.INT_BINARY},
+		{"name": "Scientific", "format": YAMLStyle.INT_SCIENTIFIC}
 	]
 
-	for format_info in formats:
+	for format_info in int_formats:
 		var style = YAML.create_style()
-		style.set_number_format(format_info.format)
+		style.set_integer_format(format_info.format)
 
 		var result = YAML.stringify(data, style)
 		assert_stringify_success(result, format_info.name + " format")
@@ -272,28 +271,32 @@ func test_number_formats() -> void:
 			print_rich(result.get_data())
 
 			# Verify format specific markers (except decimal which has no special marker)
-			if format_info.format == YAMLStyle.NUM_HEX:
+			if format_info.format == YAMLStyle.INT_HEX:
 				assert_yaml_has_feature(result.get_data(), "0x", "Contains hex marker")
-			elif format_info.format == YAMLStyle.NUM_OCTAL:
+			elif format_info.format == YAMLStyle.INT_OCTAL:
 				assert_yaml_has_feature(result.get_data(), "0o", "Contains octal marker")
-			elif format_info.format == YAMLStyle.NUM_BINARY:
+			elif format_info.format == YAMLStyle.INT_BINARY:
 				assert_yaml_has_feature(result.get_data(), "0b", "Contains binary marker")
+			elif format_info.format == YAMLStyle.FLOAT_SCIENTIFIC:
+				assert_yaml_has_feature(result.get_data(), "e", "Contains scientific notation")
 
 			# Test roundtrip
 			var parse_result = YAML.parse(result.get_data())
 			assert_roundtrip(parse_result, data, is_deep_equal, format_info.name + " format")
 
-	# Test float formats
-	data = test_data.floats.duplicate(true)
+# Test float formats
+func test_float_formats() -> void:
+	print_rich("\n[b]Testing Integer Formats:[/b]")
 
+	var data = test_data.floats.duplicate(true)
 	var float_formats = [
-		{"name": "Decimal", "format": YAMLStyle.NUM_DECIMAL},
-		{"name": "Scientific", "format": YAMLStyle.NUM_SCIENTIFIC}
+		{"name": "Decimal", "format": YAMLStyle.FLOAT_DECIMAL},
+		{"name": "Scientific", "format": YAMLStyle.FLOAT_SCIENTIFIC}
 	]
 
 	for format_info in float_formats:
 		var style = YAML.create_style()
-		style.set_number_format(format_info.format)
+		style.set_float_format(format_info.format)
 
 		var result = YAML.stringify(data, style)
 		assert_stringify_success(result, format_info.name + " format for floats")
@@ -302,15 +305,14 @@ func test_number_formats() -> void:
 			print_rich("\n• %s format for floats:" % format_info.name)
 			print_rich(result.get_data())
 
-			# For scientific format, look for exponent notation
-			if format_info.format == YAMLStyle.NUM_SCIENTIFIC:
+			if format_info.format == YAMLStyle.FLOAT_SCIENTIFIC:
 				assert_yaml_has_feature(result.get_data(), "e", "Contains scientific notation")
 
 			# Test roundtrip
 			var parse_result = YAML.parse(result.get_data())
 			assert_roundtrip(parse_result, data, is_deep_equal, format_info.name + " format for floats")
 
-## Test quote styles
+# Test quote styles
 func test_quote_styles() -> void:
 	var data = {
 		"simple": "simple text",
@@ -319,22 +321,22 @@ func test_quote_styles() -> void:
 		"multiline": "line 1\nline 2"
 	}
 
-	# Test no quotes style
-	var no_quotes_style = YAML.create_style()
-	no_quotes_style.set_quote_style(YAMLStyle.QUOTE_NONE)
-	var no_quotes_result = YAML.stringify(data, no_quotes_style)
+	# Test plain style
+	var plain_style = YAML.create_style()
+	plain_style.set_string_style(YAMLStyle.STRING_PLAIN)
+	var plain_result = YAML.stringify(data, plain_style)
 
-	assert_stringify_success(no_quotes_result, "no quotes style")
-	if !no_quotes_result.has_error():
-		print_rich("\n• No quotes style:")
-		print_rich(no_quotes_result.get_data())
+	assert_stringify_success(plain_result, "plain string")
+	if !plain_result.has_error():
+		print_rich("\n• Plain string:")
+		print_rich(plain_result.get_data())
 
 	# Test single quotes style
 	var single_quotes_style = YAML.create_style()
-	single_quotes_style.set_quote_style(YAMLStyle.QUOTE_SINGLE)
+	single_quotes_style.set_string_style(YAMLStyle.STRING_QUOTE_SINGLE)
 	var single_quotes_result = YAML.stringify(data, single_quotes_style)
 
-	assert_stringify_success(single_quotes_result, "single quotes style")
+	assert_stringify_success(single_quotes_result, "single quoted string")
 	if !single_quotes_result.has_error():
 		print_rich("\n• Single quotes style:")
 		print_rich(single_quotes_result.get_data())
@@ -344,10 +346,10 @@ func test_quote_styles() -> void:
 
 	# Test double quotes style
 	var double_quotes_style = YAML.create_style()
-	double_quotes_style.set_quote_style(YAMLStyle.QUOTE_DOUBLE)
+	double_quotes_style.set_string_style(YAMLStyle.STRING_QUOTE_DOUBLE)
 	var double_quotes_result = YAML.stringify(data, double_quotes_style)
 
-	assert_stringify_success(double_quotes_result, "double quotes style")
+	assert_stringify_success(double_quotes_result, "double quoted string")
 	if !double_quotes_result.has_error():
 		print_rich("\n• Double quotes style:")
 		print_rich(double_quotes_result.get_data())
@@ -356,35 +358,6 @@ func test_quote_styles() -> void:
 		assert_yaml_has_feature(double_quotes_result.get_data(), "\"", "Contains double quotes")
 
 	# Test roundtrip for all styles
-	assert_roundtrip(YAML.parse(no_quotes_result.get_data()), data, is_deep_equal, "no quotes style")
-	assert_roundtrip(YAML.parse(single_quotes_result.get_data()), data, is_deep_equal, "single quotes style")
-	assert_roundtrip(YAML.parse(double_quotes_result.get_data()), data, is_deep_equal, "double quotes style")
-
-## Helper function to deeply compare values of any type
-func is_deep_equal(a: Variant, b: Variant, epsilon: float = 0.00001) -> bool:
-	# Handle different types
-	if typeof(a) != typeof(b):
-		return false
-
-	match typeof(a):
-		TYPE_ARRAY:
-			if a.size() != b.size():
-				return false
-			for i in range(a.size()):
-				if not is_deep_equal(a[i], b[i]):
-					return false
-			return true
-
-		TYPE_DICTIONARY:
-			if a.size() != b.size():
-				return false
-			for key in a:
-				if not b.has(key) or not is_deep_equal(a[key], b[key]):
-					return false
-			return true
-
-		TYPE_FLOAT:
-			return abs(a - b) < epsilon
-
-		_:  # Default case for other types
-			return a == b
+	assert_roundtrip(YAML.parse(plain_result.get_data()), data, is_deep_equal, "plain string")
+	assert_roundtrip(YAML.parse(single_quotes_result.get_data()), data, is_deep_equal, "single quoted string")
+	assert_roundtrip(YAML.parse(double_quotes_result.get_data()), data, is_deep_equal, "double quoted string")

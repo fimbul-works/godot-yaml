@@ -33,26 +33,30 @@ func test_basic_serialization() -> void:
 		var parse_result = YAML.parse(result.get_data())
 		assert_roundtrip(parse_result, path, is_nodepath_equal, name)
 
-## Test quote style variations
-func test_quote_styles() -> void:
+## Test string style variations
+func test_string_styles() -> void:
 	var path = NodePath("Parent/Child:property")
 
-	# Double quotes (default)
-	var double_style = YAML.create_style()
-	double_style.set_quote_style(YAMLStyle.QUOTE_DOUBLE)
-	var double_result = YAML.stringify(path, double_style)
+	# No quotes (plain string)
+	var plain_style = YAML.create_style()
+	plain_style.set_string_style(YAMLStyle.STRING_PLAIN)
+	var plain_result = YAML.stringify(path, plain_style)
 
-	assert_stringify_success(double_result, "double quotes")
-	if not double_result.has_error():
-		print_rich("• Double quotes:")
-		print_rich(double_result.get_data())
+	assert_stringify_success(plain_result, "plain string")
+	if not plain_result.has_error():
+		print_rich("• No quotes:")
+		print_rich(plain_result.get_data())
 
-		# Verify it contains double quotes
-		assert_yaml_has_feature(double_result.get_data(), "\"", "Contains double quotes")
+		# Verify it doesn't contain quotes
+		# Note: This may not work if the NodePath requires quotes for valid YAML
+		if plain_result.get_data().find("\"") == -1 && plain_result.get_data().find("'") == -1:
+			print_rich("[color=green]✓ Plain string[/color]")
+		else:
+			print_rich("[color=yellow]⚠ Quotes were needed for valid YAML[/color]")
 
 	# Single quotes
 	var single_style = YAML.create_style()
-	single_style.set_quote_style(YAMLStyle.QUOTE_SINGLE)
+	single_style.set_string_style(YAMLStyle.STRING_QUOTE_SINGLE)
 	var single_result = YAML.stringify(path, single_style)
 
 	assert_stringify_success(single_result, "single quotes")
@@ -63,46 +67,23 @@ func test_quote_styles() -> void:
 		# Verify it contains single quotes
 		assert_yaml_has_feature(single_result.get_data(), "'", "Contains single quotes")
 
-	# No quotes (plain style)
-	var plain_style = YAML.create_style()
-	plain_style.set_quote_style(YAMLStyle.QUOTE_NONE)
-	var plain_result = YAML.stringify(path, plain_style)
+	# Double quotes (default)
+	var double_style = YAML.create_style()
+	double_style.set_string_style(YAMLStyle.STRING_QUOTE_DOUBLE)
+	var double_result = YAML.stringify(path, double_style)
 
-	assert_stringify_success(plain_result, "no quotes")
-	if not plain_result.has_error():
-		print_rich("• No quotes:")
-		print_rich(plain_result.get_data())
+	assert_stringify_success(double_result, "double quotes")
+	if not double_result.has_error():
+		print_rich("• Double quotes:")
+		print_rich(double_result.get_data())
 
-		# Verify it doesn't contain quotes
-		# Note: This may not work if the NodePath requires quotes for valid YAML
-		if plain_result.get_data().find("\"") == -1 && plain_result.get_data().find("'") == -1:
-			print_rich("[color=green]✓ No quotes used[/color]")
-		else:
-			print_rich("[color=yellow]⚠ Quotes were needed for valid YAML[/color]")
-
-	# Test roundtrip for all styles
-	assert_roundtrip(YAML.parse(double_result.get_data()), path, is_nodepath_equal, "double quotes")
-	assert_roundtrip(YAML.parse(single_result.get_data()), path, is_nodepath_equal, "single quotes")
-	assert_roundtrip(YAML.parse(plain_result.get_data()), path, is_nodepath_equal, "no quotes")
-
-## Test different scalar styles (plain vs literal vs folded)
-func test_scalar_styles() -> void:
-	var long_path = NodePath("Very/Long/Path/With/Many/Components:and:properties")
-
-	# Plain style (default)
-	var plain_style = YAML.create_style()
-	plain_style.set_scalar_style(YAMLStyle.SCALAR_PLAIN)
-	var plain_result = YAML.stringify(long_path, plain_style)
-
-	assert_stringify_success(plain_result, "plain style")
-	if not plain_result.has_error():
-		print_rich("• Plain style:")
-		print_rich(plain_result.get_data())
+		# Verify it contains double quotes
+		assert_yaml_has_feature(double_result.get_data(), "\"", "Contains double quotes")
 
 	# Literal style (|)
 	var literal_style = YAML.create_style()
-	literal_style.set_scalar_style(YAMLStyle.SCALAR_LITERAL)
-	var literal_result = YAML.stringify(long_path, literal_style)
+	literal_style.set_string_style(YAMLStyle.STRING_LITERAL)
+	var literal_result = YAML.stringify(path, literal_style)
 
 	assert_stringify_success(literal_result, "literal style")
 	if not literal_result.has_error():
@@ -117,8 +98,8 @@ func test_scalar_styles() -> void:
 
 	# Folded style (>)
 	var folded_style = YAML.create_style()
-	folded_style.set_scalar_style(YAMLStyle.SCALAR_FOLDED)
-	var folded_result = YAML.stringify(long_path, folded_style)
+	folded_style.set_string_style(YAMLStyle.STRING_FOLDED)
+	var folded_result = YAML.stringify(path, folded_style)
 
 	assert_stringify_success(folded_result, "folded style")
 	if not folded_result.has_error():
@@ -132,9 +113,11 @@ func test_scalar_styles() -> void:
 			print_rich("[color=yellow]⚠ Folded style not applied (may be valid for simple paths)[/color]")
 
 	# Test roundtrip for all styles
-	assert_roundtrip(YAML.parse(plain_result.get_data()), long_path, is_nodepath_equal, "plain style")
-	assert_roundtrip(YAML.parse(literal_result.get_data()), long_path, is_nodepath_equal, "literal style")
-	assert_roundtrip(YAML.parse(folded_result.get_data()), long_path, is_nodepath_equal, "folded style")
+	assert_roundtrip(YAML.parse(plain_result.get_data()), path, is_nodepath_equal, "plain string")
+	assert_roundtrip(YAML.parse(double_result.get_data()), path, is_nodepath_equal, "double quotes")
+	assert_roundtrip(YAML.parse(single_result.get_data()), path, is_nodepath_equal, "single quotes")
+	assert_roundtrip(YAML.parse(literal_result.get_data()), path, is_nodepath_equal, "literal style")
+	assert_roundtrip(YAML.parse(folded_result.get_data()), path, is_nodepath_equal, "folded style")
 
 ## Test empty path handling
 func test_empty_path() -> void:
@@ -161,7 +144,7 @@ func test_roundtrip_with_styles() -> void:
 
 	# Create a style with specific formatting
 	var original_style = YAML.create_style()
-	original_style.set_quote_style(YAMLStyle.QUOTE_SINGLE)
+	original_style.set_string_style(YAMLStyle.STRING_QUOTE_SINGLE)
 
 	# Emit YAML with the style
 	var emit_result = YAML.stringify(path, original_style)

@@ -114,8 +114,7 @@ func test_nested_styles() -> void:
 	normal_style.set_flow_style(YAMLStyle.FLOW_SINGLE)
 
 	var d_style = YAML.create_style()
-	d_style.set_quote_style(YAMLStyle.QUOTE_DOUBLE)
-	d_style.set_number_format(YAMLStyle.NUM_DECIMAL)
+	d_style.set_float_format(YAMLStyle.FLOAT_SCIENTIFIC)
 
 	# Apply nested styles
 	parent_style.set_child("normal", normal_style)

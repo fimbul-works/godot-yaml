@@ -6,36 +6,23 @@ using namespace godot;
 
 void QuaternionVariantConverter::encode(ryml::NodeRef &node, const Variant &v, const YAMLStyle::View &style) const {
 	const Quaternion quat = v.operator Quaternion();
+	YAMLStyle::FloatFormat float_format = style.is_valid() ? style.get_float_format() : YAMLStyle::FLOAT_DECIMAL;
+	style.apply_flow_style(node);
+
 	if (!style.is_valid() || style.get_container_form() != YAMLStyle::FORM_SEQ) {
-		// Map styles
 		node |= ryml::MAP;
 
-		// Flow style
-		if (!style.is_valid()) {
-			node |= ryml::FLOW_SL;
-		} else {
-			style.apply_flow_style(node);
-		}
-
-		node["x"] << float_to_string(quat.x);
-		node["y"] << float_to_string(quat.y);
-		node["z"] << float_to_string(quat.z);
-		node["w"] << float_to_string(quat.w);
+		node["x"] << float_to_string(quat.x, float_format);
+		node["y"] << float_to_string(quat.y, float_format);
+		node["z"] << float_to_string(quat.z, float_format);
+		node["w"] << float_to_string(quat.w, float_format);
 	} else {
-		// Collection styles
 		node |= ryml::SEQ;
 
-		// Flow style
-		if (!style.is_valid()) {
-			node |= ryml::FLOW_SL;
-		} else {
-			style.apply_flow_style(node);
-		}
-
-		node.append_child() << float_to_string(quat.x);
-		node.append_child() << float_to_string(quat.y);
-		node.append_child() << float_to_string(quat.z);
-		node.append_child() << float_to_string(quat.w);
+		node.append_child() << float_to_string(quat.x, float_format);
+		node.append_child() << float_to_string(quat.y, float_format);
+		node.append_child() << float_to_string(quat.z, float_format);
+		node.append_child() << float_to_string(quat.w, float_format);
 	}
 }
 

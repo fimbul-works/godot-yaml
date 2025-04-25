@@ -22,11 +22,11 @@ public:
 	static View create_view(const Ref<YAMLStyle> &style = Ref<YAMLStyle>());
 
 	// Const accessors
-	YAMLStyle::ScalarStyle get_scalar_style() const;
-	YAMLStyle::QuoteStyle get_quote_style() const;
 	YAMLStyle::ContainerForm get_container_form() const;
 	YAMLStyle::FlowStyle get_flow_style() const;
-	YAMLStyle::NumberFormat get_number_format() const;
+	YAMLStyle::StringStyle get_string_style() const;
+	YAMLStyle::IntegerFormat get_integer_format() const;
+	YAMLStyle::FloatFormat get_float_format() const;
 	YAMLStyle::BinaryEncoding get_binary_encoding() const;
 	YAMLStyle::View get_template_style() const;
 
@@ -36,9 +36,8 @@ public:
 	bool uses_flow() const;
 
 	// Style helpers
-	void apply_scalar_style(ryml::NodeRef &node) const;
-	void apply_quote_style(ryml::NodeRef &node) const;
 	void apply_flow_style(ryml::NodeRef &node) const;
+	void apply_string_style(ryml::NodeRef &node) const;
 
 	// Child style access
 	View get_child(const String &key) const;
@@ -49,11 +48,8 @@ public:
 
 private:
 	struct ViewData {
-		bool has_scalar_style = false;
-		ScalarStyle scalar_style;
-
-		bool has_quote_style = false;
-		QuoteStyle quote_style;
+		bool has_inherit_styles = false;
+		bool inherit_styles = true;
 
 		bool has_container_form = false;
 		ContainerForm container_form;
@@ -61,8 +57,14 @@ private:
 		bool has_flow_style = false;
 		FlowStyle flow_style;
 
-		bool has_number_format = false;
-		NumberFormat number_format;
+		bool has_string_style = false;
+		StringStyle string_style;
+
+		bool has_integer_format = false;
+		IntegerFormat integer_format;
+
+		bool has_float_format = false;
+		FloatFormat float_format;
 
 		bool has_binary_encoding = false;
 		BinaryEncoding binary_encoding;

@@ -129,9 +129,9 @@ func test_scalar_styles() -> void:
 
 	# Test literal block style (preserves newlines exactly)
 	var literal_style = YAML.create_style()
-	var items_literal_style = YAML.create_style()
-	items_literal_style.set_scalar_style(YAMLStyle.SCALAR_LITERAL)
-	literal_style.set_child("_items", items_literal_style)
+	var template_literal_style = YAML.create_style()
+	template_literal_style.set_string_style(YAMLStyle.STRING_LITERAL)
+	literal_style.set_child("_template", template_literal_style)
 
 	var literal_result = YAML.stringify(string_array, literal_style)
 	assert_stringify_success(literal_result, "literal block style")
@@ -145,9 +145,9 @@ func test_scalar_styles() -> void:
 
 	# Test folded block style (folds newlines into spaces)
 	var folded_style = YAML.create_style()
-	var items_folded_style = YAML.create_style()
-	items_folded_style.set_scalar_style(YAMLStyle.SCALAR_FOLDED)
-	folded_style.set_child("_items", items_folded_style)
+	var template_folded_style = YAML.create_style()
+	template_folded_style.set_string_style(YAMLStyle.STRING_FOLDED)
+	folded_style.set_child("_template", template_folded_style)
 
 	var folded_result = YAML.stringify(string_array, folded_style)
 	assert_stringify_success(folded_result, "folded block style")
@@ -174,16 +174,15 @@ func test_quote_styles() -> void:
 
 	# Test with different quote styles
 	var styles = {
-		"Single Quotes": YAMLStyle.QUOTE_SINGLE,
-		"Double Quotes": YAMLStyle.QUOTE_DOUBLE,
-		"No Quotes": YAMLStyle.QUOTE_NONE
+		"Single Quotes": YAMLStyle.STRING_QUOTE_SINGLE,
+		"Double Quotes": YAMLStyle.STRING_QUOTE_DOUBLE,
 	}
 
 	for style_name in styles:
 		var quote_style = YAML.create_style()
-		var items_style = YAML.create_style()
-		items_style.set_quote_style(styles[style_name])
-		quote_style.set_child("_items", items_style)
+		var template = YAML.create_style()
+		template.set_string_style(styles[style_name])
+		quote_style.set_child("_template", template)
 
 		var result = YAML.stringify(string_array, quote_style)
 		assert_stringify_success(result, style_name)
@@ -194,15 +193,11 @@ func test_quote_styles() -> void:
 
 			# Verify quote style (with some flexibility since YAML emitter might override)
 			match styles[style_name]:
-				YAMLStyle.QUOTE_SINGLE:
+				YAMLStyle.STRING_QUOTE_SINGLE:
 					# Some items might need double quotes despite single quote style
 					print_rich("  (Note: Some values may still use double quotes for YAML validity)")
-				YAMLStyle.QUOTE_DOUBLE:
+				YAMLStyle.STRING_QUOTE_DOUBLE:
 					assert_yaml_has_feature(result.get_data(), "\"", "Contains double quotes")
-				YAMLStyle.QUOTE_NONE:
-					# Note: Some values might still be quoted by the YAML emitter
-					# if it determines they need to be for valid YAML
-					print_rich("  (Note: Some values may still be quoted for YAML validity)")
 
 		# Test roundtrip
 		assert_roundtrip(YAML.parse(result.get_data()), string_array, is_packed_string_array_equal, style_name)
@@ -220,13 +215,13 @@ func test_item_styles() -> void:
 
 	# Create different styles for each item
 	var item0_style = YAML.create_style()
-	item0_style.set_quote_style(YAMLStyle.QUOTE_SINGLE)
+	item0_style.set_string_style(YAMLStyle.STRING_QUOTE_SINGLE)
 
 	var item1_style = YAML.create_style()
-	item1_style.set_scalar_style(YAMLStyle.SCALAR_LITERAL)
+	item1_style.set_string_style(YAMLStyle.STRING_LITERAL)
 
 	var item2_style = YAML.create_style()
-	item2_style.set_quote_style(YAMLStyle.QUOTE_DOUBLE)
+	item2_style.set_string_style(YAMLStyle.STRING_QUOTE_DOUBLE)
 
 	# Apply styles
 	parent_style.set_child("0", item0_style)
@@ -268,9 +263,9 @@ func test_empty_strings() -> void:
 			"array": empty_array,
 			"style": func():
 				var s = YAML.create_style()
-				var items = YAML.create_style()
-				items.set_quote_style(YAMLStyle.QUOTE_DOUBLE)
-				s.set_child("_items", items)
+				var template = YAML.create_style()
+				template.set_string_style(YAMLStyle.STRING_QUOTE_DOUBLE)
+				s.set_child("_template", template)
 				return s,
 		},
 		{
@@ -283,9 +278,9 @@ func test_empty_strings() -> void:
 			"array": mixed_array,
 			"style": func():
 				var s = YAML.create_style()
-				var items = YAML.create_style()
-				items.set_quote_style(YAMLStyle.QUOTE_DOUBLE)
-				s.set_child("_items", items)
+				var template = YAML.create_style()
+				template.set_string_style(YAMLStyle.STRING_QUOTE_DOUBLE)
+				s.set_child("_template", template)
 				return s,
 		}
 	]
@@ -331,15 +326,15 @@ func test_unicode_strings() -> void:
 		"Default": null,
 		"Quoted": func():
 			var s = YAML.create_style()
-			var items = YAML.create_style()
-			items.set_quote_style(YAMLStyle.QUOTE_DOUBLE)
-			s.set_child("_items", items)
+			var template = YAML.create_style()
+			template.set_string_style(YAMLStyle.STRING_QUOTE_DOUBLE)
+			s.set_child("_template", template)
 			return s,
-		"Block": func():
+		"Literal": func():
 			var s = YAML.create_style()
-			var items = YAML.create_style()
-			items.set_scalar_style(YAMLStyle.SCALAR_BLOCK)
-			s.set_child("_items", items)
+			var template = YAML.create_style()
+			template.set_string_style(YAMLStyle.STRING_LITERAL)
+			s.set_child("_template", template)
 			return s,
 	}
 
@@ -391,9 +386,9 @@ func test_large_array() -> void:
 			"style": func():
 				var s = YAML.create_style()
 				s.set_flow_style(YAMLStyle.FLOW_NONE)
-				var items = YAML.create_style()
-				items.set_quote_style(YAMLStyle.QUOTE_DOUBLE)
-				s.set_child("_items", items)
+				var template = YAML.create_style()
+				template.set_string_style(YAMLStyle.STRING_QUOTE_DOUBLE)
+				s.set_child("_template", template)
 				return s,
 		}
 	]
@@ -428,7 +423,7 @@ func test_roundtrip_with_styles() -> void:
 
 	# Create item style for the second element (multiline)
 	var item_style = YAML.create_style()
-	item_style.set_scalar_style(YAMLStyle.SCALAR_LITERAL)
+	item_style.set_string_style(YAMLStyle.STRING_LITERAL)
 	original_style.set_child("1", item_style)
 
 	# Emit YAML with the style

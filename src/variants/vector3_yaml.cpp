@@ -7,34 +7,21 @@ using namespace godot;
 void Vector3VariantConverter::encode(ryml::NodeRef &node, const Variant &v, const YAMLStyle::View &style) const {
 	const Vector3 vec = v.operator Vector3();
 
+	YAMLStyle::FloatFormat float_format = style.get_float_format();
+	style.apply_flow_style(node);
+
 	if (!style.is_valid() || style.get_container_form() != YAMLStyle::FORM_SEQ) {
-		// Map styles
 		node |= ryml::MAP;
 
-		// Flow style
-		if (!style.is_valid()) {
-			node |= ryml::FLOW_SL;
-		} else {
-			style.apply_flow_style(node);
-		}
-
-		node["x"] << float_to_string(vec.x);
-		node["y"] << float_to_string(vec.y);
-		node["z"] << float_to_string(vec.z);
+		node["x"] << float_to_string(vec.x, float_format);
+		node["y"] << float_to_string(vec.y, float_format);
+		node["z"] << float_to_string(vec.z, float_format);
 	} else {
-		// Collection styles
 		node |= ryml::SEQ;
 
-		// Flow style
-		if (!style.is_valid()) {
-			node |= ryml::FLOW_SL;
-		} else {
-			style.apply_flow_style(node);
-		}
-
-		node.append_child() << float_to_string(vec.x);
-		node.append_child() << float_to_string(vec.y);
-		node.append_child() << float_to_string(vec.z);
+		node.append_child() << float_to_string(vec.x, float_format);
+		node.append_child() << float_to_string(vec.y, float_format);
+		node.append_child() << float_to_string(vec.z, float_format);
 	}
 }
 

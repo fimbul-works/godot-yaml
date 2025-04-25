@@ -11,8 +11,7 @@ void StringNameVariantConverter::encode(ryml::NodeRef &node, const Variant &v, c
 		node << ryml::csubstr{};
 	} else {
 		if (style.is_valid()) {
-			style.apply_scalar_style(node);
-			style.apply_quote_style(node);
+			style.apply_string_style(node);
 		} else {
 			node |= ryml::VAL_DQUO;
 		}

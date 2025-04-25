@@ -133,57 +133,6 @@ func test_hex_encoding() -> void:
 		var parse_result = YAML.parse(result.get_data())
 		assert_roundtrip(parse_result, byte_array, is_packed_byte_array_equal, "hex - " + name)
 
-## Test different scalar styles with binary data
-func test_scalar_styles() -> void:
-	# Use a medium-sized array to test line wrapping
-	var byte_array = create_sequential_array(64)
-
-	# Test literal block style for better readability
-	var literal_style = YAML.create_style()
-	literal_style.set_scalar_style(YAMLStyle.SCALAR_LITERAL)
-	literal_style.set_binary_encoding(YAMLStyle.BIN_BASE64)
-
-	var literal_result = YAML.stringify(byte_array, literal_style)
-	assert_stringify_success(literal_result, "literal block style")
-
-	if !literal_result.has_error():
-		print_rich("• Literal block style (base64):")
-		print_rich(literal_result.get_data())
-
-		# Verify it contains the literal style indicator
-		assert_yaml_has_feature(literal_result.get_data(), "|\n", "Contains literal block style indicator")
-
-		# Verify it contains newlines for formatting
-		assert_true(literal_result.get_data().find("\n ") != -1, "Contains line breaks in the encoded data")
-
-	# Test folded block style
-	var folded_style = YAML.create_style()
-	folded_style.set_scalar_style(YAMLStyle.SCALAR_FOLDED)
-	folded_style.set_binary_encoding(YAMLStyle.BIN_HEX)
-
-	var folded_result = YAML.stringify(byte_array, folded_style)
-	assert_stringify_success(folded_result, "folded block style")
-
-	if !folded_result.has_error():
-		print_rich("• Folded block style (hex):")
-		print_rich(folded_result.get_data())
-
-		# Verify it contains the folded style indicator
-		assert_yaml_has_feature(folded_result.get_data(), ">\n", "Contains folded block style indicator")
-
-	# Test plain scalar style
-	var plain_style = YAML.create_style()
-	plain_style.set_scalar_style(YAMLStyle.SCALAR_PLAIN)
-	plain_style.set_binary_encoding(YAMLStyle.BIN_BASE64)
-
-	var plain_result = YAML.stringify(byte_array, plain_style)
-	assert_stringify_success(plain_result, "plain scalar style")
-
-	# Test roundtrip for all styles
-	assert_roundtrip(YAML.parse(literal_result.get_data()), byte_array, is_packed_byte_array_equal, "literal style")
-	assert_roundtrip(YAML.parse(folded_result.get_data()), byte_array, is_packed_byte_array_equal, "folded style")
-	assert_roundtrip(YAML.parse(plain_result.get_data()), byte_array, is_packed_byte_array_equal, "plain style")
-
 ## Test parsing various binary data formats
 func test_parse_formats() -> void:
 	print_rich("\nTesting parsing of different binary data formats:")
@@ -197,12 +146,8 @@ func test_parse_formats() -> void:
 	var hex_hello = "48656C6C6F"
 
 	var test_formats = [
-		"!PackedByteArray '%s'" % base64_hello,  # Base64 with single quotes
-		"!PackedByteArray \"%s\"" % base64_hello,  # Base64 with double quotes
-		"!PackedByteArray '%s'" % hex_hello,  # Hex with single quotes
-		"!PackedByteArray \"%s\"" % hex_hello,  # Hex with double quotes
-		"!PackedByteArray |\n  %s" % base64_hello,  # Base64 with literal block
-		"!PackedByteArray >\n  %s" % hex_hello,  # Hex with folded block
+		"!PackedByteArray %s" % base64_hello,
+		"!PackedByteArray %s" % hex_hello,
 	]
 
 	for format_str in test_formats:
@@ -235,7 +180,6 @@ func test_large_binary_data() -> void:
 			"style": func():
 				var s = YAML.create_style()
 				s.set_binary_encoding(YAMLStyle.BIN_BASE64)
-				s.set_scalar_style(YAMLStyle.SCALAR_LITERAL)
 				return s,
 		},
 		{
@@ -243,7 +187,6 @@ func test_large_binary_data() -> void:
 			"style": func():
 				var s = YAML.create_style()
 				s.set_binary_encoding(YAMLStyle.BIN_HEX)
-				s.set_scalar_style(YAMLStyle.SCALAR_LITERAL)
 				return s,
 		},
 		{
@@ -281,7 +224,6 @@ func test_roundtrip_with_styles() -> void:
 
 	# Create a style with specific formatting
 	var original_style = YAML.create_style()
-	original_style.set_scalar_style(YAMLStyle.SCALAR_LITERAL)
 	original_style.set_binary_encoding(YAMLStyle.BIN_HEX)
 
 	# Emit YAML with the style

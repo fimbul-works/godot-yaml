@@ -11,13 +11,12 @@ void PackedStringArrayVariantConverter::encode(ryml::NodeRef &node, const Varian
 		return; // Empty sequence
 	}
 
-	// Flow style
 	style.apply_flow_style(node);
 
-	// Get shared item style if it exists
+	// Get shared item style if it exists (key "_template" is a convention for shared array item styling)
 	YAMLStyle::View shared_item_style;
 	if (style.is_valid()) {
-		shared_item_style = style.get_child("_items");
+		shared_item_style = style.get_child("_template");
 	}
 
 	for (int i = 0; i < array.size(); ++i) {
@@ -43,14 +42,10 @@ void PackedStringArrayVariantConverter::encode(ryml::NodeRef &node, const Varian
 			}
 		}
 
-		// Apply string styling
 		if (item_style.is_valid()) {
-			item_style.apply_scalar_style(child);
-			item_style.apply_quote_style(child);
+			item_style.apply_string_style(child);
 		} else {
-			if (needs_block_style(str)) {
-				child |= ryml::BLOCK;
-			}
+			child |= ryml::VAL_DQUO;
 		}
 
 		child << to_ryml_str(str);

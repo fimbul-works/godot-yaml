@@ -8,7 +8,7 @@ void ColorVariantConverter::encode(ryml::NodeRef &node, const Variant &v, const 
 	const Color color = v.operator Color();
 	const bool has_alpha = color.a < 1.0f;
 
-	if (style.get_number_format() == YAMLStyle::NUM_HEX) {
+	if (style.get_integer_format() == YAMLStyle::INT_HEX) {
 		emit_as_hex(node, color, has_alpha, "0x");
 	} else if (style.get_binary_encoding() == YAMLStyle::BIN_HEX) {
 		emit_as_hex(node, color, has_alpha, "#");
@@ -24,39 +24,30 @@ void ColorVariantConverter::emit_as_hex(ryml::NodeRef &node, const Color &color,
 }
 
 void ColorVariantConverter::emit_as_map(ryml::NodeRef &node, const Color &color, const YAMLStyle::View &style) const {
-	// Map styles
 	node |= ryml::MAP;
 
-	// Flow style
-	if (!style.is_valid()) {
-		node |= ryml::FLOW_SL;
-	} else {
-		style.apply_flow_style(node);
-	}
+	style.apply_flow_style(node);
 
-	node["r"] << float_to_string(color.r);
-	node["g"] << float_to_string(color.g);
-	node["b"] << float_to_string(color.b);
+	YAMLStyle::FloatFormat float_format = style.get_float_format();
+	node["r"] << float_to_string(color.r, float_format);
+	node["g"] << float_to_string(color.g, float_format);
+	node["b"] << float_to_string(color.b, float_format);
 	if (color.a < 1.0f) {
-		node["a"] << float_to_string(color.a);
+		node["a"] << float_to_string(color.a, float_format);
 	}
 }
 
 void ColorVariantConverter::emit_as_sequence(ryml::NodeRef &node, const Color &color, const YAMLStyle::View &style) const {
 	node |= ryml::SEQ;
 
-	// Flow style
-	if (!style.is_valid()) {
-		node |= ryml::FLOW_SL;
-	} else {
-		style.apply_flow_style(node);
-	}
+	style.apply_flow_style(node);
 
-	node.append_child() << float_to_string(color.r);
-	node.append_child() << float_to_string(color.g);
-	node.append_child() << float_to_string(color.b);
+	YAMLStyle::FloatFormat float_format = style.is_valid() ? style.get_float_format() : YAMLStyle::FLOAT_ANY;
+	node.append_child() << float_to_string(color.r, float_format);
+	node.append_child() << float_to_string(color.g, float_format);
+	node.append_child() << float_to_string(color.b, float_format);
 	if (color.a < 1.0f) {
-		node.append_child() << float_to_string(color.a);
+		node.append_child() << float_to_string(color.a, float_format);
 	}
 }
 

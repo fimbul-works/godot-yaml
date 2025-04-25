@@ -15,7 +15,6 @@ void PackedByteArrayVariantConverter::encode(ryml::NodeRef &node, const Variant 
 		return;
 	}
 
-	// Use binary_encoding from style to determine format
 	if (style.get_binary_encoding() == YAMLStyle::BIN_HEX) {
 		emit_as_hex(node, array, style);
 	} else {
@@ -33,12 +32,8 @@ void PackedByteArrayVariantConverter::emit_as_hex(ryml::NodeRef &node, const Pac
 		hex_str += hex_chars[byte & 0xF];
 	}
 
-	if (style.is_valid()) {
-		style.apply_scalar_style(node);
-	} else {
-		if (array.size() > HEX_LINE_LENGTH) {
-			node << ryml::SCALAR_LITERAL;
-		}
+	if (hex_str.length() > HEX_LINE_LENGTH) {
+		node |= ryml::VAL_LITERAL | ryml::BLOCK;
 	}
 
 	node << format_output(hex_str, HEX_LINE_LENGTH);
@@ -47,12 +42,8 @@ void PackedByteArrayVariantConverter::emit_as_hex(ryml::NodeRef &node, const Pac
 void PackedByteArrayVariantConverter::emit_as_base64(ryml::NodeRef &node, const PackedByteArray &array, const YAMLStyle::View &style) const {
 	String base64 = Marshalls::get_singleton()->raw_to_base64(array);
 
-	if (style.is_valid()) {
-		style.apply_scalar_style(node);
-	} else {
-		if (base64.length() > BASE64_LINE_LENGTH) {
-			node << ryml::SCALAR_LITERAL;
-		}
+	if (base64.length() > BASE64_LINE_LENGTH) {
+		node |= ryml::VAL_LITERAL | ryml::BLOCK;
 	}
 
 	node << format_output(base64, BASE64_LINE_LENGTH);
@@ -95,7 +86,6 @@ PackedByteArrayVariantConverter::cleanup_and_detect(const ryml::csubstr &input) 
 		}
 	}
 
-	// Validate hex string length
 	if (is_hex && cleaned.length() % 2 != 0) {
 		throw YAMLException("Invalid hex string length - must be even");
 	}
@@ -103,13 +93,11 @@ PackedByteArrayVariantConverter::cleanup_and_detect(const ryml::csubstr &input) 
 	return { std::move(cleaned), is_hex, input.len };
 }
 
-// In the format_output method, change:
 ryml::csubstr PackedByteArrayVariantConverter::format_output(const String &str, size_t line_length) const {
 	if (str.length() <= line_length) {
 		return store_string(str);
 	}
 
-	// Create string with explicit lifetime
 	String formatted;
 
 	size_t len = str.length();
@@ -122,10 +110,10 @@ ryml::csubstr PackedByteArrayVariantConverter::format_output(const String &str, 
 		formatted += str.substr(pos, chunk_size);
 		pos += chunk_size;
 	}
+
 	// Add trailing newline to turn "|-" into just "|"
 	formatted += '\n';
 
-	// Return view of the processed string
 	return store_string(formatted);
 }
 

@@ -12,13 +12,12 @@ void PackedFloat32ArrayVariantConverter::encode(ryml::NodeRef &node, const Varia
 		return; // Empty sequence
 	}
 
-	// Apply flow style to the sequence if specified
 	style.apply_flow_style(node);
 
-	// Get shared item style if it exists
+	// Get shared item style if it exists (key "_template" is a convention for shared array item styling)
 	YAMLStyle::View shared_item_style;
 	if (style.is_valid()) {
-		shared_item_style = style.get_child("_items");
+		shared_item_style = style.get_child("_template");
 	}
 
 	for (int i = 0; i < array.size(); ++i) {
@@ -38,12 +37,7 @@ void PackedFloat32ArrayVariantConverter::encode(ryml::NodeRef &node, const Varia
 			}
 		}
 
-		// Format number based on style
-		if (item_style.is_valid()) {
-			value_node << float_to_string(array[i], item_style.get_number_format());
-		} else {
-			value_node << float_to_string(array[i]);
-		}
+		value_node << float_to_string(array[i], item_style.get_float_format());
 	}
 }
 
