@@ -26,7 +26,6 @@ private:
 
 	static constexpr int HEX_STRING_LENGTH = 7; // #RRGGBB
 	static constexpr int HEX_NUMBER_LENGTH = 8; // 0xRRGGBB
-	static constexpr int HEX_ALPHA_EXTRA = 2; // Additional AA
 	static constexpr float COLOR_COMPONENT_MAX = 255.0f;
 };
 

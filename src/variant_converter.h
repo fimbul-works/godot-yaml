@@ -101,6 +101,14 @@ protected:
 			throw create_exception(String(get_tag()) + " missing required field" + (missing_fields.size() > 1 ? "s" : "") + ": '" + missing_list + "'", node);
 		}
 	}
+
+	inline const bool is_hex_char(char c) const {
+		return (c >= '0' && c <= '9') || (c >= 'A' && c <= 'F') || (c >= 'a' && c <= 'f');
+	}
+
+	inline const bool is_whitespace_char(char c) const {
+		return c == ' ' || c == '\t' || c == '\n' || c == '\r';
+	}
 };
 
 } // namespace godot

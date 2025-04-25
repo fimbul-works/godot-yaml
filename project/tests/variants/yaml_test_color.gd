@@ -3,102 +3,33 @@ extends YAMLTest
 
 # Test values with different color variants
 var test_values = {
-	"red": Color.RED,
-	"green": Color.GREEN,
-	"blue": Color.BLUE,
-	"white": Color.WHITE,
-	"black": Color.BLACK,
-	"transparent": Color(1, 1, 1, 0),
-	"semi_transparent": Color(1, 0, 0, 0.5),
-	"custom": Color(0.7, 0.4, 0.9),
-	"decimal": Color(0.123, 0.456, 0.789, 0.567),
+	"Red": Color.RED,
+	"Green": Color.GREEN,
+	"Blue": Color.BLUE,
+	"White": Color.WHITE,
+	"Black": Color.BLACK,
+	"Transparent": Color(1, 1, 1, 0),
+	"Semi_transparent": Color(1, 0, 0, 0.5),
+	"Custom": Color(0.7, 0.4, 0.9),
+	"Decimal": Color(0.123, 0.456, 0.789, 0.567),
 }
 
 func _init():
-	test_name = "🧩 Color YAML Tests"
+	test_name = "PackedColorArray"
 
 ## Test basic serialization/deserialization without styles
 func test_basic_serialization() -> void:
-	for name in test_values:
-		var color = test_values[name]
-		var result = YAML.stringify(color)
-
-		assert_stringify_success(result, name)
-		if result.has_error():
-			continue
-
-		print_rich("• %s: %s" % [name, truncate(result.get_data())])
-
-		# Parse back and verify
-		var parse_result = YAML.parse(result.get_data())
-		assert_roundtrip(parse_result, color, is_color_equal, name)
+	run_basic_serialization_test(test_values, is_color_equal)
 
 ## Test different container forms (map vs sequence)
 func test_container_forms() -> void:
 	var color = Color(0.1, 0.2, 0.3, 0.4)
-
-	# Map form (default)
-	var map_style = YAML.create_style()
-	map_style.set_container_form(YAMLStyle.FORM_MAP)
-	var map_result = YAML.stringify(color, map_style)
-
-	assert_stringify_success(map_result, "map form")
-	if not map_result.has_error():
-		print_rich("• Map form:")
-		print_rich(map_result.get_data())
-
-		# Verify it contains map indicators
-		assert_yaml_has_feature(map_result.get_data(), "r:", "Contains 'r:' key")
-		assert_yaml_has_feature(map_result.get_data(), "g:", "Contains 'g:' key")
-		assert_yaml_has_feature(map_result.get_data(), "b:", "Contains 'b:' key")
-		assert_yaml_has_feature(map_result.get_data(), "a:", "Contains 'a:' key")
-
-	# Sequence form
-	var seq_style = YAML.create_style()
-	seq_style.set_container_form(YAMLStyle.FORM_SEQ)
-	var seq_result = YAML.stringify(color, seq_style)
-
-	assert_stringify_success(seq_result, "sequence form")
-	if not seq_result.has_error():
-		print_rich("• Sequence form:")
-		print_rich(seq_result.get_data())
-
-		# Verify it doesn't contain map indicators
-		assert_yaml_lacks_feature(seq_result.get_data(), "r:", "Does not contain 'r:' key")
-		assert_yaml_lacks_feature(seq_result.get_data(), "g:", "Does not contain 'g:' key")
-
-	# Test roundtrip for both forms
-	assert_roundtrip(YAML.parse(map_result.get_data()), color, is_color_equal, "map form")
-	assert_roundtrip(YAML.parse(seq_result.get_data()), color, is_color_equal, "sequence form")
+	run_container_forms_test(color, is_color_equal, ["r", "g", "b", "a"])
 
 ## Test different flow styles (block vs flow)
 func test_flow_styles() -> void:
 	var color = Color(0.1, 0.2, 0.3, 0.4)
-
-	# Test flow style (compact)
-	var flow_style = YAML.create_style()
-	flow_style.set_flow_style(YAMLStyle.FLOW_SINGLE)
-	var flow_result = YAML.stringify(color, flow_style)
-
-	assert_stringify_success(flow_result, "flow style")
-	if not flow_result.has_error():
-		print_rich("• Flow style:")
-		print_rich(flow_result.get_data())
-
-		# Verify it contains flow indicators (brackets)
-		assert_yaml_has_feature(flow_result.get_data(), "{", "Contains opening brace")
-		assert_yaml_has_feature(flow_result.get_data(), "}", "Contains closing brace")
-
-	# Test block style (expanded)
-	var block_style = YAML.create_style()
-	block_style.set_flow_style(YAMLStyle.FLOW_NONE)
-	var block_result = YAML.stringify(color, block_style)
-
-	assert_stringify_success(block_result, "block style")
-
-	# Test roundtrip for both styles
-	assert_roundtrip(YAML.parse(flow_result.get_data()), color, is_color_equal, "flow style")
-	assert_roundtrip(YAML.parse(block_result.get_data()), color, is_color_equal, "block style")
+	run_flow_styles_test(color, is_color_equal)
 
 ## Test special color hex formats
 func test_hex_formats() -> void:
@@ -109,20 +40,19 @@ func test_hex_formats() -> void:
 	hex_style.set_binary_encoding(YAMLStyle.BIN_HEX)
 	var hex_result = YAML.stringify(color, hex_style)
 
-	assert_stringify_success(hex_result, "hex format with # prefix")
+	assert_stringify_success(hex_result, "Hex format with # prefix")
 	if not hex_result.has_error():
 		print_rich("• Hex format with # prefix:")
 		print_rich(hex_result.get_data())
-
-		# Verify it contains the # symbol
 		assert_yaml_has_feature(hex_result.get_data(), "#", "Contains # symbol")
+	assert_roundtrip(YAML.parse(hex_result.get_data()), color, is_color_equal, "# Hex format")
 
 	# Test hex format with 0x prefix
 	var hex0x_style = YAML.create_style()
 	hex0x_style.set_integer_format(YAMLStyle.INT_HEX)
 	var hex0x_result = YAML.stringify(color, hex0x_style)
 
-	assert_stringify_success(hex0x_result, "hex format with 0x prefix")
+	assert_stringify_success(hex0x_result, "Hex format with 0x prefix")
 	if not hex0x_result.has_error():
 		print_rich("• Hex format with 0x prefix:")
 		print_rich(hex0x_result.get_data())
@@ -132,9 +62,6 @@ func test_hex_formats() -> void:
 			assert_yaml_has_feature(hex0x_result.get_data(), "0x", "Contains 0x prefix")
 		else:
 			print_rich("[color=yellow]⚠ Format does not use 0x prefix (this may be expected)[/color]")
-
-	# Test roundtrip for both formats
-	assert_roundtrip(YAML.parse(hex_result.get_data()), color, is_color_equal, "# hex format")
 	assert_roundtrip(YAML.parse(hex0x_result.get_data()), color, is_color_equal, "0x hex format")
 
 ## Test alpha channel handling
@@ -178,7 +105,7 @@ func test_alpha_channel() -> void:
 				# Assuming #RRGGBBAA format
 				var hex_str = hex_result.get_data().strip_edges()
 				if name == "transparent" and hex_str.length() >= 9:
-					assert_true(hex_str.replace("'", "") .ends_with("00"), "Alpha is 0 in hex format")
+					assert_true(hex_str.replace("'", "").ends_with("00"), "Alpha is 0 in hex format")
 				elif hex_str.length() >= 9:
 					assert_true(true, "Hex format includes alpha channel")
 				else:
@@ -219,6 +146,32 @@ func test_parse_formats() -> void:
 					abs(color.a - 0.5) < 0.01,
 					"Alpha channel preserved for %s" % format_str
 				)
+
+## Test error handling for invalid YAML
+func test_parsing_errors() -> void:
+	# Test Color-specific parsing errors
+	var invalid_color_yaml = """
+!Color
+r: 1.0
+g: 0.0
+# Missing b field
+"""
+	assert_parse_error(invalid_color_yaml, "Missing required field detection")
+
+	var wrong_type_yaml = """
+!Color "not a color"
+"""
+	assert_parse_error(wrong_type_yaml, "Wrong type/format detection")
+
+	var invalid_sequence_length = """
+!Color [1.0, 0.0]
+"""
+	assert_parse_error(invalid_sequence_length, "Invalid sequence length detection")
+
+	var invalid_hex = """
+!Color "#GGHHII"
+"""
+	assert_parse_error(invalid_hex, "Invalid hex color detection")
 
 ## Helper function to check if Colors are equal (with floating point precision)
 func is_color_equal(a: Color, b: Color, epsilon: float = 0.01) -> bool:

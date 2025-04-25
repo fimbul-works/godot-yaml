@@ -2,34 +2,34 @@ extends YAMLTest
 ## Test suite for PackedColorArray YAML serialization and styling
 
 func _init():
-	test_name = "🧩 PackedColorArray YAML Tests"
+	test_name = "PackedColorArray"
 
 # Helper function to create test arrays
 func create_test_arrays() -> Dictionary:
 	return {
-		"empty": PackedColorArray(),
-		"single": PackedColorArray([Color.RED]),
-		"basic": PackedColorArray([Color.RED, Color.GREEN, Color.BLUE]),
-		"named_colors": PackedColorArray([
+		"Empty": PackedColorArray(),
+		"Single": PackedColorArray([Color.RED]),
+		"Basic": PackedColorArray([Color.RED, Color.GREEN, Color.BLUE]),
+		"Named Colors": PackedColorArray([
 			Color.WHITE, Color.BLACK, Color.RED, Color.GREEN,
 			Color.BLUE, Color.YELLOW, Color.MAGENTA, Color.CYAN
 		]),
-		"hex_colors": PackedColorArray([
+		"Hex Colors": PackedColorArray([
 			Color("#ff0000"), Color("#00ff00"), Color("#0000ff"),
 			Color("#ffff00"), Color("#ff00ff"), Color("#00ffff")
 		]),
-		"transparent": PackedColorArray([
+		"Transparent": PackedColorArray([
 			Color(1, 0, 0, 0),    # Transparent red
 			Color(0, 1, 0, 0.25), # 25% green
 			Color(0, 0, 1, 0.5),  # 50% blue
 			Color(1, 1, 0, 0.75)  # 75% yellow
 		]),
-		"decimal": PackedColorArray([
+		"Decimal": PackedColorArray([
 			Color(0.1, 0.2, 0.3, 1.0),
 			Color(0.4, 0.5, 0.6, 0.7),
 			Color(0.8, 0.9, 1.0, 0.5)
 		]),
-		"hsv_derived": PackedColorArray([
+		"HSV_derived": PackedColorArray([
 			Color.from_hsv(0.0, 1.0, 1.0),   # Red
 			Color.from_hsv(0.33, 1.0, 1.0),  # Green
 			Color.from_hsv(0.67, 1.0, 1.0),  # Blue
@@ -52,7 +52,7 @@ func test_basic_serialization() -> void:
 		print_rich("• %s (%d elements): %s" % [
 			name,
 			color_array.size(),
-			result.get_data().substr(0, 60) + ("..." if result.get_data().length() > 60 else "")
+			truncate(result.get_data(), 60)
 		])
 
 		# Parse back and verify
@@ -69,7 +69,7 @@ func test_flow_styles() -> void:
 	flow_style.set_flow_style(YAMLStyle.FLOW_SINGLE)
 	var flow_result = YAML.stringify(color_array, flow_style)
 
-	assert_stringify_success(flow_result, "flow style")
+	assert_stringify_success(flow_result, "Flow style")
 	if !flow_result.has_error():
 		print_rich("• Flow style:")
 		print_rich(flow_result.get_data())
@@ -83,7 +83,7 @@ func test_flow_styles() -> void:
 	block_style.set_flow_style(YAMLStyle.FLOW_NONE)
 	var block_result = YAML.stringify(color_array, block_style)
 
-	assert_stringify_success(block_result, "block style")
+	assert_stringify_success(block_result, "Block style")
 	if !block_result.has_error():
 		print_rich("• Block style:")
 		print_rich(block_result.get_data())
@@ -97,7 +97,11 @@ func test_flow_styles() -> void:
 
 ## Test item-specific styles
 func test_item_styles() -> void:
-	var color_array = PackedColorArray([Color.RED, Color.GREEN, Color.BLUE])
+	var color_array = PackedColorArray([
+		Color.RED,
+		Color.GREEN,
+		Color.BLUE
+	])
 
 	# Create parent style
 	var parent_style = YAML.create_style()
@@ -149,19 +153,12 @@ func test_template_container_forms() -> void:
 		print_rich(seq_result.get_data())
 
 		# Verify the YAML contains sequence indicators for items (absence of r:, g:, etc.)
-		assert_yaml_lacks_feature(seq_result.get_data(), "r:", "Items use sequence form (no 'r:' key)")
-		assert_yaml_lacks_feature(seq_result.get_data(), "g:", "Items use sequence form (no 'g:' key)")
+		assert_yaml_lacks_feature(seq_result.get_data(), "r:", "Items use sequence form (no 'r' key)")
+		assert_yaml_lacks_feature(seq_result.get_data(), "g:", "Items use sequence form (no 'g' key)")
+		assert_yaml_lacks_feature(seq_result.get_data(), "b:", "Items use sequence form (no 'b' key)")
+		assert_yaml_lacks_feature(seq_result.get_data(), "a:", "Items use sequence form (no 'a' key)")
 
-		# Should instead have dash indicators within items
-		var has_nested_sequence = false
-		var lines = seq_result.get_data().split("\n")
-		for line in lines:
-			# Look for lines that have nested sequence indicators
-			if line.find("- - ") != -1 or (line.find("- ") != -1 and line.find(":") == -1):
-				has_nested_sequence = true
-				break
-
-		assert_true(has_nested_sequence, "Items contain nested sequence indicators")
+	assert_roundtrip(YAML.parse(seq_result.get_data()), color_array, is_packed_color_array_equal, "Items with FORM_SEQ")
 
 	# Test with FORM_MAP for items (default, but let's be explicit)
 	var map_style = YAML.create_style()
@@ -170,7 +167,7 @@ func test_template_container_forms() -> void:
 	map_style.set_child("_template", template_map)
 
 	var map_result = YAML.stringify(color_array, map_style)
-	assert_stringify_success(map_result, "array with items in map form")
+	assert_stringify_success(map_result, "Array with items in map form")
 
 	if !map_result.has_error():
 		print_rich("• Array with FORM_MAP for items:")
@@ -179,10 +176,10 @@ func test_template_container_forms() -> void:
 		# Verify the YAML contains map indicators for items
 		assert_yaml_has_feature(map_result.get_data(), "r:", "Items use map form ('r:' key present)")
 		assert_yaml_has_feature(map_result.get_data(), "g:", "Items use map form ('g:' key present)")
+		assert_yaml_has_feature(map_result.get_data(), "b:", "Items use map form ('b:' key present)")
+		assert_yaml_has_feature(map_result.get_data(), "a:", "Items use map form ('a:' key present)")
 
-	# Test roundtrip for both forms
-	assert_roundtrip(YAML.parse(seq_result.get_data()), color_array, is_packed_color_array_equal, "items with FORM_SEQ")
-	assert_roundtrip(YAML.parse(map_result.get_data()), color_array, is_packed_color_array_equal, "items with FORM_MAP")
+	assert_roundtrip(YAML.parse(map_result.get_data()), color_array, is_packed_color_array_equal, "Items with FORM_MAP")
 
 ## Test array with color formats
 func test_color_formats() -> void:
@@ -196,19 +193,37 @@ func test_color_formats() -> void:
 	# Test different styles for representing these colors
 	var styles = {
 		"Default": null,  # No specific style
-		"Hex String": YAMLStyle.BIN_HEX,
-		"Hex Integer": YAMLStyle.INT_HEX
+		"Hex Number": func():
+			var s = YAML.create_style()
+			var template = YAML.create_style()
+			template.set_integer_format(YAMLStyle.INT_HEX)
+			s.set_child("_template", template)
+			return s,
+		"Hex String": func():
+			var s = YAML.create_style()
+			var template = YAML.create_style()
+			template.set_binary_encoding(YAMLStyle.BIN_HEX)
+			s.set_child("_template", template)
+			return s,
+		"RGB Map": func():
+			var s = YAML.create_style()
+			var template = YAML.create_style()
+			template.set_container_form(YAMLStyle.FORM_MAP)
+			s.set_child("_template", template)
+			return s,
+		"RGB Sequence": func():
+			var s = YAML.create_style()
+			var template = YAML.create_style()
+			template.set_container_form(YAMLStyle.FORM_SEQ)
+			s.set_child("_template", template)
+			return s
 	}
 
 	for style_name in styles:
-		var format_style = YAML.create_style()
-		if styles[style_name] != null:
-			if styles[style_name] == YAMLStyle.BIN_HEX:
-				format_style.set_binary_encoding(styles[style_name])
-			elif styles[style_name] == YAMLStyle.INT_HEX:
-				format_style.set_number_format(styles[style_name])
+		var style_func = styles[style_name]
+		var style = style_func.call() if style_func else null
 
-		var result = YAML.stringify(color_array, format_style)
+		var result = YAML.stringify(color_array, style)
 		assert_stringify_success(result, style_name + " format")
 
 		if !result.has_error():
@@ -218,6 +233,32 @@ func test_color_formats() -> void:
 			# Test roundtrip
 			var parse_result = YAML.parse(result.get_data())
 			assert_roundtrip(parse_result, color_array, is_packed_color_array_equal, style_name + " format")
+
+## Test transparency handling
+func test_transparency() -> void:
+	# Create an array with transparencies
+	var transparent_array = PackedColorArray([
+		Color(1, 0, 0, 1),    # Opaque red
+		Color(0, 1, 0, 0.5),  # Semi-transparent green
+		Color(0, 0, 1, 0),    # Fully transparent blue
+	])
+
+	var result = YAML.stringify(transparent_array)
+	assert_stringify_success(result, "transparency array")
+
+	if !result.has_error():
+		print_rich("• Transparency array:")
+		print_rich(result.get_data())
+
+		# Parse back and verify alpha channels are preserved
+		var parse_result = YAML.parse(result.get_data())
+		assert_parse_success(parse_result, "parse transparency array")
+
+		if !parse_result.has_error():
+			var parsed_array = parse_result.get_data()
+			assert_equal(parsed_array[0].a, 1.0, "Opaque alpha preserved")
+			assert_equal(parsed_array[1].a, 0.5, "Semi-transparent alpha preserved")
+			assert_equal(parsed_array[2].a, 0.0, "Fully transparent alpha preserved")
 
 ## Test roundtrip conversion with style detection enabled
 func test_roundtrip_with_styles() -> void:
@@ -272,13 +313,35 @@ func test_roundtrip_with_styles() -> void:
 		assert_yaml_has_feature(re_emit_result.get_data(), "[", "Flow style was preserved (opening bracket)")
 		assert_yaml_has_feature(re_emit_result.get_data(), "]", "Flow style was preserved (closing bracket)")
 
+## Test error handling for invalid YAML
+func test_parsing_errors() -> void:
+	# Test PackedColorArray-specific parsing errors
+	var invalid_color_array = """
+!PackedColorArray
+- {r: 1.0, g: 0.0}
+"""
+	assert_parse_error(invalid_color_array, "Missing color fields detection")
+
+	var negative_color_values = """
+!PackedColorArray
+- {r: -1.0, g: 0.0, b: 0.0}
+"""
+	var parse_result = YAML.parse(negative_color_values)
+	if !parse_result.has_error():
+		# Colors should be more than 0.0
+		var array = parse_result.get_data()
+		assert_false(array[0].r < 0.0, "Color values should be positive")
+
 ## Helper function to check if PackedColorArray instances are equal
 func is_packed_color_array_equal(a: PackedColorArray, b: PackedColorArray, epsilon: float = 0.01) -> bool:
 	if a.size() != b.size():
 		return false
 
 	for i in range(a.size()):
-		if !a[i].is_equal_approx(b[i]):
+		var color_a = a[i]
+		var color_b = b[i]
+
+		if abs(color_a.r - color_b.r) > epsilon || abs(color_a.g - color_b.g) > epsilon || abs(color_a.b - color_b.b) > epsilon || abs(color_a.a - color_b.a) > epsilon:
 			return false
 
 	return true

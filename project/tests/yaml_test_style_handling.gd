@@ -33,7 +33,7 @@ var test_data = {
 }
 
 func _init():
-	test_name = "YAML Style Handling Tests"
+	test_name = "Style Handling"
 
 # Test style detection and preservation
 func test_style_detection() -> void:

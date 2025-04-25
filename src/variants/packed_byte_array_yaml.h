@@ -33,9 +33,9 @@ private:
 	ryml::csubstr format_output(const String &str, size_t line_length) const;
 	PackedByteArray hex_to_bytes(const String &hex) const;
 
-	// Character validation
-	static bool is_hex_char(char c);
-	static bool is_whitespace(char c);
+	inline const bool is_base64_char(char c) const {
+		return (c >= '0' && c <= '9') || (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c == '+') || (c == '/') || (c == '=');
+	}
 };
 
 } // namespace godot

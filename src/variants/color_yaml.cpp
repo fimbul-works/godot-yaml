@@ -76,22 +76,33 @@ Variant ColorVariantConverter::decode(const ryml::ConstNodeRef &node) const {
 }
 
 Color ColorVariantConverter::parse_hex_components(const String &hex_str, int offset, size_t expected_length, const ryml::ConstNodeRef &node) const {
-	if (hex_str.length() != expected_length && hex_str.length() != expected_length + HEX_ALPHA_EXTRA) {
+	bool has_alpha = hex_str.length() == expected_length + 2;
+
+	if (hex_str.length() < offset + 6 + (has_alpha ? 2 : 0)) {
 		throw create_exception("Invalid hex color length", node);
 	}
 
 	try {
+		for (int i = offset; i < offset + 6 + (has_alpha ? 2 : 0); ++i) {
+			if (!is_hex_char(hex_str[i])) {
+				throw create_exception(vformat("Invalid hex color: %s", hex_str), node);
+			}
+		}
+
 		int r = hex_str.substr(offset, 2).hex_to_int();
 		int g = hex_str.substr(offset + 2, 2).hex_to_int();
 		int b = hex_str.substr(offset + 4, 2).hex_to_int();
-		int a = hex_str.length() == expected_length + HEX_ALPHA_EXTRA ? hex_str.substr(offset + 6, 2).hex_to_int() : 255;
+		int a = has_alpha ? hex_str.substr(offset + 6, 2).hex_to_int() : 255;
 
-		return Color(r / COLOR_COMPONENT_MAX,
-				g / COLOR_COMPONENT_MAX,
-				b / COLOR_COMPONENT_MAX,
-				a / COLOR_COMPONENT_MAX);
-	} catch (...) {
-		throw create_exception("Invalid hex color component", node);
+		return Color(
+				static_cast<float>(r) / COLOR_COMPONENT_MAX,
+				static_cast<float>(g) / COLOR_COMPONENT_MAX,
+				static_cast<float>(b) / COLOR_COMPONENT_MAX,
+				static_cast<float>(a) / COLOR_COMPONENT_MAX);
+	} catch (const YAMLException &) {
+		throw; // Re-throw YAML exceptions
+	} catch (const std::exception &e) {
+		throw create_exception(vformat("Invalid hex color format: %s", e.what()), node);
 	}
 }
 
@@ -119,6 +130,22 @@ Variant ColorVariantConverter::decode_map(const ryml::ConstNodeRef &node) const 
 	real_t g = string_to_float<real_t>(node["g"].val());
 	real_t b = string_to_float<real_t>(node["b"].val());
 	real_t a = node.has_child("a") ? string_to_float<real_t>(node["a"].val()) : 1.0f;
+
+	if (r < 0.0f) {
+		throw create_exception("Negative color component value (r)", node);
+	}
+
+	if (g < 0.0f) {
+		throw create_exception("Negative color component value (g)", node);
+	}
+
+	if (b < 0.0f) {
+		throw create_exception("Negative color component value (b)", node);
+	}
+
+	if (a < 0.0f) {
+		throw create_exception("Negative color component value (a)", node);
+	}
 
 	return Color(r, g, b, a);
 }

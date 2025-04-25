@@ -78,9 +78,12 @@ PackedByteArrayVariantConverter::cleanup_and_detect(const ryml::csubstr &input, 
 
 	for (size_t i = 0; i < input.len; i++) {
 		char c = input.str[i];
-		if (!is_whitespace(c)) {
+		if (!is_whitespace_char(c)) {
 			if (is_hex && !is_hex_char(c)) {
 				is_hex = false;
+				if (!is_base64_char(c)) {
+					throw create_exception(vformat("Invalid PackedByteArray base64 character '%c'", c), node);
+				}
 			}
 			cleaned += c;
 		}
@@ -129,12 +132,4 @@ PackedByteArray PackedByteArrayVariantConverter::hex_to_bytes(const String &hex)
 	}
 
 	return array;
-}
-
-bool PackedByteArrayVariantConverter::is_hex_char(char c) {
-	return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F');
-}
-
-bool PackedByteArrayVariantConverter::is_whitespace(char c) {
-	return c == ' ' || c == '\t' || c == '\n' || c == '\r';
 }

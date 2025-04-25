@@ -1,0 +1,220 @@
+# String formats: any, plain, quote_single, quote_double, literal, folded
+# Integer formats: decimal, hex, octal, binary, scientific
+# Float formats: decimal, scientific
+# Binary formats: base64, hex
+string: any
+integer: decimal
+float: decimal
+binary: base64
+AABB:
+  container: map
+  flow: false
+  children:
+    position:
+      container: map
+      flow: true
+    size:
+      container: map
+      flow: true
+Basis:
+  container: map
+  flow: false
+  children:
+    x:
+      container: map
+      flow: true
+    y:
+      container: map
+      flow: true
+    z:
+      container: map
+      flow: true
+Color:
+  container: map
+  flow: true
+  float: decimal
+NodePath:
+  string: quote_double
+PackedByteArray:
+  binary: base64
+PackedColorArray:
+  flow: false
+  _template: # Color
+    container: map
+    flow: true
+PackedFloat32Array:
+  flow: false
+  _template: # float
+    float: decimal
+PackedFloat64Array:
+  flow: false
+  _template: # float
+    float: decimal
+PackedInt32Array:
+  flow: false
+  _template: # integer
+    integer: decimal
+PackedInt64Array:
+  flow: false
+  _template: # integer
+    integer: decimal
+PackedStringArray:
+  flow: false
+  _template: # string
+    string: quote_double
+PackedVector2Array:
+  flow: false
+  _template: # Vector2
+    container: map
+    flow: true
+PackedVector3Array:
+  flow: false
+  _template: # Vector3
+    container: map
+    flow: true
+Plane:
+  container: map
+  flow: false
+  children:
+    normal:
+      container: map
+      flow: true
+    d:
+      float: decimal
+Projection:
+  container: map
+  flow: false
+  children:
+    x:
+      container: map
+      flow: true
+    y:
+      container: map
+      flow: true
+    z:
+      container: map
+      flow: true
+    w:
+      container: map
+      flow: true
+Quaternion:
+  container: map
+  flow: false
+  children:
+    x:
+      container: map
+      flow: true
+    y:
+      container: map
+      flow: true
+    z:
+      container: map
+      flow: true
+    w:
+      container: map
+      flow: true
+Rect2:
+  container: map
+  flow: false
+  children:
+    position:
+      container: map
+      flow: true
+    size:
+      container: map
+      flow: true
+Rect2i:
+  container: map
+  flow: false
+  children:
+    position:
+      container: map
+      flow: true
+    size:
+      container: map
+      flow: true
+StringName:
+  string: quote_double
+Transform2D:
+  container: map
+  flow: false
+  children:
+    x:
+      container: map
+      flow: true
+    y:
+      container: map
+      flow: true
+    origin:
+      container: map
+      flow: true
+Transform3D:
+  container: map
+  flow: false
+  children:
+    basis:
+      container: map
+      flow: true
+    origin:
+      container: map
+      flow: true
+Vector2:
+  container: map
+  flow: false
+  children:
+    x:
+      float: decimal
+    y:
+      float: decimal
+Vector2i:
+  container: map
+  flow: false
+  children:
+    x:
+      integer: decimal
+    y:
+      integer: decimal
+Vector3:
+  container: map
+  flow: false
+  children:
+    x:
+      float: decimal
+    y:
+      float: decimal
+    z:
+      float: decimal
+Vector3i:
+  container: map
+  flow: false
+  children:
+    x:
+      integer: decimal
+    y:
+      integer: decimal
+    z:
+      integer: decimal
+Vector4:
+  container: map
+  flow: false
+  children:
+    x:
+      float: decimal
+    y:
+      float: decimal
+    z:
+      float: decimal
+    w:
+      float: decimal
+Vector4i:
+  container: map
+  flow: false
+  children:
+    x:
+      integer: decimal
+    y:
+      integer: decimal
+    z:
+      integer: decimal
+    w:
+      integer: decimal

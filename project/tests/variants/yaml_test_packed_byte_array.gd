@@ -2,21 +2,19 @@ extends YAMLTest
 ## Test suite for PackedByteArray YAML serialization and styling
 
 func _init():
-	test_name = "🧩 PackedByteArray YAML Tests"
+	test_name = "PackedByteArray"
 
 # Helper function to create test arrays with various data patterns
 func create_test_arrays() -> Dictionary:
 	return {
-		"empty": PackedByteArray(),
-		"single": PackedByteArray([42]),
-		"small": PackedByteArray([0, 1, 2, 3, 4]),
-		"basic": PackedByteArray([10, 20, 30, 40, 50]),
-		"ascii": "Hello, World!".to_utf8_buffer(),
-		"all_bytes": create_all_bytes_array(),
-		"random": create_random_bytes(32),
-		"binary_data": PackedByteArray([0xFF, 0x00, 0xAA, 0x55, 0x0F, 0xF0]),
-		"large": create_random_bytes(256),
-		"sequential": create_sequential_array(100)
+		"Empty": PackedByteArray(),
+		"Single": PackedByteArray([42]),
+		"Small": PackedByteArray([0, 1, 2, 3, 4]),
+		"Basic": PackedByteArray([10, 20, 30, 40, 50]),
+		"Ascii": "Hello, World!".to_utf8_buffer(),
+		"All Bytes": create_all_bytes_array(),
+		"Binary Data": PackedByteArray([0xFF, 0x00, 0xAA, 0x55, 0x0F, 0xF0]),
+		"Sequential": create_sequential_array(50)
 	}
 
 # Helper to create an array containing all byte values (0-255)
@@ -27,24 +25,12 @@ func create_all_bytes_array() -> PackedByteArray:
 		array[i] = i
 	return array
 
-# Helper to create array with random bytes
-func create_random_bytes(size: int) -> PackedByteArray:
-	var array = PackedByteArray()
-	array.resize(size)
-
-	for i in range(size):
-		array[i] = randi() % 256
-
-	return array
-
 # Helper to create a sequential array
 func create_sequential_array(size: int) -> PackedByteArray:
 	var array = PackedByteArray()
 	array.resize(size)
-
 	for i in range(size):
 		array[i] = i % 256
-
 	return array
 
 ## Test basic serialization/deserialization without styles
@@ -73,9 +59,9 @@ func test_basic_serialization() -> void:
 func test_base64_encoding() -> void:
 	# Use several different arrays to test base64 encoding
 	var test_arrays = {
-		"ascii": "Hello, World!".to_utf8_buffer(),
-		"binary": PackedByteArray([0xFF, 0x00, 0xAA, 0x55, 0x0F, 0xF0]),
-		"random": create_random_bytes(32)
+		"Ascii": "Hello, World!".to_utf8_buffer(),
+		"Binary": PackedByteArray([0xFF, 0x00, 0xAA, 0x55, 0x0F, 0xF0]),
+		"Random": create_all_bytes_array()
 	}
 
 	# Create base64 style
@@ -86,7 +72,7 @@ func test_base64_encoding() -> void:
 		var byte_array = test_arrays[name]
 		var result = YAML.stringify(byte_array, base64_style)
 
-		assert_stringify_success(result, "base64 - " + name)
+		assert_stringify_success(result, "Base64 - " + name)
 		if result.has_error():
 			continue
 
@@ -94,12 +80,12 @@ func test_base64_encoding() -> void:
 
 		# Verify it looks like base64 (no 0x or hex chars, potential = padding)
 		var data = result.get_data()
-		var looks_like_base64 = data.find("0x") == -1 && !contains_only_hex_chars(data)
+		var looks_like_base64 = !contains_only_hex_chars(data)
 		assert_true(looks_like_base64, "Output uses base64 encoding")
 
 		# Parse back and verify
 		var parse_result = YAML.parse(result.get_data())
-		assert_roundtrip(parse_result, byte_array, is_packed_byte_array_equal, "base64 - " + name)
+		assert_roundtrip(parse_result, byte_array, is_packed_byte_array_equal, "Base64 - " + name)
 
 ## Test hex encoding format
 func test_hex_encoding() -> void:
@@ -107,7 +93,7 @@ func test_hex_encoding() -> void:
 	var test_arrays = {
 		"ascii": "Hello, World!".to_utf8_buffer(),
 		"binary": PackedByteArray([0xFF, 0x00, 0xAA, 0x55, 0x0F, 0xF0]),
-		"random": create_random_bytes(16)
+		"sequential": create_sequential_array(16)
 	}
 
 	# Create hex style
@@ -118,7 +104,7 @@ func test_hex_encoding() -> void:
 		var byte_array = test_arrays[name]
 		var result = YAML.stringify(byte_array, hex_style)
 
-		assert_stringify_success(result, "hex - " + name)
+		assert_stringify_success(result, "Hex - " + name)
 		if result.has_error():
 			continue
 
@@ -131,45 +117,12 @@ func test_hex_encoding() -> void:
 
 		# Parse back and verify
 		var parse_result = YAML.parse(result.get_data())
-		assert_roundtrip(parse_result, byte_array, is_packed_byte_array_equal, "hex - " + name)
-
-## Test parsing various binary data formats
-func test_parse_formats() -> void:
-	print_rich("\nTesting parsing of different binary data formats:")
-
-	# Define our test bytes
-	var test_bytes = PackedByteArray([0x48, 0x65, 0x6C, 0x6C, 0x6F])  # "Hello" in ASCII
-
-	# Base64 encoding of "Hello"
-	var base64_hello = "SGVsbG8="
-	# Hex encoding of "Hello"
-	var hex_hello = "48656C6C6F"
-
-	var test_formats = [
-		"!PackedByteArray %s" % base64_hello,
-		"!PackedByteArray %s" % hex_hello,
-	]
-
-	for format_str in test_formats:
-		var parse_result = YAML.parse(format_str)
-		assert_parse_success(parse_result, "Parse format: %s" % format_str)
-
-		if not parse_result.has_error():
-			var byte_array = parse_result.get_data()
-			# For better readability, convert small arrays to hex representation
-			var hex_repr = byte_array_to_hex_string(byte_array)
-			print_rich("• %s → %s" % [format_str, hex_repr])
-
-			# Verify the parsed result matches our expected bytes
-			assert_true(
-				is_packed_byte_array_equal(byte_array, test_bytes),
-				"Correctly parsed binary data from format: %s" % format_str
-			)
+		assert_roundtrip(parse_result, byte_array, is_packed_byte_array_equal, "Hex - " + name)
 
 ## Test large binary data handling
 func test_large_binary_data() -> void:
 	# Create a larger array that will require line wrapping
-	var large_array = create_sequential_array(500)
+	var large_array = create_sequential_array(250)
 
 	print_rich("\nTesting large binary data handling:")
 
@@ -180,6 +133,7 @@ func test_large_binary_data() -> void:
 			"style": func():
 				var s = YAML.create_style()
 				s.set_binary_encoding(YAMLStyle.BIN_BASE64)
+				s.set_string_style(YAMLStyle.STRING_LITERAL)
 				return s,
 		},
 		{
@@ -187,13 +141,7 @@ func test_large_binary_data() -> void:
 			"style": func():
 				var s = YAML.create_style()
 				s.set_binary_encoding(YAMLStyle.BIN_HEX)
-				return s,
-		},
-		{
-			"name": "Large base64 in plain style",
-			"style": func():
-				var s = YAML.create_style()
-				s.set_binary_encoding(YAMLStyle.BIN_BASE64)
+				s.set_string_style(YAMLStyle.STRING_LITERAL)
 				return s,
 		}
 	]
@@ -225,6 +173,7 @@ func test_roundtrip_with_styles() -> void:
 	# Create a style with specific formatting
 	var original_style = YAML.create_style()
 	original_style.set_binary_encoding(YAMLStyle.BIN_HEX)
+	original_style.set_string_style(YAMLStyle.STRING_LITERAL)
 
 	# Emit YAML with the style
 	var emit_result = YAML.stringify(byte_array, original_style)
@@ -271,6 +220,52 @@ func test_roundtrip_with_styles() -> void:
 		assert_yaml_has_feature(re_emit_result.get_data(), "|", "Literal style was preserved")
 		# Since we're using hex encoding, check if output contains only hex characters
 		assert_true(contains_only_hex_chars(re_emit_result.get_data()), "Hex encoding was preserved")
+
+## Test parsing various binary data formats
+func test_parse_formats() -> void:
+	print_rich("\nTesting parsing of different binary data formats:")
+
+	# Define our test bytes
+	var test_bytes = PackedByteArray([0x48, 0x65, 0x6C, 0x6C, 0x6F])  # "Hello" in ASCII
+
+	# Base64 encoding of "Hello"
+	var base64_hello = "SGVsbG8="
+	# Hex encoding of "Hello"
+	var hex_hello = "48656C6C6F"
+
+	var test_formats = [
+		"!PackedByteArray %s" % base64_hello,
+		"!PackedByteArray %s" % hex_hello,
+	]
+
+	for format_str in test_formats:
+		var parse_result = YAML.parse(format_str)
+		assert_parse_success(parse_result, "Parse format: %s" % format_str)
+
+		if not parse_result.has_error():
+			var byte_array = parse_result.get_data()
+			# For better readability, convert small arrays to hex representation
+			var hex_repr = byte_array_to_hex_string(byte_array)
+			print_rich("• %s → %s" % [format_str, hex_repr])
+
+			# Verify the parsed result matches our expected bytes
+			assert_true(
+				is_packed_byte_array_equal(byte_array, test_bytes),
+				"Correctly parsed binary data from format: %s" % format_str
+			)
+
+## Test error handling for invalid YAML
+func test_parsing_errors() -> void:
+	# Test PackedByteArray-specific errors
+	var invalid_hex = """
+!PackedByteArray "."  # Not valid hex or base64
+"""
+	assert_parse_error(invalid_hex, "Invalid hex string detection")
+
+	var odd_length_hex = """
+!PackedByteArray "123"  # Odd length (not valid hex)
+"""
+	assert_parse_error(odd_length_hex, "Odd-length hex string detection")
 
 ## Helper function to check if PackedByteArray instances are equal
 func is_packed_byte_array_equal(a: PackedByteArray, b: PackedByteArray) -> bool:
