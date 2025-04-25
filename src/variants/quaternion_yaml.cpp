@@ -33,11 +33,11 @@ Variant QuaternionVariantConverter::decode(const ryml::ConstNodeRef &node) const
 		} else if (node.is_seq()) {
 			return decode_from_sequence(node);
 		}
-		throw YAMLException::create_invalid_format("Quaternion");
+		throw create_invalid_format_exception("Quaternion", node);
 	} catch (const YAMLException &) {
 		throw;
 	} catch (const std::exception &e) {
-		throw YAMLException::create_decode_error("Quaternion", e.what());
+		throw create_decode_error_exception("Quaternion", e.what(), node);
 	}
 }
 
@@ -53,7 +53,7 @@ Variant QuaternionVariantConverter::decode_from_map(const ryml::ConstNodeRef &no
 
 Variant QuaternionVariantConverter::decode_from_sequence(const ryml::ConstNodeRef &node) const {
 	if (node.num_children() != 4) {
-		throw YAMLException::create_invalid_sequence_length("Quaternion", 4);
+		throw create_invalid_sequence_length_exception("Quaternion", 4, node);
 	}
 
 	return Quaternion(

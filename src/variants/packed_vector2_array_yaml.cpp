@@ -48,7 +48,7 @@ void PackedVector2ArrayVariantConverter::encode(ryml::NodeRef &node, const Varia
 
 Variant PackedVector2ArrayVariantConverter::decode(const ryml::ConstNodeRef &node) const {
 	if (!node.is_seq()) {
-		throw YAMLException::create_invalid_format("PackedVector2Array");
+		throw create_invalid_format_exception("PackedVector2Array", node);
 	}
 
 	PackedVector2Array array;
@@ -61,7 +61,7 @@ Variant PackedVector2ArrayVariantConverter::decode(const ryml::ConstNodeRef &nod
 				Vector2 vec2 = vec2_converter->decode(node[i]);
 				array.set(i, vec2);
 			} catch (const std::exception &e) {
-				throw YAMLException::create_decode_error(String("PackedVector2Array value at index " + String::num_uint64(i)).utf8().get_data(), e.what());
+				throw create_decode_error_exception(vformat("PackedVector2Array value at index %d", i).utf8().get_data(), e.what(), node);
 			}
 		}
 	}

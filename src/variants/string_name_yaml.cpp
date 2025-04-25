@@ -26,14 +26,14 @@ Variant StringNameVariantConverter::decode(const ryml::ConstNodeRef &node) const
 		}
 
 		if (!node.has_val()) {
-			throw YAMLException::create_invalid_format("StringName");
+			throw create_invalid_format_exception("StringName", node);
 		}
 
 		return decode_from_string(node.val());
 	} catch (const YAMLException &) {
 		throw; // Re-throw YAML exceptions
 	} catch (const std::exception &e) {
-		throw YAMLException::create_decode_error("StringName", e.what());
+		throw create_decode_error_exception("StringName", e.what(), node);
 	}
 }
 

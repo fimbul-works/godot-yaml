@@ -15,12 +15,16 @@ namespace godot {
 
 class ConverterFactory {
 public:
-	ConverterFactory();
+	ConverterFactory(const ryml::Parser *parser = nullptr);
 	~ConverterFactory() = default;
 
 	// Non-copyable to prevent accidental sharing
 	ConverterFactory(const ConverterFactory &) = delete;
 	ConverterFactory &operator=(const ConverterFactory &) = delete;
+
+	// Set/get the parser reference
+	void set_parser(const ryml::Parser *parser) { m_parser = parser; }
+	const ryml::Parser *get_parser() const { return m_parser; }
 
 	// Creates a single converter for a specific type
 	std::unique_ptr<VariantConverter> create_converter(Variant::Type type);
@@ -49,6 +53,7 @@ public:
 	std::unordered_map<Variant::Type, std::unique_ptr<VariantConverter>> create_converter_set();
 
 private:
+	const ryml::Parser *m_parser = nullptr;
 	Variant::Type get_type_for_tag(const String &tag);
 
 	// Type information for registering converters

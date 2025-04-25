@@ -55,7 +55,7 @@ Variant ColorVariantConverter::decode(const ryml::ConstNodeRef &node) const {
 	try {
 		if (node.has_val() && !node.val_is_null()) {
 			if (node.val().begins_with("0x") || node.val().begins_with("#")) {
-				return decode_hex(node.val());
+				return decode_hex(node);
 			}
 		}
 
@@ -67,17 +67,17 @@ Variant ColorVariantConverter::decode(const ryml::ConstNodeRef &node) const {
 			return decode_sequence(node);
 		}
 
-		throw YAMLException::create_invalid_format("Color");
+		throw create_invalid_format_exception("Color", node);
 	} catch (const YAMLException &) {
 		throw; // Re-throw YAML exceptions
 	} catch (const std::exception &e) {
-		throw YAMLException::create_decode_error("Color", e.what());
+		throw create_decode_error_exception("Color", e.what(), node);
 	}
 }
 
-Color ColorVariantConverter::parse_hex_components(const String &hex_str, int offset, size_t expected_length) const {
+Color ColorVariantConverter::parse_hex_components(const String &hex_str, int offset, size_t expected_length, const ryml::ConstNodeRef &node) const {
 	if (hex_str.length() != expected_length && hex_str.length() != expected_length + HEX_ALPHA_EXTRA) {
-		throw YAMLException("Invalid hex color length");
+		throw create_exception("Invalid hex color length", node);
 	}
 
 	try {
@@ -91,24 +91,24 @@ Color ColorVariantConverter::parse_hex_components(const String &hex_str, int off
 				b / COLOR_COMPONENT_MAX,
 				a / COLOR_COMPONENT_MAX);
 	} catch (...) {
-		throw YAMLException("Invalid hex color component");
+		throw create_exception("Invalid hex color component", node);
 	}
 }
 
-Variant ColorVariantConverter::decode_hex(const ryml::csubstr &val) const {
-	String hex_str = from_ryml_str(val);
+Variant ColorVariantConverter::decode_hex(const ryml::ConstNodeRef &node) const {
+	String hex_str = from_ryml_str(node.val());
 
 	try {
 		if (hex_str[0] == '#') {
-			return parse_hex_components(hex_str, 1, HEX_STRING_LENGTH);
+			return parse_hex_components(hex_str, 1, HEX_STRING_LENGTH, node);
 		} else if (hex_str.begins_with("0x")) {
-			return parse_hex_components(hex_str, 2, HEX_NUMBER_LENGTH);
+			return parse_hex_components(hex_str, 2, HEX_NUMBER_LENGTH, node);
 		}
-		throw YAMLException("Invalid hex color format");
+		throw create_exception("Invalid hex color format", node);
 	} catch (const YAMLException &) {
 		throw;
 	} catch (const std::exception &e) {
-		throw YAMLException(String("Failed to parse hex color: ") + e.what());
+		throw create_exception(vformat("Failed to parse hex color: %s", e.what()), node);
 	}
 }
 
@@ -126,7 +126,7 @@ Variant ColorVariantConverter::decode_map(const ryml::ConstNodeRef &node) const 
 Variant ColorVariantConverter::decode_sequence(const ryml::ConstNodeRef &node) const {
 	const size_t size = node.num_children();
 	if (size != 3 && size != 4) {
-		throw YAMLException("Color sequence must have 3 or 4 elements (RGB[A])");
+		throw create_exception("Color sequence must have 3 or 4 elements (RGB[A])", node);
 	}
 
 	real_t r = string_to_float<real_t>(node[0].val());

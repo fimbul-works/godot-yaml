@@ -44,11 +44,40 @@ public:
 	// Pure virtual decode method
 	virtual Variant decode(const ryml::ConstNodeRef &node) const = 0;
 
+	// Set/get the parser reference
+	void set_parser(const ryml::Parser *parser) { m_parser = parser; }
+	const ryml::Parser *get_parser() const { return m_parser; }
+
 protected:
 	mutable YAMLStringPool string_pool;
+	const ryml::Parser *m_parser = nullptr;
 
 	ryml::csubstr store_string(const String &str) const {
 		return string_pool.store(str);
+	}
+
+	inline YAMLException create_exception(const String &message, const ryml::ConstNodeRef &node) const {
+		if (m_parser && node.valid()) {
+			try {
+				ryml::Location loc = m_parser->location(node);
+				return YAMLException(message, loc);
+			} catch (...) {
+				// If location can't be determined, fall back to basic message
+			}
+		}
+		return YAMLException(message);
+	}
+
+	inline YAMLException create_invalid_format_exception(const char *type_name, const ryml::ConstNodeRef &node) const {
+		return create_exception(vformat("Invalid %s format", type_name), node);
+	}
+
+	inline YAMLException create_invalid_sequence_length_exception(const char *type_name, int expected_length, const ryml::ConstNodeRef &node) const {
+		return create_exception(vformat("%s sequence must have %d elements", type_name, expected_length), node);
+	}
+
+	inline YAMLException create_decode_error_exception(const char *type_name, const char *details, const ryml::ConstNodeRef &node) const {
+		return create_exception(vformat("Failed to decode %s: %s", type_name, details), node);
 	}
 
 	inline void check_required_fields(const ryml::ConstNodeRef &node, const std::vector<const char *> &required_fields) const {
@@ -69,7 +98,7 @@ protected:
 				}
 			}
 
-			throw YAMLException(String(get_tag()) + " missing required field" + (missing_fields.size() > 1 ? "s" : "") + ": '" + missing_list + "'");
+			throw create_exception(String(get_tag()) + " missing required field" + (missing_fields.size() > 1 ? "s" : "") + ": '" + missing_list + "'", node);
 		}
 	}
 };

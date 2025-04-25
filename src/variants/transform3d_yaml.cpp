@@ -62,11 +62,11 @@ Variant Transform3DVariantConverter::decode(const ryml::ConstNodeRef &node) cons
 			return decode_from_sequence(node);
 		}
 
-		throw YAMLException::create_invalid_format("Transform3D");
+		throw create_invalid_format_exception("Transform3D", node);
 	} catch (const YAMLException &) {
 		throw; // Re-throw YAML exceptions
 	} catch (const std::exception &e) {
-		throw YAMLException::create_decode_error("Transform3D", e.what());
+		throw create_decode_error_exception("Transform3D", e.what(), node);
 	}
 }
 
@@ -81,7 +81,7 @@ Variant Transform3DVariantConverter::decode_from_map(const ryml::ConstNodeRef &n
 
 Variant Transform3DVariantConverter::decode_from_sequence(const ryml::ConstNodeRef &node) const {
 	if (node.num_children() != 4) {
-		throw YAMLException::create_invalid_sequence_length("Transform3D", 4);
+		throw create_invalid_sequence_length_exception("Transform3D", 4, node);
 	}
 
 	Basis basis;

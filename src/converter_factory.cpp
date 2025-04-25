@@ -30,8 +30,8 @@
 
 using namespace godot;
 
-ConverterFactory::ConverterFactory() {
-	// Register all converters
+ConverterFactory::ConverterFactory(const ryml::Parser *parser) :
+		m_parser(parser) {
 	register_converter<AABBVariantConverter>(Variant::AABB, AABBVariantConverter::TAG);
 	register_converter<BasisVariantConverter>(Variant::BASIS, BasisVariantConverter::TAG);
 	register_converter<ColorVariantConverter>(Variant::COLOR, ColorVariantConverter::TAG);
@@ -67,18 +67,34 @@ std::unique_ptr<VariantConverter> ConverterFactory::create_converter(Variant::Ty
 		return nullptr;
 	}
 
-	return it->second.factory_func(this);
+	auto converter = it->second.factory_func(this);
+
+	if (converter && m_parser != nullptr) {
+		converter->set_parser(m_parser);
+	}
+
+	return converter;
 }
 
 std::unique_ptr<VariantConverter> ConverterFactory::create_converter_for_tag(const String &tag) {
-	return create_converter(get_type_for_tag(tag));
+	auto converter = create_converter(get_type_for_tag(tag));
+
+	if (converter && m_parser != nullptr) {
+		converter->set_parser(m_parser);
+	}
+
+	return converter;
 }
 
 std::unordered_map<Variant::Type, std::unique_ptr<VariantConverter>> ConverterFactory::create_converter_set() {
 	std::unordered_map<Variant::Type, std::unique_ptr<VariantConverter>> converters;
 
 	for (const auto &[type, info] : type_map) {
-		converters[type] = info.factory_func(this);
+		auto converter = info.factory_func(this);
+		if (converter && m_parser != nullptr) {
+			converter->set_parser(m_parser);
+		}
+		converters[type] = std::move(converter);
 	}
 
 	return converters;

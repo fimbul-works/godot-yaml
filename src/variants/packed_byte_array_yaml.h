@@ -29,7 +29,7 @@ private:
 	void emit_as_base64(ryml::NodeRef &node, const PackedByteArray &array, const YAMLStyle::View &style) const;
 
 	// String processing helpers
-	CleanupResult cleanup_and_detect(const ryml::csubstr &input) const;
+	CleanupResult cleanup_and_detect(const ryml::csubstr &input, const ryml::ConstNodeRef &node) const;
 	ryml::csubstr format_output(const String &str, size_t line_length) const;
 	PackedByteArray hex_to_bytes(const String &hex) const;
 

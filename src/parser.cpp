@@ -16,6 +16,7 @@ YAML::Parser::Parser() {
 	evt_handler = std::make_unique<ryml::EventHandlerTree>(callbacks);
 	ryml_parser = std::make_unique<ryml::Parser>(evt_handler.get(), ryml::ParserOptions().locations(true));
 
+	factory.set_parser(ryml_parser.get());
 	init_converters();
 }
 
@@ -110,7 +111,7 @@ Ref<YAMLResult> YAML::Parser::parse(const String &input, const bool p_detect_sty
 
 		return current_result;
 	} catch (const YAMLException &e) {
-		return YAMLResult::error(e.what());
+		return YAMLResult::error(e.what(), e.get_line(), e.get_column());
 	} catch (const std::exception &e) {
 		return YAMLResult::error(e.what());
 	} catch (...) {

@@ -37,11 +37,11 @@ Variant Vector4iVariantConverter::decode(const ryml::ConstNodeRef &node) const {
 			return decode_from_sequence(node);
 		}
 
-		throw YAMLException::create_invalid_format("Vector4i");
+		throw create_invalid_format_exception("Vector4i", node);
 	} catch (const YAMLException &) {
 		throw; // Re-throw YAML exceptions
 	} catch (const std::exception &e) {
-		throw YAMLException::create_decode_error("Vector4i", e.what());
+		throw create_decode_error_exception("Vector4i", e.what(), node);
 	}
 }
 
@@ -57,7 +57,7 @@ Variant Vector4iVariantConverter::decode_from_map(const ryml::ConstNodeRef &node
 
 Variant Vector4iVariantConverter::decode_from_sequence(const ryml::ConstNodeRef &node) const {
 	if (node.num_children() != 4) {
-		throw YAMLException::create_invalid_sequence_length("Vector4i", 4);
+		throw create_invalid_sequence_length_exception("Vector4i", 4, node);
 	}
 
 	return Vector4i(

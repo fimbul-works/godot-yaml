@@ -55,11 +55,11 @@ Variant PackedByteArrayVariantConverter::decode(const ryml::ConstNodeRef &node) 
 	}
 
 	if (!node.has_val()) {
-		throw YAMLException::create_invalid_format("PackedByteArray");
+		throw create_invalid_format_exception("PackedByteArray", node);
 	}
 
 	try {
-		CleanupResult result = cleanup_and_detect(node.val());
+		CleanupResult result = cleanup_and_detect(node.val(), node);
 
 		if (result.is_hex) {
 			return hex_to_bytes(result.cleaned);
@@ -67,12 +67,12 @@ Variant PackedByteArrayVariantConverter::decode(const ryml::ConstNodeRef &node) 
 			return Marshalls::get_singleton()->base64_to_raw(result.cleaned);
 		}
 	} catch (const std::exception &e) {
-		throw YAMLException::create_decode_error("PackedByteArray", e.what());
+		throw create_decode_error_exception("PackedByteArray", e.what(), node);
 	}
 }
 
 PackedByteArrayVariantConverter::CleanupResult
-PackedByteArrayVariantConverter::cleanup_and_detect(const ryml::csubstr &input) const {
+PackedByteArrayVariantConverter::cleanup_and_detect(const ryml::csubstr &input, const ryml::ConstNodeRef &node) const {
 	String cleaned;
 	bool is_hex = true;
 
@@ -87,7 +87,7 @@ PackedByteArrayVariantConverter::cleanup_and_detect(const ryml::csubstr &input) 
 	}
 
 	if (is_hex && cleaned.length() % 2 != 0) {
-		throw YAMLException("Invalid hex string length - must be even");
+		throw create_exception(vformat("Invalid PackedByteArray hex string length (%d) - must be even", cleaned.length()), node);
 	}
 
 	return { std::move(cleaned), is_hex, input.len };

@@ -66,11 +66,11 @@ Variant BasisVariantConverter::decode(const ryml::ConstNodeRef &node) const {
 			return decode_from_sequence(node);
 		}
 
-		throw YAMLException::create_invalid_format("Basis");
+		throw create_invalid_format_exception("Basis", node);
 	} catch (const YAMLException &) {
 		throw; // Re-throw YAML exceptions
 	} catch (const std::exception &e) {
-		throw YAMLException::create_decode_error("Basis", e.what());
+		throw create_decode_error_exception("Basis", e.what(), node);
 	}
 }
 
@@ -86,7 +86,7 @@ Variant BasisVariantConverter::decode_from_map(const ryml::ConstNodeRef &node) c
 
 Variant BasisVariantConverter::decode_from_sequence(const ryml::ConstNodeRef &node) const {
 	if (node.num_children() != 3) {
-		throw YAMLException::create_invalid_sequence_length("Basis", 3);
+		throw create_invalid_sequence_length_exception("Basis", 3, node);
 	}
 
 	Vector3 x = vec3_converter->decode(node[0]).operator Vector3();

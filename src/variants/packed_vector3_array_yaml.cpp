@@ -48,7 +48,7 @@ void PackedVector3ArrayVariantConverter::encode(ryml::NodeRef &node, const Varia
 
 Variant PackedVector3ArrayVariantConverter::decode(const ryml::ConstNodeRef &node) const {
 	if (!node.is_seq()) {
-		throw YAMLException::create_invalid_format("PackedVector3Array");
+		throw create_invalid_format_exception("PackedVector3Array", node);
 	}
 
 	PackedVector3Array array;
@@ -61,7 +61,7 @@ Variant PackedVector3ArrayVariantConverter::decode(const ryml::ConstNodeRef &nod
 				Vector3 vec3 = vec3_converter->decode(node[i]);
 				array.set(i, vec3);
 			} catch (const std::exception &e) {
-				throw YAMLException::create_decode_error(String("PackedVector3Array value at index " + String::num_uint64(i)).utf8().get_data(), e.what());
+				throw create_decode_error_exception(vformat("PackedVector3Array value at index %d", i).utf8().get_data(), e.what(), node);
 			}
 		}
 	}

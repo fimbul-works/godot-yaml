@@ -66,11 +66,11 @@ Variant ProjectionVariantConverter::decode(const ryml::ConstNodeRef &node) const
 			return decode_from_sequence(node);
 		}
 
-		throw YAMLException::create_invalid_format("Projection");
+		throw create_invalid_format_exception("Projection", node);
 	} catch (const YAMLException &) {
 		throw; // Re-throw YAML exceptions
 	} catch (const std::exception &e) {
-		throw YAMLException::create_decode_error("Projection", e.what());
+		throw create_decode_error_exception("Projection", e.what(), node);
 	}
 }
 
@@ -89,7 +89,7 @@ Variant ProjectionVariantConverter::decode_from_map(const ryml::ConstNodeRef &no
 
 Variant ProjectionVariantConverter::decode_from_sequence(const ryml::ConstNodeRef &node) const {
 	if (node.num_children() != 4) {
-		throw YAMLException::create_invalid_sequence_length("Projection", 4);
+		throw create_invalid_sequence_length_exception("Projection", 4, node);
 	}
 
 	// Create projection from sequential columns
@@ -112,7 +112,7 @@ Vector4 ProjectionVariantConverter::decode_column(const ryml::ConstNodeRef &node
 
 Vector4 ProjectionVariantConverter::decode_array_column(const ryml::ConstNodeRef &node) const {
 	if (node.num_children() != 4) {
-		throw YAMLException::create_invalid_sequence_length("Projection column", 4);
+		throw create_invalid_sequence_length_exception("Projection column", 4, node);
 	}
 
 	return Vector4(

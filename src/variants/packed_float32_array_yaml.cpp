@@ -43,7 +43,7 @@ void PackedFloat32ArrayVariantConverter::encode(ryml::NodeRef &node, const Varia
 
 Variant PackedFloat32ArrayVariantConverter::decode(const ryml::ConstNodeRef &node) const {
 	if (!node.is_seq()) {
-		throw YAMLException::create_invalid_format("PackedFloat32Array");
+		throw create_invalid_format_exception("PackedFloat32Array", node);
 	}
 
 	const size_t size = node.num_children();
@@ -54,7 +54,7 @@ Variant PackedFloat32ArrayVariantConverter::decode(const ryml::ConstNodeRef &nod
 		try {
 			array.set(i, string_to_float<float>(node[i].val()));
 		} catch (const std::exception &e) {
-			throw YAMLException::create_decode_error(String("PackedFloat32Array value at index " + String::num_uint64(i)).utf8().get_data(), e.what());
+			throw create_decode_error_exception(vformat("PackedFloat32Array value at index %d", i).utf8().get_data(), e.what(), node);
 		}
 	}
 

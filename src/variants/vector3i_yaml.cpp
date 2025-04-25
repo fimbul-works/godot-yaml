@@ -35,11 +35,11 @@ Variant Vector3iVariantConverter::decode(const ryml::ConstNodeRef &node) const {
 			return decode_from_sequence(node);
 		}
 
-		throw YAMLException::create_invalid_format("Vector3i");
+		throw create_invalid_format_exception("Vector3i", node);
 	} catch (const YAMLException &) {
 		throw; // Re-throw YAML exceptions
 	} catch (const std::exception &e) {
-		throw YAMLException::create_decode_error("Vector3i", e.what());
+		throw create_decode_error_exception("Vector3i", e.what(), node);
 	}
 }
 
@@ -54,7 +54,7 @@ Variant Vector3iVariantConverter::decode_from_map(const ryml::ConstNodeRef &node
 
 Variant Vector3iVariantConverter::decode_from_sequence(const ryml::ConstNodeRef &node) const {
 	if (node.num_children() != 3) {
-		throw YAMLException::create_invalid_sequence_length("Vector3i", 3);
+		throw create_invalid_sequence_length_exception("Vector3i", 3, node);
 	}
 
 	return Vector3i(

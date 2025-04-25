@@ -61,11 +61,11 @@ Variant AABBVariantConverter::decode(const ryml::ConstNodeRef &node) const {
 			return decode_from_sequence(node);
 		}
 
-		throw YAMLException::create_invalid_format("AABB");
+		throw create_invalid_format_exception("AABB", node);
 	} catch (const YAMLException &) {
 		throw; // Re-throw YAML exceptions
 	} catch (const std::exception &e) {
-		throw YAMLException::create_decode_error("AABB", e.what());
+		throw create_decode_error_exception("AABB", e.what(), node);
 	}
 }
 
@@ -80,7 +80,7 @@ Variant AABBVariantConverter::decode_from_map(const ryml::ConstNodeRef &node) co
 
 Variant AABBVariantConverter::decode_from_sequence(const ryml::ConstNodeRef &node) const {
 	if (node.num_children() != 2) {
-		throw YAMLException::create_invalid_sequence_length("AABB", 2);
+		throw create_invalid_sequence_length_exception("AABB", 2, node);
 	}
 
 	Vector3 position = vec3_converter->decode(node[0]).operator Vector3();

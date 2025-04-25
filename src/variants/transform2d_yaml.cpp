@@ -67,11 +67,11 @@ Variant Transform2DVariantConverter::decode(const ryml::ConstNodeRef &node) cons
 			return decode_from_sequence(node);
 		}
 
-		throw YAMLException::create_invalid_format("Transform2D");
+		throw create_invalid_format_exception("Transform2D", node);
 	} catch (const YAMLException &) {
 		throw; // Re-throw YAML exceptions
 	} catch (const std::exception &e) {
-		throw YAMLException::create_decode_error("Transform2D", e.what());
+		throw create_decode_error_exception("Transform2D", e.what(), node);
 	}
 }
 
@@ -87,7 +87,7 @@ Variant Transform2DVariantConverter::decode_from_map(const ryml::ConstNodeRef &n
 
 Variant Transform2DVariantConverter::decode_from_sequence(const ryml::ConstNodeRef &node) const {
 	if (node.num_children() != 3) {
-		throw YAMLException::create_invalid_sequence_length("Transform2D", 3);
+		throw create_invalid_sequence_length_exception("Transform2D", 3, node);
 	}
 
 	Vector2 x = vec2_converter->decode(node[0]).operator Vector2();

@@ -27,13 +27,13 @@ Variant NodePathVariantConverter::decode(const ryml::ConstNodeRef &node) const {
 		}
 
 		if (!node.has_val()) {
-			throw YAMLException::create_invalid_format("NodePath");
+			throw create_invalid_format_exception("NodePath", node);
 		}
 
 		return NodePath(from_ryml_str(node.val()));
 	} catch (const YAMLException &) {
 		throw; // Re-throw YAML exceptions
 	} catch (const std::exception &e) {
-		throw YAMLException::create_decode_error("NodePath", e.what());
+		throw create_decode_error_exception("NodePath", e.what(), node);
 	}
 }

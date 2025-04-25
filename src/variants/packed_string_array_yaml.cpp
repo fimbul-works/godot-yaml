@@ -54,7 +54,7 @@ void PackedStringArrayVariantConverter::encode(ryml::NodeRef &node, const Varian
 
 Variant PackedStringArrayVariantConverter::decode(const ryml::ConstNodeRef &node) const {
 	if (!node.is_seq()) {
-		throw YAMLException::create_invalid_format("PackedStringArray");
+		throw create_invalid_format_exception("PackedStringArray", node);
 	}
 
 	const size_t size = node.num_children();
@@ -70,7 +70,7 @@ Variant PackedStringArrayVariantConverter::decode(const ryml::ConstNodeRef &node
 				array.set(i, from_ryml_str(child.val()));
 			}
 		} catch (const std::exception &e) {
-			throw YAMLException::create_decode_error(String("PackedStringArray value at index " + String::num_uint64(i)).utf8().get_data(), e.what());
+			throw create_decode_error_exception(vformat("PackedStringArray value at index %d", i).utf8().get_data(), e.what(), node);
 		}
 	}
 
