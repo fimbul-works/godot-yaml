@@ -7,54 +7,108 @@ using namespace godot;
 void Vector2iVariantConverter::encode(ryml::NodeRef &node, const Variant &v, const YAMLStyle::View &style) const {
 	const Vector2i vec = v.operator Vector2i();
 
-	YAMLStyle::IntegerFormat int_format = style.get_integer_format();
 	style.apply_flow_style(node);
+
+	YAMLStyle::IntegerFormat x_format = style.has_child("x") ? style.get_child("x").get_integer_format() : style.get_integer_format();
+	YAMLStyle::IntegerFormat y_format = style.has_child("y") ? style.get_child("y").get_integer_format() : style.get_integer_format();
 
 	if (!style.is_valid() || style.get_container_form() != YAMLStyle::FORM_SEQ) {
 		node |= ryml::MAP;
 
-		node["x"] << int_to_string(vec.x, int_format);
-		node["y"] << int_to_string(vec.y, int_format);
+		node["x"] << int_to_string(vec.x, x_format);
+		node["y"] << int_to_string(vec.y, y_format);
 	} else {
 		node |= ryml::SEQ;
 
-		node.append_child() << int_to_string(vec.x, int_format);
-		node.append_child() << int_to_string(vec.y, int_format);
+		node.append_child() << int_to_string(vec.x, x_format);
+		node.append_child() << int_to_string(vec.y, y_format);
 	}
 }
 
-Variant Vector2iVariantConverter::decode(const ryml::ConstNodeRef &node) const {
+Variant Vector2iVariantConverter::decode(const ryml::ConstNodeRef &node, ParserContext *context) const {
 	try {
 		if (node.is_map()) {
-			return decode_from_map(node);
+			return decode_from_map(node, context);
 		}
 
 		if (node.is_seq()) {
-			return decode_from_sequence(node);
+			return decode_from_sequence(node, context);
 		}
 
-		throw create_invalid_format_exception("Vector2i", node);
+		throw create_invalid_format_exception(node);
 	} catch (const YAMLException &) {
 		throw; // Re-throw YAML exceptions
 	} catch (const std::exception &e) {
-		throw create_decode_error_exception("Vector2i", e.what(), node);
+		throw create_decode_error_exception(e.what(), node);
 	}
 }
 
-Variant Vector2iVariantConverter::decode_from_map(const ryml::ConstNodeRef &node) const {
+Vector2i Vector2iVariantConverter::decode_from_map(const ryml::ConstNodeRef &node, ParserContext *context) const {
 	check_required_fields(node, { "x", "y" });
 
-	return Vector2i(
-			string_to_int<int32_t>(node["x"].val()),
-			string_to_int<int32_t>(node["y"].val()));
-}
+	const bool detect_style = context->detect_style;
 
-Variant Vector2iVariantConverter::decode_from_sequence(const ryml::ConstNodeRef &node) const {
-	if (node.num_children() != 2) {
-		throw create_invalid_sequence_length_exception("Vector2i", 2, node);
+	if (detect_style) {
+		Ref<YAMLStyle> style = context->current_style();
+		YAMLStyle::detect_flow_style(node, style);
+		style->set_container_form(YAMLStyle::FORM_MAP);
+
+		context->push_style("x");
 	}
 
-	return Vector2i(
-			string_to_int<int32_t>(node[0].val()),
-			string_to_int<int32_t>(node[1].val()));
+	YAMLStyle::IntegerFormat x_format;
+	int32_t x = string_to_int<int32_t>(node[0].val(), detect_style ? &x_format : nullptr);
+
+	if (detect_style) {
+		context->current_style()->set_integer_format(x_format);
+		context->pop_style();
+
+		context->push_style("y");
+	}
+
+	YAMLStyle::IntegerFormat y_format;
+	int32_t y = string_to_int<int32_t>(node["y"].val(), detect_style ? &y_format : nullptr);
+
+	if (detect_style) {
+		context->current_style()->set_integer_format(y_format);
+		context->pop_style();
+	}
+
+	return Vector2i(x, y);
+}
+
+Vector2i Vector2iVariantConverter::decode_from_sequence(const ryml::ConstNodeRef &node, ParserContext *context) const {
+	if (node.num_children() != 2) {
+		throw create_invalid_sequence_length_exception(2, node);
+	}
+
+	const bool detect_style = context->detect_style;
+
+	if (detect_style) {
+		Ref<YAMLStyle> style = context->current_style();
+		YAMLStyle::detect_flow_style(node, style);
+		style->set_container_form(YAMLStyle::FORM_SEQ);
+
+		context->push_style("x");
+	}
+
+	YAMLStyle::IntegerFormat x_format;
+	int32_t x = string_to_int<int32_t>(node[0].val(), detect_style ? &x_format : nullptr);
+
+	if (detect_style) {
+		context->current_style()->set_integer_format(x_format);
+		context->pop_style();
+
+		context->push_style("y");
+	}
+
+	YAMLStyle::IntegerFormat y_format;
+	int32_t y = string_to_int<int32_t>(node[1].val(), detect_style ? &y_format : nullptr);
+
+	if (detect_style) {
+		context->current_style()->set_integer_format(y_format);
+		context->pop_style();
+	}
+
+	return Vector2i(x, y);
 }

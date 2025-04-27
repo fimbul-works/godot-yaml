@@ -13,77 +13,93 @@ Rect2VariantConverter::Rect2VariantConverter(ConverterFactory *factory) :
 void Rect2VariantConverter::encode(ryml::NodeRef &node, const Variant &v, const YAMLStyle::View &style) const {
 	const Rect2 rect = v.operator Rect2();
 
+	style.apply_flow_style(node);
+
 	if (!style.is_valid() || style.get_container_form() != YAMLStyle::FORM_SEQ) {
-		emit_as_map(node, rect, style);
+		node |= ryml::MAP;
+		vec2_converter->encode(node["position"], rect.position, style.get_child("position"));
+		vec2_converter->encode(node["size"], rect.size, style.get_child("size"));
 	} else {
-		emit_as_sequence(node, rect, style);
+		node |= ryml::SEQ;
+		vec2_converter->encode(node.append_child(), rect.position, style.get_child("position"));
+		vec2_converter->encode(node.append_child(), rect.size, style.get_child("size"));
 	}
 }
 
-void Rect2VariantConverter::emit_as_map(ryml::NodeRef &node, const Rect2 &rect, const YAMLStyle::View &style) const {
-	node |= ryml::MAP;
-
-	style.apply_flow_style(node);
-
-	YAMLStyle::View pos_style = style.is_valid() ? style.get_child("position") : YAMLStyle::View();
-	YAMLStyle::View size_style = style.is_valid() ? style.get_child("size") : YAMLStyle::View();
-
-	ryml::NodeRef pos_node = node["position"];
-	vec2_converter->encode(pos_node, rect.position, pos_style);
-
-	ryml::NodeRef size_node = node["size"];
-	vec2_converter->encode(size_node, rect.size, size_style);
-}
-
-void Rect2VariantConverter::emit_as_sequence(ryml::NodeRef &node, const Rect2 &rect, const YAMLStyle::View &style) const {
-	node |= ryml::SEQ;
-
-	style.apply_flow_style(node);
-
-	YAMLStyle::View pos_style = style.is_valid() ? style.get_child("0") : YAMLStyle::View();
-	YAMLStyle::View size_style = style.is_valid() ? style.get_child("1") : YAMLStyle::View();
-
-	ryml::NodeRef pos_node = node.append_child();
-	vec2_converter->encode(pos_node, rect.position, pos_style);
-
-	ryml::NodeRef size_node = node.append_child();
-	vec2_converter->encode(size_node, rect.size, size_style);
-}
-
-Variant Rect2VariantConverter::decode(const ryml::ConstNodeRef &node) const {
+Variant Rect2VariantConverter::decode(const ryml::ConstNodeRef &node, ParserContext *context) const {
 	try {
 		if (node.is_map()) {
-			return decode_from_map(node);
+			return decode_from_map(node, context);
 		}
 
 		if (node.is_seq()) {
-			return decode_from_sequence(node);
+			return decode_from_sequence(node, context);
 		}
 
-		throw create_invalid_format_exception("Rect2", node);
-	} catch (const YAMLException &) {
-		throw; // Re-throw YAML exceptions
+		throw create_invalid_format_exception(node);
+	} catch (const YAMLException &e) {
+		throw YAMLException(vformat("Failed to decode Rect2: %s", e.what()), e.get_location());
 	} catch (const std::exception &e) {
-		throw create_decode_error_exception("Rect2", e.what(), node);
+		throw create_decode_error_exception(e.what(), node);
 	}
 }
 
-Variant Rect2VariantConverter::decode_from_map(const ryml::ConstNodeRef &node) const {
+Rect2 Rect2VariantConverter::decode_from_map(const ryml::ConstNodeRef &node, ParserContext *context) const {
 	check_required_fields(node, { "position", "size" });
 
-	Vector2 position = vec2_converter->decode(node["position"]).operator Vector2();
-	Vector2 size = vec2_converter->decode(node["size"]).operator Vector2();
+	const bool detect_style = context->detect_style;
+
+	if (detect_style) {
+		Ref<YAMLStyle> style = context->current_style();
+		YAMLStyle::detect_flow_style(node, style);
+		style->set_container_form(YAMLStyle::FORM_MAP);
+
+		context->push_style("position");
+	}
+
+	Vector2 position = vec2_converter->decode(node["position"], context).operator Vector2();
+
+	if (detect_style) {
+		context->pop_style();
+		context->push_style("size");
+	}
+
+	Vector2 size = vec2_converter->decode(node["size"], context).operator Vector2();
+
+	if (detect_style) {
+		context->pop_style();
+	}
 
 	return Rect2(position, size);
 }
 
-Variant Rect2VariantConverter::decode_from_sequence(const ryml::ConstNodeRef &node) const {
+Rect2 Rect2VariantConverter::decode_from_sequence(const ryml::ConstNodeRef &node, ParserContext *context) const {
 	if (node.num_children() != 2) {
-		throw create_invalid_sequence_length_exception("Rect2", 2, node);
+		throw create_invalid_sequence_length_exception(2, node);
 	}
 
-	Vector2 position = vec2_converter->decode(node[0]).operator Vector2();
-	Vector2 size = vec2_converter->decode(node[1]).operator Vector2();
+	const bool detect_style = context->detect_style;
+
+	if (detect_style) {
+		Ref<YAMLStyle> style = context->current_style();
+		YAMLStyle::detect_flow_style(node, style);
+		style->set_container_form(YAMLStyle::FORM_SEQ);
+
+		context->push_style("position");
+	}
+
+	Vector2 position = vec2_converter->decode(node[0], context).operator Vector2();
+
+	if (detect_style) {
+		context->pop_style();
+		context->push_style("size");
+	}
+
+	Vector2 size = vec2_converter->decode(node[1], context).operator Vector2();
+
+	if (detect_style) {
+		context->pop_style();
+	}
 
 	return Rect2(position, size);
 }

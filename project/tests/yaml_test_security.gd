@@ -53,25 +53,25 @@ func test_path_security():
 
 	# Resources in allowed path should work (except globally blocked)
 	var texture_yaml = create_resource_yaml(test_resources.texture)
-	var texture_result = YAML.parse(texture_yaml, false, security)
+	var texture_result = YAML.parse(texture_yaml, security)
 	assert_false(texture_result.has_error(), "Resources in allowed path are permitted")
 
 	var material_yaml = create_resource_yaml(test_resources.material)
-	var material_result = YAML.parse(material_yaml, false, security)
+	var material_result = YAML.parse(material_yaml, security)
 	assert_false(material_result.has_error(), "Materials in allowed path are permitted")
 
 	# Resources outside allowed path should be blocked
 	var audio_yaml = create_resource_yaml(test_resources.audio)
-	var audio_result = YAML.parse(audio_yaml, false, security)
+	var audio_result = YAML.parse(audio_yaml, security)
 	assert_true(audio_result.has_error(), "Resources outside allowed paths are blocked")
 
 	var font_yaml = create_resource_yaml(test_resources.font)
-	var font_result = YAML.parse(font_yaml, false, security)
+	var font_result = YAML.parse(font_yaml, security)
 	assert_true(font_result.has_error(), "Resources outside allowed paths are blocked")
 
 	# Globally blocked types are still blocked even in allowed paths
 	var script_yaml = create_resource_yaml(test_resources.gdscript)
-	var script_result = YAML.parse(script_yaml, false, security)
+	var script_result = YAML.parse(script_yaml, security)
 	assert_true(script_result.has_error(), "Globally blocked types remain blocked even in allowed paths")
 
 # Test path-based security with type restrictions
@@ -84,17 +84,17 @@ func test_path_with_types():
 
 	# Only specified types in allowed path should work
 	var texture_yaml = create_resource_yaml(test_resources.texture)
-	var texture_result = YAML.parse(texture_yaml, false, security)
+	var texture_result = YAML.parse(texture_yaml, security)
 	assert_false(texture_result.has_error(), "Specified type in allowed path is permitted")
 
 	# Other types in the same path should be blocked
 	var material_yaml = create_resource_yaml(test_resources.material)
-	var material_result = YAML.parse(material_yaml, false, security)
+	var material_result = YAML.parse(material_yaml, security)
 	assert_true(material_result.has_error(), "Non-specified type in allowed path is blocked")
 
 	# Resources outside allowed path should be blocked
 	var audio_yaml = create_resource_yaml(test_resources.audio)
-	var audio_result = YAML.parse(audio_yaml, false, security)
+	var audio_result = YAML.parse(audio_yaml, security)
 	assert_true(audio_result.has_error(), "Resources outside allowed paths are blocked")
 
 # Test allowing previously blocked types
@@ -113,10 +113,10 @@ func test_unblock_types():
 
 	# Script should now be allowed in the path
 	var script_yaml = create_resource_yaml(test_resources.gdscript)
-	var script_result = YAML.parse(script_yaml, false, security)
+	var script_result = YAML.parse(script_yaml, security)
 	assert_false(script_result.has_error(), "Unblocked Script type is now allowed in path")
 
 	# GDExtension should still be blocked
 	var extension_yaml = create_resource_yaml(test_resources.gdextension)
-	var extension_result = YAML.parse(extension_yaml, false, security)
+	var extension_result = YAML.parse(extension_yaml, security)
 	assert_true(extension_result.has_error(), "GDExtension remains blocked")

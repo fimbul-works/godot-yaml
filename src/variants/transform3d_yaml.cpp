@@ -14,83 +14,93 @@ Transform3DVariantConverter::Transform3DVariantConverter(ConverterFactory *facto
 void Transform3DVariantConverter::encode(ryml::NodeRef &node, const Variant &v, const YAMLStyle::View &style) const {
 	const Transform3D transform = v.operator Transform3D();
 
+	style.apply_flow_style(node);
+
 	if (!style.is_valid() || style.get_container_form() != YAMLStyle::FORM_SEQ) {
-		emit_as_map(node, transform, style);
+		node |= ryml::MAP;
+		basis_converter->encode(node["basis"], transform.basis, style.get_child("basis"));
+		vec3_converter->encode(node["origin"], transform.origin, style.get_child("origin"));
 	} else {
-		emit_as_sequence(node, transform, style);
+		node |= ryml::SEQ;
+		basis_converter->encode(node.append_child(), transform.basis, style.get_child("basis"));
+		vec3_converter->encode(node.append_child(), transform.origin, style.get_child("origin"));
 	}
 }
 
-void Transform3DVariantConverter::emit_as_map(ryml::NodeRef &node, const Transform3D &transform, const YAMLStyle::View &style) const {
-	node |= ryml::MAP;
-
-	style.apply_flow_style(node);
-
-	YAMLStyle::View basis_style = style.is_valid() ? style.get_child("basis") : YAMLStyle::View();
-	YAMLStyle::View origin_style = style.is_valid() ? style.get_child("origin") : YAMLStyle::View();
-
-	ryml::NodeRef basis_node = node["basis"];
-	basis_converter->encode(basis_node, transform.basis, basis_style);
-
-	ryml::NodeRef origin_node = node["origin"];
-	vec3_converter->encode(origin_node, transform.origin, origin_style);
-}
-
-void Transform3DVariantConverter::emit_as_sequence(ryml::NodeRef &node, const Transform3D &transform, const YAMLStyle::View &style) const {
-	node |= ryml::SEQ;
-
-	style.apply_flow_style(node);
-
-	for (int i = 0; i < 3; i++) {
-		const YAMLStyle::View &row_style = style.is_valid() ? style.get_child(String::num_int64(i)) : YAMLStyle::View();
-		ryml::NodeRef col_node = node.append_child();
-		vec3_converter->encode(col_node, transform.basis.rows[i], row_style);
-	}
-
-	YAMLStyle::View origin_style = style.is_valid() ? style.get_child("3") : YAMLStyle::View();
-	ryml::NodeRef origin_node = node.append_child();
-	vec3_converter->encode(origin_node, transform.origin, origin_style);
-}
-
-Variant Transform3DVariantConverter::decode(const ryml::ConstNodeRef &node) const {
+Variant Transform3DVariantConverter::decode(const ryml::ConstNodeRef &node, ParserContext *context) const {
 	try {
 		if (node.is_map()) {
-			return decode_from_map(node);
+			return decode_from_map(node, context);
 		}
 
 		if (node.is_seq()) {
-			return decode_from_sequence(node);
+			return decode_from_sequence(node, context);
 		}
 
-		throw create_invalid_format_exception("Transform3D", node);
-	} catch (const YAMLException &) {
-		throw; // Re-throw YAML exceptions
+		throw create_invalid_format_exception(node);
+	} catch (const YAMLException &e) {
+		throw YAMLException(vformat("Failed to decode Transform3D: %s", e.what()), e.get_location());
 	} catch (const std::exception &e) {
-		throw create_decode_error_exception("Transform3D", e.what(), node);
+		throw create_decode_error_exception(e.what(), node);
 	}
 }
 
-Variant Transform3DVariantConverter::decode_from_map(const ryml::ConstNodeRef &node) const {
+Transform3D Transform3DVariantConverter::decode_from_map(const ryml::ConstNodeRef &node, ParserContext *context) const {
 	check_required_fields(node, { "basis", "origin" });
 
-	Basis basis = basis_converter->decode(node["basis"]).operator Basis();
-	Vector3 origin = vec3_converter->decode(node["origin"]).operator Vector3();
+	const bool detect_style = context->detect_style;
+
+	if (detect_style) {
+		Ref<YAMLStyle> style = context->current_style();
+		YAMLStyle::detect_flow_style(node, style);
+		style->set_container_form(YAMLStyle::FORM_MAP);
+
+		context->push_style("basis");
+	}
+
+	Basis basis = basis_converter->decode(node["basis"], context).operator Basis();
+
+	if (detect_style) {
+		context->pop_style();
+		context->push_style("origin");
+	}
+
+	Vector3 origin = vec3_converter->decode(node["origin"], context).operator Vector3();
+
+	if (detect_style) {
+		context->pop_style();
+	}
 
 	return Transform3D(basis, origin);
 }
 
-Variant Transform3DVariantConverter::decode_from_sequence(const ryml::ConstNodeRef &node) const {
+Transform3D Transform3DVariantConverter::decode_from_sequence(const ryml::ConstNodeRef &node, ParserContext *context) const {
 	if (node.num_children() != 4) {
-		throw create_invalid_sequence_length_exception("Transform3D", 4, node);
+		throw create_invalid_sequence_length_exception(4, node);
 	}
 
-	Basis basis;
+	const bool detect_style = context->detect_style;
 
-	for (int i = 0; i < 3; i++) {
-		basis.rows[i] = vec3_converter->decode(node[i]).operator Vector3();
+	if (detect_style) {
+		Ref<YAMLStyle> style = context->current_style();
+		YAMLStyle::detect_flow_style(node, style);
+		style->set_container_form(YAMLStyle::FORM_SEQ);
+
+		context->push_style("basis");
 	}
 
-	Vector3 origin = vec3_converter->decode(node[3]).operator Vector3();
+	Basis basis = basis_converter->decode(node["basis"], context).operator Basis();
+
+	if (detect_style) {
+		context->pop_style();
+		context->push_style("origin");
+	}
+
+	Vector3 origin = vec3_converter->decode(node[3], context).operator Vector3();
+
+	if (detect_style) {
+		context->pop_style();
+	}
 
 	return Transform3D(basis, origin);
 }

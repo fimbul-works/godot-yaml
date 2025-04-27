@@ -4,40 +4,30 @@
 using namespace godot;
 
 void StringNameVariantConverter::encode(ryml::NodeRef &node, const Variant &v, const YAMLStyle::View &style) const {
-	const StringName str = v.operator StringName();
+	const String str = v.operator String();
 
-	String string_val = String(str);
-	if (string_val.is_empty()) {
-		node << ryml::csubstr{};
-	} else {
-		if (style.is_valid()) {
-			style.apply_string_style(node);
-		} else {
-			node |= ryml::VAL_DQUO;
-		}
-		node << to_ryml_str(string_val);
-	}
+	style.apply_string_style(node);
+	node << to_ryml_str(str);
 }
 
-Variant StringNameVariantConverter::decode(const ryml::ConstNodeRef &node) const {
+Variant StringNameVariantConverter::decode(const ryml::ConstNodeRef &node, ParserContext *context) const {
 	try {
+		if (!node.has_val()) {
+			throw create_invalid_format_exception(node);
+		}
+
 		if (node.val_is_null()) {
 			return StringName(); // Return empty StringName
 		}
 
-		if (!node.has_val()) {
-			throw create_invalid_format_exception("StringName", node);
+		if (context->detect_style) {
+			YAMLStyle::detect_string_style(node, context->current_style());
 		}
 
-		return decode_from_string(node.val());
+		return StringName(from_ryml_str(node.val()));
 	} catch (const YAMLException &) {
 		throw; // Re-throw YAML exceptions
 	} catch (const std::exception &e) {
-		throw create_decode_error_exception("StringName", e.what(), node);
+		throw create_decode_error_exception(e.what(), node);
 	}
-}
-
-Variant StringNameVariantConverter::decode_from_string(const ryml::csubstr &val) const {
-	String string_val = String::utf8(val.str, val.len);
-	return StringName(string_val);
 }

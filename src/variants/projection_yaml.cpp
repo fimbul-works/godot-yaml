@@ -13,16 +13,6 @@ ProjectionVariantConverter::ProjectionVariantConverter(ConverterFactory *factory
 void ProjectionVariantConverter::encode(ryml::NodeRef &node, const Variant &v, const YAMLStyle::View &style) const {
 	const Projection proj = v.operator Projection();
 
-	if (!style.is_valid() || style.get_container_form() != YAMLStyle::FORM_SEQ) {
-		emit_as_map(node, proj, style);
-	} else {
-		emit_as_sequence(node, proj, style);
-	}
-}
-
-void ProjectionVariantConverter::emit_as_map(ryml::NodeRef &node, const Projection &proj, const YAMLStyle::View &style) const {
-	node |= ryml::MAP;
-
 	style.apply_flow_style(node);
 
 	YAMLStyle::View x_style = style.is_valid() ? style.get_child("x") : YAMLStyle::View();
@@ -30,94 +20,127 @@ void ProjectionVariantConverter::emit_as_map(ryml::NodeRef &node, const Projecti
 	YAMLStyle::View z_style = style.is_valid() ? style.get_child("z") : YAMLStyle::View();
 	YAMLStyle::View w_style = style.is_valid() ? style.get_child("w") : YAMLStyle::View();
 
-	ryml::NodeRef x_node = node["x"];
-	ryml::NodeRef y_node = node["y"];
-	ryml::NodeRef z_node = node["z"];
-	ryml::NodeRef w_node = node["w"];
-	emit_column(x_node, proj.columns[0], x_style);
-	emit_column(y_node, proj.columns[1], y_style);
-	emit_column(z_node, proj.columns[2], z_style);
-	emit_column(w_node, proj.columns[3], w_style);
-}
-
-void ProjectionVariantConverter::emit_as_sequence(ryml::NodeRef &node, const Projection &proj, const YAMLStyle::View &style) const {
-	node |= ryml::SEQ;
-
-	style.apply_flow_style(node);
-
-	for (int i = 0; i < 4; i++) {
-		YAMLStyle::View col_style = style.is_valid() ? style.get_child(String::num_int64(i)) : YAMLStyle::View();
-		ryml::NodeRef col_node = node.append_child();
-		emit_column(col_node, proj.columns[i], col_style);
+	if (!style.is_valid() || style.get_container_form() != YAMLStyle::FORM_SEQ) {
+		node |= ryml::MAP;
+		vec4_converter->encode(node["x"], proj.columns[0], x_style);
+		vec4_converter->encode(node["y"], proj.columns[1], y_style);
+		vec4_converter->encode(node["z"], proj.columns[2], z_style);
+		vec4_converter->encode(node["w"], proj.columns[3], w_style);
+	} else {
+		node |= ryml::SEQ;
+		vec4_converter->encode(node.append_child(), proj.columns[0], x_style);
+		vec4_converter->encode(node.append_child(), proj.columns[1], y_style);
+		vec4_converter->encode(node.append_child(), proj.columns[2], z_style);
+		vec4_converter->encode(node.append_child(), proj.columns[3], w_style);
 	}
 }
 
-void ProjectionVariantConverter::emit_column(ryml::NodeRef &node, const Vector4 &col, const YAMLStyle::View &style) const {
-	vec4_converter->encode(node, col, style);
-}
-
-Variant ProjectionVariantConverter::decode(const ryml::ConstNodeRef &node) const {
+Variant ProjectionVariantConverter::decode(const ryml::ConstNodeRef &node, ParserContext *context) const {
 	try {
 		if (node.is_map()) {
-			return decode_from_map(node);
+			return decode_from_map(node, context);
 		}
 
 		if (node.is_seq()) {
-			return decode_from_sequence(node);
+			return decode_from_sequence(node, context);
 		}
 
-		throw create_invalid_format_exception("Projection", node);
-	} catch (const YAMLException &) {
-		throw; // Re-throw YAML exceptions
+		throw create_invalid_format_exception(node);
+	} catch (const YAMLException &e) {
+		throw YAMLException(vformat("Failed to decode Projection: %s", e.what()), e.get_location());
 	} catch (const std::exception &e) {
-		throw create_decode_error_exception("Projection", e.what(), node);
+		throw create_decode_error_exception(e.what(), node);
 	}
 }
 
-Variant ProjectionVariantConverter::decode_from_map(const ryml::ConstNodeRef &node) const {
+Variant ProjectionVariantConverter::decode_from_map(const ryml::ConstNodeRef &node, ParserContext *context) const {
 	check_required_fields(node, { "x", "y", "z", "w" });
 
-	// Create projection from columns
 	Projection proj;
-	proj.columns[0] = decode_column(node["x"]);
-	proj.columns[1] = decode_column(node["y"]);
-	proj.columns[2] = decode_column(node["z"]);
-	proj.columns[3] = decode_column(node["w"]);
+
+	const bool detect_style = context->detect_style;
+
+	if (detect_style) {
+		Ref<YAMLStyle> style = context->current_style();
+		YAMLStyle::detect_flow_style(node, style);
+		style->set_container_form(YAMLStyle::FORM_MAP);
+
+		context->push_style("x");
+	}
+
+	proj.columns[0] = vec4_converter->decode(node["x"], context).operator Vector4();
+
+	if (detect_style) {
+		context->pop_style();
+		context->push_style("y");
+	}
+
+	proj.columns[1] = vec4_converter->decode(node["y"], context).operator Vector4();
+
+	if (detect_style) {
+		context->pop_style();
+		context->push_style("z");
+	}
+
+	proj.columns[2] = vec4_converter->decode(node["z"], context).operator Vector4();
+
+	if (detect_style) {
+		context->pop_style();
+		context->push_style("w");
+	}
+
+	proj.columns[3] = vec4_converter->decode(node["w"], context).operator Vector4();
+
+	if (detect_style) {
+		context->pop_style();
+	}
 
 	return proj;
 }
 
-Variant ProjectionVariantConverter::decode_from_sequence(const ryml::ConstNodeRef &node) const {
+Variant ProjectionVariantConverter::decode_from_sequence(const ryml::ConstNodeRef &node, ParserContext *context) const {
 	if (node.num_children() != 4) {
-		throw create_invalid_sequence_length_exception("Projection", 4, node);
+		throw create_invalid_sequence_length_exception(4, node);
 	}
 
-	// Create projection from sequential columns
 	Projection proj;
-	for (int i = 0; i < 4; i++) {
-		proj.columns[i] = decode_column(node[i]);
+
+	const bool detect_style = context->detect_style;
+
+	if (detect_style) {
+		Ref<YAMLStyle> style = context->current_style();
+		YAMLStyle::detect_flow_style(node, style);
+		style->set_container_form(YAMLStyle::FORM_SEQ);
+
+		context->push_style("x");
+	}
+
+	proj.columns[0] = vec4_converter->decode(node[0], context).operator Vector4();
+
+	if (detect_style) {
+		context->pop_style();
+		context->push_style("y");
+	}
+
+	proj.columns[1] = vec4_converter->decode(node[1], context).operator Vector4();
+
+	if (detect_style) {
+		context->pop_style();
+		context->push_style("z");
+	}
+
+	proj.columns[2] = vec4_converter->decode(node[2], context).operator Vector4();
+
+	if (detect_style) {
+		context->pop_style();
+		context->push_style("w");
+	}
+
+	proj.columns[3] = vec4_converter->decode(node[3], context).operator Vector4();
+
+	if (detect_style) {
+		context->pop_style();
 	}
 
 	return proj;
-}
-
-Vector4 ProjectionVariantConverter::decode_column(const ryml::ConstNodeRef &node) const {
-	if (node.is_seq()) {
-		return decode_array_column(node);
-	} else {
-		// Use Vector4 converter for structured format
-		return vec4_converter->decode(node).operator Vector4();
-	}
-}
-
-Vector4 ProjectionVariantConverter::decode_array_column(const ryml::ConstNodeRef &node) const {
-	if (node.num_children() != 4) {
-		throw create_invalid_sequence_length_exception("Projection column", 4, node);
-	}
-
-	return Vector4(
-			string_to_float<real_t>(node[0].val()),
-			string_to_float<real_t>(node[1].val()),
-			string_to_float<real_t>(node[2].val()),
-			string_to_float<real_t>(node[3].val()));
 }

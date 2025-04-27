@@ -14,77 +14,93 @@ AABBVariantConverter::AABBVariantConverter(ConverterFactory *factory) :
 void AABBVariantConverter::encode(ryml::NodeRef &node, const Variant &v, const YAMLStyle::View &style) const {
 	const AABB aabb = AABB(v);
 
+	style.apply_flow_style(node);
+
 	if (!style.is_valid() || style.get_container_form() != YAMLStyle::FORM_SEQ) {
-		emit_as_map(node, aabb, style);
+		node |= ryml::MAP;
+		vec3_converter->encode(node["position"], aabb.position, style.get_child("position"));
+		vec3_converter->encode(node["size"], aabb.size, style.get_child("size"));
 	} else {
-		emit_as_sequence(node, aabb, style);
+		node |= ryml::SEQ;
+		vec3_converter->encode(node.append_child(), aabb.position, style.get_child("position"));
+		vec3_converter->encode(node.append_child(), aabb.size, style.get_child("size"));
 	}
 }
 
-void AABBVariantConverter::emit_as_map(ryml::NodeRef &node, const AABB &aabb, const YAMLStyle::View &style) const {
-	node |= ryml::MAP;
-
-	style.apply_flow_style(node);
-
-	YAMLStyle::View position_style = style.is_valid() ? style.get_child("position") : YAMLStyle::View();
-	YAMLStyle::View size_style = style.is_valid() ? style.get_child("size") : YAMLStyle::View();
-
-	ryml::NodeRef position_node = node["position"];
-	vec3_converter->encode(position_node, aabb.position, position_style);
-
-	ryml::NodeRef size_node = node["size"];
-	vec3_converter->encode(size_node, aabb.size, size_style);
-}
-
-void AABBVariantConverter::emit_as_sequence(ryml::NodeRef &node, const AABB &aabb, const YAMLStyle::View &style) const {
-	node |= ryml::SEQ;
-
-	style.apply_flow_style(node);
-
-	YAMLStyle::View position_style = style.is_valid() ? style.get_child("0") : YAMLStyle::View();
-	YAMLStyle::View size_style = style.is_valid() ? style.get_child("1") : YAMLStyle::View();
-
-	ryml::NodeRef position_node = node.append_child();
-	vec3_converter->encode(position_node, aabb.position, position_style);
-
-	ryml::NodeRef size_node = node.append_child();
-	vec3_converter->encode(size_node, aabb.size, size_style);
-}
-
-Variant AABBVariantConverter::decode(const ryml::ConstNodeRef &node) const {
+Variant AABBVariantConverter::decode(const ryml::ConstNodeRef &node, ParserContext *context) const {
 	try {
 		if (node.is_map()) {
-			return decode_from_map(node);
+			return decode_from_map(node, context);
 		}
 
 		if (node.is_seq()) {
-			return decode_from_sequence(node);
+			return decode_from_sequence(node, context);
 		}
 
-		throw create_invalid_format_exception("AABB", node);
+		throw create_invalid_format_exception(node);
 	} catch (const YAMLException &) {
 		throw; // Re-throw YAML exceptions
 	} catch (const std::exception &e) {
-		throw create_decode_error_exception("AABB", e.what(), node);
+		throw create_decode_error_exception(e.what(), node);
 	}
 }
 
-Variant AABBVariantConverter::decode_from_map(const ryml::ConstNodeRef &node) const {
+Variant AABBVariantConverter::decode_from_map(const ryml::ConstNodeRef &node, ParserContext *context) const {
 	check_required_fields(node, { "position", "size" });
 
-	Vector3 position = vec3_converter->decode(node["position"]).operator Vector3();
-	Vector3 size = vec3_converter->decode(node["size"]).operator Vector3();
+	const bool detect_style = context->detect_style;
+
+	if (detect_style) {
+		Ref<YAMLStyle> style = context->current_style();
+		YAMLStyle::detect_flow_style(node, style);
+		style->set_container_form(YAMLStyle::FORM_MAP);
+
+		context->push_style("position");
+	}
+
+	Vector3 position = vec3_converter->decode(node["position"], context).operator Vector3();
+
+	if (detect_style) {
+		context->pop_style();
+		context->push_style("size");
+	}
+
+	Vector3 size = vec3_converter->decode(node["size"], context).operator Vector3();
+
+	if (detect_style) {
+		context->pop_style();
+	}
 
 	return AABB(position, size);
 }
 
-Variant AABBVariantConverter::decode_from_sequence(const ryml::ConstNodeRef &node) const {
+Variant AABBVariantConverter::decode_from_sequence(const ryml::ConstNodeRef &node, ParserContext *context) const {
 	if (node.num_children() != 2) {
-		throw create_invalid_sequence_length_exception("AABB", 2, node);
+		throw create_invalid_sequence_length_exception(2, node);
 	}
 
-	Vector3 position = vec3_converter->decode(node[0]).operator Vector3();
-	Vector3 size = vec3_converter->decode(node[1]).operator Vector3();
+	const bool detect_style = context->detect_style;
+
+	if (detect_style) {
+		Ref<YAMLStyle> style = context->current_style();
+		YAMLStyle::detect_flow_style(node, style);
+		style->set_container_form(YAMLStyle::FORM_SEQ);
+
+		context->push_style("position");
+	}
+
+	Vector3 position = vec3_converter->decode(node[0], context).operator Vector3();
+
+	if (detect_style) {
+		context->pop_style();
+		context->push_style("size");
+	}
+
+	Vector3 size = vec3_converter->decode(node[1], context).operator Vector3();
+
+	if (detect_style) {
+		context->pop_style();
+	}
 
 	return AABB(position, size);
 }

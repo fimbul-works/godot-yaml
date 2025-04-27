@@ -70,22 +70,12 @@ YAMLStyle::ContainerForm YAMLStyle::View::get_container_form() const {
 		return data->container_form;
 	}
 
-	auto template_style = get_template_style();
-	if (template_style.is_valid()) {
-		return template_style.get_container_form();
-	}
-
 	return YAMLStyle::FORM_ANY;
 }
 
 YAMLStyle::FlowStyle YAMLStyle::View::get_flow_style() const {
 	if (data && data->has_flow_style) {
 		return data->flow_style;
-	}
-
-	auto template_style = get_template_style();
-	if (template_style.is_valid()) {
-		return template_style.get_flow_style();
 	}
 
 	return YAMLStyle::FLOW_ANY;
@@ -96,22 +86,12 @@ YAMLStyle::StringStyle YAMLStyle::View::get_string_style() const {
 		return data->string_style;
 	}
 
-	auto template_style = get_template_style();
-	if (template_style.is_valid()) {
-		return template_style.get_string_style();
-	}
-
 	return YAMLStyle::STRING_ANY;
 }
 
 YAMLStyle::IntegerFormat YAMLStyle::View::get_integer_format() const {
 	if (data && data->has_integer_format) {
 		return data->integer_format;
-	}
-
-	auto template_style = get_template_style();
-	if (template_style.is_valid()) {
-		return template_style.get_integer_format();
 	}
 
 	return YAMLStyle::INT_ANY;
@@ -122,22 +102,12 @@ YAMLStyle::FloatFormat YAMLStyle::View::get_float_format() const {
 		return data->float_format;
 	}
 
-	auto template_style = get_template_style();
-	if (template_style.is_valid()) {
-		return template_style.get_float_format();
-	}
-
 	return YAMLStyle::FLOAT_ANY;
 }
 
 YAMLStyle::BinaryEncoding YAMLStyle::View::get_binary_encoding() const {
 	if (data && data->has_binary_encoding) {
 		return data->binary_encoding;
-	}
-
-	auto template_style = get_template_style();
-	if (template_style.is_valid()) {
-		return template_style.get_binary_encoding();
 	}
 
 	return YAMLStyle::BIN_ANY;
@@ -147,6 +117,7 @@ YAMLStyle::View YAMLStyle::View::get_template_style() const {
 	if (data && data->children.count("_template")) {
 		return View(data->children.at("_template"));
 	}
+
 	return View();
 }
 
@@ -204,8 +175,7 @@ YAMLStyle::View YAMLStyle::View::get_child(const String &key) const {
 		return YAMLStyle::View(data->children.at(key));
 	}
 
-	// If no specific child style exists, return the current style
-	return *this;
+	return View();
 }
 
 bool YAMLStyle::View::has_child(const String &key) const {

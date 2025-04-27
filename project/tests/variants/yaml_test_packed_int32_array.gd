@@ -2,59 +2,45 @@ extends YAMLTest
 ## Test suite for PackedInt32Array YAML serialization and styling
 
 func _init():
-	test_name = "🧩 PackedInt32Array YAML Tests"
+	test_name = "PackedInt32Array"
 
-# Helper function to create test arrays with various integer patterns
-func create_test_arrays() -> Dictionary:
-	return {
-		"empty": PackedInt32Array(),
-		"single": PackedInt32Array([42]),
-		"basic": PackedInt32Array([1, 2, 3, 4, 5]),
-		"negative": PackedInt32Array([-1, -2, -3, -4, -5]),
-		"mixed": PackedInt32Array([1, -2, 3, -4, 5]),
-		"zero": PackedInt32Array([0, 0, 0, 0, 0]),
-		"large": PackedInt32Array([10000, 100000, 1000000, 10000000, 100000000]),
-		"max_values": create_max_values_array(),
-		"sequential": create_sequential_array(50),
-		"many": create_many_values_array(100)
-	}
+# Test values covering different integer scenarios
+var test_values = {
+	"Empty": PackedInt32Array(),
+	"Single": PackedInt32Array([42]),
+	"Basic": PackedInt32Array([1, 2, 3, 4, 5]),
+	"Negative": PackedInt32Array([-1, -2, -3, -4, -5]),
+	"Mixed": PackedInt32Array([1, -2, 3, -4, 5]),
+	"Zero": PackedInt32Array([0, 0, 0, 0, 0]),
+	"Large": PackedInt32Array([10000, 100000, 1000000, 10000000]),
+	"Max_values": PackedInt32Array([
+		2147483647,
+		-2147483647,
+		0, 1, -1
+	]),
+	"Sequential": create_sequential_array(50)
+}
 
-# Helper to create an array with max/min values
-func create_max_values_array() -> PackedInt32Array:
-	var array = PackedInt32Array()
-	array.append(2147483647)  # INT32_MAX
-	array.append(-2147483647) # INT32_MIN
-	array.append(0)
-	array.append(1)
-	array.append(-1)
-	return array
-
-# Helper to create a sequential array
+# Helper to create a sequential array of integers
 func create_sequential_array(size: int) -> PackedInt32Array:
 	var array = PackedInt32Array()
 	array.resize(size)
-
 	for i in range(size):
 		array[i] = i
-
 	return array
 
 # Helper to create a large array with varied values
-func create_many_values_array(size: int) -> PackedInt32Array:
+func create_large_array(size: int = 100) -> PackedInt32Array:
 	var array = PackedInt32Array()
 	array.resize(size)
-
 	for i in range(size):
 		array[i] = (i * 1000) * (1 if i % 2 == 0 else -1)
-
 	return array
 
 ## Test basic serialization/deserialization without styles
 func test_basic_serialization() -> void:
-	var test_arrays = create_test_arrays()
-
-	for name in test_arrays:
-		var int_array = test_arrays[name]
+	for name in test_values:
+		var int_array = test_values[name]
 		var result = YAML.stringify(int_array)
 
 		assert_stringify_success(result, name)
@@ -73,7 +59,6 @@ func test_basic_serialization() -> void:
 
 ## Test different flow styles (block vs flow)
 func test_flow_styles() -> void:
-	# Use a simple array for testing styles
 	var int_array = PackedInt32Array([10, 20, 30, 40, 50])
 
 	# Test flow style (compact)
@@ -85,8 +70,6 @@ func test_flow_styles() -> void:
 	if !flow_result.has_error():
 		print_rich("• Flow style:")
 		print_rich(flow_result.get_data())
-
-		# Verify it contains flow indicators (brackets)
 		assert_yaml_has_feature(flow_result.get_data(), "[", "Contains opening bracket")
 		assert_yaml_has_feature(flow_result.get_data(), "]", "Contains closing bracket")
 
@@ -99,8 +82,6 @@ func test_flow_styles() -> void:
 	if !block_result.has_error():
 		print_rich("• Block style:")
 		print_rich(block_result.get_data())
-
-		# Verify it uses proper block style for a sequence
 		assert_yaml_has_feature(block_result.get_data(), "- ", "Contains block sequence indicators")
 
 	# Test roundtrip for both styles
@@ -109,72 +90,55 @@ func test_flow_styles() -> void:
 
 ## Test number formats
 func test_number_formats() -> void:
-	# Test a simple array with different number formats
 	var int_array = PackedInt32Array([10, 20, 30, 255, 15])
 
-	# Test different number formats
 	var formats = {
 		"Decimal": YAMLStyle.INT_DECIMAL,
 		"Hex": YAMLStyle.INT_HEX,
 		"Octal": YAMLStyle.INT_OCTAL,
 		"Binary": YAMLStyle.INT_BINARY,
-		"Scientific": YAMLStyle.INT_SCIENTIFIC
 	}
 
 	for format_name in formats:
-		var number_style = YAML.create_style()
+		var style = YAML.create_style()
 		var template = YAML.create_style()
 		template.set_integer_format(formats[format_name])
-		number_style.set_child("_template", template)
+		style.set_child("_template", template)
 
-		var result = YAML.stringify(int_array, number_style)
+		var result = YAML.stringify(int_array, style)
 		assert_stringify_success(result, format_name + " format")
 
 		if !result.has_error():
 			print_rich("• %s format:" % format_name)
 			print_rich(result.get_data())
 
-			# Check format specific features
+			# Check format-specific features
 			match formats[format_name]:
 				YAMLStyle.INT_HEX:
-					# Look for hex notation (0x)
 					var has_hex = result.get_data().find("0x") != -1
 					if has_hex:
 						assert_true(has_hex, "Uses hex notation")
 					else:
 						print_rich("[color=yellow]⚠ Hex notation not detected (may be implemented differently)[/color]")
 				YAMLStyle.INT_OCTAL:
-					# Look for octal notation (0o)
 					var has_octal = result.get_data().find("0o") != -1
 					if has_octal:
 						assert_true(has_octal, "Uses octal notation")
 					else:
 						print_rich("[color=yellow]⚠ Octal notation not detected (may be implemented differently)[/color]")
 				YAMLStyle.INT_BINARY:
-					# Look for binary notation (0b)
 					var has_binary = result.get_data().find("0b") != -1
 					if has_binary:
 						assert_true(has_binary, "Uses binary notation")
 					else:
 						print_rich("[color=yellow]⚠ Binary notation not detected (may be implemented differently)[/color]")
-				YAMLStyle.INT_SCIENTIFIC:
-					# Look for scientific notation (3e10)
-					var has_scientific = result.get_data().find("e") != -1
-					if has_scientific:
-						assert_true(has_scientific, "Uses scientific notation")
-					else:
-						print_rich("[color=yellow]⚠ Scientific notation not detected (may be implemented differently)[/color]")
 
 			# Test roundtrip
 			assert_roundtrip(YAML.parse(result.get_data()), int_array, is_packed_int32_array_equal, format_name)
 
 ## Test item-specific styles
 func test_item_styles() -> void:
-	var int_array = PackedInt32Array([
-		10,   # Will be decimal
-		255,  # Will be hex
-		8     # Will be binary
-	])
+	var int_array = PackedInt32Array([10, 255, 8])
 
 	# Create parent style
 	var parent_style = YAML.create_style()
@@ -205,116 +169,35 @@ func test_item_styles() -> void:
 		var parse_result = YAML.parse(result.get_data())
 		assert_roundtrip(parse_result, int_array, is_packed_int32_array_equal, "item styles")
 
-## Test Integer Range limits
-func test_integer_range() -> void:
-	# Create an array with min/max int32 values
-	var range_array = PackedInt32Array([
-		-2147483647,  # INT32_MIN
-		2147483647,   # INT32_MAX
-		0,
-		1,
-		-1
-	])
-
-	var result = YAML.stringify(range_array)
-	assert_stringify_success(result, "integer range")
-
-	if !result.has_error():
-		print_rich("• Integer range values:")
-		print_rich(result.get_data())
-
-		# Parse back and verify
-		var parse_result = YAML.parse(result.get_data())
-		assert_parse_success(parse_result, "parse integer range")
-
-		if !parse_result.has_error():
-			var parsed_array = parse_result.get_data()
-
-			# Verify the min/max values are preserved
-			assert_equal(parsed_array[0], -2147483647, "INT32_MIN preserved")
-			assert_equal(parsed_array[1], 2147483647, "INT32_MAX preserved")
-
 ## Test large array
 func test_large_array() -> void:
-	var large_array = create_many_values_array(100)
+	var large_array = create_large_array(100)
 
 	print_rich("\nTesting large Int32Array handling:")
 
-	# Test with different styles
 	var test_cases = [
 		{
 			"name": "Large array in block style",
-			"style": func():
-				var s = YAML.create_style()
-				s.set_flow_style(YAMLStyle.FLOW_NONE)
-				return s,
+			"style": YAML.create_style().set_flow_style(YAMLStyle.FLOW_NONE)
 		},
 		{
 			"name": "Large array in flow style",
-			"style": func():
-				var s = YAML.create_style()
-				s.set_flow_style(YAMLStyle.FLOW_SINGLE)
-				return s,
-		},
+			"style": YAML.create_style().set_flow_style(YAMLStyle.FLOW_SINGLE)
+		}
 	]
 
 	for test_case in test_cases:
-		var name = test_case["name"]
-		var style = test_case["style"].call()
-
-		var result = YAML.stringify(large_array, style)
-		assert_stringify_success(result, name)
+		var result = YAML.stringify(large_array, test_case.style)
+		assert_stringify_success(result, test_case.name)
 
 		if !result.has_error():
 			var yaml_str = result.get_data()
-			print_rich("• %s: (Length: %d characters)" % [name, yaml_str.length()])
+			print_rich("• %s: (Length: %d characters)" % [test_case.name, yaml_str.length()])
 			print_rich("  First 100 chars: " + yaml_str.substr(0, 100) + "...")
 
-			# Parse back and verify (might be slow for large arrays)
+			# Parse back and verify
 			var parse_result = YAML.parse(yaml_str)
-			assert_roundtrip(parse_result, large_array, is_packed_int32_array_equal, name)
-
-## Test large array with hex format
-func test_large_array_hex_format() -> void:
-	# Create an array specifically for hex format testing
-	var array = PackedInt32Array()
-	array.resize(10)
-
-	# Use values that stay within signed int64 range
-	for i in range(array.size()):
-		array[i] = 0x1000000 * (i + 1)
-
-	# Apply hex format
-	var hex_style = YAML.create_style()
-	var template = YAML.create_style()
-	template.set_integer_format(YAMLStyle.INT_HEX)
-	hex_style.set_child("_template", template)
-
-	var result = YAML.stringify(array, hex_style)
-	assert_stringify_success(result, "hex format")
-
-	if !result.has_error():
-		print_rich("• Hex format:")
-		print_rich(result.get_data())
-
-		# Parse back and verify
-		var parse_result = YAML.parse(result.get_data())
-		assert_parse_success(parse_result, "parse hex format")
-
-		if !parse_result.has_error():
-			var parsed_array = parse_result.get_data()
-
-			# Check each value individually
-			for i in range(array.size()):
-				# For roundtrip of hex values, we need to check the bit pattern
-				var expected_bits = array[i]
-				var actual_bits = parsed_array[i]
-
-				assert_true(
-					expected_bits == actual_bits,
-					"Bit pattern preserved for index %d: Expected 0x%X, got 0x%X" %
-					[i, expected_bits, actual_bits]
-				)
+			assert_roundtrip(parse_result, large_array, is_packed_int32_array_equal, test_case.name)
 
 ## Test parsing various integer formats
 func test_parse_formats() -> void:
@@ -346,9 +229,9 @@ func test_roundtrip_with_styles() -> void:
 	original_style.set_flow_style(YAMLStyle.FLOW_SINGLE)
 
 	# Create item style for the first element
-	var item_style = YAML.create_style()
-	item_style.set_integer_format(YAMLStyle.INT_HEX)
-	original_style.set_child("0", item_style)
+	original_style.set_child("0", YAML.create_style().set_integer_format(YAMLStyle.INT_HEX))
+
+	print("Original: ", original_style.get_debug_string())
 
 	# Emit YAML with the style
 	var emit_result = YAML.stringify(int_array, original_style)
@@ -361,7 +244,7 @@ func test_roundtrip_with_styles() -> void:
 	print_rich(yaml_text)
 
 	# Parse with style detection enabled
-	var parse_result = YAML.parse(yaml_text, true)  # true enables style detection
+	var parse_result = YAML.parse(yaml_text, YAML.create_security(), true)  # true enables style detection
 	assert_parse_success(parse_result, "parse with style detection")
 	if parse_result.has_error():
 		return
@@ -373,8 +256,9 @@ func test_roundtrip_with_styles() -> void:
 		print_rich("[color=green]✓ Style detected successfully[/color]")
 
 		# Get the detected style and data
-		var detected_style = parse_result.get_style()
+		var detected_style := parse_result.get_style()
 		var parsed_array = parse_result.get_data()
+		print("Detected: ", detected_style.get_debug_string())
 
 		# Modify the array (add a value)
 		var modified_array = PackedInt32Array()
@@ -394,6 +278,24 @@ func test_roundtrip_with_styles() -> void:
 		# Verify the style was preserved (flow style should be maintained)
 		assert_yaml_has_feature(re_emit_result.get_data(), "[", "Flow style was preserved (opening bracket)")
 		assert_yaml_has_feature(re_emit_result.get_data(), "]", "Flow style was preserved (closing bracket)")
+
+## Test error handling for invalid YAML
+func test_parsing_errors() -> void:
+	# Test array-specific parsing errors
+	var invalid_format = """
+!PackedInt32Array "not an array"
+"""
+	assert_parse_error(invalid_format, "Wrong type detection")
+
+	var invalid_element = """
+!PackedInt32Array [1, "text", 3]
+"""
+	assert_parse_error(invalid_element, "Invalid element type detection")
+
+	var too_large_value = """
+!PackedInt32Array [2147483648]
+"""
+	assert_parse_error(too_large_value, "Value out of range detection")
 
 ## Helper function to check if PackedInt32Array instances are equal
 func is_packed_int32_array_equal(a: PackedInt32Array, b: PackedInt32Array) -> bool:

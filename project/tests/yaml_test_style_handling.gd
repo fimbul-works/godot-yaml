@@ -65,7 +65,7 @@ nested:
 """
 
 	# Parse with style detection enabled
-	var result = YAML.parse(yaml_text, true)  # true enables style detection
+	var result = YAML.parse(yaml_text, YAML.create_security(), true)  # true enables style detection
 	assert_parse_success(result, "parse with style detection")
 	if result.has_error():
 		return
@@ -256,7 +256,6 @@ func test_integer_formats() -> void:
 		{"name": "Hexadecimal", "format": YAMLStyle.INT_HEX},
 		{"name": "Octal", "format": YAMLStyle.INT_OCTAL},
 		{"name": "Binary", "format": YAMLStyle.INT_BINARY},
-		{"name": "Scientific", "format": YAMLStyle.INT_SCIENTIFIC}
 	]
 
 	for format_info in int_formats:

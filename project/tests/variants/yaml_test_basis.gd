@@ -35,19 +35,9 @@ func test_nested_styles() -> void:
 	var parent_style = YAML.create_style()
 
 	# Create different styles for each column
-	var x_style = YAML.create_style()
-	x_style.set_flow_style(YAMLStyle.FLOW_SINGLE)
-
-	var y_style = YAML.create_style()
-	y_style.set_flow_style(YAMLStyle.FLOW_NONE)
-
-	var z_style = YAML.create_style()
-	z_style.set_flow_style(YAMLStyle.FLOW_SINGLE)
-
-	# Apply nested styles
-	parent_style.set_child("x", x_style)
-	parent_style.set_child("y", y_style)
-	parent_style.set_child("z", z_style)
+	parent_style.set_child("x", YAML.create_style().set_flow_style(YAMLStyle.FLOW_SINGLE))
+	parent_style.set_child("y", YAML.create_style().set_flow_style(YAMLStyle.FLOW_NONE))
+	parent_style.set_child("z", YAML.create_style().set_flow_style(YAMLStyle.FLOW_SINGLE))
 
 	var result = YAML.stringify(basis, parent_style)
 

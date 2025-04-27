@@ -31,14 +31,12 @@ func test_flow_styles() -> void:
 	var color = Color(0.1, 0.2, 0.3, 0.4)
 	run_flow_styles_test(color, is_color_equal)
 
-## Test special color hex formats
+## Test color hex formats
 func test_hex_formats() -> void:
 	var color = Color(1, 0.5, 0, 1)  # Orange
 
 	# Test hex format with # prefix
-	var hex_style = YAML.create_style()
-	hex_style.set_binary_encoding(YAMLStyle.BIN_HEX)
-	var hex_result = YAML.stringify(color, hex_style)
+	var hex_result = YAML.stringify(color, YAML.create_style().set_binary_encoding(YAMLStyle.BIN_HEX))
 
 	assert_stringify_success(hex_result, "Hex format with # prefix")
 	if not hex_result.has_error():
@@ -48,9 +46,7 @@ func test_hex_formats() -> void:
 	assert_roundtrip(YAML.parse(hex_result.get_data()), color, is_color_equal, "# Hex format")
 
 	# Test hex format with 0x prefix
-	var hex0x_style = YAML.create_style()
-	hex0x_style.set_integer_format(YAMLStyle.INT_HEX)
-	var hex0x_result = YAML.stringify(color, hex0x_style)
+	var hex0x_result = YAML.stringify(color, YAML.create_style().set_integer_format(YAMLStyle.INT_HEX))
 
 	assert_stringify_success(hex0x_result, "Hex format with 0x prefix")
 	if not hex0x_result.has_error():
@@ -92,9 +88,7 @@ func test_alpha_channel() -> void:
 				print_rich("[color=yellow]⚠ Alpha channel representation not detected[/color]")
 
 		# Hex format
-		var hex_style = YAML.create_style()
-		hex_style.set_binary_encoding(YAMLStyle.BIN_HEX)
-		var hex_result = YAML.stringify(color, hex_style)
+		var hex_result = YAML.stringify(color, YAML.create_style().set_binary_encoding(YAMLStyle.BIN_HEX))
 
 		assert_stringify_success(hex_result, "%s hex format" % name)
 		print_rich("  Hex format: %s" % hex_result.get_data())

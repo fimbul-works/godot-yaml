@@ -16,7 +16,6 @@ YAML::Parser::Parser() {
 	evt_handler = std::make_unique<ryml::EventHandlerTree>(callbacks);
 	ryml_parser = std::make_unique<ryml::Parser>(evt_handler.get(), ryml::ParserOptions().locations(true));
 
-	factory.set_parser(ryml_parser.get());
 	init_converters();
 }
 
@@ -52,7 +51,7 @@ void YAML::Parser::error_callback(const char *msg, size_t len, ryml::Location lo
 
 	auto *parser = static_cast<Parser *>(user_data);
 	if (!parser) {
-		throw YAMLException(from_ryml_str(error_msg));
+		throw YAMLException(from_ryml_str(error_msg), loc);
 	}
 
 	parser->current_result = YAMLResult::error(
@@ -61,18 +60,15 @@ void YAML::Parser::error_callback(const char *msg, size_t len, ryml::Location lo
 			loc.col);
 
 	// Error handler MUST throw!
-	throw YAMLException(parser->current_result->get_error_message());
+	throw YAMLException(parser->current_result->get_error_message(), loc);
 }
 
-Ref<YAMLResult> YAML::Parser::parse(const String &input, const bool p_detect_style, const YAMLSecurity::View &p_security_view) {
+Ref<YAMLResult> YAML::Parser::parse(const String &input, const YAMLSecurity::View &p_security_view, const bool p_detect_style) {
 	try {
-		detect_style = p_detect_style;
-		style = detect_style ? YAML::create_style() : nullptr;
 		current_result = YAMLResult::success(Variant());
 		security_view = p_security_view;
-
-		tree.clear();
-		current_path.clear();
+		style = YAML::create_style();
+		detect_style = p_detect_style;
 
 		ryml::parse_in_arena(
 				ryml_parser.get(),
@@ -91,9 +87,7 @@ Ref<YAMLResult> YAML::Parser::parse(const String &input, const bool p_detect_sty
 			detect_style = false;
 		}
 
-		if (detect_style) {
-			detect_node_style(tree.rootref());
-		}
+		context = std::make_unique<ParserContext>(ryml_parser.get(), detect_style ? style : nullptr);
 
 		if (!current_result->has_error()) {
 			if (tree.rootref().is_stream() && tree.rootref().num_children() > 1) {
@@ -101,13 +95,14 @@ Ref<YAMLResult> YAML::Parser::parse(const String &input, const bool p_detect_sty
 				for (const auto &child : tree.rootref().children()) {
 					documents.push_back(process_node(child));
 				}
-
-				current_result = YAMLResult::success(documents, style);
+				current_result = YAMLResult::success(documents);
 			} else {
 				Variant parsed_data = process_node(tree.rootref());
 				current_result = YAMLResult::success(parsed_data, style);
 			}
 		}
+
+		context.reset();
 
 		return current_result;
 	} catch (const YAMLException &e) {
@@ -137,7 +132,11 @@ Variant YAML::Parser::process_common(const ryml::ConstNodeRef &node) const {
 	} else if (node.is_seq()) {
 		return process_sequence(node);
 	} else if (node.has_key()) {
-		return process_key(node);
+		String key = extract_key(node);
+		if (!key.is_empty()) {
+			return key;
+		}
+		return Variant();
 	} else if (node.has_val()) {
 		return process_value(node);
 	}
@@ -148,18 +147,37 @@ Variant YAML::Parser::process_common(const ryml::ConstNodeRef &node) const {
 Variant YAML::Parser::process_map(const ryml::ConstNodeRef &node) const {
 	Dictionary dict;
 
+	if (detect_style) {
+		Ref<YAMLStyle> map_style = context->current_style();
+		map_style->set_container_form(YAMLStyle::FORM_MAP);
+		if (node.is_flow()) {
+			map_style->set_flow_style(YAMLStyle::FLOW_SINGLE);
+		}
+	}
+
 	for (const auto &child : node.children()) {
-		Variant key = process_key(child);
-		if (key.get_type() == Variant::NIL && current_result->has_error()) {
+		std::optional<String> key_result = extract_key(child);
+		if (!key_result.has_value()) {
 			return Variant();
 		}
 
+		String &key_ref = key_result.value();
+
+		if (detect_style) {
+			context->push_style(key_ref);
+		}
+
 		Variant value = process_node(child);
+
+		if (detect_style) {
+			context->pop_style();
+		}
+
 		if (value.get_type() == Variant::NIL && current_result->has_error()) {
 			return Variant();
 		}
 
-		dict[key] = value;
+		dict[key_ref] = value;
 	}
 
 	return dict;
@@ -168,22 +186,53 @@ Variant YAML::Parser::process_map(const ryml::ConstNodeRef &node) const {
 Variant YAML::Parser::process_sequence(const ryml::ConstNodeRef &node) const {
 	Array arr;
 
+	if (detect_style) {
+		Ref<YAMLStyle> seq_style = context->current_style();
+		seq_style->set_container_form(YAMLStyle::FORM_SEQ);
+		if (node.is_flow()) {
+			seq_style->set_flow_style(YAMLStyle::FLOW_SINGLE);
+		}
+	}
+
+	size_t idx = 0;
 	for (const auto &child : node.children()) {
+		if (detect_style) {
+			Ref<YAMLStyle> current_style = context->current_style();
+			Ref<YAMLStyle> child_style = context->push_style(String::num_uint64(idx));
+
+			// First element style is used for template
+			if (idx == 0) {
+				current_style->set_child("_template", child_style);
+			}
+		}
+
 		Variant item = process_node(child);
+
+		if (detect_style) {
+			context->pop_style();
+		}
+
 		if (item.get_type() == Variant::NIL && current_result->has_error()) {
 			return Variant();
 		}
+
 		arr.push_back(item);
+		idx++;
+	}
+
+	// Remove any child styles that are identical to the template style
+	if (detect_style) {
+		context->current_style()->simplify();
 	}
 
 	return arr;
 }
 
-Variant YAML::Parser::process_key(const ryml::ConstNodeRef &node) const {
-	if (!node.has_key()) {
-		return Variant();
+String YAML::Parser::extract_key(const ryml::ConstNodeRef &node) const {
+	if (node.has_key()) {
+		return from_ryml_str(node.key());
 	}
-	return from_ryml_str(node.key());
+	return "";
 }
 
 Variant YAML::Parser::process_value(const ryml::ConstNodeRef &node) const {
@@ -200,6 +249,10 @@ Variant YAML::Parser::process_value(const ryml::ConstNodeRef &node) const {
 
 	if (auto num_val = try_parse_numeric_value(str_val, val)) {
 		return *num_val;
+	}
+
+	if (detect_style) {
+		YAMLStyle::detect_string_style(node, context->current_style());
 	}
 
 	return str_val;
@@ -234,13 +287,35 @@ std::optional<Variant> YAML::Parser::try_parse_special_value(const String &str_v
 }
 
 std::optional<Variant> YAML::Parser::try_parse_numeric_value(const String &str_val, const ryml::csubstr &val) const {
-	if (str_val.begins_with("0b") || str_val.begins_with("0B") || // Binary
+	if (str_val.begins_with("0x") || str_val.begins_with("0X") || // Hexadecimal
+			str_val.begins_with("0b") || str_val.begins_with("0B") || // Binary
 			str_val.begins_with("0o") || str_val.begins_with("0O") || // Octal
-			str_val.begins_with("0x") || str_val.begins_with("0X") || // Hexadecimal
 			(str_val.length() > 1 && str_val[0] == '0' && str_val[1] >= '0' && str_val[1] <= '7')) // Octal
 	{
 		try {
-			return string_to_int<int64_t>(val);
+			YAMLStyle::IntegerFormat int_format;
+			auto int_val = string_to_int<int64_t>(val, detect_style ? &int_format : nullptr);
+
+			if (detect_style) {
+				context->current_style()->set_integer_format(int_format);
+			}
+
+			return int_val;
+		} catch (const std::exception &e) {
+			return std::nullopt;
+		}
+	}
+
+	if (str_val.contains(".")) {
+		try {
+			YAMLStyle::FloatFormat float_format = YAMLStyle::FLOAT_ANY;
+			auto float_val = string_to_float<double>(val, detect_style ? &float_format : nullptr);
+
+			if (detect_style) {
+				context->current_style()->set_float_format(float_format);
+			}
+
+			return float_val;
 		} catch (const std::exception &e) {
 			return std::nullopt;
 		}
@@ -248,15 +323,14 @@ std::optional<Variant> YAML::Parser::try_parse_numeric_value(const String &str_v
 
 	if (str_val.is_valid_int()) {
 		try {
-			return string_to_int<int64_t>(val);
-		} catch (const std::exception &e) {
-			return std::nullopt;
-		}
-	}
+			YAMLStyle::IntegerFormat int_format;
+			auto int_val = string_to_int<int64_t>(val, detect_style ? &int_format : nullptr);
 
-	if (str_val.is_valid_float()) {
-		try {
-			return string_to_float<double>(val);
+			if (detect_style) {
+				context->current_style()->set_integer_format(int_format);
+			}
+
+			return int_val;
 		} catch (const std::exception &e) {
 			return std::nullopt;
 		}
@@ -268,37 +342,18 @@ std::optional<Variant> YAML::Parser::try_parse_numeric_value(const String &str_v
 std::optional<Variant> YAML::Parser::try_parse_tagged_value(const ryml::ConstNodeRef &node) const {
 	String tag = extract_tag(node);
 	if (tag.is_empty()) {
+		// Return null to continue with normal processing in process_node
 		return std::nullopt;
-	}
-
-	// Detect PackedByteArray encoding
-	if (detect_style && style.is_valid() && (tag == "PackedByteArray" || tag == "!binary")) {
-		String value = from_ryml_str(node.val());
-		bool is_hex = true;
-
-		// Simple hex detection
-		for (int i = 0; i < value.length(); i++) {
-			char32_t c = value[i];
-			if (!is_whitespace(c) && !is_hex_digit(c)) {
-				is_hex = false;
-				break;
-			}
-		}
-
-		style->set_binary_encoding(is_hex ? YAMLStyle::BIN_HEX : YAMLStyle::BIN_BASE64);
 	}
 
 	// Read !!binary as a PackedByteArray
 	if (tag == "!binary") {
-		VariantConverter *converter = get_converter_for_type(Variant::PACKED_BYTE_ARRAY);
-		if (converter) {
-			return converter->decode(node);
-		}
+		tag = "PackedByteArray";
 	}
 
 	VariantConverter *converter = get_converter_for_tag(tag);
 	if (converter) {
-		return converter->decode(node);
+		return converter->decode(node, context.get());
 	}
 
 	if (YAMLClassRegistry::has_class(tag)) {
@@ -306,6 +361,10 @@ std::optional<Variant> YAML::Parser::try_parse_tagged_value(const ryml::ConstNod
 
 		if (class_info.script_class.is_valid()) {
 			Variant data = process_common(node);
+			if (current_result->has_error()) {
+				return Variant();
+			}
+
 			Variant result = class_info.script_class->call(class_info.deserialize_method, data);
 
 			// Is it a YAMLResult?
@@ -313,7 +372,7 @@ std::optional<Variant> YAML::Parser::try_parse_tagged_value(const ryml::ConstNod
 				Ref<YAMLResult> yaml_result = result;
 
 				if (yaml_result->has_error()) {
-					throw YAMLException(yaml_result->get_error_message());
+					throw YAMLException(yaml_result->get_error_message(), ryml_parser->location(node));
 				}
 
 				return yaml_result->get_data();
@@ -327,23 +386,12 @@ std::optional<Variant> YAML::Parser::try_parse_tagged_value(const ryml::ConstNod
 		return parse_object_or_resource(node, tag);
 	}
 
-	// For unknown tags, store the tag in style if available
-	if (detect_style && style.is_valid()) {
-		// Get the current path's style
-		Ref<YAMLStyle> current_style = style;
-		for (const auto &path_element : current_path) {
-			current_style = current_style->get_child(path_element);
-			if (!current_style.is_valid()) {
-				break;
-			}
-		}
-
-		if (current_style.is_valid()) {
-			// Store the tag in custom settings
-			Dictionary custom_settings = current_style->get_custom_settings();
-			custom_settings["tag"] = tag;
-			current_style->set_custom_settings(custom_settings);
-		}
+	// Store the tag in custom settings
+	if (detect_style) {
+		Ref<YAMLStyle> current_style = context->current_style();
+		Dictionary custom_settings = current_style->get_custom_settings();
+		custom_settings["tag"] = tag;
+		current_style->set_custom_settings(custom_settings);
 	}
 
 	// Return null to continue with normal processing in process_node
@@ -354,22 +402,23 @@ Variant YAML::Parser::parse_object_or_resource(const ryml::ConstNodeRef &node, c
 	// If the node contains just a string value, it might be a resource path
 	if (node.has_val() && !node.is_map() && !node.is_seq()) {
 		String path = from_ryml_str(node.val());
+
 		if (path.begins_with("res://") || path.begins_with("user://")) {
-			return load_resource(path);
+			return load_resource(path, node);
 		}
 
-		throw YAMLException(vformat("Invalid resource path for class %s", class_name));
+		throw YAMLException(vformat("Invalid resource path '%s' for class %s", path, class_name), ryml_parser->location(node));
 	}
 
 	// Otherwise, treat it as an inline object/resource definition
 	if (!node.is_map()) {
-		throw YAMLException(vformat("Invalid node format for class %s - expected map", class_name));
+		throw YAMLException(vformat("Invalid node format for class %s - expected map", class_name), ryml_parser->location(node));
 	}
 
 	// Instantiate the object
 	Object *obj = ClassDB::instantiate(class_name);
 	if (!obj) {
-		throw YAMLException(vformat("Failed to instantiate class: %s", class_name));
+		throw YAMLException(vformat("Failed to instantiate class: %s", class_name), ryml_parser->location(node));
 	}
 
 	// Process the object's properties
@@ -377,33 +426,32 @@ Variant YAML::Parser::parse_object_or_resource(const ryml::ConstNodeRef &node, c
 
 	// Handle Resources vs regular Objects
 	if (Object::cast_to<Resource>(obj)) {
-		// For Resources, return a Ref<Resource>
 		Ref<Resource> ref(Object::cast_to<Resource>(obj));
 		return ref;
-	} else {
-		// For regular Objects, return the raw pointer
-		// The owner of the returned Variant is responsible for cleanup
-		return obj;
 	}
+
+	// For regular Objects, return the raw pointer
+	// The owner of the returned Object is responsible for cleanup
+	return obj;
 }
 
-Variant YAML::Parser::load_resource(const String &path) const {
+Variant YAML::Parser::load_resource(const String &path, const ryml::ConstNodeRef &node) const {
 	ResourceLoader *loader = ResourceLoader::get_singleton();
 	if (!loader) {
 		throw YAMLException("ResourceLoader singleton not available");
 	}
 
 	if (!security_view.is_path_allowed(path)) {
-		throw YAMLException(vformat("Resource path not allowed: %s", path));
+		throw YAMLException(vformat("Resource path not allowed: %s", path), ryml_parser->location(node));
 	}
 
 	if (!loader->exists(path)) {
-		throw YAMLException(vformat("Resource does not exist at path: %s", path));
+		throw YAMLException(vformat("Resource file not found: %s", path), ryml_parser->location(node));
 	}
 
 	Ref<Resource> resource = loader->load(path);
 	if (!resource.is_valid()) {
-		throw YAMLException(vformat("Failed to load resource from path: %s", path));
+		throw YAMLException(vformat("Failed to load resource from path: %s", path), ryml_parser->location(node));
 	}
 
 	String class_name = resource->get_class();
@@ -414,7 +462,7 @@ Variant YAML::Parser::load_resource(const String &path) const {
 	}
 
 	if (!security_view.is_resource_allowed(path, class_name)) {
-		throw YAMLException(vformat("Resource type %s not allowed from path %s", class_name, path));
+		throw YAMLException(vformat("Resource type %s not allowed from path %s", class_name, path), ryml_parser->location(node));
 	}
 
 	return resource;
@@ -423,7 +471,16 @@ Variant YAML::Parser::load_resource(const String &path) const {
 void YAML::Parser::populate_object_properties(Object *obj, const ryml::ConstNodeRef &node) const {
 	for (const auto &child : node.children()) {
 		String key = from_ryml_str(child.key());
+
+		if (detect_style) {
+			context->push_style(key);
+		}
+
 		Variant value = process_node(child);
+
+		if (detect_style) {
+			context->pop_style();
+		}
 
 		if (value.get_type() == Variant::NIL) {
 			continue;
@@ -454,160 +511,4 @@ VariantConverter *YAML::Parser::get_converter_for_type(Variant::Type type) const
 VariantConverter *YAML::Parser::get_converter_for_tag(const String &tag) const {
 	auto it = tag_converters.find(tag);
 	return it != tag_converters.end() ? it->second : nullptr;
-}
-
-void YAML::Parser::detect_node_style(const ryml::ConstNodeRef &node) {
-	if (!detect_style || !style.is_valid()) {
-		return;
-	}
-
-	// Get or create style for current path
-	Ref<YAMLStyle> current_style;
-
-	if (current_path.is_empty()) {
-		current_style = style; // Use root style
-	} else {
-		// Navigate to current path
-		current_style = style;
-		for (const auto &path_element : current_path) {
-			Ref<YAMLStyle> child = current_style->get_child(path_element);
-			if (!child.is_valid()) {
-				child.instantiate();
-				current_style->set_child(path_element, child);
-			}
-
-			current_style = child;
-		}
-	}
-
-	detect_node_style_internal(node, current_style);
-}
-
-void YAML::Parser::detect_node_style(const ryml::ConstNodeRef &node, const Ref<YAMLStyle> &target_style) {
-	if (!detect_style || !target_style.is_valid()) {
-		return;
-	}
-
-	detect_node_style_internal(node, target_style);
-}
-
-void YAML::Parser::detect_node_style_internal(const ryml::ConstNodeRef &node, const Ref<YAMLStyle> &current_style) {
-	// Detect styles for this node
-	detect_scalar_style(node, current_style);
-	detect_container_form(node, current_style);
-
-	// Store custom tag if present
-	String tag = extract_tag(node);
-	if (!tag.is_empty()) {
-		Dictionary custom_settings = current_style->get_custom_settings();
-		custom_settings["tag"] = tag;
-		current_style->set_custom_settings(custom_settings);
-	}
-
-	// For map nodes, process children with updated path
-	if (node.is_map()) {
-		for (const auto &child : node.children()) {
-			String key = String::utf8(child.key().str, child.key().len);
-			auto new_path = current_path;
-			new_path.append(key);
-			current_path = new_path;
-			detect_node_style(child); // Use original method for path-based detection
-			current_path.remove_at(current_path.size() - 1);
-		}
-	}
-
-	// For sequence nodes, use indices as path elements
-	else if (node.is_seq()) {
-		// First detect template style if needed
-		detect_array_template_style(node, current_path.is_empty() ? String("_template") : current_path[current_path.size() - 1], current_style);
-
-		// Then process each element
-		int index = 0;
-		for (const auto &child : node.children()) {
-			auto new_path = current_path;
-			new_path.push_back(String::num_int64(index++));
-			current_path = new_path;
-			detect_node_style(child); // Use original method for path-based detection
-			current_path.remove_at(current_path.size() - 1);
-		}
-	}
-}
-
-void YAML::Parser::detect_scalar_style(const ryml::ConstNodeRef &node, const Ref<YAMLStyle> &style) {
-	if (!node.has_val()) {
-		return;
-	}
-
-	if (node.is_val_literal()) {
-		style->set_string_style(YAMLStyle::STRING_LITERAL);
-		return;
-	} else if (node.is_val_folded()) {
-		style->set_string_style(YAMLStyle::STRING_FOLDED);
-		return;
-	} else if (node.is_val_quoted()) {
-		style->set_string_style(node.is_val_squo() ? YAMLStyle::STRING_QUOTE_SINGLE : YAMLStyle::STRING_QUOTE_DOUBLE);
-		return;
-	}
-
-	String value = from_ryml_str(node.val());
-
-	if (value.is_valid_float()) {
-		if (value.find("e") != -1 || value.find("E") != -1) {
-			style->set_float_format(YAMLStyle::FLOAT_SCIENTIFIC);
-		} else {
-			style->set_float_format(YAMLStyle::FLOAT_DECIMAL);
-		}
-		return;
-	}
-
-	if (value.is_valid_int()) {
-		if (value.begins_with("0x") || value.begins_with("0X")) {
-			style->set_integer_format(YAMLStyle::INT_HEX);
-		} else if (value.begins_with("0o") || value.begins_with("0O")) {
-			style->set_integer_format(YAMLStyle::INT_OCTAL);
-		} else if (value.begins_with("0b") || value.begins_with("0B")) {
-			style->set_integer_format(YAMLStyle::INT_BINARY);
-		} else if (value.find("e") != -1 || value.find("E") != -1) {
-			style->set_integer_format(YAMLStyle::INT_SCIENTIFIC);
-		} else {
-			style->set_integer_format(YAMLStyle::INT_DECIMAL);
-		}
-		return;
-	}
-}
-
-void YAML::Parser::detect_container_form(const ryml::ConstNodeRef &node, const Ref<YAMLStyle> &style) {
-	if (node.is_seq()) {
-		style->set_container_form(YAMLStyle::FORM_SEQ);
-	} else if (node.is_map()) {
-		style->set_container_form(YAMLStyle::FORM_MAP);
-	} else {
-		style->set_container_form(YAMLStyle::FORM_ANY);
-	}
-
-	if (node.is_flow()) {
-		style->set_flow_style(YAMLStyle::FLOW_SINGLE);
-	} else {
-		style->set_flow_style(YAMLStyle::FLOW_NONE);
-	}
-}
-
-void YAML::Parser::detect_array_template_style(const ryml::ConstNodeRef &node, const String &key, Ref<YAMLStyle> current_style) {
-	if (!detect_style || !current_style.is_valid() || !node.is_seq() || node.num_children() == 0) {
-		return;
-	}
-
-	Ref<YAMLStyle> template_style;
-	template_style.instantiate();
-
-	// Save current path
-	auto saved_path = current_path;
-	current_path.clear();
-
-	// Detect style for the first element
-	detect_node_style(node[0], template_style);
-	current_style->set_child("_template", template_style);
-
-	// Restore path
-	current_path = saved_path;
 }

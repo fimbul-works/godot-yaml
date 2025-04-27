@@ -24,6 +24,10 @@ public:
 
 	const String &get_godot_message() const { return godot_message; }
 
+	const ryml::Location &get_location() const {
+		return m_location;
+	}
+
 	const size_t get_line() const {
 		return m_location.line;
 	}

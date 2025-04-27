@@ -10,10 +10,7 @@ public:
 	DEFINE_YAML_TAG("StringName", Variant::STRING_NAME)
 
 	void encode(ryml::NodeRef &node, const Variant &v, const YAMLStyle::View &style) const override;
-	Variant decode(const ryml::ConstNodeRef &node) const override;
-
-private:
-	Variant decode_from_string(const ryml::csubstr &val) const;
+	Variant decode(const ryml::ConstNodeRef &node, ParserContext *context) const override;
 };
 
 } // namespace godot

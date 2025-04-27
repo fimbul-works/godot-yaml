@@ -64,10 +64,8 @@ func test_flow_styles() -> void:
 	# Use a simple array for testing styles
 	var color_array = PackedColorArray([Color.RED, Color.GREEN, Color.BLUE])
 
-	# Test flow style (compact)
-	var flow_style = YAML.create_style()
-	flow_style.set_flow_style(YAMLStyle.FLOW_SINGLE)
-	var flow_result = YAML.stringify(color_array, flow_style)
+	# Test flow style
+	var flow_result = YAML.stringify(color_array, YAML.create_style().set_flow_style(YAMLStyle.FLOW_SINGLE))
 
 	assert_stringify_success(flow_result, "Flow style")
 	if !flow_result.has_error():
@@ -77,11 +75,10 @@ func test_flow_styles() -> void:
 		# Verify it contains flow indicators (brackets)
 		assert_yaml_has_feature(flow_result.get_data(), "[", "Contains opening bracket")
 		assert_yaml_has_feature(flow_result.get_data(), "]", "Contains closing bracket")
+	assert_roundtrip(YAML.parse(flow_result.get_data()), color_array, is_packed_color_array_equal, "Flow style")
 
-	# Test block style (expanded)
-	var block_style = YAML.create_style()
-	block_style.set_flow_style(YAMLStyle.FLOW_NONE)
-	var block_result = YAML.stringify(color_array, block_style)
+	# Test block style
+	var block_result = YAML.stringify(color_array, YAML.create_style().set_flow_style(YAMLStyle.FLOW_NONE))
 
 	assert_stringify_success(block_result, "Block style")
 	if !block_result.has_error():
@@ -90,10 +87,7 @@ func test_flow_styles() -> void:
 
 		# Verify it uses proper block style for a sequence
 		assert_yaml_has_feature(block_result.get_data(), "- ", "Contains block sequence indicators")
-
-	# Test roundtrip for both styles
-	assert_roundtrip(YAML.parse(flow_result.get_data()), color_array, is_packed_color_array_equal, "flow style")
-	assert_roundtrip(YAML.parse(block_result.get_data()), color_array, is_packed_color_array_equal, "block style")
+	assert_roundtrip(YAML.parse(block_result.get_data()), color_array, is_packed_color_array_equal, "Block style")
 
 ## Test item-specific styles
 func test_item_styles() -> void:
@@ -107,8 +101,7 @@ func test_item_styles() -> void:
 	var parent_style = YAML.create_style()
 
 	# Create special style for all items
-	var template = YAML.create_style()
-	template.set_binary_encoding(YAMLStyle.BIN_HEX)  # Use hex representation for colors
+	var template = YAML.create_style().set_binary_encoding(YAMLStyle.BIN_HEX) # Use hex representation for colors
 
 	# Create specific style for one item
 	var item0_style = YAML.create_style()
@@ -120,7 +113,7 @@ func test_item_styles() -> void:
 
 	var result = YAML.stringify(color_array, parent_style)
 
-	assert_stringify_success(result, "item styles")
+	assert_stringify_success(result, "Item styles")
 	if !result.has_error():
 		print_rich("• Item-specific styles:")
 		print_rich(result.get_data())
@@ -129,7 +122,7 @@ func test_item_styles() -> void:
 		assert_yaml_has_feature(result.get_data(), "#", "Uses hex color format")
 
 	# Test roundtrip
-	assert_roundtrip(YAML.parse(result.get_data()), color_array, is_packed_color_array_equal, "item styles")
+	assert_roundtrip(YAML.parse(result.get_data()), color_array, is_packed_color_array_equal, "Item styles")
 
 ## Test _template child style with FORM_SEQ and FORM_MAP
 func test_template_container_forms() -> void:
@@ -140,10 +133,7 @@ func test_template_container_forms() -> void:
 	])
 
 	# Test with FORM_SEQ for items
-	var seq_style = YAML.create_style()
-	var items_seq_style = YAML.create_style()
-	items_seq_style.set_container_form(YAMLStyle.FORM_SEQ)
-	seq_style.set_child("_template", items_seq_style)
+	var seq_style = YAML.create_style().set_child("_template", YAML.create_style().set_container_form(YAMLStyle.FORM_SEQ))
 
 	var seq_result = YAML.stringify(color_array, seq_style)
 	assert_stringify_success(seq_result, "array with items in sequence form")
@@ -161,10 +151,7 @@ func test_template_container_forms() -> void:
 	assert_roundtrip(YAML.parse(seq_result.get_data()), color_array, is_packed_color_array_equal, "Items with FORM_SEQ")
 
 	# Test with FORM_MAP for items (default, but let's be explicit)
-	var map_style = YAML.create_style()
-	var template_map = YAML.create_style()
-	template_map.set_container_form(YAMLStyle.FORM_MAP)
-	map_style.set_child("_template", template_map)
+	var map_style = YAML.create_style().set_child("_template", YAML.create_style().set_container_form(YAMLStyle.FORM_MAP))
 
 	var map_result = YAML.stringify(color_array, map_style)
 	assert_stringify_success(map_result, "Array with items in map form")
@@ -279,7 +266,7 @@ func test_roundtrip_with_styles() -> void:
 	print_rich(yaml_text)
 
 	# Parse with style detection enabled
-	var parse_result = YAML.parse(yaml_text, true)  # true enables style detection
+	var parse_result = YAML.parse(yaml_text, YAML.create_security(), true)  # true enables style detection
 	assert_parse_success(parse_result, "parse with style detection")
 	if parse_result.has_error():
 		return

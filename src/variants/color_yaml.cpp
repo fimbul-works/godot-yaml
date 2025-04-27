@@ -6,21 +6,14 @@ using namespace godot;
 
 void ColorVariantConverter::encode(ryml::NodeRef &node, const Variant &v, const YAMLStyle::View &style) const {
 	const Color color = v.operator Color();
-	const bool has_alpha = color.a < 1.0f;
 
-	if (style.get_integer_format() == YAMLStyle::INT_HEX) {
-		emit_as_hex(node, color, has_alpha, "0x");
-	} else if (style.get_binary_encoding() == YAMLStyle::BIN_HEX) {
-		emit_as_hex(node, color, has_alpha, "#");
+	if (style.get_container_form() == YAMLStyle::FORM_MAP) {
+		emit_as_map(node, color, style);
 	} else if (style.get_container_form() == YAMLStyle::FORM_SEQ) {
 		emit_as_sequence(node, color, style);
 	} else {
-		emit_as_map(node, color, style);
+		node << store_string(color.to_html(color.a < 1.0f));
 	}
-}
-
-void ColorVariantConverter::emit_as_hex(ryml::NodeRef &node, const Color &color, bool with_alpha, const char *prefix) const {
-	node << color_to_hex(color, with_alpha, prefix);
 }
 
 void ColorVariantConverter::emit_as_map(ryml::NodeRef &node, const Color &color, const YAMLStyle::View &style) const {
@@ -28,12 +21,17 @@ void ColorVariantConverter::emit_as_map(ryml::NodeRef &node, const Color &color,
 
 	style.apply_flow_style(node);
 
-	YAMLStyle::FloatFormat float_format = style.get_float_format();
-	node["r"] << float_to_string(color.r, float_format);
-	node["g"] << float_to_string(color.g, float_format);
-	node["b"] << float_to_string(color.b, float_format);
+	YAMLStyle::FloatFormat r_format = style.has_child("r") ? style.get_child("r").get_float_format() : style.get_float_format();
+	YAMLStyle::FloatFormat g_format = style.has_child("g") ? style.get_child("g").get_float_format() : style.get_float_format();
+	YAMLStyle::FloatFormat b_format = style.has_child("b") ? style.get_child("b").get_float_format() : style.get_float_format();
+
+	node["r"] << float_to_string(color.r, r_format);
+	node["g"] << float_to_string(color.g, g_format);
+	node["b"] << float_to_string(color.b, b_format);
+
 	if (color.a < 1.0f) {
-		node["a"] << float_to_string(color.a, float_format);
+		YAMLStyle::FloatFormat a_format = style.has_child("a") ? style.get_child("a").get_float_format() : style.get_float_format();
+		node["a"] << float_to_string(color.a, a_format);
 	}
 }
 
@@ -42,137 +40,171 @@ void ColorVariantConverter::emit_as_sequence(ryml::NodeRef &node, const Color &c
 
 	style.apply_flow_style(node);
 
-	YAMLStyle::FloatFormat float_format = style.is_valid() ? style.get_float_format() : YAMLStyle::FLOAT_ANY;
-	node.append_child() << float_to_string(color.r, float_format);
-	node.append_child() << float_to_string(color.g, float_format);
-	node.append_child() << float_to_string(color.b, float_format);
+	YAMLStyle::FloatFormat r_format = style.has_child("r") ? style.get_child("r").get_float_format() : style.get_float_format();
+	YAMLStyle::FloatFormat g_format = style.has_child("g") ? style.get_child("g").get_float_format() : style.get_float_format();
+	YAMLStyle::FloatFormat b_format = style.has_child("b") ? style.get_child("b").get_float_format() : style.get_float_format();
+
+	node.append_child() << float_to_string(color.r, r_format);
+	node.append_child() << float_to_string(color.g, g_format);
+	node.append_child() << float_to_string(color.b, b_format);
+
 	if (color.a < 1.0f) {
-		node.append_child() << float_to_string(color.a, float_format);
+		YAMLStyle::FloatFormat a_format = style.has_child("a") ? style.get_child("a").get_float_format() : style.get_float_format();
+		node.append_child() << float_to_string(color.a, a_format);
 	}
 }
 
-Variant ColorVariantConverter::decode(const ryml::ConstNodeRef &node) const {
+Variant ColorVariantConverter::decode(const ryml::ConstNodeRef &node, ParserContext *context) const {
 	try {
-		if (node.has_val() && !node.val_is_null()) {
-			if (node.val().begins_with("0x") || node.val().begins_with("#")) {
-				return decode_hex(node);
-			}
-		}
-
 		if (node.is_map()) {
-			return decode_map(node);
+			return decode_map(node, context);
 		}
 
 		if (node.is_seq()) {
-			return decode_sequence(node);
+			return decode_sequence(node, context);
 		}
 
-		throw create_invalid_format_exception("Color", node);
+		if (node.has_val() && !node.val_is_null()) {
+			return decode_string(node);
+		}
+
+		throw create_invalid_format_exception(node);
 	} catch (const YAMLException &) {
 		throw; // Re-throw YAML exceptions
 	} catch (const std::exception &e) {
-		throw create_decode_error_exception("Color", e.what(), node);
+		throw create_decode_error_exception(e.what(), node);
 	}
 }
 
-Color ColorVariantConverter::parse_hex_components(const String &hex_str, int offset, size_t expected_length, const ryml::ConstNodeRef &node) const {
-	bool has_alpha = hex_str.length() == expected_length + 2;
-
-	if (hex_str.length() < offset + 6 + (has_alpha ? 2 : 0)) {
-		throw create_exception("Invalid hex color length", node);
-	}
-
-	try {
-		for (int i = offset; i < offset + 6 + (has_alpha ? 2 : 0); ++i) {
-			if (!is_hex_char(hex_str[i])) {
-				throw create_exception(vformat("Invalid hex color: %s", hex_str), node);
-			}
-		}
-
-		int r = hex_str.substr(offset, 2).hex_to_int();
-		int g = hex_str.substr(offset + 2, 2).hex_to_int();
-		int b = hex_str.substr(offset + 4, 2).hex_to_int();
-		int a = has_alpha ? hex_str.substr(offset + 6, 2).hex_to_int() : 255;
-
-		return Color(
-				static_cast<float>(r) / COLOR_COMPONENT_MAX,
-				static_cast<float>(g) / COLOR_COMPONENT_MAX,
-				static_cast<float>(b) / COLOR_COMPONENT_MAX,
-				static_cast<float>(a) / COLOR_COMPONENT_MAX);
-	} catch (const YAMLException &) {
-		throw; // Re-throw YAML exceptions
-	} catch (const std::exception &e) {
-		throw create_exception(vformat("Invalid hex color format: %s", e.what()), node);
-	}
-}
-
-Variant ColorVariantConverter::decode_hex(const ryml::ConstNodeRef &node) const {
-	String hex_str = from_ryml_str(node.val());
-
-	try {
-		if (hex_str[0] == '#') {
-			return parse_hex_components(hex_str, 1, HEX_STRING_LENGTH, node);
-		} else if (hex_str.begins_with("0x")) {
-			return parse_hex_components(hex_str, 2, HEX_NUMBER_LENGTH, node);
-		}
-		throw create_exception("Invalid hex color format", node);
-	} catch (const YAMLException &) {
-		throw;
-	} catch (const std::exception &e) {
-		throw create_exception(vformat("Failed to parse hex color: %s", e.what()), node);
-	}
-}
-
-Variant ColorVariantConverter::decode_map(const ryml::ConstNodeRef &node) const {
+Variant ColorVariantConverter::decode_map(const ryml::ConstNodeRef &node, ParserContext *context) const {
 	check_required_fields(node, { "r", "g", "b" });
 
-	real_t r = string_to_float<real_t>(node["r"].val());
-	real_t g = string_to_float<real_t>(node["g"].val());
-	real_t b = string_to_float<real_t>(node["b"].val());
-	real_t a = node.has_child("a") ? string_to_float<real_t>(node["a"].val()) : 1.0f;
+	if (context->detect_style) {
+		Ref<YAMLStyle> style = context->current_style();
+		YAMLStyle::detect_flow_style(node, style);
+		style->set_container_form(YAMLStyle::FORM_MAP);
 
-	if (r < 0.0f) {
-		throw create_exception("Negative color component value (r)", node);
+		context->push_style("r");
 	}
 
-	if (g < 0.0f) {
-		throw create_exception("Negative color component value (g)", node);
+	YAMLStyle::FloatFormat r_format;
+	real_t r = string_to_float<real_t>(node["r"].val(), &r_format);
+
+	if (context->detect_style) {
+		context->current_style()->set_float_format(r_format);
+		context->pop_style();
+		context->push_style("g");
 	}
 
-	if (b < 0.0f) {
-		throw create_exception("Negative color component value (b)", node);
+	YAMLStyle::FloatFormat g_format;
+	real_t g = string_to_float<real_t>(node["g"].val(), &g_format);
+
+	if (context->detect_style) {
+		context->current_style()->set_float_format(g_format);
+		context->pop_style();
+		context->push_style("b");
 	}
 
-	if (a < 0.0f) {
-		throw create_exception("Negative color component value (a)", node);
+	YAMLStyle::FloatFormat b_format;
+	real_t b = string_to_float<real_t>(node["b"].val(), &b_format);
+
+	if (context->detect_style) {
+		context->current_style()->set_float_format(b_format);
+		context->pop_style();
+		context->push_style("a");
 	}
+
+	YAMLStyle::FloatFormat a_format;
+	real_t a = node.has_child("a") ? string_to_float<real_t>(node["a"].val(), &a_format) : 1.0f;
+
+	if (context->detect_style) {
+		context->current_style()->set_float_format(a_format);
+		context->pop_style();
+	}
+
+	check_negative(r, g, b, a, node);
 
 	return Color(r, g, b, a);
 }
 
-Variant ColorVariantConverter::decode_sequence(const ryml::ConstNodeRef &node) const {
+Variant ColorVariantConverter::decode_sequence(const ryml::ConstNodeRef &node, ParserContext *context) const {
 	const size_t size = node.num_children();
 	if (size != 3 && size != 4) {
 		throw create_exception("Color sequence must have 3 or 4 elements (RGB[A])", node);
 	}
 
-	real_t r = string_to_float<real_t>(node[0].val());
-	real_t g = string_to_float<real_t>(node[1].val());
-	real_t b = string_to_float<real_t>(node[2].val());
-	real_t a = size == 4 ? string_to_float<real_t>(node[3].val()) : 1.0f;
+	if (context->detect_style) {
+		Ref<YAMLStyle> style = context->current_style();
+		YAMLStyle::detect_flow_style(node, style);
+		style->set_container_form(YAMLStyle::FORM_SEQ);
+
+		context->push_style("r");
+	}
+
+	YAMLStyle::FloatFormat r_format;
+	real_t r = string_to_float<real_t>(node[0].val(), &r_format);
+
+	if (context->detect_style) {
+		context->current_style()->set_float_format(r_format);
+		context->pop_style();
+		context->push_style("g");
+	}
+
+	YAMLStyle::FloatFormat g_format;
+	real_t g = string_to_float<real_t>(node[1].val(), &g_format);
+
+	if (context->detect_style) {
+		context->current_style()->set_float_format(g_format);
+		context->pop_style();
+		context->push_style("b");
+	}
+
+	YAMLStyle::FloatFormat b_format;
+	real_t b = string_to_float<real_t>(node[2].val(), &b_format);
+
+	if (context->detect_style) {
+		context->current_style()->set_float_format(b_format);
+		context->pop_style();
+		context->push_style("a");
+	}
+
+	YAMLStyle::FloatFormat a_format;
+	real_t a = size == 4 ? string_to_float<real_t>(node[3].val(), &a_format) : 1.0f;
+
+	if (context->detect_style) {
+		context->current_style()->set_float_format(size == 4 ? a_format : r_format);
+		context->pop_style();
+	}
+
+	check_negative(r, g, b, a, node);
 
 	return Color(r, g, b, a);
 }
 
-ryml::csubstr ColorVariantConverter::color_to_hex(const Color &color, bool with_alpha, const char *prefix) const {
-	uint8_t r = static_cast<uint8_t>(CLAMP(color.r * COLOR_COMPONENT_MAX, 0.0f, COLOR_COMPONENT_MAX));
-	uint8_t g = static_cast<uint8_t>(CLAMP(color.g * COLOR_COMPONENT_MAX, 0.0f, COLOR_COMPONENT_MAX));
-	uint8_t b = static_cast<uint8_t>(CLAMP(color.b * COLOR_COMPONENT_MAX, 0.0f, COLOR_COMPONENT_MAX));
+Variant ColorVariantConverter::decode_string(const ryml::ConstNodeRef &node) const {
+	String str = from_ryml_str(node.val());
 
-	if (with_alpha) {
-		uint8_t a = static_cast<uint8_t>(CLAMP(color.a * COLOR_COMPONENT_MAX, 0.0f, COLOR_COMPONENT_MAX));
-		return string_pool.store(vformat("%s%02X%02X%02X%02X", prefix, r, g, b, a));
+	if (!Color::html_is_valid(str) && Color::find_named_color(str) == -1) {
+		throw create_exception(vformat("Invalid Color string: %s", str), node);
 	}
 
-	return string_pool.store(vformat("%s%02X%02X%02X", prefix, r, g, b));
+	return Color::from_string(str, Color(1.0f, 1.0f, 1.0f, 1.0f));
+}
+
+void ColorVariantConverter::check_negative(real_t r, real_t g, real_t b, real_t a, const ryml::ConstNodeRef &node) const {
+	if (r < 0.0f) {
+		throw create_exception("Negative Color component value (r)", node);
+	}
+
+	if (g < 0.0f) {
+		throw create_exception("Negative Color component value (g)", node);
+	}
+
+	if (b < 0.0f) {
+		throw create_exception("Negative Color component value (b)", node);
+	}
+
+	if (a < 0.0f) {
+		throw create_exception("Negative Color component value (a)", node);
+	}
 }

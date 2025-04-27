@@ -119,7 +119,6 @@ func test_number_formats() -> void:
 		"Hex": YAMLStyle.INT_HEX,
 		"Octal": YAMLStyle.INT_OCTAL,
 		"Binary": YAMLStyle.INT_BINARY,
-		"Scientific": YAMLStyle.INT_SCIENTIFIC
 	}
 
 	for format_name in formats:
@@ -156,13 +155,6 @@ func test_number_formats() -> void:
 					var has_binary = result.get_data().find("0b") != -1
 					if has_binary:
 						assert_true(has_binary, "Uses binary notation")
-					else:
-						print_rich("[color=yellow]⚠ Binary notation not detected (may be implemented differently)[/color]")
-				YAMLStyle.INT_SCIENTIFIC:
-					# Look for binary notation (0b)
-					var has_scientific = result.get_data().find("e") != -1
-					if has_scientific:
-						assert_true(has_scientific, "Uses scientific notation")
 					else:
 						print_rich("[color=yellow]⚠ Binary notation not detected (may be implemented differently)[/color]")
 
@@ -396,7 +388,7 @@ func test_roundtrip_with_styles() -> void:
 	print_rich(yaml_text)
 
 	# Parse with style detection enabled
-	var parse_result = YAML.parse(yaml_text, true)  # true enables style detection
+	var parse_result = YAML.parse(yaml_text, YAML.create_security(), true)  # true enables style detection
 	assert_parse_success(parse_result, "parse with style detection")
 	if parse_result.has_error():
 		return

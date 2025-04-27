@@ -179,11 +179,11 @@ void YAML::Emitter::emit_bool(ryml::NodeRef &node, bool value) {
 
 void YAML::Emitter::emit_number(ryml::NodeRef &node, const Variant &value, const YAMLStyle::View &style) {
 	if (value.get_type() == Variant::INT) {
-		YAMLStyle::IntegerFormat format = style.is_valid() ? style.get_integer_format() : YAMLStyle::INT_ANY;
+		YAMLStyle::IntegerFormat format = style.get_integer_format();
 		int64_t int_val = static_cast<int64_t>(value.operator int64_t());
 		node << int_to_string(int_val, format);
 	} else {
-		YAMLStyle::FloatFormat format = style.is_valid() ? style.get_float_format() : YAMLStyle::FLOAT_ANY;
+		YAMLStyle::FloatFormat format = style.get_float_format();
 		double float_val = static_cast<double>(value.operator double());
 		node << float_to_string(float_val, format);
 	}
@@ -223,15 +223,13 @@ void YAML::Emitter::emit_string(ryml::NodeRef &node, const String &value, const 
 void YAML::Emitter::emit_array(ryml::NodeRef &node, const Array &array, const YAMLStyle::View &style) {
 	node |= ryml::SEQ;
 
+	style.apply_flow_style(node);
+
 	if (array.size() == 0) {
 		return;
 	}
 
-	if (style.is_valid()) {
-		style.apply_flow_style(node);
-	}
-
-	YAMLStyle::View template_style = style.is_valid() ? style.get_template_style() : YAMLStyle::View();
+	YAMLStyle::View template_style = style.get_template_style();
 
 	for (int i = 0; i < array.size(); i++) {
 		// Check for individual item style
@@ -253,9 +251,7 @@ void YAML::Emitter::emit_array(ryml::NodeRef &node, const Array &array, const YA
 void YAML::Emitter::emit_dictionary(ryml::NodeRef &node, const Dictionary &dict, const YAMLStyle::View &style) {
 	node |= ryml::MAP;
 
-	if (style.is_valid() && style.get_flow_style() == YAMLStyle::FLOW_SINGLE) {
-		node |= ryml::FLOW_SL;
-	}
+	style.apply_flow_style(node);
 
 	Array keys = dict.keys();
 

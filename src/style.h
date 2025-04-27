@@ -47,7 +47,6 @@ public:
 		INT_HEX, // Hexadecimal (0xFF)
 		INT_OCTAL, // Octal (0o700)
 		INT_BINARY, // Binary (0b1010)
-		INT_SCIENTIFIC // Scientific (1.23e+4)
 	};
 
 	enum FloatFormat {
@@ -65,81 +64,59 @@ public:
 	YAMLStyle();
 
 	// Style setters/getters
-	bool has_container_form = false;
-	void set_container_form(ContainerForm p_style) {
-		container_form = p_style;
-		has_container_form = p_style != FORM_ANY;
-	}
-	ContainerForm get_container_form() const { return container_form; }
+	Ref<YAMLStyle> set_container_form(ContainerForm p_style);
+	ContainerForm get_container_form() const;
 
-	bool has_flow_style = false;
-	void set_flow_style(FlowStyle p_style) {
-		flow_style = p_style;
-		has_flow_style = p_style != FLOW_ANY;
-	}
-	FlowStyle get_flow_style() const { return flow_style; }
+	Ref<YAMLStyle> set_flow_style(FlowStyle p_style);
+	FlowStyle get_flow_style() const;
 
-	bool has_string_style = false;
-	void set_string_style(StringStyle p_style) {
-		string_style = p_style;
-		has_string_style = p_style != STRING_ANY;
-	}
-	StringStyle get_string_style() const { return string_style; }
+	Ref<YAMLStyle> set_string_style(StringStyle p_style);
+	StringStyle get_string_style() const;
 
-	bool has_integer_format = false;
-	void set_integer_format(IntegerFormat p_format) {
-		integer_format = p_format;
-		has_integer_format = p_format != INT_ANY;
-	}
-	IntegerFormat get_integer_format() const { return integer_format; }
+	Ref<YAMLStyle> set_integer_format(IntegerFormat p_format);
+	IntegerFormat get_integer_format() const;
 
-	bool has_float_format = false;
-	void set_float_format(FloatFormat p_format) {
-		float_format = p_format;
-		has_float_format = p_format != FLOAT_ANY;
-	}
-	FloatFormat get_float_format() const { return float_format; }
+	Ref<YAMLStyle> set_float_format(FloatFormat p_format);
+	FloatFormat get_float_format() const;
 
-	bool has_binary_encoding = false;
-	void set_binary_encoding(BinaryEncoding p_encoding) {
-		binary_encoding = p_encoding;
-		has_binary_encoding = p_encoding != BIN_ANY;
-	}
-	BinaryEncoding get_binary_encoding() const { return binary_encoding; }
+	Ref<YAMLStyle> set_binary_encoding(BinaryEncoding p_encoding);
+	BinaryEncoding get_binary_encoding() const;
 
-	bool has_custom_settings = false;
-	void set_custom_settings(Dictionary p_custom) {
-		custom_settings = p_custom;
-		has_custom_settings = true;
-	}
-	Dictionary get_custom_settings() const { return custom_settings; }
+	Ref<YAMLStyle> set_custom_settings(Dictionary p_custom);
+	Dictionary get_custom_settings() const;
 
-	void set_custom_tag(const String &p_tag) {
-		custom_settings["tag"] = p_tag;
-	}
-	String get_custom_tag() const {
-		Dictionary custom = get_custom_settings();
-		if (custom.has("tag")) {
-			return custom["tag"];
-		}
-		return "";
-	}
+	Ref<YAMLStyle> set_custom_tag(const String &p_tag);
+	String get_custom_tag() const;
+
+	// Style detection helpers
+	static void detect_flow_style(const ryml::ConstNodeRef &node, const Ref<YAMLStyle> &style);
+	static void detect_string_style(const ryml::ConstNodeRef &node, const Ref<YAMLStyle> &style);
 
 	// Helper methods
 	bool is_block_style() const;
 	bool uses_quotes() const;
 	bool uses_flow() const;
 
+	// Style simplification
+	uint32_t hash() const;
+	void simplify();
+
 	// Child style management
 	Ref<YAMLStyle> get_child(const String &key) const;
-	void set_child(const String &key, const Ref<YAMLStyle> &style);
+	Ref<YAMLStyle> set_child(const String &key, const Ref<YAMLStyle> &style);
 	bool has_child(const String &key) const;
-	void clear_child(const String &key);
-	void clear_children();
+	Ref<YAMLStyle> clear_child(const String &key);
+	Ref<YAMLStyle> clear_children();
 	Array get_children_keys() const;
 
 	// Debug helper
 	String get_debug_string() const;
+	static String container_form_string(ContainerForm p_style);
+	static String flow_style_string(FlowStyle p_style);
+	static String string_style_string(StringStyle p_style);
+	static String integer_format_string(IntegerFormat p_format);
+	static String float_format_string(FloatFormat p_format);
+	static String binary_encoding_string(BinaryEncoding p_encoding);
 
 	// Custom settings
 	Dictionary custom_settings;
@@ -148,21 +125,22 @@ protected:
 	static void _bind_methods();
 
 private:
-	ContainerForm container_form;
-	FlowStyle flow_style;
-	StringStyle string_style;
-	IntegerFormat integer_format;
-	FloatFormat float_format;
-	BinaryEncoding binary_encoding;
+	ContainerForm container_form = FORM_ANY;
+	FlowStyle flow_style = FLOW_ANY;
+	StringStyle string_style = STRING_ANY;
+	IntegerFormat integer_format = INT_ANY;
+	FloatFormat float_format = FLOAT_ANY;
+	BinaryEncoding binary_encoding = BIN_ANY;
+
+	bool has_container_form = false;
+	bool has_flow_style = false;
+	bool has_string_style = false;
+	bool has_integer_format = false;
+	bool has_float_format = false;
+	bool has_binary_encoding = false;
+	bool has_custom_settings = false;
 
 	std::unordered_map<String, Ref<YAMLStyle>, StringHasher, StringEqual> child_styles;
-
-	static String get_container_form_string(ContainerForm p_style);
-	static String get_flow_style_string(FlowStyle p_style);
-	static String get_string_style_string(StringStyle p_style);
-	static String get_integer_format_string(IntegerFormat p_format);
-	static String get_float_format_string(FloatFormat p_format);
-	static String get_binary_encoding_string(BinaryEncoding p_encoding);
 };
 
 } // namespace godot

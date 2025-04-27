@@ -1,7 +1,8 @@
-[gd_scene load_steps=31 format=3 uid="uid://cnu3gk1llwbuv"]
+[gd_scene load_steps=32 format=3 uid="uid://cnu3gk1llwbuv"]
 
 [ext_resource type="Script" path="res://tests/yaml_test_common.gd" id="1_4w4bf"]
 [ext_resource type="Script" path="res://tests/variants/yaml_test_aabb.gd" id="1_bnbgw"]
+[ext_resource type="Script" path="res://tests/x.gd" id="1_iinjp"]
 [ext_resource type="Script" path="res://tests/variants/yaml_test_basis.gd" id="2_27woj"]
 [ext_resource type="Script" path="res://tests/yaml_test_style_handling.gd" id="2_a2q11"]
 [ext_resource type="Script" path="res://tests/variants/yaml_test_color.gd" id="3_xfl5f"]
@@ -32,6 +33,7 @@
 [ext_resource type="Script" path="res://tests/yaml_test_security.gd" id="28_ukrww"]
 
 [node name="Tests" type="Node2D"]
+script = ExtResource("1_iinjp")
 
 [node name="Common Tests" type="Node2D" parent="."]
 visible = false
@@ -48,21 +50,27 @@ script = ExtResource("28_ukrww")
 [node name="Variant Tests" type="Node2D" parent="."]
 
 [node name="AABB" type="Node2D" parent="Variant Tests"]
+visible = false
 script = ExtResource("1_bnbgw")
 
 [node name="Basis" type="Node2D" parent="Variant Tests"]
+visible = false
 script = ExtResource("2_27woj")
 
 [node name="Color" type="Node2D" parent="Variant Tests"]
+visible = false
 script = ExtResource("3_xfl5f")
 
 [node name="NodePath" type="Node2D" parent="Variant Tests"]
+visible = false
 script = ExtResource("4_i6sxn")
 
 [node name="PackedByteArray" type="Node2D" parent="Variant Tests"]
+visible = false
 script = ExtResource("5_33rhr")
 
 [node name="PackedColorArray" type="Node2D" parent="Variant Tests"]
+visible = false
 script = ExtResource("6_8nim1")
 
 [node name="PackedFloat32Array" type="Node2D" parent="Variant Tests"]
@@ -74,7 +82,6 @@ visible = false
 script = ExtResource("8_immif")
 
 [node name="PackedInt32Array" type="Node2D" parent="Variant Tests"]
-visible = false
 script = ExtResource("9_ae5ow")
 
 [node name="PackedInt64Array" type="Node2D" parent="Variant Tests"]
@@ -126,19 +133,25 @@ visible = false
 script = ExtResource("21_osyp2")
 
 [node name="Vector2" type="Node2D" parent="Variant Tests"]
+visible = false
 script = ExtResource("22_lrqsk")
 
 [node name="Vector2i" type="Node2D" parent="Variant Tests"]
+visible = false
 script = ExtResource("23_4kugq")
 
 [node name="Vector3" type="Node2D" parent="Variant Tests"]
+visible = false
 script = ExtResource("24_qxqwq")
 
 [node name="Vector3i" type="Node2D" parent="Variant Tests"]
+visible = false
 script = ExtResource("25_d5y6u")
 
 [node name="Vector4" type="Node2D" parent="Variant Tests"]
+visible = false
 script = ExtResource("26_i7yp0")
 
 [node name="Vector4i" type="Node2D" parent="Variant Tests"]
+visible = false
 script = ExtResource("27_blw3k")

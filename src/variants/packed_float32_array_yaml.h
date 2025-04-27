@@ -5,19 +5,12 @@
 
 namespace godot {
 
-/**
- * YAML converter for PackedFloat32Array type.
- * Represents arrays of 32-bit floating point numbers as a sequence.
- * Handles special values like infinity and NaN.
- * Empty arrays are represented as empty sequences.
- * Example: [1.0, -2.5, .inf, -.inf, .nan]
- */
 class PackedFloat32ArrayVariantConverter : public VariantConverter {
 public:
 	DEFINE_YAML_TAG("PackedFloat32Array", Variant::PACKED_FLOAT32_ARRAY)
 
 	void encode(ryml::NodeRef &node, const Variant &v, const YAMLStyle::View &style) const override;
-	Variant decode(const ryml::ConstNodeRef &node) const override;
+	Variant decode(const ryml::ConstNodeRef &node, ParserContext *context) const override;
 };
 
 } // namespace godot

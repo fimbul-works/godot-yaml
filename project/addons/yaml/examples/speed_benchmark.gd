@@ -28,13 +28,13 @@ func _ready() -> void:
 
 	# Parse with style
 	var style_parse_results := benchmark_operation(
-		func(): return YAML.parse(yaml_input, true),
+		func(): return YAML.parse(yaml_input, YAML.create_security(), true),
 		"Parse (with style)"
 	)
 
 	# Get data and style for stringify tests
 	var data = parse_results[0][0].get_data() if parse_results else null
-	var style = style_parse_results[0][0].get_style() if style_parse_results else null
+	var style: YAMLStyle = style_parse_results[0][0].get_style() if style_parse_results else null
 
 	if !data:
 		printerr("No data available for stringify tests")
@@ -45,6 +45,9 @@ func _ready() -> void:
 		func(): return YAML.stringify(data),
 		"Stringify (no style)"
 	)
+
+	print(style)
+	print(style.get_debug_string())
 
 	# Stringify with style
 	if style:

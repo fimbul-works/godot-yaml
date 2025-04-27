@@ -13,11 +13,8 @@ void PackedStringArrayVariantConverter::encode(ryml::NodeRef &node, const Varian
 
 	style.apply_flow_style(node);
 
-	// Get shared item style if it exists (key "_template" is a convention for shared array item styling)
-	YAMLStyle::View shared_item_style;
-	if (style.is_valid()) {
-		shared_item_style = style.get_child("_template");
-	}
+	// Get template style if it exists (key "_template" is a convention for shared array item styling)
+	YAMLStyle::View template_style = style.get_template_style();
 
 	for (int i = 0; i < array.size(); ++i) {
 		const String &str = array[i];
@@ -29,17 +26,18 @@ void PackedStringArrayVariantConverter::encode(ryml::NodeRef &node, const Varian
 		}
 
 		YAMLStyle::View item_style;
+
+		// Check for individual item style
 		if (style.is_valid()) {
-			// Check for individual item style
 			const String idx = String::num_int64(i);
 			if (style.has_child(idx)) {
 				item_style = style.get_child(idx);
 			}
+		}
 
-			// Fall back to shared style
-			if (!item_style.is_valid()) {
-				item_style = shared_item_style;
-			}
+		// Fall back to shared style
+		if (!item_style.is_valid()) {
+			item_style = template_style;
 		}
 
 		if (item_style.is_valid()) {
@@ -52,14 +50,22 @@ void PackedStringArrayVariantConverter::encode(ryml::NodeRef &node, const Varian
 	}
 }
 
-Variant PackedStringArrayVariantConverter::decode(const ryml::ConstNodeRef &node) const {
+Variant PackedStringArrayVariantConverter::decode(const ryml::ConstNodeRef &node, ParserContext *context) const {
 	if (!node.is_seq()) {
-		throw create_invalid_format_exception("PackedStringArray", node);
+		throw create_invalid_format_exception(node);
 	}
 
 	const size_t size = node.num_children();
 	PackedStringArray array;
 	array.resize(size);
+
+	const bool detect_style = context->detect_style;
+
+	if (detect_style) {
+		Ref<YAMLStyle> style = context->current_style();
+		YAMLStyle::detect_flow_style(node, style);
+		style->set_container_form(YAMLStyle::FORM_SEQ);
+	}
 
 	for (size_t i = 0; i < size; ++i) {
 		try {
@@ -68,9 +74,17 @@ Variant PackedStringArrayVariantConverter::decode(const ryml::ConstNodeRef &node
 				array.set(i, String());
 			} else {
 				array.set(i, from_ryml_str(child.val()));
+
+				if (detect_style) {
+					context->push_style(String::num_uint64(i));
+					YAMLStyle::detect_string_style(child, context->current_style());
+					context->pop_style();
+				}
 			}
+		} catch (const YAMLException &e) {
+			throw YAMLException(vformat("Failed to decode PackedStringArray value at index %d: %s", i, e.what()), e.get_location());
 		} catch (const std::exception &e) {
-			throw create_decode_error_exception(vformat("PackedStringArray value at index %d", i).utf8().get_data(), e.what(), node);
+			throw YAMLException(vformat("Failed to decode PackedStringaArray value at index %d: %s", i, e.what()), context->get_ryml_parser()->location(node[i]));
 		}
 	}
 

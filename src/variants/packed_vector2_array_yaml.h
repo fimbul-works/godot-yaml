@@ -14,7 +14,7 @@ public:
 	DEFINE_YAML_TAG("PackedVector2Array", Variant::PACKED_VECTOR2_ARRAY)
 
 	void encode(ryml::NodeRef &node, const Variant &v, const YAMLStyle::View &style) const override;
-	Variant decode(const ryml::ConstNodeRef &node) const override;
+	Variant decode(const ryml::ConstNodeRef &node, ParserContext *context) const override;
 
 private:
 	std::unique_ptr<Vector2VariantConverter> vec2_converter;

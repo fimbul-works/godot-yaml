@@ -334,7 +334,7 @@ func run_style_roundtrip_test(value, equality_func: Callable, modifier_func: Cal
 	print_rich(yaml_text)
 
 	# Parse with style detection enabled
-	var parse_result = YAML.parse(yaml_text, true)  # true enables style detection
+	var parse_result = YAML.parse(yaml_text, YAML.create_security(), true)  # true enables style detection
 	assert_parse_success(parse_result, "Parse with style detection")
 	if parse_result.has_error():
 		return
@@ -387,6 +387,9 @@ func is_deep_equal(a: Variant, b: Variant, epsilon: float = 0.00001) -> bool:
 				if not b.has(key) or not is_deep_equal(a[key], b[key]):
 					return false
 			return true
+
+		TYPE_COLOR:
+			return a.is_equal_approx(b)
 
 		TYPE_FLOAT:
 			return abs(a - b) < epsilon

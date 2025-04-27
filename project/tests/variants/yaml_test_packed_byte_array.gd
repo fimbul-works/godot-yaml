@@ -64,13 +64,10 @@ func test_base64_encoding() -> void:
 		"Random": create_all_bytes_array()
 	}
 
-	# Create base64 style
-	var base64_style = YAML.create_style()
-	base64_style.set_binary_encoding(YAMLStyle.BIN_BASE64)
-
+	# Base64 style
 	for name in test_arrays:
 		var byte_array = test_arrays[name]
-		var result = YAML.stringify(byte_array, base64_style)
+		var result = YAML.stringify(byte_array, YAML.create_style().set_binary_encoding(YAMLStyle.BIN_BASE64))
 
 		assert_stringify_success(result, "Base64 - " + name)
 		if result.has_error():
@@ -96,13 +93,10 @@ func test_hex_encoding() -> void:
 		"sequential": create_sequential_array(16)
 	}
 
-	# Create hex style
-	var hex_style = YAML.create_style()
-	hex_style.set_binary_encoding(YAMLStyle.BIN_HEX)
-
+	# Hex style
 	for name in test_arrays:
 		var byte_array = test_arrays[name]
-		var result = YAML.stringify(byte_array, hex_style)
+		var result = YAML.stringify(byte_array, YAML.create_style().set_binary_encoding(YAMLStyle.BIN_HEX))
 
 		assert_stringify_success(result, "Hex - " + name)
 		if result.has_error():
@@ -130,25 +124,17 @@ func test_large_binary_data() -> void:
 	var test_cases = [
 		{
 			"name": "Large base64 in literal block",
-			"style": func():
-				var s = YAML.create_style()
-				s.set_binary_encoding(YAMLStyle.BIN_BASE64)
-				s.set_string_style(YAMLStyle.STRING_LITERAL)
-				return s,
+			"style": YAML.create_style().set_binary_encoding(YAMLStyle.BIN_BASE64)
 		},
 		{
 			"name": "Large hex in literal block",
-			"style": func():
-				var s = YAML.create_style()
-				s.set_binary_encoding(YAMLStyle.BIN_HEX)
-				s.set_string_style(YAMLStyle.STRING_LITERAL)
-				return s,
+			"style": YAML.create_style().set_binary_encoding(YAMLStyle.BIN_HEX)
 		}
 	]
 
 	for test_case in test_cases:
 		var name = test_case["name"]
-		var style = test_case["style"].call()
+		var style = test_case["style"]
 
 		var result = YAML.stringify(large_array, style)
 		assert_stringify_success(result, name)
@@ -171,9 +157,7 @@ func test_roundtrip_with_styles() -> void:
 	var byte_array = "StyleDetectionTest".to_utf8_buffer()
 
 	# Create a style with specific formatting
-	var original_style = YAML.create_style()
-	original_style.set_binary_encoding(YAMLStyle.BIN_HEX)
-	original_style.set_string_style(YAMLStyle.STRING_LITERAL)
+	var original_style = YAML.create_style().set_binary_encoding(YAMLStyle.BIN_HEX)
 
 	# Emit YAML with the style
 	var emit_result = YAML.stringify(byte_array, original_style)
@@ -186,7 +170,7 @@ func test_roundtrip_with_styles() -> void:
 	print_rich(yaml_text)
 
 	# Parse with style detection enabled
-	var parse_result = YAML.parse(yaml_text, true)  # true enables style detection
+	var parse_result = YAML.parse(yaml_text, YAML.create_security(), true)  # true enables style detection
 	assert_parse_success(parse_result, "parse with style detection")
 	if parse_result.has_error():
 		return

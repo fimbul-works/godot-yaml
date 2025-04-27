@@ -14,76 +14,8 @@
 namespace godot {
 
 template <typename T>
-T string_to_float(const ryml::csubstr &value) {
-	static_assert(std::is_floating_point<T>::value, "Type must be floating point");
-
-	if (value == ".nan") {
-		return std::numeric_limits<T>::quiet_NaN();
-	} else if (value == ".inf" || value == "+.inf") {
-		return std::numeric_limits<T>::infinity();
-	} else if (value == "-.inf") {
-		return -std::numeric_limits<T>::infinity();
-	} else {
-		auto span = value.first_real_span();
-		if (span.empty()) {
-			throw YAMLException("Invalid float format");
-		}
-
-		T result;
-		auto [ptr, ec] = std::from_chars(span.begin(), span.end(), result);
-
-		if (ec == std::errc()) {
-			return result;
-		} else if (ec == std::errc::result_out_of_range) {
-			throw YAMLException("Float value out of range");
-		} else {
-			throw YAMLException("Unknown error in float conversion");
-		}
-	}
-}
-
-template <typename T>
-T string_to_int(const ryml::csubstr &value) {
+T string_to_int(const ryml::csubstr &value, YAMLStyle::IntegerFormat *format = nullptr) {
 	static_assert(std::is_integral<T>::value, "Type must be integral");
-
-	// Check for scientific notation format (e.g., 1e3, 1.5e2)
-	if (!value.begins_with("0x") && !value.begins_with("0X") && std::find_if(value.begin(), value.end(), [](char c) { return c == 'e' || c == 'E'; }) != value.end()) {
-		try {
-			// Handle scientific notation by first converting to double, then to integer
-			double float_val = string_to_float<double>(value);
-
-			// Check for overflow/underflow
-			if (float_val > static_cast<double>(std::numeric_limits<T>::max()) ||
-					float_val < static_cast<double>(std::numeric_limits<T>::lowest())) {
-				throw YAMLException("Integer value out of range");
-			}
-
-			// Convert to the target integer type
-			return static_cast<T>(float_val);
-		} catch (const YAMLException &e) {
-			throw; // Re-throw the same exception
-		} catch (...) {
-			throw YAMLException("Invalid integer format in scientific notation");
-		}
-	}
-
-	// For int64_t with known large hexadecimal values that would overflow,
-	// use a special case approach
-	if (std::is_same_v<T, int64_t> && (value.begins_with("0x") || value.begins_with("0X"))) {
-		// Convert to std::string for easier handling
-		std::string str(value.begin(), value.end());
-
-		// For int64_t, we can use strtoll which handles hex values correctly
-		char *end;
-		int64_t result = std::strtoll(str.c_str(), &end, 0);
-
-		// Check if conversion was successful
-		if (end == str.c_str() || *end != '\0') {
-			throw YAMLException("Invalid integer format");
-		}
-
-		return result;
-	}
 
 	T result;
 	int base = 10;
@@ -104,15 +36,29 @@ T string_to_int(const ryml::csubstr &value) {
 		if (start[1] == 'x' || start[1] == 'X') {
 			base = 16;
 			start += 2;
+			if (format != nullptr) {
+				*format = YAMLStyle::INT_HEX;
+			}
 		} else if (start[1] == 'b' || start[1] == 'B') {
 			base = 2;
 			start += 2;
+			if (format != nullptr) {
+				*format = YAMLStyle::INT_BINARY;
+			}
 		} else if (start[1] == 'o' || start[1] == 'O') {
 			base = 8;
 			start += 2;
+			if (format != nullptr) {
+				*format = YAMLStyle::INT_OCTAL;
+			}
 		} else {
 			base = 8; // Octal with leading 0
+			if (format != nullptr) {
+				*format = YAMLStyle::INT_OCTAL;
+			}
 		}
+	} else if (format != nullptr) {
+		*format = YAMLStyle::INT_DECIMAL;
 	}
 
 	auto [ptr, ec] = std::from_chars(start, end, result, base);
@@ -120,10 +66,20 @@ T string_to_int(const ryml::csubstr &value) {
 	if (ec == std::errc()) {
 		return is_negative ? -result : result;
 	} else if (ec == std::errc::result_out_of_range) {
-		throw YAMLException("Integer value out of range");
+		throw std::exception("Integer value out of range");
 	} else {
-		throw YAMLException("Invalid integer format");
+		throw std::exception("Invalid integer format");
 	}
+}
+
+template <typename T>
+T string_to_int(const ryml::substr &value, YAMLStyle::IntegerFormat *format = nullptr) {
+	return string_to_int<T>(ryml::to_csubstr(value), format);
+}
+
+template <typename T>
+T string_to_int(const godot::String &value, YAMLStyle::IntegerFormat *format = nullptr) {
+	return string_to_int<T>(ryml::to_csubstr(value.utf8().get_data()), format);
 }
 
 template <typename T>
@@ -157,15 +113,56 @@ ryml::csubstr int_to_string(const T value, YAMLStyle::IntegerFormat format = YAM
 			}
 			break;
 		}
-		case YAMLStyle::INT_SCIENTIFIC:
-			snprintf(buf, sizeof(buf), "%e", (double)value);
-			break;
 		default:
 			snprintf(buf, sizeof(buf), "%lld", (int64_t)value);
 			break;
 	}
 
 	return ryml::csubstr(buf, strlen(buf));
+}
+
+template <typename T>
+T string_to_float(const ryml::csubstr &value, YAMLStyle::FloatFormat *format = nullptr) {
+	static_assert(std::is_floating_point<T>::value, "Type must be floating point");
+
+	if (value == ".nan") {
+		return std::numeric_limits<T>::quiet_NaN();
+	} else if (value == ".inf" || value == "+.inf") {
+		return std::numeric_limits<T>::infinity();
+	} else if (value == "-.inf") {
+		return -std::numeric_limits<T>::infinity();
+	} else {
+		auto span = value.first_real_span();
+		if (span.empty()) {
+			throw std::exception("Invalid float format");
+		}
+
+		T result;
+		auto [ptr, ec] = std::from_chars(span.begin(), span.end(), result);
+
+		if (ec == std::errc()) {
+			if (format != nullptr && (value.find("e") != ryml::npos || value.find("E") != ryml::npos)) {
+				*format = YAMLStyle::FLOAT_SCIENTIFIC;
+			} else {
+				// *format = YAMLStyle::FLOAT_DECIMAL;
+			}
+			return result;
+		} else if (ec == std::errc::result_out_of_range) {
+			throw std::exception("Float value out of range");
+		} else {
+			throw std::exception("Invalid float format");
+		}
+	}
+}
+
+template <typename T>
+T string_to_float(const ryml::substr &value, YAMLStyle::FloatFormat *format = nullptr) {
+	return string_to_float<T>(ryml::to_csubstr(value), format);
+}
+
+template <typename T>
+T string_to_float(const godot::String &value, YAMLStyle::FloatFormat *format = nullptr) {
+	return string_to_float<T>(ryml::to_csubstr(value.utf8().get_data()), format);
 }
 
 template <typename T>
@@ -208,27 +205,6 @@ ryml::csubstr float_to_string(const T value, YAMLStyle::FloatFormat format = YAM
 		size_t len = ryml::format(buf, format_str, value);
 		return ryml::csubstr(buf, len);
 	}
-}
-
-// Overloads for different input types
-template <typename T>
-T string_to_float(const ryml::substr &value) {
-	return string_to_float<T>(ryml::to_csubstr(value));
-}
-
-template <typename T>
-T string_to_float(const godot::String &value) {
-	return string_to_float<T>(ryml::to_csubstr(value.utf8().get_data()));
-}
-
-template <typename T>
-T string_to_int(const ryml::substr &value) {
-	return string_to_int<T>(ryml::to_csubstr(value));
-}
-
-template <typename T>
-T string_to_int(const godot::String &value) {
-	return string_to_int<T>(ryml::to_csubstr(value.utf8().get_data()));
 }
 
 } // namespace godot

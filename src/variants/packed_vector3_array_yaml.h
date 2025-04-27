@@ -14,7 +14,7 @@ public:
 	DEFINE_YAML_TAG("PackedVector3Array", Variant::PACKED_VECTOR3_ARRAY)
 
 	void encode(ryml::NodeRef &node, const Variant &v, const YAMLStyle::View &style) const override;
-	Variant decode(const ryml::ConstNodeRef &node) const override;
+	Variant decode(const ryml::ConstNodeRef &node, ParserContext *context) const override;
 
 private:
 	std::unique_ptr<Vector3VariantConverter> vec3_converter;

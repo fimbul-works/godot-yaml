@@ -2,6 +2,7 @@
 #define VARIANT_CONVERTER_H
 
 #include "exception.h"
+#include "parser_context.h"
 #include "string_pool.h"
 #include "style_view.h"
 #include "yaml.h"
@@ -42,7 +43,7 @@ public:
 	virtual void encode(ryml::NodeRef &node, const Variant &v, const YAMLStyle::View &style) const = 0;
 
 	// Pure virtual decode method
-	virtual Variant decode(const ryml::ConstNodeRef &node) const = 0;
+	virtual Variant decode(const ryml::ConstNodeRef &node, ParserContext *context) const = 0;
 
 	// Set/get the parser reference
 	void set_parser(const ryml::Parser *parser) { m_parser = parser; }
@@ -65,19 +66,20 @@ protected:
 				// If location can't be determined, fall back to basic message
 			}
 		}
+
 		return YAMLException(message);
 	}
 
-	inline YAMLException create_invalid_format_exception(const char *type_name, const ryml::ConstNodeRef &node) const {
-		return create_exception(vformat("Invalid %s format", type_name), node);
+	inline YAMLException create_invalid_format_exception(const ryml::ConstNodeRef &node) const {
+		return create_exception(vformat("Invalid %s format", get_tag()), node);
 	}
 
-	inline YAMLException create_invalid_sequence_length_exception(const char *type_name, int expected_length, const ryml::ConstNodeRef &node) const {
-		return create_exception(vformat("%s sequence must have %d elements", type_name, expected_length), node);
+	inline YAMLException create_invalid_sequence_length_exception(int expected_length, const ryml::ConstNodeRef &node) const {
+		return create_exception(vformat("%s sequence must have %d elements", get_tag(), expected_length), node);
 	}
 
-	inline YAMLException create_decode_error_exception(const char *type_name, const char *details, const ryml::ConstNodeRef &node) const {
-		return create_exception(vformat("Failed to decode %s: %s", type_name, details), node);
+	inline YAMLException create_decode_error_exception(const char *details, const ryml::ConstNodeRef &node) const {
+		return create_exception(vformat("Failed to decode %s: %s", get_tag(), details), node);
 	}
 
 	inline void check_required_fields(const ryml::ConstNodeRef &node, const std::vector<const char *> &required_fields) const {
@@ -98,7 +100,7 @@ protected:
 				}
 			}
 
-			throw create_exception(String(get_tag()) + " missing required field" + (missing_fields.size() > 1 ? "s" : "") + ": '" + missing_list + "'", node);
+			throw create_exception(String(get_tag()) + " missing required field" + (missing_fields.size() > 1 ? "s: " : ": ") + ": '" + missing_list + "'", node);
 		}
 	}
 

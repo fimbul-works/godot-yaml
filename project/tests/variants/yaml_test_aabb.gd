@@ -35,15 +35,8 @@ func test_nested_styles() -> void:
 	var parent_style = YAML.create_style()
 
 	# Create different styles for position and size
-	var position_style = YAML.create_style()
-	position_style.set_flow_style(YAMLStyle.FLOW_SINGLE)
-
-	var size_style = YAML.create_style()
-	size_style.set_flow_style(YAMLStyle.FLOW_NONE)
-
-	# Apply nested styles
-	parent_style.set_child("position", position_style)
-	parent_style.set_child("size", size_style)
+	parent_style.set_child("position", YAML.create_style().set_flow_style(YAMLStyle.FLOW_SINGLE))
+	parent_style.set_child("size", YAML.create_style().set_flow_style(YAMLStyle.FLOW_NONE))
 
 	var result = YAML.stringify(aabb, parent_style)
 

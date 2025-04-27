@@ -7,54 +7,108 @@ using namespace godot;
 void Vector2VariantConverter::encode(ryml::NodeRef &node, const Variant &v, const YAMLStyle::View &style) const {
 	const Vector2 vec = v.operator Vector2();
 
-	YAMLStyle::FloatFormat float_format = style.get_float_format();
 	style.apply_flow_style(node);
+
+	YAMLStyle::FloatFormat x_format = style.has_child("x") ? style.get_child("x").get_float_format() : style.get_float_format();
+	YAMLStyle::FloatFormat y_format = style.has_child("y") ? style.get_child("y").get_float_format() : style.get_float_format();
 
 	if (!style.is_valid() || style.get_container_form() != YAMLStyle::FORM_SEQ) {
 		node |= ryml::MAP;
 
-		node["x"] << float_to_string(vec.x, float_format);
-		node["y"] << float_to_string(vec.y, float_format);
+		node["x"] << float_to_string(vec.x, x_format);
+		node["y"] << float_to_string(vec.y, y_format);
 	} else {
 		node |= ryml::SEQ;
 
-		node.append_child() << float_to_string(vec.x, float_format);
-		node.append_child() << float_to_string(vec.y, float_format);
+		node.append_child() << float_to_string(vec.x, x_format);
+		node.append_child() << float_to_string(vec.y, y_format);
 	}
 }
 
-Variant Vector2VariantConverter::decode(const ryml::ConstNodeRef &node) const {
+Variant Vector2VariantConverter::decode(const ryml::ConstNodeRef &node, ParserContext *context) const {
 	try {
 		if (node.is_map()) {
-			return decode_from_map(node);
+			return decode_from_map(node, context);
 		}
 
 		if (node.is_seq()) {
-			return decode_from_sequence(node);
+			return decode_from_sequence(node, context);
 		}
 
-		throw create_invalid_format_exception("Vector2", node);
+		throw create_invalid_format_exception(node);
 	} catch (const YAMLException &) {
 		throw; // Re-throw YAML exceptions
 	} catch (const std::exception &e) {
-		throw create_decode_error_exception("Vector2", e.what(), node);
+		throw create_decode_error_exception(e.what(), node);
 	}
 }
 
-Variant Vector2VariantConverter::decode_from_map(const ryml::ConstNodeRef &node) const {
+Vector2 Vector2VariantConverter::decode_from_map(const ryml::ConstNodeRef &node, ParserContext *context) const {
 	check_required_fields(node, { "x", "y" });
 
-	return Vector2(
-			string_to_float<real_t>(node["x"].val()),
-			string_to_float<real_t>(node["y"].val()));
-}
+	const bool detect_style = context->detect_style;
 
-Variant Vector2VariantConverter::decode_from_sequence(const ryml::ConstNodeRef &node) const {
-	if (node.num_children() != 2) {
-		throw create_invalid_sequence_length_exception("Vector2", 2, node);
+	if (detect_style) {
+		Ref<YAMLStyle> style = context->current_style();
+		YAMLStyle::detect_flow_style(node, style);
+		style->set_container_form(YAMLStyle::FORM_MAP);
+
+		context->push_style("x");
 	}
 
-	return Vector2(
-			string_to_float<real_t>(node[0].val()),
-			string_to_float<real_t>(node[1].val()));
+	YAMLStyle::FloatFormat x_format;
+	real_t x = string_to_float<real_t>(node[0].val(), detect_style ? &x_format : nullptr);
+
+	if (detect_style) {
+		context->current_style()->set_float_format(x_format);
+		context->pop_style();
+
+		context->push_style("y");
+	}
+
+	YAMLStyle::FloatFormat y_format;
+	real_t y = string_to_float<real_t>(node["y"].val(), detect_style ? &y_format : nullptr);
+
+	if (detect_style) {
+		context->current_style()->set_float_format(y_format);
+		context->pop_style();
+	}
+
+	return Vector2(x, y);
+}
+
+Vector2 Vector2VariantConverter::decode_from_sequence(const ryml::ConstNodeRef &node, ParserContext *context) const {
+	if (node.num_children() != 2) {
+		throw create_invalid_sequence_length_exception(2, node);
+	}
+
+	const bool detect_style = context->detect_style;
+
+	if (detect_style) {
+		Ref<YAMLStyle> style = context->current_style();
+		YAMLStyle::detect_flow_style(node, style);
+		style->set_container_form(YAMLStyle::FORM_SEQ);
+
+		context->push_style("x");
+	}
+
+	YAMLStyle::FloatFormat x_format;
+	real_t x = string_to_float<real_t>(node[0].val(), detect_style ? &x_format : nullptr);
+
+	if (detect_style) {
+		context->current_style()->set_float_format(x_format);
+		context->pop_style();
+
+		context->push_style("y");
+	}
+
+	YAMLStyle::FloatFormat y_format;
+	real_t y = string_to_float<real_t>(node[1].val(), detect_style ? &y_format : nullptr);
+
+	if (detect_style) {
+		context->current_style()->set_float_format(y_format);
+		context->pop_style();
+	}
+
+	return Vector2(x, y);
 }

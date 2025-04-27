@@ -139,7 +139,7 @@ func test_roundtrip_with_styles() -> void:
 	print_rich(yaml_text)
 
 	# Parse with style detection enabled
-	var parse_result = YAML.parse(yaml_text, true)  # true enables style detection
+	var parse_result = YAML.parse(yaml_text, YAML.create_security(), true)  # true enables style detection
 	assert_parse_success(parse_result, "parse with style detection")
 	if parse_result.has_error():
 		return
