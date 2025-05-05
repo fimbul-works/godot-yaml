@@ -64,7 +64,7 @@ Variant PackedStringArrayVariantConverter::decode(const ryml::ConstNodeRef &node
 	if (detect_style) {
 		Ref<YAMLStyle> style = context->current_style();
 		YAMLStyle::detect_flow_style(node, style);
-		style->set_container_form(YAMLStyle::FORM_SEQ);
+		style->set_container_form(YAMLStyle::FORM_ARRAY);
 	}
 
 	for (size_t i = 0; i < size; ++i) {

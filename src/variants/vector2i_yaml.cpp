@@ -7,12 +7,16 @@ using namespace godot;
 void Vector2iVariantConverter::encode(ryml::NodeRef &node, const Variant &v, const YAMLStyle::View &style) const {
 	const Vector2i vec = v.operator Vector2i();
 
-	style.apply_flow_style(node);
+	if (style.is_valid()) {
+		style.apply_flow_style(node);
+	} else {
+		node |= ryml::FLOW_SL;
+	}
 
 	YAMLStyle::IntegerFormat x_format = style.has_child("x") ? style.get_child("x").get_integer_format() : style.get_integer_format();
 	YAMLStyle::IntegerFormat y_format = style.has_child("y") ? style.get_child("y").get_integer_format() : style.get_integer_format();
 
-	if (!style.is_valid() || style.get_container_form() != YAMLStyle::FORM_SEQ) {
+	if (!style.is_valid() || style.get_container_form() != YAMLStyle::FORM_ARRAY) {
 		node |= ryml::MAP;
 
 		node["x"] << int_to_string(vec.x, x_format);
@@ -51,7 +55,7 @@ Vector2i Vector2iVariantConverter::decode_from_map(const ryml::ConstNodeRef &nod
 	if (detect_style) {
 		Ref<YAMLStyle> style = context->current_style();
 		YAMLStyle::detect_flow_style(node, style);
-		style->set_container_form(YAMLStyle::FORM_MAP);
+		style->set_container_form(YAMLStyle::FORM_DICTIONARY);
 
 		context->push_style("x");
 	}
@@ -87,7 +91,7 @@ Vector2i Vector2iVariantConverter::decode_from_sequence(const ryml::ConstNodeRef
 	if (detect_style) {
 		Ref<YAMLStyle> style = context->current_style();
 		YAMLStyle::detect_flow_style(node, style);
-		style->set_container_form(YAMLStyle::FORM_SEQ);
+		style->set_container_form(YAMLStyle::FORM_ARRAY);
 
 		context->push_style("x");
 	}

@@ -9,7 +9,7 @@ void PackedInt32ArrayVariantConverter::encode(ryml::NodeRef &node, const Variant
 	node |= ryml::SEQ;
 
 	if (array.size() == 0) {
-		return; // Empty sequence
+		return; // Empty array
 	}
 
 	style.apply_flow_style(node);
@@ -53,7 +53,7 @@ Variant PackedInt32ArrayVariantConverter::decode(const ryml::ConstNodeRef &node,
 	if (detect_style) {
 		Ref<YAMLStyle> style = context->current_style();
 		YAMLStyle::detect_flow_style(node, style);
-		style->set_container_form(YAMLStyle::FORM_SEQ);
+		style->set_container_form(YAMLStyle::FORM_ARRAY);
 	}
 
 	for (size_t i = 0; i < size; ++i) {

@@ -36,6 +36,7 @@ public:
 	String get_error_message() const { return error_message; }
 	int get_error_line() const { return error_line; }
 	int get_error_column() const { return error_column; }
+	String get_error() const { return vformat("%s (line %d, column %d)", error_message, error_line, error_column); }
 
 	// Style handling
 	bool has_style() const { return style.is_valid(); }

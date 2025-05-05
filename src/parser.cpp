@@ -110,7 +110,7 @@ Ref<YAMLResult> YAML::Parser::parse(const String &input, const YAMLSecurity::Vie
 	} catch (const std::exception &e) {
 		return YAMLResult::error(e.what());
 	} catch (...) {
-		return YAMLResult::error("Unknown error occurred during parsing");
+		return YAMLResult::error("Unexpected error during parsing");
 	}
 }
 
@@ -149,7 +149,7 @@ Variant YAML::Parser::process_map(const ryml::ConstNodeRef &node) const {
 
 	if (detect_style) {
 		Ref<YAMLStyle> map_style = context->current_style();
-		map_style->set_container_form(YAMLStyle::FORM_MAP);
+		map_style->set_container_form(YAMLStyle::FORM_DICTIONARY);
 		if (node.is_flow()) {
 			map_style->set_flow_style(YAMLStyle::FLOW_SINGLE);
 		}
@@ -188,7 +188,7 @@ Variant YAML::Parser::process_sequence(const ryml::ConstNodeRef &node) const {
 
 	if (detect_style) {
 		Ref<YAMLStyle> seq_style = context->current_style();
-		seq_style->set_container_form(YAMLStyle::FORM_SEQ);
+		seq_style->set_container_form(YAMLStyle::FORM_ARRAY);
 		if (node.is_flow()) {
 			seq_style->set_flow_style(YAMLStyle::FLOW_SINGLE);
 		}
@@ -412,7 +412,7 @@ Variant YAML::Parser::parse_object_or_resource(const ryml::ConstNodeRef &node, c
 
 	// Otherwise, treat it as an inline object/resource definition
 	if (!node.is_map()) {
-		throw YAMLException(vformat("Invalid node format for class %s - expected map", class_name), ryml_parser->location(node));
+		throw YAMLException(vformat("Invalid node format for class %s - expected dictionary", class_name), ryml_parser->location(node));
 	}
 
 	// Instantiate the object

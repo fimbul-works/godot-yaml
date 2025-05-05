@@ -17,12 +17,13 @@ using namespace godot;
 void YAML::_bind_methods() {
 	ClassDB::bind_static_method("YAML", D_METHOD("version"), &YAML::version);
 
-	ClassDB::bind_static_method("YAML", D_METHOD("validate", "input"), &YAML::validate);
 	ClassDB::bind_static_method("YAML", D_METHOD("parse", "input", "security", "detect_style"), &YAML::parse, DEFVAL(nullptr), DEFVAL(false));
 	ClassDB::bind_static_method("YAML", D_METHOD("stringify", "input", "style"), &YAML::stringify, DEFVAL(Variant()));
+	ClassDB::bind_static_method("YAML", D_METHOD("validate", "input"), &YAML::validate);
 
 	ClassDB::bind_static_method("YAML", D_METHOD("load_file", "path", "security", "detect_style"), &YAML::load_file, DEFVAL(nullptr), DEFVAL(false));
 	ClassDB::bind_static_method("YAML", D_METHOD("save_file", "data", "path", "style"), &YAML::save_file, DEFVAL(nullptr));
+	ClassDB::bind_static_method("YAML", D_METHOD("validate_file", "path"), &YAML::validate_file);
 
 	ClassDB::bind_static_method("YAML", D_METHOD("register_class", "script_class", "serialize", "deserialize"), &YAML::register_class, DEFVAL("serialize"), DEFVAL("deserialize"));
 	ClassDB::bind_static_method("YAML", D_METHOD("has_registered_class", "tag_name"), &YAML::has_registered_class);
@@ -44,12 +45,6 @@ String YAML::version() {
 	return String("Godot YAML " + String(GODOT_YAML_VERSION) + " (" + target + ")");
 }
 
-Ref<YAMLResult> YAML::validate(const String &input) {
-	Validator validator;
-	Ref<YAMLResult> result = validator.validate(input);
-	return result;
-}
-
 Ref<YAMLResult> YAML::parse(const String &input, const Ref<YAMLSecurity> security, const bool detect_style) {
 	Parser parser;
 	return parser.parse(input, security.is_valid() ? security->get_view() : YAMLSecurity::get_default_view(), detect_style);
@@ -62,6 +57,12 @@ Ref<YAMLResult> YAML::stringify(const Variant &input, const Ref<YAMLStyle> &styl
 	return result;
 }
 
+Ref<YAMLResult> YAML::validate(const String &input) {
+	Validator validator;
+	Ref<YAMLResult> result = validator.validate(input);
+	return result;
+}
+
 Ref<YAMLResult> YAML::load_file(const String &path, const Ref<YAMLSecurity> security, const bool detect_style) {
 	// Open file for reading
 	Ref<FileAccess> file = FileAccess::open(path, FileAccess::READ);
@@ -71,10 +72,8 @@ Ref<YAMLResult> YAML::load_file(const String &path, const Ref<YAMLSecurity> secu
 		return YAMLResult::error("Failed to read '" + path + "': " + UtilityFunctions::error_string((int)err));
 	}
 
-	// Read the file content
+	// Read the file content and check for errors
 	String content = file->get_as_text();
-
-	// Check for read errors
 	err = file->get_error();
 	file->close();
 
@@ -101,10 +100,8 @@ Ref<YAMLResult> YAML::save_file(const Variant &data, const String &path, const R
 		return YAMLResult::error("Failed to write '" + path + "': " + UtilityFunctions::error_string((int)err));
 	}
 
-	// Write YAML content to file
+	// Write the file content and check for errors
 	file->store_string(yaml_content);
-
-	// Check for write errors
 	err = file->get_error();
 	file->close();
 
@@ -114,6 +111,27 @@ Ref<YAMLResult> YAML::save_file(const Variant &data, const String &path, const R
 
 	// Return success with the YAML content
 	return YAMLResult::success(yaml_content);
+}
+
+Ref<YAMLResult> YAML::validate_file(const String &path) {
+	// Open file for reading
+	Ref<FileAccess> file = FileAccess::open(path, FileAccess::READ);
+
+	Error err = file->get_error();
+	if (err != OK) {
+		return YAMLResult::error("Failed to read for validation '" + path + "': " + UtilityFunctions::error_string((int)err));
+	}
+
+	// Read the file content and check for errors
+	String content = file->get_as_text();
+	err = file->get_error();
+	file->close();
+
+	if (err != OK) {
+		return YAMLResult::error("Failed to read for validation '" + path + "': " + UtilityFunctions::error_string((int)err));
+	}
+
+	return validate(content);
 }
 
 Ref<YAMLStyle> YAML::create_style() {

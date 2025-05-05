@@ -1,6 +1,7 @@
 #include "emitter.h"
 #include "class_registry.h"
 #include "converter_factory.h"
+#include "style.h"
 #include "util_numeric.h"
 #include "util_string.h"
 #include "yaml.h"
@@ -91,7 +92,7 @@ Ref<YAMLResult> YAML::Emitter::emit(const Variant &input, const YAMLStyle::View 
 	} catch (const std::exception &e) {
 		return YAMLResult::error(e.what());
 	} catch (...) {
-		return YAMLResult::error("Unknown error occurred during emission");
+		return YAMLResult::error("Unknown error occurred during stringification");
 	}
 }
 
@@ -160,7 +161,7 @@ void YAML::Emitter::emit_value(ryml::NodeRef node, const Variant &value, const Y
 	depth--;
 
 	// Add custom tags last
-	if (style.is_valid() && !style.get_custom_settings().is_empty() && style.get_custom_settings().has("tag")) {
+	if (node.has_val() && !node.has_val_tag() && style.is_valid() && style.get_custom_settings().has("tag")) {
 		String tag = style.get_custom_settings()["tag"];
 		if (!tag.is_empty()) {
 			node.set_val_tag(store_string("!" + tag));
@@ -295,7 +296,7 @@ void YAML::Emitter::emit_object(ryml::NodeRef &node, Object *obj, const YAMLStyl
 	}
 
 	// FIXME: Handle Object types
-	String error = vformat("Cannot emit Object of type: %s", class_name);
+	String error = vformat("Cannot stringify Object of type: %s", class_name);
 	current_result = YAMLResult::error(error);
 	throw YAMLException(error);
 }

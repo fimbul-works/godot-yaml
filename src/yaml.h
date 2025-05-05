@@ -26,12 +26,13 @@ public:
 
 	static String version();
 
-	static Ref<YAMLResult> validate(const String &input);
 	static Ref<YAMLResult> parse(const String &input, const Ref<YAMLSecurity> security = nullptr, const bool detect_style = false);
 	static Ref<YAMLResult> stringify(const Variant &input, const Ref<YAMLStyle> &format);
+	static Ref<YAMLResult> validate(const String &input);
 
 	static Ref<YAMLResult> load_file(const String &path, const Ref<YAMLSecurity> security = nullptr, const bool detect_style = false);
 	static Ref<YAMLResult> save_file(const Variant &data, const String &path, const Ref<YAMLStyle> &style = nullptr);
+	static Ref<YAMLResult> validate_file(const String &path);
 
 	static void register_class(Ref<Script> p_class, const Variant &p_serialize, const Variant &p_deserialize);
 	static bool has_registered_class(const String &class_name);

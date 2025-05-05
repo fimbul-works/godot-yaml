@@ -1,9 +1,14 @@
 #include "style.h"
-#include "util_string.h"
+#include "exception.h"
+#include "result.h"
+#include "style_view.h"
+#include "yaml.h"
 
+#include <godot_cpp/classes/file_access.hpp>
 #include <godot_cpp/core/class_db.hpp>
 #include <godot_cpp/templates/hashfuncs.hpp>
 #include <godot_cpp/variant/utility_functions.hpp>
+
 #include <ryml.hpp>
 
 using namespace godot;
@@ -32,8 +37,8 @@ bool YAMLStyle::uses_flow() const {
 void YAMLStyle::_bind_methods() {
 	// Bind enums
 	BIND_ENUM_CONSTANT(FORM_ANY);
-	BIND_ENUM_CONSTANT(FORM_SEQ);
-	BIND_ENUM_CONSTANT(FORM_MAP);
+	BIND_ENUM_CONSTANT(FORM_ARRAY);
+	BIND_ENUM_CONSTANT(FORM_DICTIONARY);
 
 	BIND_ENUM_CONSTANT(FLOW_ANY);
 	BIND_ENUM_CONSTANT(FLOW_NONE);
@@ -86,7 +91,11 @@ void YAMLStyle::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("clear_children"), &YAMLStyle::clear_children);
 	ClassDB::bind_method(D_METHOD("get_children_keys"), &YAMLStyle::get_children_keys);
 
-	ClassDB::bind_method(D_METHOD("get_debug_string"), &YAMLStyle::get_debug_string);
+	ClassDB::bind_method(D_METHOD("serialize_style"), &YAMLStyle::serialize_style);
+	ClassDB::bind_method(D_METHOD("save_style_file", "p_style", "p_path"), &YAMLStyle::save_style_file);
+	ClassDB::bind_static_method("YAMLStyle", D_METHOD("deserialize_style"), &YAMLStyle::deserialize_style);
+	ClassDB::bind_static_method("YAMLStyle", D_METHOD("load_style_file"), &YAMLStyle::load_style_file);
+
 	ClassDB::bind_static_method("YAMLStyle", D_METHOD("container_form_string", "p_style"), &YAMLStyle::container_form_string);
 	ClassDB::bind_static_method("YAMLStyle", D_METHOD("flow_style_string", "p_style"), &YAMLStyle::flow_style_string);
 	ClassDB::bind_static_method("YAMLStyle", D_METHOD("string_style_string", "p_style"), &YAMLStyle::string_style_string);
@@ -94,7 +103,16 @@ void YAMLStyle::_bind_methods() {
 	ClassDB::bind_static_method("YAMLStyle", D_METHOD("float_format_string", "p_style"), &YAMLStyle::float_format_string);
 	ClassDB::bind_static_method("YAMLStyle", D_METHOD("binary_encoding_string", "p_style"), &YAMLStyle::binary_encoding_string);
 
-	ADD_PROPERTY(PropertyInfo(Variant::INT, "container_form", PROPERTY_HINT_ENUM, "Any,Sequence,Mapping"), "set_container_form", "get_container_form");
+	ClassDB::bind_static_method("YAMLStyle", D_METHOD("container_form_from_string", "p_string"), &YAMLStyle::container_form_from_string);
+	ClassDB::bind_static_method("YAMLStyle", D_METHOD("flow_style_from_string", "p_string"), &YAMLStyle::flow_style_from_string);
+	ClassDB::bind_static_method("YAMLStyle", D_METHOD("string_style_from_string", "p_string"), &YAMLStyle::string_style_from_string);
+	ClassDB::bind_static_method("YAMLStyle", D_METHOD("integer_format_from_string", "p_string"), &YAMLStyle::integer_format_from_string);
+	ClassDB::bind_static_method("YAMLStyle", D_METHOD("float_format_from_string", "p_string"), &YAMLStyle::float_format_from_string);
+	ClassDB::bind_static_method("YAMLStyle", D_METHOD("binary_encoding_from_string", "p_sting"), &YAMLStyle::binary_encoding_from_string);
+
+	ClassDB::bind_method(D_METHOD("get_debug_string"), &YAMLStyle::get_debug_string);
+
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "container_form", PROPERTY_HINT_ENUM, "Any,Array,Dictionary"), "set_container_form", "get_container_form");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "flow_style", PROPERTY_HINT_ENUM, "Any,None,Single"), "set_flow_style", "get_flow_style");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "string_style", PROPERTY_HINT_ENUM, "Any,Plain,Single Quoted,Double Quoted,Literal,Folded"), "set_string_style", "get_string_style");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "integer_format", PROPERTY_HINT_ENUM, "Any,Decimal,Hex,Octal,Binary,Scientific"), "set_integer_format", "get_integer_format");
@@ -173,20 +191,31 @@ Dictionary YAMLStyle::get_custom_settings() const {
 	return custom_settings;
 }
 
+Ref<YAMLStyle> YAMLStyle::set_custom_setting(const String &key, const Variant &value) {
+	get_custom_settings()[key] = value;
+	return Ref<YAMLStyle>(this);
+}
+
+Variant YAMLStyle::get_custom_setting(const String &key) const {
+	return get_custom_settings()[key];
+}
+
 Ref<YAMLStyle> YAMLStyle::set_custom_tag(const String &p_tag) {
-	custom_settings["tag"] = p_tag;
+	set_custom_setting("tag", p_tag);
 	return Ref<YAMLStyle>(this);
 }
 
 String YAMLStyle::get_custom_tag() const {
-	Dictionary custom = get_custom_settings();
-	if (custom.has("tag")) {
-		return custom["tag"];
+	if (custom_settings.has("tag")) {
+		return get_custom_setting("tag");
 	}
 	return "";
 }
 
-// Child style management implementations
+bool YAMLStyle::has_child(const String &key) const {
+	return child_styles.find(key) != child_styles.end();
+}
+
 Ref<YAMLStyle> YAMLStyle::get_child(const String &key) const {
 	auto it = child_styles.find(key);
 	return it != child_styles.end() ? it->second : Ref<YAMLStyle>();
@@ -199,10 +228,6 @@ Ref<YAMLStyle> YAMLStyle::set_child(const String &key, const Ref<YAMLStyle> &sty
 		child_styles.erase(key);
 	}
 	return Ref<YAMLStyle>(this);
-}
-
-bool YAMLStyle::has_child(const String &key) const {
-	return child_styles.find(key) != child_styles.end();
 }
 
 Ref<YAMLStyle> YAMLStyle::clear_child(const String &key) {
@@ -223,6 +248,314 @@ Array YAMLStyle::get_children_keys() const {
 	return keys;
 }
 
+String YAMLStyle::container_form_string(ContainerForm p_style) {
+	switch (p_style) {
+		case FORM_ANY:
+			return "any";
+		case FORM_ARRAY:
+			return "array";
+		case FORM_DICTIONARY:
+			return "dictionary";
+		default:
+			return "any";
+	}
+}
+
+YAMLStyle::ContainerForm YAMLStyle::container_form_from_string(const String &p_string) {
+	static std::unordered_map<String, ContainerForm, StringHasher, StringEqual> form_map;
+	static std::once_flag init_flag;
+
+	std::call_once(init_flag, []() {
+		form_map["any"] = FORM_ANY;
+		form_map["array"] = FORM_ARRAY;
+		form_map["dictionary"] = FORM_DICTIONARY;
+	});
+
+	auto it = form_map.find(p_string);
+	return it != form_map.end() ? it->second : FORM_ANY;
+}
+
+String YAMLStyle::flow_style_string(FlowStyle p_style) {
+	switch (p_style) {
+		case FLOW_ANY:
+			return "any";
+		case FLOW_NONE:
+			return "none";
+		case FLOW_SINGLE:
+			return "single";
+		default:
+			return "any";
+	}
+}
+
+YAMLStyle::FlowStyle YAMLStyle::flow_style_from_string(const String &p_string) {
+	static std::unordered_map<String, FlowStyle, StringHasher, StringEqual> flow_map;
+	static std::once_flag init_flag;
+
+	std::call_once(init_flag, []() {
+		flow_map["any"] = FLOW_ANY;
+		flow_map["none"] = FLOW_NONE;
+		flow_map["single"] = FLOW_SINGLE;
+	});
+
+	auto it = flow_map.find(p_string);
+	return it != flow_map.end() ? it->second : FLOW_ANY;
+}
+
+String YAMLStyle::string_style_string(StringStyle p_style) {
+	switch (p_style) {
+		case STRING_ANY:
+			return "any";
+		case STRING_PLAIN:
+			return "plain";
+		case STRING_QUOTE_SINGLE:
+			return "quote_single";
+		case STRING_QUOTE_DOUBLE:
+			return "quote_double";
+		case STRING_LITERAL:
+			return "literal";
+		case STRING_FOLDED:
+			return "folded";
+		default:
+			return "any";
+	}
+}
+
+YAMLStyle::StringStyle YAMLStyle::string_style_from_string(const String &p_string) {
+	static std::unordered_map<String, StringStyle, StringHasher, StringEqual> string_map;
+	static std::once_flag init_flag;
+
+	std::call_once(init_flag, []() {
+		string_map["any"] = STRING_ANY;
+		string_map["plain"] = STRING_PLAIN;
+		string_map["quote_single"] = STRING_QUOTE_SINGLE;
+		string_map["quote_double"] = STRING_QUOTE_DOUBLE;
+		string_map["literal"] = STRING_LITERAL;
+		string_map["folded"] = STRING_FOLDED;
+	});
+
+	auto it = string_map.find(p_string);
+	return it != string_map.end() ? it->second : STRING_ANY;
+}
+
+String YAMLStyle::integer_format_string(IntegerFormat p_format) {
+	switch (p_format) {
+		case INT_ANY:
+			return "any";
+		case INT_DECIMAL:
+			return "decimal";
+		case INT_HEX:
+			return "hex";
+		case INT_OCTAL:
+			return "octal";
+		case INT_BINARY:
+			return "binary";
+		default:
+			return "any";
+	}
+}
+
+YAMLStyle::IntegerFormat YAMLStyle::integer_format_from_string(const String &p_string) {
+	static std::unordered_map<String, IntegerFormat, StringHasher, StringEqual> int_map;
+	static std::once_flag init_flag;
+
+	std::call_once(init_flag, []() {
+		int_map["any"] = INT_ANY;
+		int_map["decimal"] = INT_DECIMAL;
+		int_map["hex"] = INT_HEX;
+		int_map["octal"] = INT_OCTAL;
+		int_map["binary"] = INT_BINARY;
+	});
+
+	auto it = int_map.find(p_string);
+	return it != int_map.end() ? it->second : INT_ANY;
+}
+
+String YAMLStyle::float_format_string(FloatFormat p_format) {
+	switch (p_format) {
+		case FLOAT_ANY:
+			return "any";
+		case FLOAT_DECIMAL:
+			return "decimal";
+		case FLOAT_SCIENTIFIC:
+			return "scientific";
+		default:
+			return "any";
+	}
+}
+
+YAMLStyle::FloatFormat YAMLStyle::float_format_from_string(const String &p_string) {
+	static std::unordered_map<String, FloatFormat, StringHasher, StringEqual> float_map;
+	static std::once_flag init_flag;
+
+	std::call_once(init_flag, []() {
+		float_map["any"] = FLOAT_ANY;
+		float_map["decimal"] = FLOAT_DECIMAL;
+		float_map["scientific"] = FLOAT_SCIENTIFIC;
+	});
+
+	auto it = float_map.find(p_string);
+	return it != float_map.end() ? it->second : FLOAT_ANY;
+}
+
+String YAMLStyle::binary_encoding_string(BinaryEncoding p_encoding) {
+	switch (p_encoding) {
+		case BIN_ANY:
+			return "any";
+		case BIN_BASE64:
+			return "base64";
+		case BIN_HEX:
+			return "hex";
+		default:
+			return "any";
+	}
+}
+
+YAMLStyle::BinaryEncoding YAMLStyle::binary_encoding_from_string(const String &p_string) {
+	static std::unordered_map<String, BinaryEncoding, StringHasher, StringEqual> binary_map;
+	static std::once_flag init_flag;
+
+	std::call_once(init_flag, []() {
+		binary_map["any"] = BIN_ANY;
+		binary_map["base64"] = BIN_BASE64;
+		binary_map["hex"] = BIN_HEX;
+	});
+
+	auto it = binary_map.find(p_string);
+	return it != binary_map.end() ? it->second : BIN_ANY;
+}
+
+Ref<YAMLResult> YAMLStyle::serialize_style(const bool ignore_any) const {
+	Dictionary dict;
+
+	if (has_container_form || (ignore_any && container_form != FORM_ANY)) {
+		dict["container"] = container_form_string(container_form);
+	}
+
+	if (has_flow_style || (ignore_any && flow_style != FLOW_ANY)) {
+		dict["flow"] = flow_style_string(flow_style);
+	}
+
+	if (has_string_style || (ignore_any && string_style != STRING_ANY)) {
+		dict["string"] = string_style_string(string_style);
+	}
+
+	if (has_integer_format || (ignore_any && integer_format != INT_ANY)) {
+		dict["integer"] = integer_format_string(integer_format);
+	}
+
+	if (has_float_format || (ignore_any && float_format != FLOAT_ANY)) {
+		dict["float"] = float_format_string(float_format);
+	}
+
+	if (has_binary_encoding || (ignore_any && binary_encoding != BIN_ANY)) {
+		dict["binary"] = binary_encoding_string(binary_encoding);
+	}
+
+	if (has_custom_settings || !custom_settings.is_empty()) {
+		dict["custom_settings"] = custom_settings;
+	}
+
+	if (!child_styles.empty()) {
+		Dictionary children_dict;
+		for (const auto &pair : child_styles) {
+			children_dict[pair.first] = pair.second->get_string_style();
+		}
+		dict["children"] = children_dict;
+	}
+
+	Ref<YAMLResult> result = YAML::stringify(dict, nullptr);
+	if (result->has_error()) {
+		return YAMLResult::error(vformat("Failed to stringify style: %s", result->get_error_message()), result->get_error_line(), result->get_error_column());
+	}
+
+	return YAMLResult::success(result->get_data());
+}
+
+Ref<YAMLResult> YAMLStyle::deserialize_style(const String &yaml_text) {
+	Ref<YAMLResult> result = YAML::parse(yaml_text);
+	if (result->has_error()) {
+		return YAMLResult::error(vformat("Failed to parse style: %s", result->get_error_message()), result->get_error_line(), result->get_error_column());
+	}
+
+	Variant data = result->get_data();
+	if (data.get_type() != Variant::DICTIONARY) {
+		return YAMLResult::error("Style object must be Dictionary"), result->get_error_line(), result->get_error_column();
+	}
+
+	Dictionary dict = data;
+	Ref<YAMLStyle> style = YAML::create_style();
+
+	if (dict.has("container")) {
+		style->set_container_form(container_form_from_string(dict["container"]));
+	}
+
+	if (dict.has("flow")) {
+		style->set_flow_style(flow_style_from_string(dict["flow"]));
+	}
+
+	if (dict.has("string")) {
+		style->set_string_style(string_style_from_string(dict["string"]));
+	}
+
+	if (dict.has("integer")) {
+		style->set_integer_format(integer_format_from_string(dict["integer"]));
+	}
+
+	if (dict.has("float")) {
+		style->set_float_format(float_format_from_string(dict["float"]));
+	}
+
+	style->set_binary_encoding(binary_encoding_from_string(dict["binary"]));
+
+	if (dict.has("custom_settings")) {
+		style->set_custom_settings(dict["custom_settings"]);
+	}
+
+	if (dict.has("children") && dict["children"].get_type() == Variant::DICTIONARY) {
+		Dictionary children = dict["children"];
+		Array keys = children.keys();
+
+		for (int i = 0; i < keys.size(); i++) {
+			String key = keys[i];
+			String child_yaml = children[key];
+
+			Ref<YAMLStyle> child_style = deserialize_style(child_yaml);
+			style->set_child(key, child_style);
+		}
+	}
+
+	return YAMLResult::success(style);
+}
+
+Ref<YAMLResult> YAMLStyle::save_style_file(const Ref<YAMLStyle> style, const String &path) const {
+	Ref<YAMLResult> res = style->serialize_style();
+	if (res->has_error()) {
+		return YAMLResult::error(res->get_error_message(), res->get_error_line(), res->get_error_column());
+	}
+	return YAML::save_file(res->get_data(), path);
+}
+
+Ref<YAMLResult> YAMLStyle::load_style_file(const String &path) {
+	Ref<FileAccess> file = FileAccess::open(path, FileAccess::READ);
+
+	Error err = file->get_error();
+	if (err != OK) {
+		return YAMLResult::error("Failed to read style '" + path + "': " + UtilityFunctions::error_string((int)err));
+	}
+
+	// Read the file content and check for errors
+	String content = file->get_as_text();
+	err = file->get_error();
+	file->close();
+
+	if (err != OK) {
+		return YAMLResult::error("Failed to read style '" + path + "': " + UtilityFunctions::error_string((int)err));
+	}
+
+	return deserialize_style(content);
+}
+
 uint32_t YAMLStyle::hash() const {
 	uint32_t hash = hash_murmur3_one_32(container_form);
 	hash = hash_murmur3_one_32(flow_style, hash);
@@ -239,7 +572,7 @@ uint32_t YAMLStyle::hash() const {
 }
 
 void YAMLStyle::simplify() {
-	if (container_form != FORM_SEQ) {
+	if (container_form != FORM_ARRAY) {
 		return;
 	}
 
@@ -292,94 +625,6 @@ void YAMLStyle::detect_flow_style(const ryml::ConstNodeRef &node, const Ref<YAML
 		style->set_flow_style(YAMLStyle::FLOW_SINGLE);
 	} else {
 		style->set_flow_style(YAMLStyle::FLOW_NONE);
-	}
-}
-
-String YAMLStyle::container_form_string(ContainerForm p_style) {
-	switch (p_style) {
-		case FORM_ANY:
-			return "any";
-		case FORM_SEQ:
-			return "sequence";
-		case FORM_MAP:
-			return "map";
-		default:
-			return "any";
-	}
-}
-
-String YAMLStyle::flow_style_string(FlowStyle p_style) {
-	switch (p_style) {
-		case FLOW_ANY:
-			return "any";
-		case FLOW_NONE:
-			return "none";
-		case FLOW_SINGLE:
-			return "single";
-		default:
-			return "any";
-	}
-}
-
-String YAMLStyle::string_style_string(StringStyle p_style) {
-	switch (p_style) {
-		case STRING_ANY:
-			return "any";
-		case STRING_PLAIN:
-			return "plain";
-		case STRING_QUOTE_SINGLE:
-			return "quote_single";
-		case STRING_QUOTE_DOUBLE:
-			return "quote_double";
-		case STRING_LITERAL:
-			return "literal";
-		case STRING_FOLDED:
-			return "folded";
-		default:
-			return "any";
-	}
-}
-
-String YAMLStyle::integer_format_string(IntegerFormat p_format) {
-	switch (p_format) {
-		case INT_ANY:
-			return "any";
-		case INT_DECIMAL:
-			return "decimal";
-		case INT_HEX:
-			return "hex";
-		case INT_OCTAL:
-			return "octal";
-		case INT_BINARY:
-			return "binary";
-		default:
-			return "any";
-	}
-}
-
-String YAMLStyle::float_format_string(FloatFormat p_format) {
-	switch (p_format) {
-		case FLOAT_ANY:
-			return "any";
-		case FLOAT_DECIMAL:
-			return "decimal";
-		case FLOAT_SCIENTIFIC:
-			return "scientific";
-		default:
-			return "any";
-	}
-}
-
-String YAMLStyle::binary_encoding_string(BinaryEncoding p_encoding) {
-	switch (p_encoding) {
-		case BIN_ANY:
-			return "any";
-		case BIN_BASE64:
-			return "base64";
-		case BIN_HEX:
-			return "hex";
-		default:
-			return "any";
 	}
 }
 

@@ -7,14 +7,18 @@ using namespace godot;
 void Vector4VariantConverter::encode(ryml::NodeRef &node, const Variant &v, const YAMLStyle::View &style) const {
 	const Vector4 vec = v.operator Vector4();
 
-	style.apply_flow_style(node);
+	if (style.is_valid()) {
+		style.apply_flow_style(node);
+	} else {
+		node |= ryml::FLOW_SL;
+	}
 
 	YAMLStyle::FloatFormat x_format = style.has_child("x") ? style.get_child("x").get_float_format() : style.get_float_format();
 	YAMLStyle::FloatFormat y_format = style.has_child("y") ? style.get_child("y").get_float_format() : style.get_float_format();
 	YAMLStyle::FloatFormat z_format = style.has_child("z") ? style.get_child("z").get_float_format() : style.get_float_format();
 	YAMLStyle::FloatFormat w_format = style.has_child("w") ? style.get_child("w").get_float_format() : style.get_float_format();
 
-	if (!style.is_valid() || style.get_container_form() != YAMLStyle::FORM_SEQ) {
+	if (!style.is_valid() || style.get_container_form() != YAMLStyle::FORM_ARRAY) {
 		node |= ryml::MAP;
 
 		node["x"] << float_to_string(vec.x, x_format);
@@ -57,7 +61,7 @@ Vector4 Vector4VariantConverter::decode_from_map(const ryml::ConstNodeRef &node,
 	if (detect_style) {
 		Ref<YAMLStyle> style = context->current_style();
 		YAMLStyle::detect_flow_style(node, style);
-		style->set_container_form(YAMLStyle::FORM_MAP);
+		style->set_container_form(YAMLStyle::FORM_DICTIONARY);
 
 		context->push_style("x");
 	}
@@ -113,7 +117,7 @@ Vector4 Vector4VariantConverter::decode_from_sequence(const ryml::ConstNodeRef &
 	if (detect_style) {
 		Ref<YAMLStyle> style = context->current_style();
 		YAMLStyle::detect_flow_style(node, style);
-		style->set_container_form(YAMLStyle::FORM_SEQ);
+		style->set_container_form(YAMLStyle::FORM_ARRAY);
 
 		context->push_style("x");
 	}

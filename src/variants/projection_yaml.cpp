@@ -20,7 +20,7 @@ void ProjectionVariantConverter::encode(ryml::NodeRef &node, const Variant &v, c
 	YAMLStyle::View z_style = style.is_valid() ? style.get_child("z") : YAMLStyle::View();
 	YAMLStyle::View w_style = style.is_valid() ? style.get_child("w") : YAMLStyle::View();
 
-	if (!style.is_valid() || style.get_container_form() != YAMLStyle::FORM_SEQ) {
+	if (!style.is_valid() || style.get_container_form() != YAMLStyle::FORM_ARRAY) {
 		node |= ryml::MAP;
 		vec4_converter->encode(node["x"], proj.columns[0], x_style);
 		vec4_converter->encode(node["y"], proj.columns[1], y_style);
@@ -63,7 +63,7 @@ Variant ProjectionVariantConverter::decode_from_map(const ryml::ConstNodeRef &no
 	if (detect_style) {
 		Ref<YAMLStyle> style = context->current_style();
 		YAMLStyle::detect_flow_style(node, style);
-		style->set_container_form(YAMLStyle::FORM_MAP);
+		style->set_container_form(YAMLStyle::FORM_DICTIONARY);
 
 		context->push_style("x");
 	}
@@ -110,7 +110,7 @@ Variant ProjectionVariantConverter::decode_from_sequence(const ryml::ConstNodeRe
 	if (detect_style) {
 		Ref<YAMLStyle> style = context->current_style();
 		YAMLStyle::detect_flow_style(node, style);
-		style->set_container_form(YAMLStyle::FORM_SEQ);
+		style->set_container_form(YAMLStyle::FORM_ARRAY);
 
 		context->push_style("x");
 	}

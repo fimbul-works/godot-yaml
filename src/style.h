@@ -1,6 +1,7 @@
 #ifndef YAML_STYLE_H
 #define YAML_STYLE_H
 
+#include "result.h"
 #include "string_hash.h"
 
 #include <godot_cpp/classes/ref_counted.hpp>
@@ -13,7 +14,9 @@
 
 namespace godot {
 
-// Forward declarations
+// Forward reference
+class YAMLResult;
+
 class YAMLStyle : public RefCounted {
 	GDCLASS(YAMLStyle, RefCounted);
 
@@ -22,8 +25,8 @@ public:
 
 	enum ContainerForm {
 		FORM_ANY, // Let emitter decide
-		FORM_SEQ, // List/array style
-		FORM_MAP // Dictionary/map style
+		FORM_ARRAY, // Sequence/Array style
+		FORM_DICTIONARY // Map/Dictionary style
 	};
 
 	enum FlowStyle {
@@ -85,6 +88,9 @@ public:
 	Ref<YAMLStyle> set_custom_settings(Dictionary p_custom);
 	Dictionary get_custom_settings() const;
 
+	Ref<YAMLStyle> set_custom_setting(const String &key, const Variant &value);
+	Variant get_custom_setting(const String &key) const;
+
 	Ref<YAMLStyle> set_custom_tag(const String &p_tag);
 	String get_custom_tag() const;
 
@@ -102,21 +108,35 @@ public:
 	void simplify();
 
 	// Child style management
+	bool has_child(const String &key) const;
 	Ref<YAMLStyle> get_child(const String &key) const;
 	Ref<YAMLStyle> set_child(const String &key, const Ref<YAMLStyle> &style);
-	bool has_child(const String &key) const;
 	Ref<YAMLStyle> clear_child(const String &key);
 	Ref<YAMLStyle> clear_children();
 	Array get_children_keys() const;
 
+	// Load and reload YAMLStyle instances
+	Ref<YAMLResult> serialize_style(const bool ignore_any = false) const;
+	static Ref<YAMLResult> deserialize_style(const String &yaml_text);
+	Ref<YAMLResult> save_style_file(const Ref<YAMLStyle> style, const String &path) const;
+	static Ref<YAMLResult> load_style_file(const String &path);
+
 	// Debug helper
 	String get_debug_string() const;
+
 	static String container_form_string(ContainerForm p_style);
 	static String flow_style_string(FlowStyle p_style);
 	static String string_style_string(StringStyle p_style);
 	static String integer_format_string(IntegerFormat p_format);
 	static String float_format_string(FloatFormat p_format);
 	static String binary_encoding_string(BinaryEncoding p_encoding);
+
+	static ContainerForm container_form_from_string(const String &p_string);
+	static FlowStyle flow_style_from_string(const String &p_string);
+	static StringStyle string_style_from_string(const String &p_string);
+	static IntegerFormat integer_format_from_string(const String &p_string);
+	static FloatFormat float_format_from_string(const String &p_string);
+	static BinaryEncoding binary_encoding_from_string(const String &p_string);
 
 	// Custom settings
 	Dictionary custom_settings;

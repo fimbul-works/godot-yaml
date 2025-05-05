@@ -16,7 +16,7 @@ void AABBVariantConverter::encode(ryml::NodeRef &node, const Variant &v, const Y
 
 	style.apply_flow_style(node);
 
-	if (!style.is_valid() || style.get_container_form() != YAMLStyle::FORM_SEQ) {
+	if (!style.is_valid() || style.get_container_form() != YAMLStyle::FORM_ARRAY) {
 		node |= ryml::MAP;
 		vec3_converter->encode(node["position"], aabb.position, style.get_child("position"));
 		vec3_converter->encode(node["size"], aabb.size, style.get_child("size"));
@@ -53,7 +53,7 @@ Variant AABBVariantConverter::decode_from_map(const ryml::ConstNodeRef &node, Pa
 	if (detect_style) {
 		Ref<YAMLStyle> style = context->current_style();
 		YAMLStyle::detect_flow_style(node, style);
-		style->set_container_form(YAMLStyle::FORM_MAP);
+		style->set_container_form(YAMLStyle::FORM_DICTIONARY);
 
 		context->push_style("position");
 	}
@@ -84,7 +84,7 @@ Variant AABBVariantConverter::decode_from_sequence(const ryml::ConstNodeRef &nod
 	if (detect_style) {
 		Ref<YAMLStyle> style = context->current_style();
 		YAMLStyle::detect_flow_style(node, style);
-		style->set_container_form(YAMLStyle::FORM_SEQ);
+		style->set_container_form(YAMLStyle::FORM_ARRAY);
 
 		context->push_style("position");
 	}

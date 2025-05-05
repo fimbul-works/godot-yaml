@@ -8,6 +8,7 @@ void YAMLResult::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_document", "index"), &YAMLResult::get_document, DEFVAL(0));
 	ClassDB::bind_method(D_METHOD("get_document_count"), &YAMLResult::get_document_count);
 	ClassDB::bind_method(D_METHOD("has_error"), &YAMLResult::has_error);
+	ClassDB::bind_method(D_METHOD("get_error"), &YAMLResult::get_error);
 	ClassDB::bind_method(D_METHOD("get_error_message"), &YAMLResult::get_error_message);
 	ClassDB::bind_method(D_METHOD("get_error_line"), &YAMLResult::get_error_line);
 	ClassDB::bind_method(D_METHOD("get_error_column"), &YAMLResult::get_error_column);

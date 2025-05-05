@@ -7,9 +7,9 @@ using namespace godot;
 void ColorVariantConverter::encode(ryml::NodeRef &node, const Variant &v, const YAMLStyle::View &style) const {
 	const Color color = v.operator Color();
 
-	if (style.get_container_form() == YAMLStyle::FORM_MAP) {
+	if (style.get_container_form() == YAMLStyle::FORM_DICTIONARY) {
 		emit_as_map(node, color, style);
-	} else if (style.get_container_form() == YAMLStyle::FORM_SEQ) {
+	} else if (style.get_container_form() == YAMLStyle::FORM_ARRAY) {
 		emit_as_sequence(node, color, style);
 	} else {
 		node << store_string(color.to_html(color.a < 1.0f));
@@ -19,7 +19,11 @@ void ColorVariantConverter::encode(ryml::NodeRef &node, const Variant &v, const 
 void ColorVariantConverter::emit_as_map(ryml::NodeRef &node, const Color &color, const YAMLStyle::View &style) const {
 	node |= ryml::MAP;
 
-	style.apply_flow_style(node);
+	if (style.is_valid()) {
+		style.apply_flow_style(node);
+	} else {
+		node |= ryml::FLOW_SL;
+	}
 
 	YAMLStyle::FloatFormat r_format = style.has_child("r") ? style.get_child("r").get_float_format() : style.get_float_format();
 	YAMLStyle::FloatFormat g_format = style.has_child("g") ? style.get_child("g").get_float_format() : style.get_float_format();
@@ -38,7 +42,12 @@ void ColorVariantConverter::emit_as_map(ryml::NodeRef &node, const Color &color,
 void ColorVariantConverter::emit_as_sequence(ryml::NodeRef &node, const Color &color, const YAMLStyle::View &style) const {
 	node |= ryml::SEQ;
 
-	style.apply_flow_style(node);
+	if (style.is_valid()) {
+		style.apply_flow_style(node);
+	} else {
+		// Default to flow-style
+		node |= ryml::FLOW_SL;
+	}
 
 	YAMLStyle::FloatFormat r_format = style.has_child("r") ? style.get_child("r").get_float_format() : style.get_float_format();
 	YAMLStyle::FloatFormat g_format = style.has_child("g") ? style.get_child("g").get_float_format() : style.get_float_format();
@@ -82,7 +91,7 @@ Variant ColorVariantConverter::decode_map(const ryml::ConstNodeRef &node, Parser
 	if (context->detect_style) {
 		Ref<YAMLStyle> style = context->current_style();
 		YAMLStyle::detect_flow_style(node, style);
-		style->set_container_form(YAMLStyle::FORM_MAP);
+		style->set_container_form(YAMLStyle::FORM_DICTIONARY);
 
 		context->push_style("r");
 	}
@@ -130,13 +139,13 @@ Variant ColorVariantConverter::decode_map(const ryml::ConstNodeRef &node, Parser
 Variant ColorVariantConverter::decode_sequence(const ryml::ConstNodeRef &node, ParserContext *context) const {
 	const size_t size = node.num_children();
 	if (size != 3 && size != 4) {
-		throw create_exception("Color sequence must have 3 or 4 elements (RGB[A])", node);
+		throw create_exception("Color array must have 3 or 4 elements (RGB[A])", node);
 	}
 
 	if (context->detect_style) {
 		Ref<YAMLStyle> style = context->current_style();
 		YAMLStyle::detect_flow_style(node, style);
-		style->set_container_form(YAMLStyle::FORM_SEQ);
+		style->set_container_form(YAMLStyle::FORM_ARRAY);
 
 		context->push_style("r");
 	}

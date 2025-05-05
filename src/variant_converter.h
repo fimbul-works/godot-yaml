@@ -75,7 +75,7 @@ protected:
 	}
 
 	inline YAMLException create_invalid_sequence_length_exception(int expected_length, const ryml::ConstNodeRef &node) const {
-		return create_exception(vformat("%s sequence must have %d elements", get_tag(), expected_length), node);
+		return create_exception(vformat("%s array must have %d elements", get_tag(), expected_length), node);
 	}
 
 	inline YAMLException create_decode_error_exception(const char *details, const ryml::ConstNodeRef &node) const {

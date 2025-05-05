@@ -14,7 +14,7 @@ void Transform2DVariantConverter::encode(ryml::NodeRef &node, const Variant &v, 
 
 	style.apply_flow_style(node);
 
-	if (!style.is_valid() || style.get_container_form() != YAMLStyle::FORM_SEQ) {
+	if (!style.is_valid() || style.get_container_form() != YAMLStyle::FORM_ARRAY) {
 		node |= ryml::MAP;
 		vec2_converter->encode(node["x"], transform.columns[0], style.get_child("x"));
 		vec2_converter->encode(node["y"], transform.columns[1], style.get_child("y"));
@@ -53,7 +53,7 @@ Transform2D Transform2DVariantConverter::decode_from_map(const ryml::ConstNodeRe
 	if (detect_style) {
 		Ref<YAMLStyle> style = context->current_style();
 		YAMLStyle::detect_flow_style(node, style);
-		style->set_container_form(YAMLStyle::FORM_MAP);
+		style->set_container_form(YAMLStyle::FORM_DICTIONARY);
 
 		context->push_style("x");
 	}
@@ -91,7 +91,7 @@ Transform2D Transform2DVariantConverter::decode_from_sequence(const ryml::ConstN
 	if (detect_style) {
 		Ref<YAMLStyle> style = context->current_style();
 		YAMLStyle::detect_flow_style(node, style);
-		style->set_container_form(YAMLStyle::FORM_SEQ);
+		style->set_container_form(YAMLStyle::FORM_ARRAY);
 
 		context->push_style("x");
 	}

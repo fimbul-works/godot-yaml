@@ -15,7 +15,7 @@ void BasisVariantConverter::encode(ryml::NodeRef &node, const Variant &v, const 
 
 	style.apply_flow_style(node);
 
-	if (!style.is_valid() || style.get_container_form() != YAMLStyle::FORM_SEQ) {
+	if (!style.is_valid() || style.get_container_form() != YAMLStyle::FORM_ARRAY) {
 		node |= ryml::MAP;
 		vec3_converter->encode(node["x"], basis.get_column(0), style.get_child("x"));
 		vec3_converter->encode(node["y"], basis.get_column(1), style.get_child("y"));
@@ -54,7 +54,7 @@ Variant BasisVariantConverter::decode_from_map(const ryml::ConstNodeRef &node, P
 	if (detect_style) {
 		Ref<YAMLStyle> style = context->current_style();
 		YAMLStyle::detect_flow_style(node, style);
-		style->set_container_form(YAMLStyle::FORM_MAP);
+		style->set_container_form(YAMLStyle::FORM_DICTIONARY);
 
 		context->push_style("x");
 	}
@@ -92,7 +92,7 @@ Variant BasisVariantConverter::decode_from_sequence(const ryml::ConstNodeRef &no
 	if (detect_style) {
 		Ref<YAMLStyle> style = context->current_style();
 		YAMLStyle::detect_flow_style(node, style);
-		style->set_container_form(YAMLStyle::FORM_SEQ);
+		style->set_container_form(YAMLStyle::FORM_ARRAY);
 
 		context->push_style("x");
 	}

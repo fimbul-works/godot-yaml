@@ -14,7 +14,7 @@ void PackedVector2ArrayVariantConverter::encode(ryml::NodeRef &node, const Varia
 	node |= ryml::SEQ;
 
 	if (array.size() == 0) {
-		return; // Empty sequence
+		return; // Empty array
 	}
 
 	style.apply_flow_style(node);
@@ -58,7 +58,7 @@ Variant PackedVector2ArrayVariantConverter::decode(const ryml::ConstNodeRef &nod
 	if (detect_style) {
 		Ref<YAMLStyle> style = context->current_style();
 		YAMLStyle::detect_flow_style(node, style);
-		style->set_container_form(YAMLStyle::FORM_SEQ);
+		style->set_container_form(YAMLStyle::FORM_ARRAY);
 	}
 
 	if (size > 0) {

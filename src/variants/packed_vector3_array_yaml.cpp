@@ -58,7 +58,7 @@ Variant PackedVector3ArrayVariantConverter::decode(const ryml::ConstNodeRef &nod
 	if (detect_style) {
 		Ref<YAMLStyle> style = context->current_style();
 		YAMLStyle::detect_flow_style(node, style);
-		style->set_container_form(YAMLStyle::FORM_SEQ);
+		style->set_container_form(YAMLStyle::FORM_ARRAY);
 	}
 
 	if (size > 0) {
