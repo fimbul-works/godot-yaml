@@ -35,6 +35,7 @@ public:
 	static Ref<YAMLResult> validate_file(const String &path);
 
 	static void register_class(Ref<Script> p_class, const Variant &p_serialize, const Variant &p_deserialize);
+	static void unregister_class(Ref<Script> p_class);
 	static bool has_registered_class(const String &class_name);
 
 	static Ref<YAMLStyle> create_style();

@@ -9,19 +9,8 @@ using namespace godot;
 std::mutex YAMLClassRegistry::registry_mutex;
 std::unordered_map<String, YAMLClassRegistry::ClassInfo, StringHasher, StringEqual> YAMLClassRegistry::class_registry;
 
-// Register a class with the registry
 void YAMLClassRegistry::register_class(Ref<Script> p_class, const Variant &p_serialize, const Variant &p_deserialize) {
-	if (!p_class.is_valid()) {
-		ERR_PRINT("Cannot register null class");
-		return;
-	}
-
-	// Find out the real class name
-	const StringName class_name = p_class->get_global_name();
-	if (class_name.is_empty()) {
-		ERR_PRINT(vformat("Cannot register class %s - could not determine global class name", p_class->get_class()));
-		return;
-	}
+	const StringName class_name = get_script_class(p_class);
 
 	// Prevent duplicates
 	if (has_class(class_name)) {
@@ -91,16 +80,36 @@ void YAMLClassRegistry::register_class(Ref<Script> p_class, const Variant &p_ser
 		class_registry[class_name] = info;
 	}
 
+#ifdef GODOT_YAML_DEBUG
 	UtilityFunctions::print(vformat("Registered YAML class: %s", class_name));
+#endif
 }
 
-// Check if a class is registered
+void YAMLClassRegistry::unregister_class(Ref<Script> p_class) {
+	const StringName class_name = get_script_class(p_class);
+
+	// Prevent duplicates
+	if (!has_class(class_name)) {
+		ERR_PRINT(vformat("Class %s is not registered", class_name));
+		return;
+	}
+
+	// Remove from registry with thread safety
+	{
+		std::lock_guard<std::mutex> lock(registry_mutex);
+		class_registry.erase(class_name);
+	}
+
+#ifdef GODOT_YAML_DEBUG
+	UtilityFunctions::print(vformat("Unregistered YAML class: %s", class_name));
+#endif
+}
+
 bool YAMLClassRegistry::has_class(const String &tag_name) {
 	std::lock_guard<std::mutex> lock(registry_mutex);
 	return class_registry.find(tag_name) != class_registry.end();
 }
 
-// Get class info by tag name
 YAMLClassRegistry::ClassInfo YAMLClassRegistry::get_class_info(const String &tag_name) {
 	std::lock_guard<std::mutex> lock(registry_mutex);
 	auto it = class_registry.find(tag_name);
@@ -108,4 +117,20 @@ YAMLClassRegistry::ClassInfo YAMLClassRegistry::get_class_info(const String &tag
 		return it->second;
 	}
 	return ClassInfo(); // Return empty info if not found
+}
+
+String YAMLClassRegistry::get_script_class(Ref<Script> p_class) {
+	if (!p_class.is_valid()) {
+		ERR_PRINT("Invalid class");
+		return "";
+	}
+
+	// Find out the real class name
+	const StringName class_name = p_class->get_global_name();
+	if (class_name.is_empty()) {
+		ERR_PRINT(vformat("Cannot register class %s - could not determine global class name", p_class->get_class()));
+		return "";
+	}
+
+	return class_name;
 }

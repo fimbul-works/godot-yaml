@@ -26,6 +26,7 @@ void YAML::_bind_methods() {
 	ClassDB::bind_static_method("YAML", D_METHOD("validate_file", "path"), &YAML::validate_file);
 
 	ClassDB::bind_static_method("YAML", D_METHOD("register_class", "script_class", "serialize", "deserialize"), &YAML::register_class, DEFVAL("serialize"), DEFVAL("deserialize"));
+	ClassDB::bind_static_method("YAML", D_METHOD("unregister_class", "script_class"), &YAML::unregister_class);
 	ClassDB::bind_static_method("YAML", D_METHOD("has_registered_class", "tag_name"), &YAML::has_registered_class);
 
 	ClassDB::bind_static_method("YAML", D_METHOD("create_style"), &YAML::create_style);
@@ -64,6 +65,10 @@ Ref<YAMLResult> YAML::validate(const String &input) {
 }
 
 Ref<YAMLResult> YAML::load_file(const String &path, const Ref<YAMLSecurity> security, const bool detect_style) {
+	if (!FileAccess::file_exists(path)) {
+		return YAMLResult::error("File not found '" + path + "': " + UtilityFunctions::error_string(ERR_FILE_NOT_FOUND));
+	}
+
 	// Open file for reading
 	Ref<FileAccess> file = FileAccess::open(path, FileAccess::READ);
 
@@ -74,6 +79,7 @@ Ref<YAMLResult> YAML::load_file(const String &path, const Ref<YAMLSecurity> secu
 
 	// Read the file content and check for errors
 	String content = file->get_as_text();
+
 	err = file->get_error();
 	file->close();
 
@@ -140,6 +146,10 @@ Ref<YAMLStyle> YAML::create_style() {
 
 void YAML::register_class(Ref<Script> p_class, const Variant &p_serialize, const Variant &p_deserialize) {
 	YAMLClassRegistry::register_class(p_class, p_serialize, p_deserialize);
+}
+
+void YAML::unregister_class(Ref<Script> p_class) {
+	YAMLClassRegistry::unregister_class(p_class);
 }
 
 bool YAML::has_registered_class(const String &class_name) {
