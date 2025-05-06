@@ -46,9 +46,6 @@ func _ready() -> void:
 		"Stringify (no style)"
 	)
 
-	print(style)
-	print(style.get_debug_string())
-
 	# Stringify with style
 	if style:
 		var style_stringify_results := benchmark_operation(

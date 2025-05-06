@@ -1,5 +1,4 @@
-extends Node2D
-## Example showing basic usage with rich text printing
+extends BaseTest
 
 var yaml_text := """
 string: string_value
@@ -9,36 +8,31 @@ list:
   - oranges
 """
 
-func _ready():
-	if !visible:
-		return
-	print_rich("[b]🔰 Basic YAML Usage Example[/b]")
+func _init() -> void:
+	icon = "✅"
 
-	# Parse YAML string
-	var parse_result := YAML.parse(yaml_text)
-	assert(!parse_result.has_error(), parse_result.get_error_message())
+func test_validate_string() -> void:
+	var result := YAML.validate(yaml_text)
+	expect(!result.has_error(), result.get_error_message())
 
-	var data := parse_result.get_data()
-	print_rich("\n[b]Parse Result:[/b]\n%s" % data)
+func test_parse_string() -> void:
+	var result := YAML.parse(yaml_text)
+	expect(!result.has_error(), result.get_error_message())
 
-	# Stringify data
-	var stringify_result := YAML.stringify(data)
-	assert(!stringify_result.has_error(), stringify_result.get_error_message())
+	if LOG_VERBOSE:
+		var data := result.get_data()
+		print_rich("\n[b]Parse Result:[/b]\n%s" % data)
 
-	var yaml := stringify_result.get_data()
-	print_rich("\n[b]Stringify Result:[/b]\n%s" % yaml)
+func test_stringify_data() -> void:
+	var yaml_data = YAML.parse(yaml_text).get_data()
 
-	# Validate YAML
-	var validate_result := YAML.validate(yaml)
-	assert(!validate_result.has_error(), validate_result.get_error_message())
+	var result := YAML.stringify(yaml_data)
+	expect(!result.has_error(), result.get_error_message())
 
-	# Load YAML file
-	var load_result := YAML.load_file("res://addons/yaml/data/simple.yaml")
-	assert(!load_result.has_error(), stringify_result.get_error_message())
+	# Try using the new expect_equal function
+	expect_equal(result.get_data().strip_edges(), yaml_text.strip_edges(),
+		"Stringified YAML should match original")
 
-	var loaded_data := load_result.get_data()
-	print_rich("\n[b]Loaded data:[/b]\n%s" % loaded_data)
-
-	# Save YAML file
-	var save_result := YAML.save_file(loaded_data, "user://simple.yaml")
-	assert(!load_result.has_error(), stringify_result.get_error_message())
+	if LOG_VERBOSE:
+		var yaml := result.get_data()
+		print_rich("\n[b]Stringify Result:[/b]\n%s" % yaml)

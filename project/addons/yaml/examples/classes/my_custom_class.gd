@@ -19,14 +19,15 @@ static func deserialize(data: Variant):
 		return YAMLResult.error("Deserializing MyCustomClass expects Dictionary, received %s" % [type_string(typeof(data))])
 
 	var dict: Dictionary = data
+
 	if !dict.has("string_val"):
-		return YAMLResult.error("Missing String value")
+		return YAMLResult.error("Missing string_val field")
 	if !dict.has("int_val"):
-		return YAMLResult.error("Missing integer value")
+		return YAMLResult.error("Missing int_val field")
 	if !dict.has("float_val"):
-		return YAMLResult.error("Missing float value")
+		return YAMLResult.error("Missing float_val field")
 	if !dict.has("color_val"):
-		return YAMLResult.error("Missing Color value")
+		return YAMLResult.error("Missing color_val field")
 
 	var string_val: String = dict.get("string_val")
 	var int_val: int = dict.get("int_val")

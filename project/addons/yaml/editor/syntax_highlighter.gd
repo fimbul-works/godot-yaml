@@ -7,12 +7,13 @@ var cache: Dictionary = {}
 
 # Token types for clearer code organization
 enum TokenType {
-	TEXT,      # For keys only
-	COMMENT,   # Comments
-	SYMBOL,    # Structural elements like :, -, >, |, &, *, [, ], {, }
-	STRING,    # String values (default for unmatched values)
-	NUMBER,    # Numeric values
-	KEYWORD,   # Booleans, null, merge keys, tags
+	TEXT,               # For keys only
+	COMMENT,            # Comments
+	SYMBOL,             # Structural elements like :, -, >, |, &, *, [, ], {, }
+	STRING,             # String values (default for unmatched values)
+	NUMBER,             # Numeric values
+	KEYWORD,            # Booleans, null, merge keys, tags
+	DOCUMENT_SEPARATOR, # New document separator
 }
 
 # Regular expressions for top-level patterns
@@ -35,6 +36,7 @@ var re_patterns := {
 	"anchor": RegEx.create_from_string("^\\s*&([^\\s]+)"),
 	"alias": RegEx.create_from_string("^\\s*\\*([^\\s]+)"),
 	"tag": RegEx.create_from_string("!!?[a-zA-Z0-9][a-zA-Z0-9_-]*"),
+	"document_separator": RegEx.create_from_string("^---$")
 }
 
 class ParserState:
@@ -65,6 +67,7 @@ func _update_theme_overrides() -> void:
 		"string_color": settings.get_setting("text_editor/theme/highlighting/string_color"),
 		"number_color": settings.get_setting("text_editor/theme/highlighting/number_color"),
 		"keyword_color": settings.get_setting("text_editor/theme/highlighting/keyword_color"),
+		"document_separator": settings.get_setting("text_editor/theme/highlighting/comment_color"),
 	}
 
 func _get_color_for_type(type: TokenType) -> Color:
@@ -75,6 +78,7 @@ func _get_color_for_type(type: TokenType) -> Color:
 		TokenType.STRING: return theme_overrides.string_color
 		TokenType.NUMBER: return theme_overrides.number_color
 		TokenType.KEYWORD: return theme_overrides.keyword_color
+		TokenType.DOCUMENT_SEPARATOR: return theme_overrides.document_separator
 		_: return theme_overrides.string_color  # Default fallback is string color
 
 func _get_line_syntax_highlighting(line: int) -> Dictionary:
@@ -94,6 +98,11 @@ func _highlight_line(text: String) -> Dictionary:
 	if re_patterns.comment.search(text):
 		return {0: {"color": _get_color_for_type(TokenType.COMMENT)}}
 
+	# Handle document separator
+	var separator_match: RegExMatch = re_patterns.document_separator.search(text)
+	if separator_match:
+		return {0: {"color": _get_color_for_type(TokenType.DOCUMENT_SEPARATOR)}}
+
 	# Handle merge keys
 	var merge_match: RegExMatch = re_patterns.merge_key.search(text)
 	if merge_match:
@@ -101,7 +110,7 @@ func _highlight_line(text: String) -> Dictionary:
 			merge_match.get_start(0): {"color": _get_color_for_type(TokenType.KEYWORD)}
 		}
 
-	# Check for top-level tags (added this check)
+	# Check for top-level tags
 	var tag_match: RegExMatch = re_patterns.top_level_tag.search(text)
 	if tag_match:
 		var colors := {}

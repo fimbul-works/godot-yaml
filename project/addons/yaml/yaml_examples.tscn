@@ -1,6 +1,9 @@
-[gd_scene load_steps=8 format=3 uid="uid://dogc1x0c3re7o"]
+[gd_scene load_steps=11 format=3 uid="uid://dogc1x0c3re7o"]
 
+[ext_resource type="Script" path="res://addons/yaml/examples/test_runner.gd" id="1_7slvv"]
 [ext_resource type="Script" path="res://addons/yaml/examples/basic_usage.gd" id="1_iyu1q"]
+[ext_resource type="Script" path="res://addons/yaml/examples/load_and_save.gd" id="2_dk2mh"]
+[ext_resource type="Script" path="res://addons/yaml/examples/style_system.gd" id="5_61ckj"]
 [ext_resource type="Script" path="res://addons/yaml/examples/error_handling.gd" id="31_xr2li"]
 [ext_resource type="Script" path="res://addons/yaml/examples/speed_benchmark.gd" id="32_umwpu"]
 [ext_resource type="Script" path="res://addons/yaml/examples/custom_class.gd" id="33_2d3w6"]
@@ -10,22 +13,36 @@
 [sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_grb45"]
 
 [node name="Examples" type="Node2D"]
+script = ExtResource("1_7slvv")
 
-[node name="Basic Usage" type="Node2D" parent="."]
+[node name="Basic String Usage" type="Node2D" parent="."]
+visible = false
 script = ExtResource("1_iyu1q")
 
+[node name="Load And Save YAML Files" type="Node2D" parent="."]
+visible = false
+script = ExtResource("2_dk2mh")
+
 [node name="Error Handling" type="Node2D" parent="."]
+visible = false
 script = ExtResource("31_xr2li")
 
-[node name="Speed Benchmark" type="Node2D" parent="."]
-script = ExtResource("32_umwpu")
-
-[node name="Custom Class" type="Node2D" parent="."]
-script = ExtResource("33_2d3w6")
+[node name="Style System" type="Node2D" parent="."]
+script = ExtResource("5_61ckj")
 
 [node name="Multiple Documents" type="Node2D" parent="."]
+visible = false
 script = ExtResource("34_84xsb")
 
+[node name="Custom Class" type="Node2D" parent="."]
+visible = false
+script = ExtResource("33_2d3w6")
+
 [node name="Resource Referencing" type="Node2D" parent="."]
+visible = false
 script = ExtResource("35_jnbc0")
 local_texture = SubResource("PlaceholderTexture2D_grb45")
+
+[node name="Speed Benchmark" type="Node2D" parent="."]
+visible = false
+script = ExtResource("32_umwpu")

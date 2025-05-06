@@ -1,84 +1,47 @@
-extends Node2D
-## Example showing error handling and validation with rich text printing
+extends BaseTest
 
-func _ready():
-	if !visible:
-		return
-	print_rich("[b]⚠️ YAML Error Handling Examples[/b]")
-	test_parse_errors()
-	test_stringify_errors()
-	test_validation()
-	test_error_details()
+func _init() -> void:
+	icon = "❌"
 
-func test_parse_errors():
-	print_rich("\n[b]Testing Parse Errors:[/b]")
-
-	# Test invalid YAML syntax
+func test_invalid_identation():
 	var invalid_yaml := """
 key: value
   indentation: wrong
 """
 	var result := YAML.parse(invalid_yaml)
-	assert(result.has_error(), "Expected error for invalid YAML")
-	print_rich("[color=red]Parse Error (invalid syntax):[/color]")
-	print_rich("  [i]Message:[/i] %s" % result.get_error_message())
-	print_rich("  [i]Location:[/i] line %d, column %d" % [result.get_error_line(), result.get_error_column()])
+	expect(result.has_error(), result.get_error())
+	expect_equal(result.get_error(), "parse error (line 3, column 14)", "Expected parse error")
 
-	# Test unmatched quotes
+func test_unmatched_quotes():
 	var unmatched_quotes := """
 message: "This quote is not closed
 next_line: value
 """
-	result = YAML.parse(unmatched_quotes)
-	assert(result.has_error(), "Expected error for unmatched quotes")
-	print_rich("\n[color=red]Parse Error (unmatched quotes):[/color]")
-	print_rich("  [i]Message:[/i] %s" % result.get_error_message())
-	print_rich("  [i]Location:[/i] line %d, column %d" % [result.get_error_line(), result.get_error_column()])
+	var result = YAML.parse(unmatched_quotes)
+	expect(result.has_error(), "Expected EOF")
+	expect_equal(result.get_error(), "reached end of file looking for closing quote (line 4, column 1)", "Expected EOF")
 
-func test_stringify_errors():
-	print_rich("\n[b]Testing Stringify Errors:[/b]")
-
-	# Test circular reference
+func test_circular_reference():
 	var dict1 = {}
 	var dict2 = {"ref": dict1}
 	dict1["circular"] = dict2
 
 	var result := YAML.stringify(dict1)
-	assert(result.has_error(), "Expected error for circular reference")
-	print_rich("[color=red]Stringify Error (circular reference):[/color]")
-	print_rich("  [i]Message:[/i] %s" % result.get_error_message())
-	print_rich("  [i]Location:[/i] line %d, column %d" % [result.get_error_line(), result.get_error_column()])
+	expect(result.has_error(), "Expected circular reference")
+	expect_equal(result.get_error_message(), "Maximum nesting depth exceeded (100). Possible circular reference?", "Expected circular reference")
 
 func test_validation():
-	print_rich("\n[b]Testing Validation:[/b]")
-
-	# Test valid YAML
-	var valid_yaml := """
-key: value
-list:
-  - item1
-  - item2
-"""
-	var result := YAML.validate(valid_yaml)
-	assert(!result.has_error(), "Unexpected error for valid YAML")
-	print_rich("[color=green]✓ Valid YAML passed validation[/color]")
-
-	# Test invalid YAML
 	var invalid_yaml := """
 key: value
 - invalid
   list
   format
 """
-	result = YAML.validate(invalid_yaml)
-	assert(result.has_error(), "Expected validation error")
-	print_rich("\n[color=red]Validation Error:[/color]")
-	print_rich("  [i]Message:[/i] %s" % result.get_error_message())
-	print_rich("  [i]Location:[/i] line %d, column %d" % [result.get_error_line(), result.get_error_column()])
+	var result = YAML.validate(invalid_yaml)
+	expect(result.has_error(), "Expected parse error")
+	expect_equal(result.get_error(), "parse error (line 3, column 1)", "Expected parse error")
 
 func test_error_details():
-	print_rich("\n[b]Testing Error Details:[/b]")
-
 	var yaml_with_error := """
 valid_line: value
 - invalid line: value
@@ -86,7 +49,5 @@ another_line: value
 """
 
 	var result := YAML.parse(yaml_with_error)
-	assert(result.has_error(), "Expected error with location info")
-	print_rich("\n[color=red]Error Details:[/color]")
-	print_rich("  [i]Message:[/i] %s" % result.get_error_message())
-	print_rich("  [i]Location:[/i] line %d, column %d" % [result.get_error_line(), result.get_error_column()])
+	expect(result.has_error(), "Expected error with location info")
+	expect_equal(result.get_error(), "parse error (line 3, column 1)", "Expected parse error")
