@@ -91,8 +91,8 @@ void YAMLStyle::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("clear_children"), &YAMLStyle::clear_children);
 	ClassDB::bind_method(D_METHOD("get_children_keys"), &YAMLStyle::get_children_keys);
 
-	ClassDB::bind_method(D_METHOD("serialize_style"), &YAMLStyle::serialize_style);
-	ClassDB::bind_method(D_METHOD("save_style_file", "p_style", "p_path"), &YAMLStyle::save_style_file);
+	ClassDB::bind_method(D_METHOD("serialize_style", "ignore_any"), &YAMLStyle::serialize_style, DEFVAL(false));
+	ClassDB::bind_method(D_METHOD("save_style_file", "p_path"), &YAMLStyle::save_style_file);
 	ClassDB::bind_static_method("YAMLStyle", D_METHOD("deserialize_style"), &YAMLStyle::deserialize_style);
 	ClassDB::bind_static_method("YAMLStyle", D_METHOD("load_style_file"), &YAMLStyle::load_style_file);
 
@@ -111,6 +111,7 @@ void YAMLStyle::_bind_methods() {
 	ClassDB::bind_static_method("YAMLStyle", D_METHOD("binary_encoding_from_string", "p_sting"), &YAMLStyle::binary_encoding_from_string);
 
 	ClassDB::bind_method(D_METHOD("get_debug_string"), &YAMLStyle::get_debug_string);
+	BIND_VIRTUAL_METHOD(YAMLStyle, _to_string);
 
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "container_form", PROPERTY_HINT_ENUM, "Any,Array,Dictionary"), "set_container_form", "get_container_form");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "flow_style", PROPERTY_HINT_ENUM, "Any,None,Single"), "set_flow_style", "get_flow_style");
@@ -429,7 +430,7 @@ Ref<YAMLResult> YAMLStyle::serialize_style(const bool ignore_any) const {
 	Dictionary dict;
 
 	if (has_container_form || (ignore_any && container_form != FORM_ANY)) {
-		dict["container"] = container_form_string(container_form);
+		dict["form"] = container_form_string(container_form);
 	}
 
 	if (has_flow_style || (ignore_any && flow_style != FLOW_ANY)) {
@@ -453,15 +454,19 @@ Ref<YAMLResult> YAMLStyle::serialize_style(const bool ignore_any) const {
 	}
 
 	if (has_custom_settings || !custom_settings.is_empty()) {
-		dict["custom_settings"] = custom_settings;
+		dict["settings"] = custom_settings;
 	}
 
 	if (!child_styles.empty()) {
 		Dictionary children_dict;
 		for (const auto &pair : child_styles) {
-			children_dict[pair.first] = pair.second->get_string_style();
+			Ref<YAMLResult> child_result = pair.second->serialize_style(ignore_any);
+			if (child_result->has_error()) {
+				return YAMLResult::error(vformat("Failed to stringify style: %s", child_result->get_error_message()), child_result->get_error_line(), child_result->get_error_column());
+			}
+			children_dict[pair.first] = child_result->get_data();
 		}
-		dict["children"] = children_dict;
+		dict["_children"] = children_dict;
 	}
 
 	Ref<YAMLResult> result = YAML::stringify(dict, nullptr);
@@ -486,8 +491,8 @@ Ref<YAMLResult> YAMLStyle::deserialize_style(const String &yaml_text) {
 	Dictionary dict = data;
 	Ref<YAMLStyle> style = YAML::create_style();
 
-	if (dict.has("container")) {
-		style->set_container_form(container_form_from_string(dict["container"]));
+	if (dict.has("form")) {
+		style->set_container_form(container_form_from_string(dict["form"]));
 	}
 
 	if (dict.has("flow")) {
@@ -508,8 +513,8 @@ Ref<YAMLResult> YAMLStyle::deserialize_style(const String &yaml_text) {
 
 	style->set_binary_encoding(binary_encoding_from_string(dict["binary"]));
 
-	if (dict.has("custom_settings")) {
-		style->set_custom_settings(dict["custom_settings"]);
+	if (dict.has("settings")) {
+		style->set_custom_settings(dict["settings"]);
 	}
 
 	if (dict.has("children") && dict["children"].get_type() == Variant::DICTIONARY) {
@@ -628,17 +633,38 @@ void YAMLStyle::detect_flow_style(const ryml::ConstNodeRef &node, const Ref<YAML
 	}
 }
 
+String YAMLStyle::_to_string() const {
+	return vformat("YAMLStyle(%d)", hash());
+}
+
 String YAMLStyle::get_debug_string() const {
 	String debug;
-	debug += vformat("Container Form:  %s (%s)\n", container_form_string(container_form), has_container_form ? "Explicit" : "Inherited");
-	debug += vformat("Flow Style:      %s (%s)\n", flow_style_string(flow_style), has_flow_style ? "Explicit" : "Inherited");
-	debug += vformat("String Style:    %s (%s)\n", string_style_string(string_style), has_string_style ? "Explicit" : "Inherited");
-	debug += vformat("Integer Format:  %s (%s)\n", integer_format_string(integer_format), has_integer_format ? "Explicit" : "Inherited");
-	debug += vformat("Float Format:    %s (%s)\n", float_format_string(float_format), has_float_format ? "Explicit" : "Inherited");
-	debug += vformat("Binary Encoding: %s (%s)\n", binary_encoding_string(binary_encoding), has_binary_encoding ? "Explicit" : "Inherited");
+	if (has_container_form) {
+		debug += vformat("Form: %s\n", container_form_string(container_form));
+	}
+
+	if (has_flow_style) {
+		debug += vformat("Flow: %s\n", flow_style_string(flow_style));
+	}
+
+	if (has_string_style) {
+		debug += vformat("String: %s\n", string_style_string(string_style));
+	}
+
+	if (has_integer_format) {
+		debug += vformat("Integer: %s\n", integer_format_string(integer_format));
+	}
+
+	if (has_float_format) {
+		debug += vformat("Float: %s\n", float_format_string(float_format));
+	}
+
+	if (has_binary_encoding) {
+		debug += vformat("Binary: %s\n", binary_encoding_string(binary_encoding));
+	}
 
 	if (!custom_settings.is_empty()) {
-		debug += "\nCustom Settings:\n";
+		debug += "\nSettings:\n";
 		Array keys = custom_settings.keys();
 		for (int i = 0; i < keys.size(); i++) {
 			debug += vformat("  %s: %s\n", String(keys[i]), String(custom_settings[keys[i]]));
@@ -646,9 +672,9 @@ String YAMLStyle::get_debug_string() const {
 	}
 
 	if (!child_styles.empty()) {
-		debug += "\nChild Styles:\n";
+		debug += "\nChildren:\n";
 		for (const auto &pair : child_styles) {
-			debug += vformat("  %s:\n", pair.first);
+			debug += vformat("    %s:\n", pair.first);
 			String child_debug = pair.second->get_debug_string();
 			PackedStringArray lines = child_debug.split("\n");
 			for (int i = 0; i < lines.size(); i++) {

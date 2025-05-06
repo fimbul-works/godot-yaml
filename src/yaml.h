@@ -44,6 +44,8 @@ public:
 	static void allow_resource_path(const String &path_prefix, const Array &type_names = Array());
 	static void block_resource_type(const StringName &type_name);
 	static void reset_security();
+
+	String _to_string() const;
 };
 
 } // namespace godot

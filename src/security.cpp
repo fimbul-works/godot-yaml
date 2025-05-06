@@ -39,6 +39,8 @@ void YAMLSecurity::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("clear_path_restrictions"), &YAMLSecurity::clear_path_restrictions);
 	ClassDB::bind_method(D_METHOD("clear_type_restrictions"), &YAMLSecurity::clear_type_restrictions);
 	ClassDB::bind_method(D_METHOD("reset"), &YAMLSecurity::reset);
+
+	BIND_VIRTUAL_METHOD(YAMLSecurity, _to_string);
 }
 
 void YAMLSecurity::allow_path(const String &path_prefix, const Array &type_names) {
@@ -167,4 +169,22 @@ bool YAMLSecurity::View::is_resource_allowed(const String &path, const Object *r
 		return false;
 	}
 	return is_resource_allowed(path, resource->get_class());
+}
+
+String YAMLSecurity::_to_string() const {
+	String result;
+	bool first = true;
+
+	for (const StringName &type_name : blocked_types) {
+		if (!first) {
+			result += ",";
+		} else {
+			first = false;
+		}
+
+		// Convert StringName to String
+		result += String(type_name);
+	}
+
+	return vformat("YAMLSecurity(%s)", allowed_paths_with_types.empty() ? "*" : "");
 }

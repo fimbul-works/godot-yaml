@@ -35,6 +35,8 @@ void YAML::_bind_methods() {
 	ClassDB::bind_static_method("YAML", D_METHOD("allow_resource_path", "path_prefix", "type_names"), &YAML::allow_resource_path, DEFVAL(Array()));
 	ClassDB::bind_static_method("YAML", D_METHOD("block_resource_type", "type_name"), &YAML::block_resource_type);
 	ClassDB::bind_static_method("YAML", D_METHOD("reset_security"), &YAML::reset_security);
+
+	BIND_VIRTUAL_METHOD(YAML, _to_string);
 }
 
 String YAML::version() {
@@ -170,4 +172,8 @@ void YAML::block_resource_type(const StringName &type_name) {
 
 void YAML::reset_security() {
 	YAMLSecurity::get_default_instance()->reset();
+}
+
+String YAML::_to_string() const {
+	return vformat("YAML(%s)", GODOT_YAML_VERSION);
 }

@@ -15,6 +15,8 @@ void YAMLResult::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("has_style"), &YAMLResult::has_style);
 	ClassDB::bind_method(D_METHOD("get_style"), &YAMLResult::get_style);
 	ClassDB::bind_static_method("YAMLResult", D_METHOD("error", "msg"), &YAMLResult::user_error);
+
+	BIND_VIRTUAL_METHOD(YAMLResult, _to_string);
 }
 
 Ref<YAMLResult> YAMLResult::success(const Variant &data, const Ref<YAMLStyle> &style) {
@@ -57,4 +59,8 @@ int YAMLResult::get_document_count() const {
 	}
 
 	return 1;
+}
+
+String YAMLResult::_to_string() const {
+	return vformat("YAMLResult(%s)", has_error() ? get_error_message() : "Success");
 }

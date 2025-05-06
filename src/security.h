@@ -36,6 +36,8 @@ public:
 	void clear_type_restrictions();
 	void reset();
 
+	String _to_string() const;
+
 	// The immutable View class for thread-safe validation
 	class View {
 	public:

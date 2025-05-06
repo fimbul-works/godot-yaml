@@ -123,6 +123,7 @@ public:
 
 	// Debug helper
 	String get_debug_string() const;
+	String _to_string() const;
 
 	static String container_form_string(ContainerForm p_style);
 	static String flow_style_string(FlowStyle p_style);

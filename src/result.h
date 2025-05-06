@@ -42,6 +42,8 @@ public:
 	bool has_style() const { return style.is_valid(); }
 	Ref<YAMLStyle> get_style() const { return style; }
 
+	String YAMLResult::_to_string() const;
+
 private:
 	// Private constructor to enforce factory method usage
 	YAMLResult(
