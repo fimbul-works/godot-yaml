@@ -1,60 +1,70 @@
-<?xml version="1.0" encoding="UTF-8" ?>
+<?xml version="1.0" encoding="UTF-8"?>
 <class name="YAMLSecurity" inherits="RefCounted" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
-		Controls resource loading security during YAML parsing.
+		Controls security policies for resource loading during YAML parsing.
 	</brief_description>
 	<description>
-		Controls resource loading security during YAML parsing by allowing you to specify which resource paths and types are permitted. This protects against security vulnerabilities when loading YAML from untrusted sources.
-		When parsing YAML that contains resource references (using the [code]!Resource[/code] tag), [YAMLSecurity] validates whether the referenced resource paths and types are allowed.
-		By default, Script and GDExtension resource types are blocked for security reasons. Customize security settings by allowing specific paths, blocking specific resource types, or using a combination of both.
+		YAMLSecurity manages restrictions on which resources can be loaded from YAML files using the [code]!Resource[/code] tag. It helps guard against unsafe loading of untrusted content by allowing control over allowed resource paths and types.
+		Loading resources are limited to [code]res://[/code] and [code]user://[/code] root paths for security reasons.
+		Paths can include wildcard patterns, such as [code]*[/code] for single-segment and [code]**[/code] for recursive matching. Resources can also be filtered by type, such as blocking [code]Script[/code] or [code]GDExtension[/code] by default. Calling [method clear_type_restrictions] will remove the default blocks.
+		[b]Note:[/b] No path-based restrictions will be enforced until [method allow_path] is called.
+		[b]Example:[/b]
+		[codeblocks]
+		[gdscript]
+		var security = YAML.create_security()
+		security.allow_path("user://mods/*/textures", ["Texture2D"])
+		security.allow_path("res://**", "MeshInstance3D")
+		security.block_type("PackedScene")
+		# Override the default YAMLSecurity instance with a custom one when parsing
+		var result = YAML.load_file("res://config.yaml", security)
+		[/gdscript]
+		[/codeblocks]
+		In this example:
+		- [Texture2D] resource types are allowed to load from any direct subfolder of [code]user://mods/[/code] followed by [code]/textures[/code] path, such as [code]user://mods/my_mod/textures/player.png[/code][br]- [MeshInstance3D] resource types are allowed to load from any directory under [code]res://[/code], such as [code]res://assets/models/player.tres[/code][br]- [PackedScene] resource types are blocked globally
 	</description>
+
 	<tutorials>
 	</tutorials>
+
 	<methods>
 		<method name="allow_path">
 			<return type="void" />
 			<param index="0" name="path_prefix" type="String" />
 			<param index="1" name="type_names" type="Array" default="[]" />
 			<description>
-				Permits resource loading from the specified path prefix. If [param type_names] is empty, allows all non-blocked resource types from this path.
-				[codeblocks]
-				[gdscript]
-				# Create security settings
-				var security = YAML.create_security()
-
-				# Allow all non-blocked resource types from assets directory
-				security.allow_path("res://assets/")
-
-				# Allow only specific resource types from textures directory
-				security.allow_path("res://textures/", ["Texture2D", "Image"])
-				[/gdscript]
-				[/codeblocks]
+				Allows loading resources from paths matching [param path_prefix]. Wildcards are supported:
+				- [code]*[/code] matches a single path segment[br]- [code]**[/code] matches any number of nested segments
+				Optionally restricts allowed types to those listed in [param type_names]. If omitted, all non-blocked types are allowed.
 			</description>
 		</method>
+
 		<method name="block_type">
 			<return type="void" />
 			<param index="0" name="type_name" type="StringName" />
 			<description>
-				Blocks a specific resource type globally, regardless of path. YAML parsing rejects any resource of this type.
+				Blocks a resource type globally. Any resources of this type will be rejected during YAML parsing.
 			</description>
 		</method>
+
 		<method name="clear_path_restrictions">
 			<return type="void" />
 			<description>
-				Removes all path restrictions. After calling this method, all paths will be allowed until you call [method allow_path].
+				Removes all allowed path rules. No path-based restrictions will be enforced until [method allow_path] is used again.
 			</description>
 		</method>
+
 		<method name="clear_type_restrictions">
 			<return type="void" />
 			<description>
-				Removes all type restrictions. After this call, all resource types will be allowed unless explicitly blocked again.
-				[b]Note:[/b] By default, Script and GDExtension types are blocked for security reasons. Calling this method removes these default restrictions, which may introduce security vulnerabilities.
+				Removes all blocked resource types.
+				[b]Note:[/b] [code]Script[/code] and [code]GDExtension[/code] are blocked by default for security reasons; calling this will remove those protections.
 			</description>
 		</method>
+
 		<method name="reset">
 			<return type="void" />
 			<description>
-				Resets security settings to defaults. Clears all custom settings and re-adds the default blocked types (Script and GDExtension).
+				Resets all rules to default values. Clears any custom path or type rules, and blocks the [code]Script[/code] and [code]GDExtension[/code] types again.
 			</description>
 		</method>
 	</methods>
