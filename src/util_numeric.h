@@ -1,3 +1,12 @@
+/**
+ * @file util_numeric.h
+ * @brief Utility functions for numeric type conversion between YAML and Godot.
+ *
+ * This file provides template functions for converting between string representations
+ * in YAML and native numeric types in Godot, with support for different numeric
+ * formats such as decimal, hexadecimal, octal, and binary.
+ */
+
 #ifndef UTIL_NUMERIC_H
 #define UTIL_NUMERIC_H
 
@@ -13,6 +22,19 @@
 
 namespace godot {
 
+/**
+ * @brief Converts a string to an integer type with format detection.
+ *
+ * This template function converts a string representation in various formats
+ * (decimal, hexadecimal, octal, binary) to an integer type, with optional
+ * detection of the format used.
+ *
+ * @tparam T The integer type to convert to (must be an integral type)
+ * @param value The string value to convert
+ * @param format Optional pointer to store the detected format
+ * @return T The converted integer value
+ * @throws std::exception If the value is invalid or out of range
+ */
 template <typename T>
 T string_to_int(const ryml::csubstr &value, YAMLStyle::IntegerFormat *format = nullptr) {
 	static_assert(std::is_integral<T>::value, "Type must be integral");
@@ -72,16 +94,40 @@ T string_to_int(const ryml::csubstr &value, YAMLStyle::IntegerFormat *format = n
 	}
 }
 
+/**
+ * @brief Overload of string_to_int for ryml::substr.
+ *
+ * @tparam T The integer type to convert to
+ * @param value The string value to convert
+ * @param format Optional pointer to store the detected format
+ * @return T The converted integer value
+ */
 template <typename T>
 T string_to_int(const ryml::substr &value, YAMLStyle::IntegerFormat *format = nullptr) {
 	return string_to_int<T>(ryml::to_csubstr(value), format);
 }
 
+/**
+ * @brief Overload of string_to_int for Godot String.
+ *
+ * @tparam T The integer type to convert to
+ * @param value The string value to convert
+ * @param format Optional pointer to store the detected format
+ * @return T The converted integer value
+ */
 template <typename T>
 T string_to_int(const godot::String &value, YAMLStyle::IntegerFormat *format = nullptr) {
 	return string_to_int<T>(ryml::to_csubstr(value.utf8().get_data()), format);
 }
 
+/**
+ * @brief Converts an integer to a string with a specified format.
+ *
+ * @tparam T The integer type to convert
+ * @param value The integer value to convert
+ * @param format The format to use for the output string
+ * @return ryml::csubstr A view of the converted string
+ */
 template <typename T>
 ryml::csubstr int_to_string(const T value, YAMLStyle::IntegerFormat format = YAMLStyle::INT_DECIMAL) {
 	static_assert(std::is_integral<T>::value, "Type must be integral");
@@ -121,6 +167,17 @@ ryml::csubstr int_to_string(const T value, YAMLStyle::IntegerFormat format = YAM
 	return ryml::csubstr(buf, strlen(buf));
 }
 
+/**
+ * @brief Converts a string to a floating-point type with format detection.
+ *
+ * Handles special YAML values like .nan, .inf, and -.inf.
+ *
+ * @tparam T The floating-point type to convert to
+ * @param value The string value to convert
+ * @param format Optional pointer to store the detected format
+ * @return T The converted floating-point value
+ * @throws std::exception If the value is invalid or out of range
+ */
 template <typename T>
 T string_to_float(const ryml::csubstr &value, YAMLStyle::FloatFormat *format = nullptr) {
 	static_assert(std::is_floating_point<T>::value, "Type must be floating point");
@@ -155,16 +212,42 @@ T string_to_float(const ryml::csubstr &value, YAMLStyle::FloatFormat *format = n
 	}
 }
 
+/**
+ * @brief Overload of string_to_float for ryml::substr.
+ *
+ * @tparam T The floating-point type to convert to
+ * @param value The string value to convert
+ * @param format Optional pointer to store the detected format
+ * @return T The converted floating-point value
+ */
 template <typename T>
 T string_to_float(const ryml::substr &value, YAMLStyle::FloatFormat *format = nullptr) {
 	return string_to_float<T>(ryml::to_csubstr(value), format);
 }
 
+/**
+ * @brief Overload of string_to_float for Godot String.
+ *
+ * @tparam T The floating-point type to convert to
+ * @param value The string value to convert
+ * @param format Optional pointer to store the detected format
+ * @return T The converted floating-point value
+ */
 template <typename T>
 T string_to_float(const godot::String &value, YAMLStyle::FloatFormat *format = nullptr) {
 	return string_to_float<T>(ryml::to_csubstr(value.utf8().get_data()), format);
 }
 
+/**
+ * @brief Converts a floating-point value to a string with a specified format.
+ *
+ * Handles special values like NaN and infinity according to YAML conventions.
+ *
+ * @tparam T The floating-point type to convert
+ * @param value The floating-point value to convert
+ * @param format The format to use for the output string
+ * @return ryml::csubstr A view of the converted string
+ */
 template <typename T>
 ryml::csubstr float_to_string(const T value, YAMLStyle::FloatFormat format = YAMLStyle::FLOAT_DECIMAL) {
 	static_assert(std::is_floating_point<T>::value, "Type must be floating point");

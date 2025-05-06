@@ -1,3 +1,12 @@
+/**
+ * @file packed_byte_array_yaml.h
+ * @brief Defines the PackedByteArrayVariantConverter for YAML serialization of Godot PackedByteArray type.
+ *
+ * This file contains the PackedByteArrayVariantConverter class which handles the conversion
+ * between Godot PackedByteArray objects and their YAML representation, with support for
+ * different encoding formats such as base64 and hexadecimal.
+ */
+
 #ifndef PACKED_BYTE_ARRAY_YAML_H
 #define PACKED_BYTE_ARRAY_H
 
@@ -6,33 +15,137 @@
 
 namespace godot {
 
+/**
+ * @class PackedByteArrayVariantConverter
+ * @brief Converter for Godot PackedByteArray type to/from YAML format.
+ *
+ * The PackedByteArrayVariantConverter class provides functionality to:
+ * - Encode PackedByteArray objects into YAML scalar nodes with various encoding formats
+ * - Decode YAML scalar nodes into PackedByteArray objects
+ * - Apply appropriate formatting based on style settings
+ *
+ * PackedByteArray objects can be represented in YAML as:
+ * - Base64 encoded strings (default)
+ * - Hexadecimal encoded strings
+ *
+ * The converter also handles formatting with appropriate line breaks for long binary data.
+ *
+ * @extends VariantConverter
+ */
 class PackedByteArrayVariantConverter : public VariantConverter {
 public:
+	/**
+	 * @brief Defines the YAML tag information.
+	 *
+	 * - TAG: "PackedByteArray" (used in YAML documents)
+	 * - FULL_TAG: "!PackedByteArray" (complete tag with prefix)
+	 * - get_tag(): Returns the tag name
+	 * - get_full_tag(): Returns the full tag
+	 * - get_type(): Returns Variant::PACKED_BYTE_ARRAY
+	 */
 	DEFINE_YAML_TAG("PackedByteArray", Variant::PACKED_BYTE_ARRAY)
 
+	/**
+	 * @brief Encodes a PackedByteArray Variant to a YAML node.
+	 *
+	 * Converts a Godot PackedByteArray to a YAML scalar node,
+	 * with encoding format (base64 or hex) determined by style settings.
+	 *
+	 * @param node The target YAML node
+	 * @param v The PackedByteArray Variant to encode
+	 * @param style The style settings to apply
+	 */
 	void encode(ryml::NodeRef &node, const Variant &v, const YAMLStyle::View &style) const override;
+
+	/**
+	 * @brief Decodes a YAML node to a PackedByteArray Variant.
+	 *
+	 * Converts a YAML scalar node to a Godot PackedByteArray,
+	 * automatically detecting the encoding format (base64 or hex).
+	 *
+	 * @param node The source YAML node
+	 * @param context The parser context for style detection
+	 * @return Variant A PackedByteArray Variant
+	 * @throws YAMLException If the node is invalid or contains incorrectly formatted data
+	 */
 	Variant decode(const ryml::ConstNodeRef &node, ParserContext *context) const override;
 
 private:
-	static constexpr size_t HEX_LINE_LENGTH = 32; // Characters per line for hex format
-	static constexpr size_t BASE64_LINE_LENGTH = 76; // Standard base64 line length
+	/**
+	 * @brief Constants for formatting.
+	 */
+	static constexpr size_t HEX_LINE_LENGTH = 32; ///< Characters per line for hex format
+	static constexpr size_t BASE64_LINE_LENGTH = 76; ///< Standard base64 line length
 
-	// Helper struct for string cleanup and format detection
+	/**
+	 * @brief Helper struct for string cleanup and format detection.
+	 */
 	struct CleanupResult {
-		String cleaned;
-		bool is_hex;
-		size_t original_length;
+		String cleaned; ///< Cleaned string without whitespace
+		bool is_hex; ///< Whether the format is hexadecimal (true) or base64 (false)
+		size_t original_length; ///< Original length of the string before cleaning
 	};
 
-	// Encoding helpers
+	/**
+	 * @brief Encoding helper methods.
+	 */
+
+	/**
+	 * @brief Encodes a PackedByteArray as hexadecimal.
+	 *
+	 * @param node The target YAML node
+	 * @param array The byte array to encode
+	 * @param style The style settings to apply
+	 */
 	void emit_as_hex(ryml::NodeRef &node, const PackedByteArray &array, const YAMLStyle::View &style) const;
+
+	/**
+	 * @brief Encodes a PackedByteArray as base64.
+	 *
+	 * @param node The target YAML node
+	 * @param array The byte array to encode
+	 * @param style The style settings to apply
+	 */
 	void emit_as_base64(ryml::NodeRef &node, const PackedByteArray &array, const YAMLStyle::View &style) const;
 
-	// String processing helpers
+	/**
+	 * @brief String processing helper methods.
+	 */
+
+	/**
+	 * @brief Cleans up and detects the encoding format of binary data.
+	 *
+	 * @param input The input string to clean and analyze
+	 * @param node The source YAML node (for error context)
+	 * @param context The parser context for style detection
+	 * @return CleanupResult The cleaned string and detected format
+	 * @throws YAMLException If the data format is invalid
+	 */
 	CleanupResult cleanup_and_detect(const ryml::csubstr &input, const ryml::ConstNodeRef &node, ParserContext *context) const;
+
+	/**
+	 * @brief Formats a string with appropriate line breaks.
+	 *
+	 * @param str The string to format
+	 * @param line_length The maximum line length
+	 * @return ryml::csubstr The formatted string
+	 */
 	ryml::csubstr format_output(const String &str, size_t line_length) const;
+
+	/**
+	 * @brief Converts a hexadecimal string to a byte array.
+	 *
+	 * @param hex The hexadecimal string
+	 * @return PackedByteArray The resulting byte array
+	 */
 	PackedByteArray hex_to_bytes(const String &hex) const;
 
+	/**
+	 * @brief Checks if a character is a valid base64 character.
+	 *
+	 * @param c The character to check
+	 * @return bool True if the character is a valid base64 character
+	 */
 	inline const bool is_base64_char(char c) const {
 		return (c >= '0' && c <= '9') || (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c == '+') || (c == '/') || (c == '=');
 	}
