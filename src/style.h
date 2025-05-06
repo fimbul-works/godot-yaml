@@ -66,6 +66,10 @@ public:
 
 	YAMLStyle();
 
+	// Clone and merge
+	Ref<YAMLStyle> clone() const;
+	Ref<YAMLStyle> YAMLStyle::merge_with(const Ref<YAMLStyle> &other);
+
 	// Style setters/getters
 	Ref<YAMLStyle> set_container_form(ContainerForm p_style);
 	ContainerForm get_container_form() const;
@@ -99,6 +103,7 @@ public:
 	static void detect_string_style(const ryml::ConstNodeRef &node, const Ref<YAMLStyle> &style);
 
 	// Helper methods
+	bool is_container() const;
 	bool is_block_style() const;
 	bool uses_quotes() const;
 	bool uses_flow() const;
@@ -114,12 +119,6 @@ public:
 	Ref<YAMLStyle> clear_child(const String &key);
 	Ref<YAMLStyle> clear_children();
 	Array get_children_keys() const;
-
-	// Load and reload YAMLStyle instances
-	Ref<YAMLResult> serialize_style(const bool ignore_any = false) const;
-	static Ref<YAMLResult> deserialize_style(const String &yaml_text);
-	Ref<YAMLResult> save_style_file(const Ref<YAMLStyle> style, const String &path) const;
-	static Ref<YAMLResult> load_style_file(const String &path);
 
 	// Debug helper
 	String get_debug_string() const;

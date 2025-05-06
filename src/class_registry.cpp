@@ -90,7 +90,9 @@ void YAMLClassRegistry::unregister_class(Ref<Script> p_class) {
 
 	// Prevent duplicates
 	if (!has_class(class_name)) {
+#ifdef GODOT_YAML_DEBUG
 		ERR_PRINT(vformat("Class %s is not registered", class_name));
+#endif
 		return;
 	}
 
