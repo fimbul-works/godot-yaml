@@ -60,6 +60,20 @@
 				Converts a [enum ContainerForm] value to its string identifier. Returns the string name representing the specified container [param form].
 			</description>
 		</method>
+		<method name="create_child">
+			<return type="YAMLStyle" />
+			<param index="0" name="key" type="String" />
+			<description>
+				Creates a new child style for the specified [param key] if it doesn't exist, or returns the existing one. This method combines checking for a child's existence and creating it in a single call.
+				Returns the new or existing child style, allowing for method chaining.
+				[codeblock lang=gdscript]
+				var style = YAML.create_style()
+				var maps_style = style.create_child("maps")
+				var items_style = maps_style.create_child("items")
+				items_style.set_flow_style(YAMLStyle.FLOW_SINGLE)
+				[/codeblock]
+			</description>
+		</method>
 		<method name="float_format_from_string" qualifiers="static">
 			<return type="int" enum="YAMLStyle.FloatFormat" />
 			<param index="0" name="string" type="String" />
@@ -95,17 +109,29 @@
 				Creates a new [YAMLStyle] from a [Dictionary] representation. The dictionary should contain properties and child styles in the format produced by [method to_dictionary]. Returns a new [YAMLStyle] instance with all the settings defined in the dictionary.
 			</description>
 		</method>
+		<method name="get_at_path">
+			<return type="YAMLStyle" />
+			<param index="0" name="path" type="String" />
+			<param index="1" name="create_if_missing" type="bool" />
+			<description>
+				Gets a child style at the specified [param path], with an option to create missing nodes along the way. The path uses [code]/[/code] as a separator, and array indices can be specified numerically.
+				If [param create_if_missing] is [code]true[/code], any missing children in the path will be created. If [code]false[/code] and a child in the path doesn't exist, returns [code]null[/code].
+				[codeblock lang=gdscript]
+				var style = YAML.create_style()
+				var properties_style = style.get_at_path("maps/items/0/properties", true)
+				properties_style.set_string_style(YAMLStyle.STRING_QUOTE_DOUBLE)
+
+				var existing_style = style.get_at_path("maps/items/1/properties")
+				if existing_style != null:
+				    print("Found existing style!")
+				[/codeblock]
+			</description>
+		</method>
 		<method name="get_child" qualifiers="const">
 			<return type="YAMLStyle" />
 			<param index="0" name="key" type="String" />
 			<description>
 				Returns the child style associated with the specified [param key], or [code]null[/code] if no child style exists for this key. Use this method to access and modify child styles.
-			</description>
-		</method>
-		<method name="get_children_keys" qualifiers="const">
-			<return type="Array" />
-			<description>
-				Returns an [Array] containing all keys that have associated child styles. This helps iterate through all child styles defined in this style instance.
 			</description>
 		</method>
 		<method name="get_debug_string" qualifiers="const">
@@ -139,6 +165,12 @@
 			<return type="bool" />
 			<description>
 				Returns [code]true[/code] if this style uses block string formatting (literal or folded), [code]false[/code] otherwise. Block styles are useful for multi-line string content.
+			</description>
+		</method>
+		<method name="list_children" qualifiers="const">
+			<return type="Array" />
+			<description>
+				Returns an [Array] containing all keys that have associated child styles. This helps iterate through all child styles defined in this style instance.
 			</description>
 		</method>
 		<method name="load_file" qualifiers="static">

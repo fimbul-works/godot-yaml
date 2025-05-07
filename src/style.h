@@ -427,6 +427,18 @@ public:
 	Ref<YAMLStyle> create_child(const String &key);
 
 	/**
+	 * @brief Gets a child style at the specified path, optionally creating missing nodes.
+	 *
+	 * The path uses '/' as a separator. Array indices can be specified numerically.
+	 * Example: "maps/items/0/properties"
+	 *
+	 * @param path The path to the child style
+	 * @param create_if_missing Whether to create missing children along the path
+	 * @return Ref<YAMLStyle> The child style or null if not found (and create_if_missing is false)
+	 */
+	Ref<YAMLStyle> get_at_path(const String &path, bool create_if_missing = false);
+
+	/**
 	 * @brief Removes a child style.
 	 *
 	 * @param key The child key
@@ -446,7 +458,7 @@ public:
 	 *
 	 * @return Array Array of child keys
 	 */
-	Array get_children_keys() const;
+	Array list_children() const;
 
 	/**
 	 * @brief Debug helper.

@@ -79,9 +79,11 @@ void YAMLStyle::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_child", "key"), &YAMLStyle::get_child);
 	ClassDB::bind_method(D_METHOD("set_child", "key", "style"), &YAMLStyle::set_child);
 	ClassDB::bind_method(D_METHOD("has_child", "key"), &YAMLStyle::has_child);
+	ClassDB::bind_method(D_METHOD("create_child", "key"), &YAMLStyle::create_child);
+	ClassDB::bind_method(D_METHOD("get_at_path", "path", "create_if_missing"), &YAMLStyle::get_at_path);
 	ClassDB::bind_method(D_METHOD("clear_child", "key"), &YAMLStyle::clear_child);
 	ClassDB::bind_method(D_METHOD("clear_children"), &YAMLStyle::clear_children);
-	ClassDB::bind_method(D_METHOD("get_children_keys"), &YAMLStyle::get_children_keys);
+	ClassDB::bind_method(D_METHOD("list_children"), &YAMLStyle::list_children);
 
 	ClassDB::bind_method(D_METHOD("is_block_style"), &YAMLStyle::is_block_style);
 	ClassDB::bind_method(D_METHOD("uses_quotes"), &YAMLStyle::uses_quotes);
@@ -176,7 +178,7 @@ Ref<YAMLStyle> YAMLStyle::merge_with(const Ref<YAMLStyle> &other) {
 
 	custom_settings.merge(other->custom_settings, true);
 
-	Array other_keys = other->get_children_keys();
+	Array other_keys = other->list_children();
 	for (int i = 0; i < other_keys.size(); i++) {
 		String key = other_keys[i];
 		Ref<YAMLStyle> other_child = other->get_child(key);
@@ -223,7 +225,7 @@ Dictionary YAMLStyle::to_dictionary() const {
 		dict["custom_settings"] = custom_settings.duplicate(true);
 	}
 
-	Array keys = get_children_keys();
+	Array keys = list_children();
 	if (keys.size() > 0) {
 		Dictionary children_dict;
 		for (size_t i = 0; i < keys.size(); i++) {
@@ -411,6 +413,48 @@ Ref<YAMLStyle> YAMLStyle::set_child(const String &key, const Ref<YAMLStyle> &sty
 	return Ref<YAMLStyle>(this);
 }
 
+Ref<YAMLStyle> YAMLStyle::create_child(const String &key) {
+	if (!has_child(key)) {
+		Ref<YAMLStyle> child;
+		child.instantiate();
+		set_child(key, child);
+	}
+	return get_child(key);
+}
+
+Ref<YAMLStyle> YAMLStyle::get_at_path(const String &path, bool create_if_missing) {
+	if (path.is_empty()) {
+		return Ref<YAMLStyle>(this); // Return self for empty path
+	}
+
+	PackedStringArray segments = path.split("/");
+	Ref<YAMLStyle> current = Ref<YAMLStyle>(this);
+
+	for (int i = 0; i < segments.size(); i++) {
+		if (segments[i].is_empty()) {
+			continue; // Skip empty segments
+		}
+
+		String key = segments[i];
+
+		// Check if we have a child with this key
+		if (!current->has_child(key)) {
+			if (create_if_missing) {
+				current->create_child(key);
+			} else {
+				return Ref<YAMLStyle>(); // Return null if child doesn't exist and we're not creating
+			}
+		}
+
+		current = current->get_child(key);
+		if (!current.is_valid()) {
+			return Ref<YAMLStyle>(); // Return null if we got an invalid reference somehow
+		}
+	}
+
+	return current;
+}
+
 Ref<YAMLStyle> YAMLStyle::clear_child(const String &key) {
 	child_styles.erase(key);
 	return Ref<YAMLStyle>(this);
@@ -421,7 +465,7 @@ Ref<YAMLStyle> YAMLStyle::clear_children() {
 	return Ref<YAMLStyle>(this);
 }
 
-Array YAMLStyle::get_children_keys() const {
+Array YAMLStyle::list_children() const {
 	Array keys;
 	for (const auto &pair : child_styles) {
 		keys.push_back(pair.first);
@@ -633,7 +677,7 @@ void YAMLStyle::simplify() {
 	Ref<YAMLStyle> template_style = child_styles["_template"];
 	uint32_t template_hash = template_style->hash();
 
-	Array child_keys = get_children_keys();
+	Array child_keys = list_children();
 	if (child_keys.size() == 1) {
 		return;
 	}

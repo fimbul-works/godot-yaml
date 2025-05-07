@@ -45,7 +45,7 @@ YAMLStyle::View YAMLStyle::View::create_view(const Ref<YAMLStyle> &style) {
 	view_data->custom_settings = style->custom_settings;
 
 	// Create views for all children
-	Array keys = style->get_children_keys();
+	Array keys = style->list_children();
 	for (int i = 0; i < keys.size(); i++) {
 		String key = keys[i];
 		if (key.is_empty()) {
