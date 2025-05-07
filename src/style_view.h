@@ -108,6 +108,13 @@ public:
 	YAMLStyle::View get_template_style() const;
 
 	/**
+	 * @brief Gets the custom tag.
+	 *
+	 * @return String The custom tag or empty string if not set
+	 */
+	String get_custom_tag() const;
+
+	/**
 	 * @brief Helper methods for style properties.
 	 */
 
@@ -205,6 +212,7 @@ private:
 
 		bool has_custom_settings = false;
 		Dictionary custom_settings;
+
 		std::unordered_map<String, std::shared_ptr<const ViewData>, StringHasher, StringEqual> children;
 	};
 

@@ -113,6 +113,13 @@ YAMLStyle::BinaryEncoding YAMLStyle::View::get_binary_encoding() const {
 	return YAMLStyle::BIN_ANY;
 }
 
+String YAMLStyle::View::get_custom_tag() const {
+	if (data && data->custom_settings.has("tag")) {
+		return data->custom_settings["tag"];
+	}
+	return "";
+}
+
 YAMLStyle::View YAMLStyle::View::get_template_style() const {
 	if (data && data->children.count("_template")) {
 		return View(data->children.at("_template"));

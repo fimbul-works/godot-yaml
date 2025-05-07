@@ -100,6 +100,13 @@ void YAML::Emitter::emit_value(ryml::NodeRef node, const Variant &value, const Y
 	static int depth = 0;
 	depth++;
 
+	if (!style.get_custom_tag().is_empty()) {
+		String tag = style.get_custom_tag();
+		if (!tag.is_empty()) {
+			node.set_val_tag(string_pool.store(vformat("!%s", style.get_custom_tag())));
+		}
+	}
+
 	try {
 		check_depth(depth);
 
