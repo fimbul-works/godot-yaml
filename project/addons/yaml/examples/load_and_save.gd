@@ -12,6 +12,9 @@ func test_validate_file() -> void:
 	var result := YAML.validate_file(YAML_FILE)
 	expect(!result.has_error(), result.get_error_message())
 
+	if LOG_VERBOSE:
+		print("Validation passed")
+
 func test_load_file() -> void:
 	var result := YAML.load_file(YAML_FILE)
 	expect(!result.has_error(), result.get_error_message())

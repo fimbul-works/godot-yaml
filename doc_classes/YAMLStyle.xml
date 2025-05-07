@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="YAMLStyle" inherits="RefCounted" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
-		Configures formatting behavior for YAML serialization and style inheritance.
+		Configures formatting behavior for YAML serialization.
 	</brief_description>
 	<description>
 		[YAMLStyle] defines how Godot objects are serialized to YAML format. The class allows precise control over serialization styles, enabling better compatibility with existing YAML parsers and improving human readability of exported YAML content.
 		You can customize various styling aspects:
-		- Container styles (array or dictionary)[br]- String styles (plain, quoted, block)[br]- Numeric formats (decimal, hex, octal, binary)[br]- Flow styles (block vs inline)[br]- Binary data encodings (base64, hex)
-		The class supports style inheritance through a parent-child relationship, allowing you to define styles per key. This provides fine-grained control over document layout, which is particularly useful when:
+		- Container styles (array or dictionary)[br]- String styles (plain, quoted, block)[br]- Numeric formats (decimal, hex, octal, binary, scientific)[br]- Flow styles (block vs inline)[br]- Binary data encodings (base64, hex)
+		The class supports hierarchical style organization through a parent-child relationship, allowing you to define specific styles per key. This provides fine-grained control over document layout, which is particularly useful when:
 		- Preserving human readability[br]- Matching existing YAML conventions[br]- Customizing the visual appearance of exported content[br]- Ensuring compatibility with external YAML parsers
 	</description>
 	<tutorials>
@@ -38,6 +38,12 @@
 			<return type="YAMLStyle" />
 			<description>
 				Removes all child styles from this style instance. Returns this style instance for method chaining.
+			</description>
+		</method>
+		<method name="clone" qualifiers="const">
+			<return type="YAMLStyle" />
+			<description>
+				Creates a deep copy of this style object. Returns a new YAMLStyle instance with identical settings and child styles, but no shared references with the original.
 			</description>
 		</method>
 		<method name="container_form_from_string" qualifiers="static">
@@ -80,6 +86,13 @@
 			<param index="0" name="style" type="int" enum="YAMLStyle.FlowStyle" />
 			<description>
 				Converts a [enum FlowStyle] value to its string identifier. Returns the string name representing the specified flow [param style].
+			</description>
+		</method>
+		<method name="from_dictionary" qualifiers="static">
+			<return type="YAMLStyle" />
+			<param index="0" name="dict" type="Dictionary" />
+			<description>
+				Creates a new [YAMLStyle] from a [Dictionary] representation. The dictionary should contain properties and child styles in the format produced by [method to_dictionary]. Returns a new [YAMLStyle] instance with all the settings defined in the dictionary.
 			</description>
 		</method>
 		<method name="get_child" qualifiers="const">
@@ -126,6 +139,27 @@
 			<return type="bool" />
 			<description>
 				Returns [code]true[/code] if this style uses block string formatting (literal or folded), [code]false[/code] otherwise. Block styles are useful for multi-line string content.
+			</description>
+		</method>
+		<method name="load_file" qualifiers="static">
+			<return type="YAMLResult" />
+			<param index="0" name="path" type="String" />
+			<description>
+				Loads a style from a YAML file at the specified [param path]. Returns a [YAMLResult] object containing either the new [YAMLStyle] instance or error information if the file couldn't be loaded or parsed.
+			</description>
+		</method>
+		<method name="merge_with">
+			<return type="YAMLStyle" />
+			<param index="0" name="other" type="YAMLStyle" />
+			<description>
+				Incorporates settings from another style into this style. Any property explicitly set in [param other] overrides the corresponding property in this style. Child styles are merged recursively. Returns this style instance for method chaining.
+			</description>
+		</method>
+		<method name="save_file">
+			<return type="YAMLResult" />
+			<param index="0" name="path" type="String" />
+			<description>
+				Saves this style to a YAML file at the specified [param path]. Converts the style to a dictionary and writes it to disk. Returns a [YAMLResult] object that indicates success or contains error information if the operation failed.
 			</description>
 		</method>
 		<method name="set_binary_encoding">
@@ -197,6 +231,12 @@
 			<param index="0" name="style" type="int" enum="YAMLStyle.StringStyle" />
 			<description>
 				Converts a [enum StringStyle] value to its string identifier. Returns the string name representing the specified string [param style].
+			</description>
+		</method>
+		<method name="to_dictionary" qualifiers="const">
+			<return type="Dictionary" />
+			<description>
+				Converts this style to a [Dictionary] representation. The dictionary contains all explicitly set properties and serialized child styles. This format is suitable for saving to a file or transferring between objects.
 			</description>
 		</method>
 		<method name="uses_flow" qualifiers="const">
@@ -296,9 +336,9 @@
 			[/codeblock]
 		</constant>
 		<constant name="STRING_FOLDED" value="5" enum="StringStyle">
-			Forces folded block string style (using the [code]>[/code] indicator). This treats newlines as spaces, preserving paragraph breaks. Useful for long text that should word-wrap.
+			Forces folded block string style (using the [code]&gt;[/code] indicator). This treats newlines as spaces, preserving paragraph breaks. Useful for long text that should word-wrap.
 			[codeblock lang=text]
-			folded_string: >
+			folded_string: &gt;
 			  Folded block
 			  strings treat
 			  newlines as spaces.

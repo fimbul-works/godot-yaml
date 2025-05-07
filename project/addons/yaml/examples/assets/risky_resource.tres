@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="RiskyResource" load_steps=2 format=3 uid="uid://pxagv74g8x67"]
+
+[ext_resource type="Script" path="res://tests/test_assets/scripts/risky_resource.gd" id="1_qyvkk"]
+
+[resource]
+script = ExtResource("1_qyvkk")
+value = "I should be safe!"
+number = 0
+settings = {
+"Question": "Are you sure"
+}

@@ -7,12 +7,12 @@ func _init() -> void:
 
 func test_parsing_resources() -> void:
 	var yaml_text := """
-scene: !Resource 'res://tests/test_assets/simple_scene.tscn'
+scene: !Resource 'res://addons/yaml/examples/assets/simple_scene.tscn'
 texture: !Resource 'res://icon.svg'
 """
 	var parse_result := YAML.parse(yaml_text)
 	expect(!parse_result.has_error(), parse_result.get_error())
-
+	print(parse_result)
 	var data: Dictionary = parse_result.get_data()
 
 	if LOG_VERBOSE:

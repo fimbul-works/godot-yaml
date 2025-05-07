@@ -45,9 +45,9 @@ func run_tests(test_classes: Array[Node]) -> void:
 						var lines = error.split("\n")
 						for line in lines:
 							if line.begins_with("  Expected:"):
-								print_rich("  [i]expected:[/i] %s" % line.trim_prefix("  Expected: "))
+								print_rich("  [i]Expected:[/i] %s" % line.trim_prefix("  Expected: "))
 							elif line.begins_with("  Actual:"):
-								print_rich("  [i]received:[/i] %s" % line.trim_prefix("  Actual: "))
+								print_rich("  [i]Received:[/i] %s" % line.trim_prefix("  Actual: "))
 							else:
 								print(line)
 					else:

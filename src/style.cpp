@@ -68,9 +68,13 @@ void YAMLStyle::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_custom_settings", "style"), &YAMLStyle::set_custom_settings);
 	ClassDB::bind_method(D_METHOD("get_custom_settings"), &YAMLStyle::get_custom_settings);
 
-	ClassDB::bind_method(D_METHOD("is_block_style"), &YAMLStyle::is_block_style);
-	ClassDB::bind_method(D_METHOD("uses_quotes"), &YAMLStyle::uses_quotes);
-	ClassDB::bind_method(D_METHOD("uses_flow"), &YAMLStyle::uses_flow);
+	ClassDB::bind_method(D_METHOD("clone"), &YAMLStyle::clone);
+	ClassDB::bind_method(D_METHOD("merge_with", "other"), &YAMLStyle::merge_with);
+
+	ClassDB::bind_method(D_METHOD("to_dictionary"), &YAMLStyle::to_dictionary);
+	ClassDB::bind_method(D_METHOD("save_file", "path"), &YAMLStyle::save_file);
+	ClassDB::bind_static_method("YAMLStyle", D_METHOD("from_dictionary", "dict"), &YAMLStyle::from_dictionary);
+	ClassDB::bind_static_method("YAMLStyle", D_METHOD("load_file", "path"), &YAMLStyle::load_file);
 
 	ClassDB::bind_method(D_METHOD("get_child", "key"), &YAMLStyle::get_child);
 	ClassDB::bind_method(D_METHOD("set_child", "key", "style"), &YAMLStyle::set_child);
@@ -78,6 +82,10 @@ void YAMLStyle::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("clear_child", "key"), &YAMLStyle::clear_child);
 	ClassDB::bind_method(D_METHOD("clear_children"), &YAMLStyle::clear_children);
 	ClassDB::bind_method(D_METHOD("get_children_keys"), &YAMLStyle::get_children_keys);
+
+	ClassDB::bind_method(D_METHOD("is_block_style"), &YAMLStyle::is_block_style);
+	ClassDB::bind_method(D_METHOD("uses_quotes"), &YAMLStyle::uses_quotes);
+	ClassDB::bind_method(D_METHOD("uses_flow"), &YAMLStyle::uses_flow);
 
 	ClassDB::bind_static_method("YAMLStyle", D_METHOD("container_form_string", "form"), &YAMLStyle::container_form_string);
 	ClassDB::bind_static_method("YAMLStyle", D_METHOD("flow_style_string", "style"), &YAMLStyle::flow_style_string);
@@ -182,6 +190,116 @@ Ref<YAMLStyle> YAMLStyle::merge_with(const Ref<YAMLStyle> &other) {
 	}
 
 	return Ref<YAMLStyle>(this);
+}
+
+Dictionary YAMLStyle::to_dictionary() const {
+	Dictionary dict;
+
+	if (has_container_form) {
+		dict["form"] = container_form_string(container_form);
+	}
+
+	if (has_flow_style) {
+		dict["flow"] = flow_style_string(flow_style);
+	}
+
+	if (has_string_style) {
+		dict["string"] = string_style_string(string_style);
+	}
+
+	if (has_integer_format) {
+		dict["integer"] = integer_format_string(integer_format);
+	}
+
+	if (has_float_format) {
+		dict["float"] = float_format_string(float_format);
+	}
+
+	if (has_binary_encoding) {
+		dict["binary"] = binary_encoding_string(binary_encoding);
+	}
+
+	if (!custom_settings.is_empty()) {
+		dict["custom_settings"] = custom_settings.duplicate(true);
+	}
+
+	Array keys = get_children_keys();
+	if (keys.size() > 0) {
+		Dictionary children_dict;
+		for (size_t i = 0; i < keys.size(); i++) {
+			String key = keys[i];
+			Ref<YAMLStyle> child = get_child(key);
+			children_dict[key] = child->to_dictionary();
+		}
+		dict["children"] = children_dict;
+	}
+
+	return dict;
+}
+
+Ref<YAMLStyle> YAMLStyle::from_dictionary(const Dictionary &dict) {
+	Ref<YAMLStyle> style;
+	style.instantiate();
+
+	if (dict.has("form")) {
+		style->set_container_form(container_form_from_string(String(dict["form"])));
+	}
+
+	if (dict.has("flow")) {
+		style->set_flow_style(flow_style_from_string(String(dict["flow"])));
+	}
+
+	if (dict.has("string")) {
+		style->set_string_style(string_style_from_string(String(dict["string"])));
+	}
+
+	if (dict.has("integer")) {
+		style->set_integer_format(integer_format_from_string(String(dict["integer"])));
+	}
+
+	if (dict.has("float")) {
+		style->set_float_format(float_format_from_string(String(dict["float"])));
+	}
+
+	if (dict.has("binary")) {
+		style->set_binary_encoding(binary_encoding_from_string(String(dict["binary"])));
+	}
+
+	if (dict.has("custom_settings") && dict["custom_settings"].get_type() == Variant::DICTIONARY) {
+		style->set_custom_settings(dict["custom_settings"].duplicate(true));
+	}
+
+	if (dict.has("children") && dict["children"].get_type() == Variant::DICTIONARY) {
+		Dictionary children = dict["children"];
+		Array keys = children.keys();
+		for (size_t i = 0; i < keys.size(); i++) {
+			String key = keys[i];
+			if (children[key].get_type() != Variant::DICTIONARY) {
+				continue;
+			}
+			style->set_child(key, from_dictionary(children[key]));
+		}
+	}
+
+	return style;
+}
+
+Ref<YAMLResult> YAMLStyle::save_file(const String &path) {
+	Ref<YAMLResult> result = YAML::save_file(to_dictionary(), path);
+	if (result->has_error()) {
+		return result;
+	}
+
+	return YAMLResult::success(Variant());
+}
+
+Ref<YAMLResult> YAMLStyle::load_file(const String &path) {
+	Ref<YAMLResult> result = YAML::load_file(path);
+	if (result->has_error()) {
+		return result;
+	}
+
+	return YAMLResult::success(from_dictionary(result->get_data()));
 }
 
 Ref<YAMLStyle> YAMLStyle::set_container_form(ContainerForm form) {
@@ -614,7 +732,7 @@ String YAMLStyle::get_debug_string() const {
 	if (!child_styles.empty()) {
 		debug += "\nChildren:\n";
 		for (const auto &pair : child_styles) {
-			debug += vformat("    %s:\n", pair.first);
+			debug += vformat("  %s:\n", pair.first);
 			String child_debug = pair.second->get_debug_string();
 			PackedStringArray lines = child_debug.split("\n");
 			for (int i = 0; i < lines.size(); i++) {

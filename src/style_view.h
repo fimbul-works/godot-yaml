@@ -185,9 +185,6 @@ private:
 	 * Stores all style settings and child styles in an immutable format.
 	 */
 	struct ViewData {
-		bool has_inherit_styles = false;
-		bool inherit_styles = true;
-
 		bool has_container_form = false;
 		ContainerForm container_form;
 

@@ -122,6 +122,10 @@ Ref<YAMLResult> YAML::save_file(const Variant &data, const String &path, const R
 }
 
 Ref<YAMLResult> YAML::validate_file(const String &path) {
+	if (!FileAccess::file_exists(path)) {
+		return YAMLResult::error("File not found '" + path + "': " + UtilityFunctions::error_string(ERR_FILE_NOT_FOUND));
+	}
+
 	// Open file for reading
 	Ref<FileAccess> file = FileAccess::open(path, FileAccess::READ);
 

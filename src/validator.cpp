@@ -6,11 +6,8 @@
 using namespace godot;
 
 YAML::Validator::Validator() {
-	// Setup ryml callbacks
 	callbacks.m_error = error_callback;
 	callbacks.m_user_data = this;
-
-	// Initialize ryml components
 	evt_handler = std::make_unique<ryml::EventHandlerTree>(callbacks);
 	ryml_parser = std::make_unique<ryml::Parser>(evt_handler.get(), ryml::ParserOptions().locations(true));
 }
@@ -18,17 +15,16 @@ YAML::Validator::Validator() {
 Ref<YAMLResult> YAML::Validator::validate(const String &input) {
 	try {
 		current_result = YAMLResult::success(Variant());
-		tree.clear();
 
 		ryml::parse_in_arena(ryml_parser.get(), input.utf8().get_data(), &tree);
 
 		return current_result;
 	} catch (const YAMLException &e) {
-		return current_result;
+		return YAMLResult::error(e.what(), e.get_line(), e.get_column());
 	} catch (const std::exception &e) {
 		return YAMLResult::error(e.what());
 	} catch (...) {
-		return YAMLResult::error("Unknown error occurred during validation");
+		return YAMLResult::error("Unexpected error during validation");
 	}
 }
 
@@ -62,5 +58,5 @@ void YAML::Validator::error_callback(const char *msg, size_t len, ryml::Location
 			loc.line,
 			loc.col);
 
-	throw YAMLException(validator->current_result->get_error_message());
+	throw YAMLException(validator->current_result->get_error_message(), loc);
 }

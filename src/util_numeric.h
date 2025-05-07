@@ -198,10 +198,12 @@ T string_to_float(const ryml::csubstr &value, YAMLStyle::FloatFormat *format = n
 		auto [ptr, ec] = std::from_chars(span.begin(), span.end(), result);
 
 		if (ec == std::errc()) {
-			if (format != nullptr && (value.find("e") != ryml::npos || value.find("E") != ryml::npos)) {
-				*format = YAMLStyle::FLOAT_SCIENTIFIC;
-			} else {
-				// *format = YAMLStyle::FLOAT_DECIMAL;
+			if (format != nullptr) {
+				if (value.find("e") != ryml::npos || value.find("E") != ryml::npos) {
+					*format = YAMLStyle::FLOAT_SCIENTIFIC;
+				} else {
+					*format = YAMLStyle::FLOAT_DECIMAL;
+				}
 			}
 			return result;
 		} else if (ec == std::errc::result_out_of_range) {

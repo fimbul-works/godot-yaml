@@ -149,6 +149,41 @@ public:
 	Ref<YAMLStyle> merge_with(const Ref<YAMLStyle> &other);
 
 	/**
+	 * @brief Serialization/Deserialization
+	 */
+
+	/**
+	 * @brief Serializes the YAMLStyle into a Dictionary.
+	 *
+	 * @return Dictionary The serialized YAMLStyle
+	 */
+	Dictionary to_dictionary() const;
+
+	/**
+	 * @brief Deserializes a Dictionary into YAMLStyle.
+	 *
+	 * @param dict The dictionary containing style definitions
+	 * @return Ref<YAMLStyle> Deserialized YAMLStyle
+	 */
+	static Ref<YAMLStyle> from_dictionary(const Dictionary &dict);
+
+	/**
+	 * @brief Serializes and saves a YAMLStyle file.
+	 *
+	 * @param path Path where the YAML file will be saved.
+	 * @return Ref<YAMLResult> Result object indicating success or failure.
+	 */
+	Ref<YAMLResult> save_file(const String &path);
+
+	/**
+	 * @brief Loads and parses a YAMLStyle file.
+	 *
+	 * @param path Path to the YAML file.
+	 * @return Ref<YAMLResult> Result object containing parsed YAMLStyle or error information.
+	 */
+	static Ref<YAMLResult> load_file(const String &path);
+
+	/**
 	 * @brief Style setters/getters.
 	 */
 
@@ -382,6 +417,14 @@ public:
 	 * @return Ref<YAMLStyle> This style object for chaining
 	 */
 	Ref<YAMLStyle> set_child(const String &key, const Ref<YAMLStyle> &style);
+
+	/**
+	 * @brief Creates a new child style if it doesn't exist, or returns the existing one.
+	 *
+	 * @param key The child key
+	 * @return Ref<YAMLStyle> The new or existing child style
+	 */
+	Ref<YAMLStyle> create_child(const String &key);
 
 	/**
 	 * @brief Removes a child style.

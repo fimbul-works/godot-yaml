@@ -1,0 +1,8 @@
+[gd_scene load_steps=3 format=3 uid="uid://cw7ukcablgkur"]
+
+[ext_resource type="Material" uid="uid://g4tjqwskvd62" path="res://addons/yaml/examples/assets/material.tres" id="1_1ej5c"]
+[ext_resource type="Texture2D" uid="uid://duefsqwwnmduy" path="res://icon.svg" id="1_t3dkf"]
+
+[node name="Sprite" type="Sprite2D"]
+material = ExtResource("1_1ej5c")
+texture = ExtResource("1_t3dkf")

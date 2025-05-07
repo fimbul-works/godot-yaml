@@ -97,8 +97,7 @@ Ref<YAMLResult> YAML::Parser::parse(const String &input, const YAMLSecurity::Vie
 				}
 				current_result = YAMLResult::success(documents);
 			} else {
-				Variant parsed_data = process_node(tree.rootref());
-				current_result = YAMLResult::success(parsed_data, style);
+				current_result = YAMLResult::success(process_node(tree.rootref()), style);
 			}
 		}
 
@@ -237,6 +236,9 @@ String YAML::Parser::extract_key(const ryml::ConstNodeRef &node) const {
 
 Variant YAML::Parser::process_value(const ryml::ConstNodeRef &node) const {
 	if (!node.has_val() || node.val().empty() || node.val_is_null()) {
+		if (detect_style) {
+			context->current_style()->set_string_style(YAMLStyle::STRING_PLAIN);
+		}
 		return Variant();
 	}
 
@@ -260,26 +262,44 @@ Variant YAML::Parser::process_value(const ryml::ConstNodeRef &node) const {
 
 std::optional<Variant> YAML::Parser::try_parse_special_value(const String &str_val) const {
 	if (str_val == "true") {
+		if (detect_style) {
+			context->current_style()->set_string_style(YAMLStyle::STRING_PLAIN);
+		}
 		return true;
 	}
 
 	if (str_val == "false") {
+		if (detect_style) {
+			context->current_style()->set_string_style(YAMLStyle::STRING_PLAIN);
+		}
 		return false;
 	}
 
 	if (str_val == "null" || str_val == "~") {
+		if (detect_style) {
+			context->current_style()->set_string_style(YAMLStyle::STRING_PLAIN);
+		}
 		return Variant();
 	}
 
 	if (str_val == ".inf" || str_val == "+.inf") {
+		if (detect_style) {
+			context->current_style()->set_float_format(YAMLStyle::FloatFormat::FLOAT_ANY);
+		}
 		return Math_INF;
 	}
 
 	if (str_val == "-.inf") {
+		if (detect_style) {
+			context->current_style()->set_float_format(YAMLStyle::FloatFormat::FLOAT_ANY);
+		}
 		return -Math_INF;
 	}
 
 	if (str_val == ".nan") {
+		if (detect_style) {
+			context->current_style()->set_float_format(YAMLStyle::FloatFormat::FLOAT_ANY);
+		}
 		return Math_NAN;
 	}
 
@@ -293,7 +313,7 @@ std::optional<Variant> YAML::Parser::try_parse_numeric_value(const String &str_v
 			(str_val.length() > 1 && str_val[0] == '0' && str_val[1] >= '0' && str_val[1] <= '7')) // Octal
 	{
 		try {
-			YAMLStyle::IntegerFormat int_format;
+			YAMLStyle::IntegerFormat int_format = YAMLStyle::INT_ANY;
 			auto int_val = string_to_int<int64_t>(val, detect_style ? &int_format : nullptr);
 
 			if (detect_style) {
