@@ -1,11 +1,11 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" ?>
 <class name="YAMLSecurity" inherits="RefCounted" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
 		Controls security policies for resource loading during YAML parsing.
 	</brief_description>
 	<description>
-		YAMLSecurity manages restrictions on which resources can be loaded from YAML files using the [code]!Resource[/code] tag. It helps guard against unsafe loading of untrusted content by allowing control over allowed resource paths and types.
-		Loading resources are limited to [code]res://[/code] and [code]user://[/code] root paths for security reasons.
+		[YAMLSecurity] manages restrictions on which resources can be loaded from YAML files using the [code]!Resource[/code] tag. It helps guard against unsafe loading of untrusted content by allowing control over allowed resource paths and types.
+		Loading resources is limited to [code]res://[/code] and [code]user://[/code] root paths for security reasons.
 		Paths can include wildcard patterns, such as [code]*[/code] for single-segment and [code]**[/code] for recursive matching. Resources can also be filtered by type, such as blocking [code]Script[/code] or [code]GDExtension[/code] by default. Calling [method clear_type_restrictions] will remove the default blocks.
 		[b]Note:[/b] No path-based restrictions will be enforced until [method allow_path] is called.
 		[b]Example:[/b]
@@ -20,12 +20,12 @@
 		[/gdscript]
 		[/codeblocks]
 		In this example:
-		- [Texture2D] resource types are allowed to load from any direct subfolder of [code]user://mods/[/code] followed by [code]/textures[/code] path, such as [code]user://mods/my_mod/textures/player.png[/code][br]- [MeshInstance3D] resource types are allowed to load from any directory under [code]res://[/code], such as [code]res://assets/models/player.tres[/code][br]- [PackedScene] resource types are blocked globally
+		- [Texture2D] resource types are allowed to load from any direct subfolder of [code]user://mods/[/code] followed by [code]/textures[/code] path, such as [code]user://mods/my_mod/textures/player.png[/code].
+		- [MeshInstance3D] resource types are allowed to load from any directory under [code]res://[/code], such as [code]res://assets/models/player.tres[/code].
+		- [PackedScene] resource types are blocked globally.
 	</description>
-
 	<tutorials>
 	</tutorials>
-
 	<methods>
 		<method name="allow_path">
 			<return type="void" />
@@ -33,11 +33,11 @@
 			<param index="1" name="type_names" type="Array" default="[]" />
 			<description>
 				Allows loading resources from paths matching [param path_prefix]. Wildcards are supported:
-				- [code]*[/code] matches a single path segment[br]- [code]**[/code] matches any number of nested segments
-				Optionally restricts allowed types to those listed in [param type_names]. If omitted, all non-blocked types are allowed.
+				- [code]*[/code] matches a single path segment
+				- [code]**[/code] matches any number of nested segments
+				Optionally restricts allowed types to those listed in [param type_names]. If [param type_names] is empty, all non-blocked types are allowed.
 			</description>
 		</method>
-
 		<method name="block_type">
 			<return type="void" />
 			<param index="0" name="type_name" type="StringName" />
@@ -45,22 +45,19 @@
 				Blocks a resource type globally. Any resources of this type will be rejected during YAML parsing.
 			</description>
 		</method>
-
 		<method name="clear_path_restrictions">
 			<return type="void" />
 			<description>
 				Removes all allowed path rules. No path-based restrictions will be enforced until [method allow_path] is used again.
 			</description>
 		</method>
-
 		<method name="clear_type_restrictions">
 			<return type="void" />
 			<description>
 				Removes all blocked resource types.
-				[b]Note:[/b] [code]Script[/code] and [code]GDExtension[/code] are blocked by default for security reasons; calling this will remove those protections.
+				[b]Note:[/b] [code]Script[/code] and [code]GDExtension[/code] are blocked by default for security reasons; calling this method will remove those protections.
 			</description>
 		</method>
-
 		<method name="reset">
 			<return type="void" />
 			<description>

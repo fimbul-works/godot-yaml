@@ -155,10 +155,10 @@ public:
 	/**
 	 * @brief Sets the container form.
 	 *
-	 * @param p_style The container form
+	 * @param form The container form
 	 * @return Ref<YAMLStyle> This style object for chaining
 	 */
-	Ref<YAMLStyle> set_container_form(ContainerForm p_style);
+	Ref<YAMLStyle> set_container_form(ContainerForm form);
 
 	/**
 	 * @brief Gets the container form.
@@ -170,10 +170,10 @@ public:
 	/**
 	 * @brief Sets the flow style.
 	 *
-	 * @param p_style The flow style
+	 * @param style The flow style
 	 * @return Ref<YAMLStyle> This style object for chaining
 	 */
-	Ref<YAMLStyle> set_flow_style(FlowStyle p_style);
+	Ref<YAMLStyle> set_flow_style(FlowStyle style);
 
 	/**
 	 * @brief Gets the flow style.
@@ -185,10 +185,10 @@ public:
 	/**
 	 * @brief Sets the string style.
 	 *
-	 * @param p_style The string style
+	 * @param style The string style
 	 * @return Ref<YAMLStyle> This style object for chaining
 	 */
-	Ref<YAMLStyle> set_string_style(StringStyle p_style);
+	Ref<YAMLStyle> set_string_style(StringStyle style);
 
 	/**
 	 * @brief Gets the string style.
@@ -200,10 +200,10 @@ public:
 	/**
 	 * @brief Sets the integer format.
 	 *
-	 * @param p_format The integer format
+	 * @param format The integer format
 	 * @return Ref<YAMLStyle> This style object for chaining
 	 */
-	Ref<YAMLStyle> set_integer_format(IntegerFormat p_format);
+	Ref<YAMLStyle> set_integer_format(IntegerFormat format);
 
 	/**
 	 * @brief Gets the integer format.
@@ -215,10 +215,10 @@ public:
 	/**
 	 * @brief Sets the float format.
 	 *
-	 * @param p_format The float format
+	 * @param format The float format
 	 * @return Ref<YAMLStyle> This style object for chaining
 	 */
-	Ref<YAMLStyle> set_float_format(FloatFormat p_format);
+	Ref<YAMLStyle> set_float_format(FloatFormat format);
 
 	/**
 	 * @brief Gets the float format.
@@ -230,10 +230,10 @@ public:
 	/**
 	 * @brief Sets the binary encoding.
 	 *
-	 * @param p_encoding The binary encoding
+	 * @param encoding The binary encoding
 	 * @return Ref<YAMLStyle> This style object for chaining
 	 */
-	Ref<YAMLStyle> set_binary_encoding(BinaryEncoding p_encoding);
+	Ref<YAMLStyle> set_binary_encoding(BinaryEncoding encoding);
 
 	/**
 	 * @brief Gets the binary encoding.
@@ -245,10 +245,10 @@ public:
 	/**
 	 * @brief Sets custom settings as a Dictionary.
 	 *
-	 * @param p_custom The custom settings
+	 * @param settings The custom settings
 	 * @return Ref<YAMLStyle> This style object for chaining
 	 */
-	Ref<YAMLStyle> set_custom_settings(Dictionary p_custom);
+	Ref<YAMLStyle> set_custom_settings(Dictionary settings);
 
 	/**
 	 * @brief Gets the custom settings.
@@ -280,7 +280,7 @@ public:
 	 * @param p_tag The tag value (without '!')
 	 * @return Ref<YAMLStyle> This style object for chaining
 	 */
-	Ref<YAMLStyle> set_custom_tag(const String &p_tag);
+	Ref<YAMLStyle> set_custom_tag(const String &tag);
 
 	/**
 	 * @brief Gets the custom tag.
@@ -312,13 +312,6 @@ public:
 	/**
 	 * @brief Helper methods for style properties.
 	 */
-
-	/**
-	 * @brief Checks if the current node represents a container.
-	 *
-	 * @return bool True if it's a container (array or dictionary)
-	 */
-	bool is_container() const;
 
 	/**
 	 * @brief Checks if using block string style.
@@ -433,98 +426,98 @@ public:
 	/**
 	 * @brief Converts ContainerForm to string.
 	 *
-	 * @param p_style The container form
+	 * @param form The container form
 	 * @return String String representation
 	 */
-	static String container_form_string(ContainerForm p_style);
+	static String container_form_string(ContainerForm form);
 
 	/**
 	 * @brief Converts FlowStyle to string.
 	 *
-	 * @param p_style The flow style
+	 * @param style The flow style
 	 * @return String String representation
 	 */
-	static String flow_style_string(FlowStyle p_style);
+	static String flow_style_string(FlowStyle style);
 
 	/**
 	 * @brief Converts StringStyle to string.
 	 *
-	 * @param p_style The string style
+	 * @param style The string style
 	 * @return String String representation
 	 */
-	static String string_style_string(StringStyle p_style);
+	static String string_style_string(StringStyle style);
 
 	/**
 	 * @brief Converts IntegerFormat to string.
 	 *
-	 * @param p_format The integer format
+	 * @param format The integer format
 	 * @return String String representation
 	 */
-	static String integer_format_string(IntegerFormat p_format);
+	static String integer_format_string(IntegerFormat format);
 
 	/**
 	 * @brief Converts FloatFormat to string.
 	 *
-	 * @param p_format The float format
+	 * @param format The float format
 	 * @return String String representation
 	 */
-	static String float_format_string(FloatFormat p_format);
+	static String float_format_string(FloatFormat format);
 
 	/**
 	 * @brief Converts BinaryEncoding to string.
 	 *
-	 * @param p_encoding The binary encoding
+	 * @param encoding The binary encoding
 	 * @return String String representation
 	 */
-	static String binary_encoding_string(BinaryEncoding p_encoding);
+	static String binary_encoding_string(BinaryEncoding encoding);
 
 	/**
 	 * @brief Parses string to ContainerForm.
 	 *
-	 * @param p_string The string to parse
+	 * @param string The string to parse
 	 * @return ContainerForm The parsed container form
 	 */
-	static ContainerForm container_form_from_string(const String &p_string);
+	static ContainerForm container_form_from_string(const String &string);
 
 	/**
 	 * @brief Parses string to FlowStyle.
 	 *
-	 * @param p_string The string to parse
+	 * @param string The string to parse
 	 * @return FlowStyle The parsed flow style
 	 */
-	static FlowStyle flow_style_from_string(const String &p_string);
+	static FlowStyle flow_style_from_string(const String &string);
 
 	/**
 	 * @brief Parses string to StringStyle.
 	 *
-	 * @param p_string The string to parse
+	 * @param string The string to parse
 	 * @return StringStyle The parsed string style
 	 */
-	static StringStyle string_style_from_string(const String &p_string);
+	static StringStyle string_style_from_string(const String &string);
 
 	/**
 	 * @brief Parses string to IntegerFormat.
 	 *
-	 * @param p_string The string to parse
+	 * @param string The string to parse
 	 * @return IntegerFormat The parsed integer format
 	 */
-	static IntegerFormat integer_format_from_string(const String &p_string);
+	static IntegerFormat integer_format_from_string(const String &string);
 
 	/**
 	 * @brief Parses string to FloatFormat.
 	 *
-	 * @param p_string The string to parse
+	 * @param string The string to parse
 	 * @return FloatFormat The parsed float format
 	 */
-	static FloatFormat float_format_from_string(const String &p_string);
+	static FloatFormat float_format_from_string(const String &string);
 
 	/**
 	 * @brief Parses string to BinaryEncoding.
 	 *
-	 * @param p_string The string to parse
+	 * @param string The string to parse
 	 * @return BinaryEncoding The parsed binary encoding
 	 */
-	static BinaryEncoding binary_encoding_from_string(const String &p_string);
+	static BinaryEncoding binary_encoding_from_string(const String &string);
 
 	/**
 	 * @brief Custom settings dictionary.

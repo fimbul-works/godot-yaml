@@ -129,10 +129,10 @@ public:
 	 * using specified methods.
 	 *
 	 * @param p_class The Script resource representing the class.
-	 * @param p_serialize The name of the instance method used for serialization.
-	 * @param p_deserialize The name of the static method used for deserialization.
+	 * @param p_serialize_method The name of the instance method used for serialization.
+	 * @param p_deserialize_method The name of the static method used for deserialization.
 	 */
-	static void register_class(Ref<Script> p_class, const Variant &p_serialize, const Variant &p_deserialize);
+	static void register_class(Ref<Script> p_class, const Variant &p_serialize_method, const Variant &p_deserialize_method);
 
 	/**
 	 * @brief Unregisters a custom class from YAML serialization.

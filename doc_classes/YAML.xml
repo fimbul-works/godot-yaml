@@ -5,7 +5,7 @@
 	</brief_description>
 	<description>
 		Main interface for working with YAML in Godot, providing methods to parse, validate, and serialize YAML data.
-		YAML (YAML Ain't Markup Language) is a human-friendly data serialization standard commonly used for configuration files, data exchange, and storing structured information in a readable format.
+		[url=https://yaml.org/]YAML (YAML Ain't Markup Language)[/url] is a human-friendly data serialization standard commonly used for configuration files, data exchange, and storing structured information in a readable format.
 		This class automatically handles conversion between YAML and standard Godot variant types, except for [Callable] and [RID].
 	</description>
 	<tutorials>
@@ -18,85 +18,97 @@
 			<description>
 				Allows resource loading from a specific path prefix for the default security instance. If [param type_names] is empty, allows all non-blocked resource types from this path.
 				This method delegates to the default [YAMLSecurity] instance. For more control, create a custom [YAMLSecurity] instance using [method create_security].
-				By default there are no path restrictions, but Script and GDExtension resource types are blocked for security reasons.
+				By default there are no path restrictions, but [code]Script[/code] and [code]GDExtension[/code] resource types are blocked for security reasons. Path prefixes can include wildcards ([code]*[/code] for a single segment, [code]**[/code] for multiple segments).
 			</description>
 		</method>
 		<method name="block_resource_type" qualifiers="static">
 			<return type="void" />
 			<param index="0" name="type_name" type="StringName" />
 			<description>
-				Blocks a specific resource type globally for the default security instance. Any resource of this type will be rejected during parsing.
+				Blocks a specific resource type globally for the default security instance. Any resource of this type (or inheriting from it) will be rejected during parsing.
 				This method delegates to the default [YAMLSecurity] instance. For more control, create a custom [YAMLSecurity] instance using [method create_security].
 			</description>
 		</method>
 		<method name="create_security" qualifiers="static">
 			<return type="YAMLSecurity" />
 			<description>
-				Creates a new security configuration object for controlling resource loading during YAML parsing.
+				Creates a new [YAMLSecurity] configuration object for controlling resource loading during YAML parsing. This allows for fine-grained control over which resources can be loaded from which paths and of which types.
 			</description>
 		</method>
 		<method name="create_style" qualifiers="static">
 			<return type="YAMLStyle" />
 			<description>
-				Creates a new style configuration object for customizing YAML serialization.
+				Creates a new [YAMLStyle] configuration object for customizing YAML serialization. This allows control over aspects like string quoting, flow style, and number formatting.
 				[codeblocks]
 				[gdscript]
 				# Create a custom style for YAML output
 				var style = YAML.create_style()
-				style.set_scalar_style(YAMLStyle.SCALAR_LITERAL)
-				style.set_quote_style(YAMLStyle.QUOTE_DOUBLE)
+				# Use literal style for multiline strings
+				style.set_string_style(YAMLStyle.STRING_LITERAL)
+				# Or, for example, ensure all strings are double-quoted
+				# style.set_string_style(YAMLStyle.STRING_QUOTE_DOUBLE)
 
 				# Convert data to YAML with custom style
 				var data = {
 				    "name": "Player",
-				    "description": "A player character",
+				    "description": "A player character with a\nmultiline description.",
 				    "inventory": ["Sword", "Shield", "Potion"]
 				}
 				var result = YAML.stringify(data, style)
+				if !result.has_error():
+				    print(result.get_data())
+				# Example output with STRING_LITERAL:
+				# name: Player
+				# description: |
+				#   A player character with a
+				#   multiline description.
+				# inventory:
+				#   - Sword
+				#   - Shield
+				#   - Potion
 				[/gdscript]
 				[/codeblocks]
 			</description>
 		</method>
 		<method name="has_registered_class" qualifiers="static">
 			<return type="bool" />
-			<param index="0" name="tag_name" type="String" />
+			<param index="0" name="script_class" type="String" />
 			<description>
-				Returns [code]true[/code] if a class is registered for YAML serialization with the given tag name.
+				Returns [code]true[/code] if a class with the given [param script_class] name is registered for custom YAML serialization/deserialization, [code]false[/code] otherwise.
 			</description>
 		</method>
 		<method name="load_file" qualifiers="static">
 			<return type="YAMLResult" />
 			<param index="0" name="path" type="String" />
-			<param index="1" name="detect_style" type="bool" default="false" />
-			<param index="2" name="security" type="YAMLSecurity" default="null" />
+			<param index="1" name="security" type="YAMLSecurity" default="null" />
+			<param index="2" name="detect_style" type="bool" default="false" />
 			<description>
-				Loads and parses a YAML file from the given path. Returns a [YAMLResult] containing either the parsed data or error information.
-				If [param detect_style] is [code]true[/code], the method also detects and returns style information that can be used to preserve formatting when modifying and re-serializing the YAML.
-				If [param security] is provided, it will be used to validate resource loading. Otherwise, the default security settings will be used.
+				Loads and parses a YAML file from the given [param path]. Returns a [YAMLResult] containing either the parsed data or error information.
+				If [param security] is provided (a [YAMLSecurity] instance), it will be used to validate resource loading. Otherwise, the default security settings (see [method allow_resource_path], [method block_resource_type], [method reset_security]) will be used.
+				If [param detect_style] is [code]true[/code], the method attempts to detect and store style information from the input YAML. This style can be retrieved using [method YAMLResult.get_style] and used with [method stringify] or [method save_file] to preserve formatting when modifying and re-serializing the YAML.
 				[codeblocks]
 				[gdscript]
-				# Load and parse a YAML file
 				var result = YAML.load_file("res://data/config.yaml")
 				if result.has_error():
-						print("Error: ", result.get_error_message())
-						print("At line: ", result.get_error_line())
+				    print("Error loading file: ", result.get_error())
 				else:
-						var data = result.get_data()
-						print("Loaded configuration: ", data)
+				    var data = result.get_data()
+				    print("Loaded configuration: ", data)
 				[/gdscript]
 				[/codeblocks]
 			</description>
 		</method>
 		<method name="parse" qualifiers="static">
 			<return type="YAMLResult" />
-			<param index="0" name="input" type="String" />
-			<param index="1" name="detect_style" type="bool" default="false" />
-			<param index="2" name="security" type="YAMLSecurity" default="null" />
+			<param index="0" name="yaml_text" type="String" />
+			<param index="1" name="security" type="YAMLSecurity" default="null" />
+			<param index="2" name="detect_style" type="bool" default="false" />
 			<description>
 				Parses a YAML string into Godot data structures. Returns a [YAMLResult] containing either the parsed data or error information.
-				If [param detect_style] is [code]true[/code], the method also detects and returns style information that can be used to preserve formatting when modifying and re-serializing the YAML.
 				If [param security] is provided, it will be used to validate resource loading. Otherwise, the default security settings will be used.
-				Multi-document YAML (separated by [code]---[/code]) is fully supported, allowing you to access each document individually through [method YAMLResult.get_document] or [method YAMLResult.get_data] with an index parameter.
+				If [param detect_style] is [code]true[/code], the method attempts to detect and store style information. This style can be retrieved using [method YAMLResult.get_style] and used to preserve formatting when re-serializing.
+				Multi-document YAML (documents separated by [code]---[/code]) is fully supported. Each document can be accessed individually through [method YAMLResult.get_document] or [method YAMLResult.get_data] using an index. Use [method YAMLResult.get_document_count] to find out how many documents were parsed.
+				[b]Note:[/b] The [param detect_style] parameter has no effect in multi-document YAML files.
 				[codeblocks]
 				[gdscript]
 				# Basic YAML parsing
@@ -111,9 +123,9 @@
 
 				var result = YAML.parse(yaml_string)
 				if result.has_error():
-				    print("Error: ", result.get_error_message())
+				    print("Error parsing YAML: ", result.get_error())
 				else:
-				    var data = result.get_data()
+				    var data = result.get_data() # For single document, index 0 is implicit
 				    print("Player name: ", data.player.name)
 				[/gdscript]
 				[/codeblocks]
@@ -122,18 +134,15 @@
 		<method name="register_class" qualifiers="static">
 			<return type="void" />
 			<param index="0" name="script_class" type="Script" />
-			<param index="1" name="serialize" type="Variant" default="&quot;serialize&quot;" />
-			<param index="2" name="deserialize" type="Variant" default="&quot;deserialize&quot;" />
+			<param index="1" name="serialize_method" type="Variant" default="&quot;serialize&quot;" />
+			<param index="2" name="deserialize_method" type="Variant" default="&quot;deserialize&quot;" />
 			<description>
-				Registers a custom script class for YAML serialization and deserialization.
-				The [param script_class] must be a Script resource. The class should implement two methods:
-				1. A serialization method (default name: [code]serialize[/code]) that returns a serializable representation of the object
-				2. A static deserialization method (default name: [code]deserialize[/code]) that takes a value and returns a new instance of the class
-				The [param serialize] and [param deserialize] parameters can be used to specify custom method names if the class uses different names.
-				Once registered, the class can be automatically serialized to and from YAML with proper type information preserved using YAML tags.
+				Registers a custom script class for YAML serialization and deserialization. The [param script_class] must be a [Script] resource. The class should implement two methods:
+				- A serialization method (default name specified by [param serialize_method] that is called on an instance and returns a serializable [Variant] (e.g., a [Dictionary]).[br]- A static deserialization method (default name specified by [param deserialize_method], e.g., [code]static func deserialize(data)[/code]) that takes a [Variant] (the data from YAML) and returns a new instance of the class.
+				Once registered, instances of this class will be serialized with a YAML tag and deserialized back into objects of the correct type.
 				[codeblocks]
 				[gdscript]
-				# Define a custom class
+				# player.gd
 				class_name Player extends Node
 
 				var name: String
@@ -141,11 +150,12 @@
 
 				static func deserialize(data):
 				    if typeof(data) == TYPE_DICTIONARY:
-				        var player = Player.new()
-				        player.name = data.get("name", "")
-				        player.level = data.get("level", 1)
-				        return player
-				    return Player.new()
+				        var player_instance = Player.new()
+				        player_instance.name = data.get("name", "")
+				        player_instance.level = data.get("level", 1)
+				        return player_instance
+				    # Custom errors can be returned using YAMLResult.error
+				    return YAMLResult.error("Player requires Dictionary to deserialize")
 
 				func serialize():
 				    return {
@@ -153,8 +163,23 @@
 				        "level": level
 				    }
 
-				# Register the class with YAML
-				YAML.register_class(Player)
+				# In some setup code (e.g., _ready() of an autoload)
+				func _ready():
+				    YAML.register_class(Player) # Pass the Script resource
+
+				    var p = Player.new()
+				    p.name = "MyHero"
+				    p.level = 20
+				    var yaml_result = YAML.stringify(p)
+				    if !yaml_result.has_error():
+				        print(yaml_result.get_data()) # Will include !Player tag
+				        # Example: !Player {name: MyHero, level: 20}
+
+				        var parsed_result = YAML.parse(yaml_result.get_data())
+				        if !parsed_result.has_error():
+				            var deserialized_player = parsed_result.get_data()
+				            print(deserialized_player is Player) # true
+				            print(deserialized_player.name)   # MyHero
 				[/gdscript]
 				[/codeblocks]
 			</description>
@@ -162,7 +187,7 @@
 		<method name="reset_security" qualifiers="static">
 			<return type="void" />
 			<description>
-				Resets the default security settings to defaults. Clears all custom settings and re-adds the default blocked types (Script and GDExtension).
+				Resets the default security settings to their original state. This clears all custom path allowances and type blockages, then re-adds the default blocked types ([code]Script[/code] and [code]GDExtension[/code]).
 				This method delegates to the default [YAMLSecurity] instance.
 			</description>
 		</method>
@@ -172,38 +197,39 @@
 			<param index="1" name="path" type="String" />
 			<param index="2" name="style" type="YAMLStyle" default="null" />
 			<description>
-				Converts Godot data to YAML and saves it to a file at the specified path. Returns a [YAMLResult] containing either the YAML string that was written or error information.
-				If [param style] is provided, it will be used to customize the formatting of the YAML output. Otherwise, default formatting will be used.
+				Converts Godot [param data] to YAML and saves it to a file at the specified [param path]. Returns a [YAMLResult]. On success, the result's data will contain the YAML string that was written. On failure, it will contain error information.
+				If [param style] (a [YAMLStyle] instance) is provided, it will be used to customize the formatting of the YAML output. Otherwise, default formatting will be used.
 				[codeblocks]
 				[gdscript]
 				# Save data to a YAML file
-				var data = {
-						"settings": {
-								"volume": 0.8,
-								"fullscreen": true
-						},
-						"player": {
-								"name": "Hero",
-								"level": 5
-						}
+				var data_to_save = {
+				    "settings": {
+				        "volume": 0.8,
+				        "fullscreen": true
+				    },
+				    "player_profile": {
+				        "name": "Hero",
+				        "level": 5
+				    }
 				}
 
-				var result = YAML.save_file(data, "user://settings.yaml")
+				var result = YAML.save_file(data_to_save, "user://settings.yaml")
 				if result.has_error():
-						print("Error saving file: ", result.get_error_message())
+				    print("Error saving file: ", result.get_error_message())
 				else:
-						print("File saved successfully")
+				    print("File saved successfully. Content written: ")
+				    print(result.get_data())
 				[/gdscript]
 				[/codeblocks]
 			</description>
 		</method>
 		<method name="stringify" qualifiers="static">
 			<return type="YAMLResult" />
-			<param index="0" name="input" type="Variant" />
+			<param index="0" name="data" type="Variant" />
 			<param index="1" name="style" type="YAMLStyle" default="null" />
 			<description>
-				Converts Godot data to YAML text. Returns a [YAMLResult] containing either the generated YAML string or error information.
-				If [param style] is provided, it will be used to customize the formatting of the YAML output. Otherwise, default formatting will be used.
+				Converts Godot [param data] to YAML text. Returns a [YAMLResult]. On success, the result's data will contain the generated YAML string. On failure, it will contain error information.
+				If [param style] (a [YAMLStyle] instance) is provided, it will be used to customize the formatting of the YAML output. Otherwise, default formatting will be used.
 				[codeblocks]
 				[gdscript]
 				# Convert dictionary to YAML
@@ -214,29 +240,44 @@
 
 				var result = YAML.stringify(data)
 				if !result.has_error():
-				    var yaml = result.get_data()
-				    print(yaml)
-				    # Output:
+				    var yaml_text = result.get_data()
+				    print(yaml_text)
+				    # Example output:
 				    # name: Stranger
 				    # dialogue:
-				    #   - "Hello, traveler."
-				    #   - "What brings you here?"
+				    #   - Hello, traveler.
+				    #   - What brings you here?
 				[/gdscript]
 				[/codeblocks]
 			</description>
 		</method>
+		<method name="unregister_class" qualifiers="static">
+			<return type="void" />
+			<param index="0" name="script_class" type="Script" />
+			<description>
+				Unregisters a previously registered custom script class (via [param script_class] which must be a [Script] resource) from YAML serialization and deserialization. After unregistering, instances of this class will be serialized as generic Godot objects or dictionaries if possible, without the custom YAML tag.
+			</description>
+		</method>
 		<method name="validate" qualifiers="static">
 			<return type="YAMLResult" />
-			<param index="0" name="input" type="String" />
+			<param index="0" name="yaml_text" type="String" />
 			<description>
-				Validates YAML syntax without full parsing. Returns a [YAMLResult] indicating success or containing error information.
-				This method quickly checks if YAML is syntactically valid without creating full Godot data structures. It's faster than [method parse] but doesn't provide the parsed data.
+				Validates YAML syntax of the given [param yaml_text] string without performing a full parse into Godot data structures. Returns a [YAMLResult]; if [method YAMLResult.has_error] is [code]false[/code], the YAML is syntactically valid. Otherwise, error information can be retrieved.
+				This method is faster than [method parse] if you only need to check for syntactic validity and do not need the parsed data.
+			</description>
+		</method>
+		<method name="validate_file" qualifiers="static">
+			<return type="YAMLResult" />
+			<param index="0" name="path" type="String" />
+			<description>
+				Validates YAML syntax in a file at the given [param path] without performing a full parse. Returns a [YAMLResult] indicating success or containing error information.
+				This method is useful for quickly checking if a YAML file is well-formed.
 			</description>
 		</method>
 		<method name="version" qualifiers="static">
 			<return type="String" />
 			<description>
-				Returns the version of the YAML extension as a string with version and build information.
+				Returns the version of the YAML GDExtension as a string, typically including version number and build information (e.g., "Godot YAML 0.12.1 (release)").
 			</description>
 		</method>
 	</methods>

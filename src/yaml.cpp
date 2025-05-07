@@ -17,17 +17,17 @@ using namespace godot;
 void YAML::_bind_methods() {
 	ClassDB::bind_static_method("YAML", D_METHOD("version"), &YAML::version);
 
-	ClassDB::bind_static_method("YAML", D_METHOD("parse", "input", "security", "detect_style"), &YAML::parse, DEFVAL(nullptr), DEFVAL(false));
-	ClassDB::bind_static_method("YAML", D_METHOD("stringify", "input", "style"), &YAML::stringify, DEFVAL(Variant()));
-	ClassDB::bind_static_method("YAML", D_METHOD("validate", "input"), &YAML::validate);
+	ClassDB::bind_static_method("YAML", D_METHOD("parse", "yaml_text", "security", "detect_style"), &YAML::parse, DEFVAL(nullptr), DEFVAL(false));
+	ClassDB::bind_static_method("YAML", D_METHOD("stringify", "data", "style"), &YAML::stringify, DEFVAL(Variant()));
+	ClassDB::bind_static_method("YAML", D_METHOD("validate", "yaml_text"), &YAML::validate);
 
 	ClassDB::bind_static_method("YAML", D_METHOD("load_file", "path", "security", "detect_style"), &YAML::load_file, DEFVAL(nullptr), DEFVAL(false));
 	ClassDB::bind_static_method("YAML", D_METHOD("save_file", "data", "path", "style"), &YAML::save_file, DEFVAL(nullptr));
 	ClassDB::bind_static_method("YAML", D_METHOD("validate_file", "path"), &YAML::validate_file);
 
-	ClassDB::bind_static_method("YAML", D_METHOD("register_class", "script_class", "serialize", "deserialize"), &YAML::register_class, DEFVAL("serialize"), DEFVAL("deserialize"));
+	ClassDB::bind_static_method("YAML", D_METHOD("register_class", "script_class", "serialize_method", "deserialize_method"), &YAML::register_class, DEFVAL("serialize"), DEFVAL("deserialize"));
 	ClassDB::bind_static_method("YAML", D_METHOD("unregister_class", "script_class"), &YAML::unregister_class);
-	ClassDB::bind_static_method("YAML", D_METHOD("has_registered_class", "tag_name"), &YAML::has_registered_class);
+	ClassDB::bind_static_method("YAML", D_METHOD("has_registered_class", "script_class"), &YAML::has_registered_class);
 
 	ClassDB::bind_static_method("YAML", D_METHOD("create_style"), &YAML::create_style);
 

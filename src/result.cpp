@@ -7,13 +7,16 @@ void YAMLResult::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_data", "index"), &YAMLResult::get_data, DEFVAL(0));
 	ClassDB::bind_method(D_METHOD("get_document", "index"), &YAMLResult::get_document, DEFVAL(0));
 	ClassDB::bind_method(D_METHOD("get_document_count"), &YAMLResult::get_document_count);
+
 	ClassDB::bind_method(D_METHOD("has_error"), &YAMLResult::has_error);
-	ClassDB::bind_method(D_METHOD("get_error"), &YAMLResult::get_error);
 	ClassDB::bind_method(D_METHOD("get_error_message"), &YAMLResult::get_error_message);
 	ClassDB::bind_method(D_METHOD("get_error_line"), &YAMLResult::get_error_line);
 	ClassDB::bind_method(D_METHOD("get_error_column"), &YAMLResult::get_error_column);
+	ClassDB::bind_method(D_METHOD("get_error"), &YAMLResult::get_error);
+
 	ClassDB::bind_method(D_METHOD("has_style"), &YAMLResult::has_style);
 	ClassDB::bind_method(D_METHOD("get_style"), &YAMLResult::get_style);
+
 	ClassDB::bind_static_method("YAMLResult", D_METHOD("error", "msg"), &YAMLResult::user_error);
 
 	BIND_VIRTUAL_METHOD(YAMLResult, _to_string);
@@ -28,7 +31,7 @@ Ref<YAMLResult> YAMLResult::error(const String &msg, int line, int column) {
 }
 
 Ref<YAMLResult> YAMLResult::user_error(const String &msg) {
-	return Ref<YAMLResult>(memnew(YAMLResult(Variant(), nullptr, msg, -1, -1)));
+	return Ref<YAMLResult>(memnew(YAMLResult(Variant(), nullptr, msg)));
 }
 
 Variant YAMLResult::get_data(int index) const {
@@ -47,6 +50,10 @@ Variant YAMLResult::get_data(int index) const {
 	return Variant();
 }
 
+Variant YAMLResult::get_document(int index) const {
+	return get_data(index);
+}
+
 int YAMLResult::get_document_count() const {
 	if (!error_message.is_empty()) {
 		return 0;
@@ -59,6 +66,37 @@ int YAMLResult::get_document_count() const {
 	}
 
 	return 1;
+}
+
+bool YAMLResult::has_error() const {
+	return !error_message.is_empty();
+}
+
+String YAMLResult::get_error_message() const {
+	return error_message;
+}
+
+int YAMLResult::get_error_line() const {
+	return error_line;
+}
+
+int YAMLResult::get_error_column() const {
+	return error_column;
+}
+
+String YAMLResult::get_error() const {
+	if (error_line >= 0 && error_column >= 0) {
+		return vformat("%s (line %d, column %d)", error_message, error_line, error_column);
+	}
+	return error_message;
+}
+
+bool YAMLResult::has_style() const {
+	return style.is_valid();
+}
+
+Ref<YAMLStyle> YAMLResult::get_style() const {
+	return style;
 }
 
 String YAMLResult::_to_string() const {

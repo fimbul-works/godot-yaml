@@ -79,21 +79,22 @@ void YAMLStyle::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("clear_children"), &YAMLStyle::clear_children);
 	ClassDB::bind_method(D_METHOD("get_children_keys"), &YAMLStyle::get_children_keys);
 
-	ClassDB::bind_static_method("YAMLStyle", D_METHOD("container_form_string", "p_style"), &YAMLStyle::container_form_string);
-	ClassDB::bind_static_method("YAMLStyle", D_METHOD("flow_style_string", "p_style"), &YAMLStyle::flow_style_string);
-	ClassDB::bind_static_method("YAMLStyle", D_METHOD("string_style_string", "p_style"), &YAMLStyle::string_style_string);
-	ClassDB::bind_static_method("YAMLStyle", D_METHOD("integer_format_string", "p_style"), &YAMLStyle::integer_format_string);
-	ClassDB::bind_static_method("YAMLStyle", D_METHOD("float_format_string", "p_style"), &YAMLStyle::float_format_string);
-	ClassDB::bind_static_method("YAMLStyle", D_METHOD("binary_encoding_string", "p_style"), &YAMLStyle::binary_encoding_string);
+	ClassDB::bind_static_method("YAMLStyle", D_METHOD("container_form_string", "form"), &YAMLStyle::container_form_string);
+	ClassDB::bind_static_method("YAMLStyle", D_METHOD("flow_style_string", "style"), &YAMLStyle::flow_style_string);
+	ClassDB::bind_static_method("YAMLStyle", D_METHOD("string_style_string", "style"), &YAMLStyle::string_style_string);
+	ClassDB::bind_static_method("YAMLStyle", D_METHOD("integer_format_string", "format"), &YAMLStyle::integer_format_string);
+	ClassDB::bind_static_method("YAMLStyle", D_METHOD("float_format_string", "format"), &YAMLStyle::float_format_string);
+	ClassDB::bind_static_method("YAMLStyle", D_METHOD("binary_encoding_string", "encoding"), &YAMLStyle::binary_encoding_string);
 
-	ClassDB::bind_static_method("YAMLStyle", D_METHOD("container_form_from_string", "p_string"), &YAMLStyle::container_form_from_string);
-	ClassDB::bind_static_method("YAMLStyle", D_METHOD("flow_style_from_string", "p_string"), &YAMLStyle::flow_style_from_string);
-	ClassDB::bind_static_method("YAMLStyle", D_METHOD("string_style_from_string", "p_string"), &YAMLStyle::string_style_from_string);
-	ClassDB::bind_static_method("YAMLStyle", D_METHOD("integer_format_from_string", "p_string"), &YAMLStyle::integer_format_from_string);
-	ClassDB::bind_static_method("YAMLStyle", D_METHOD("float_format_from_string", "p_string"), &YAMLStyle::float_format_from_string);
-	ClassDB::bind_static_method("YAMLStyle", D_METHOD("binary_encoding_from_string", "p_sting"), &YAMLStyle::binary_encoding_from_string);
+	ClassDB::bind_static_method("YAMLStyle", D_METHOD("container_form_from_string", "string"), &YAMLStyle::container_form_from_string);
+	ClassDB::bind_static_method("YAMLStyle", D_METHOD("flow_style_from_string", "string"), &YAMLStyle::flow_style_from_string);
+	ClassDB::bind_static_method("YAMLStyle", D_METHOD("string_style_from_string", "string"), &YAMLStyle::string_style_from_string);
+	ClassDB::bind_static_method("YAMLStyle", D_METHOD("integer_format_from_string", "string"), &YAMLStyle::integer_format_from_string);
+	ClassDB::bind_static_method("YAMLStyle", D_METHOD("float_format_from_string", "string"), &YAMLStyle::float_format_from_string);
+	ClassDB::bind_static_method("YAMLStyle", D_METHOD("binary_encoding_from_string", "string"), &YAMLStyle::binary_encoding_from_string);
 
 	ClassDB::bind_method(D_METHOD("get_debug_string"), &YAMLStyle::get_debug_string);
+
 	BIND_VIRTUAL_METHOD(YAMLStyle, _to_string);
 
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "container_form", PROPERTY_HINT_ENUM, "Any,Array,Dictionary"), "set_container_form", "get_container_form");
@@ -183,8 +184,8 @@ Ref<YAMLStyle> YAMLStyle::merge_with(const Ref<YAMLStyle> &other) {
 	return Ref<YAMLStyle>(this);
 }
 
-Ref<YAMLStyle> YAMLStyle::set_container_form(ContainerForm p_style) {
-	container_form = p_style;
+Ref<YAMLStyle> YAMLStyle::set_container_form(ContainerForm form) {
+	container_form = form;
 	has_container_form = true;
 	return Ref<YAMLStyle>(this);
 }
@@ -193,8 +194,8 @@ YAMLStyle::ContainerForm YAMLStyle::get_container_form() const {
 	return container_form;
 }
 
-Ref<YAMLStyle> YAMLStyle::set_flow_style(FlowStyle p_style) {
-	flow_style = p_style;
+Ref<YAMLStyle> YAMLStyle::set_flow_style(FlowStyle style) {
+	flow_style = style;
 	has_flow_style = true;
 	return Ref<YAMLStyle>(this);
 }
@@ -203,8 +204,8 @@ YAMLStyle::FlowStyle YAMLStyle::get_flow_style() const {
 	return flow_style;
 }
 
-Ref<YAMLStyle> YAMLStyle::set_string_style(StringStyle p_style) {
-	string_style = p_style;
+Ref<YAMLStyle> YAMLStyle::set_string_style(StringStyle style) {
+	string_style = style;
 	has_string_style = true;
 	return Ref<YAMLStyle>(this);
 }
@@ -213,8 +214,8 @@ YAMLStyle::StringStyle YAMLStyle::get_string_style() const {
 	return string_style;
 }
 
-Ref<YAMLStyle> YAMLStyle::set_integer_format(IntegerFormat p_format) {
-	integer_format = p_format;
+Ref<YAMLStyle> YAMLStyle::set_integer_format(IntegerFormat format) {
+	integer_format = format;
 	has_integer_format = true;
 	return Ref<YAMLStyle>(this);
 }
@@ -223,8 +224,8 @@ YAMLStyle::IntegerFormat YAMLStyle::get_integer_format() const {
 	return integer_format;
 }
 
-Ref<YAMLStyle> YAMLStyle::set_float_format(FloatFormat p_format) {
-	float_format = p_format;
+Ref<YAMLStyle> YAMLStyle::set_float_format(FloatFormat format) {
+	float_format = format;
 	has_float_format = true;
 	return Ref<YAMLStyle>(this);
 }
@@ -233,8 +234,8 @@ YAMLStyle::FloatFormat YAMLStyle::get_float_format() const {
 	return float_format;
 }
 
-Ref<YAMLStyle> YAMLStyle::set_binary_encoding(BinaryEncoding p_encoding) {
-	binary_encoding = p_encoding;
+Ref<YAMLStyle> YAMLStyle::set_binary_encoding(BinaryEncoding encoding) {
+	binary_encoding = encoding;
 	has_binary_encoding = true;
 	return Ref<YAMLStyle>(this);
 }
@@ -243,8 +244,8 @@ YAMLStyle::BinaryEncoding YAMLStyle::get_binary_encoding() const {
 	return binary_encoding;
 }
 
-Ref<YAMLStyle> YAMLStyle::set_custom_settings(Dictionary p_custom) {
-	custom_settings = p_custom;
+Ref<YAMLStyle> YAMLStyle::set_custom_settings(Dictionary settings) {
+	custom_settings = settings;
 	has_custom_settings = true;
 	return Ref<YAMLStyle>(this);
 }
@@ -262,8 +263,8 @@ Variant YAMLStyle::get_custom_setting(const String &key) const {
 	return get_custom_settings()[key];
 }
 
-Ref<YAMLStyle> YAMLStyle::set_custom_tag(const String &p_tag) {
-	set_custom_setting("tag", p_tag);
+Ref<YAMLStyle> YAMLStyle::set_custom_tag(const String &tag) {
+	set_custom_setting("tag", tag);
 	return Ref<YAMLStyle>(this);
 }
 
@@ -310,8 +311,8 @@ Array YAMLStyle::get_children_keys() const {
 	return keys;
 }
 
-String YAMLStyle::container_form_string(ContainerForm p_style) {
-	switch (p_style) {
+String YAMLStyle::container_form_string(ContainerForm form) {
+	switch (form) {
 		case FORM_ANY:
 			return "any";
 		case FORM_ARRAY:
@@ -323,7 +324,7 @@ String YAMLStyle::container_form_string(ContainerForm p_style) {
 	}
 }
 
-YAMLStyle::ContainerForm YAMLStyle::container_form_from_string(const String &p_string) {
+YAMLStyle::ContainerForm YAMLStyle::container_form_from_string(const String &string) {
 	static std::unordered_map<String, ContainerForm, StringHasher, StringEqual> form_map;
 	static std::once_flag init_flag;
 
@@ -333,12 +334,12 @@ YAMLStyle::ContainerForm YAMLStyle::container_form_from_string(const String &p_s
 		form_map["dictionary"] = FORM_DICTIONARY;
 	});
 
-	auto it = form_map.find(p_string);
+	auto it = form_map.find(string);
 	return it != form_map.end() ? it->second : FORM_ANY;
 }
 
-String YAMLStyle::flow_style_string(FlowStyle p_style) {
-	switch (p_style) {
+String YAMLStyle::flow_style_string(FlowStyle style) {
+	switch (style) {
 		case FLOW_ANY:
 			return "any";
 		case FLOW_NONE:
@@ -350,7 +351,7 @@ String YAMLStyle::flow_style_string(FlowStyle p_style) {
 	}
 }
 
-YAMLStyle::FlowStyle YAMLStyle::flow_style_from_string(const String &p_string) {
+YAMLStyle::FlowStyle YAMLStyle::flow_style_from_string(const String &string) {
 	static std::unordered_map<String, FlowStyle, StringHasher, StringEqual> flow_map;
 	static std::once_flag init_flag;
 
@@ -360,12 +361,12 @@ YAMLStyle::FlowStyle YAMLStyle::flow_style_from_string(const String &p_string) {
 		flow_map["single"] = FLOW_SINGLE;
 	});
 
-	auto it = flow_map.find(p_string);
+	auto it = flow_map.find(string);
 	return it != flow_map.end() ? it->second : FLOW_ANY;
 }
 
-String YAMLStyle::string_style_string(StringStyle p_style) {
-	switch (p_style) {
+String YAMLStyle::string_style_string(StringStyle style) {
+	switch (style) {
 		case STRING_ANY:
 			return "any";
 		case STRING_PLAIN:
@@ -383,7 +384,7 @@ String YAMLStyle::string_style_string(StringStyle p_style) {
 	}
 }
 
-YAMLStyle::StringStyle YAMLStyle::string_style_from_string(const String &p_string) {
+YAMLStyle::StringStyle YAMLStyle::string_style_from_string(const String &string) {
 	static std::unordered_map<String, StringStyle, StringHasher, StringEqual> string_map;
 	static std::once_flag init_flag;
 
@@ -396,12 +397,12 @@ YAMLStyle::StringStyle YAMLStyle::string_style_from_string(const String &p_strin
 		string_map["folded"] = STRING_FOLDED;
 	});
 
-	auto it = string_map.find(p_string);
+	auto it = string_map.find(string);
 	return it != string_map.end() ? it->second : STRING_ANY;
 }
 
-String YAMLStyle::integer_format_string(IntegerFormat p_format) {
-	switch (p_format) {
+String YAMLStyle::integer_format_string(IntegerFormat format) {
+	switch (format) {
 		case INT_ANY:
 			return "any";
 		case INT_DECIMAL:
@@ -417,7 +418,7 @@ String YAMLStyle::integer_format_string(IntegerFormat p_format) {
 	}
 }
 
-YAMLStyle::IntegerFormat YAMLStyle::integer_format_from_string(const String &p_string) {
+YAMLStyle::IntegerFormat YAMLStyle::integer_format_from_string(const String &string) {
 	static std::unordered_map<String, IntegerFormat, StringHasher, StringEqual> int_map;
 	static std::once_flag init_flag;
 
@@ -429,12 +430,12 @@ YAMLStyle::IntegerFormat YAMLStyle::integer_format_from_string(const String &p_s
 		int_map["binary"] = INT_BINARY;
 	});
 
-	auto it = int_map.find(p_string);
+	auto it = int_map.find(string);
 	return it != int_map.end() ? it->second : INT_ANY;
 }
 
-String YAMLStyle::float_format_string(FloatFormat p_format) {
-	switch (p_format) {
+String YAMLStyle::float_format_string(FloatFormat format) {
+	switch (format) {
 		case FLOAT_ANY:
 			return "any";
 		case FLOAT_DECIMAL:
@@ -446,7 +447,7 @@ String YAMLStyle::float_format_string(FloatFormat p_format) {
 	}
 }
 
-YAMLStyle::FloatFormat YAMLStyle::float_format_from_string(const String &p_string) {
+YAMLStyle::FloatFormat YAMLStyle::float_format_from_string(const String &string) {
 	static std::unordered_map<String, FloatFormat, StringHasher, StringEqual> float_map;
 	static std::once_flag init_flag;
 
@@ -456,12 +457,12 @@ YAMLStyle::FloatFormat YAMLStyle::float_format_from_string(const String &p_strin
 		float_map["scientific"] = FLOAT_SCIENTIFIC;
 	});
 
-	auto it = float_map.find(p_string);
+	auto it = float_map.find(string);
 	return it != float_map.end() ? it->second : FLOAT_ANY;
 }
 
-String YAMLStyle::binary_encoding_string(BinaryEncoding p_encoding) {
-	switch (p_encoding) {
+String YAMLStyle::binary_encoding_string(BinaryEncoding encoding) {
+	switch (encoding) {
 		case BIN_ANY:
 			return "any";
 		case BIN_BASE64:
@@ -473,7 +474,7 @@ String YAMLStyle::binary_encoding_string(BinaryEncoding p_encoding) {
 	}
 }
 
-YAMLStyle::BinaryEncoding YAMLStyle::binary_encoding_from_string(const String &p_string) {
+YAMLStyle::BinaryEncoding YAMLStyle::binary_encoding_from_string(const String &string) {
 	static std::unordered_map<String, BinaryEncoding, StringHasher, StringEqual> binary_map;
 	static std::once_flag init_flag;
 
@@ -483,7 +484,7 @@ YAMLStyle::BinaryEncoding YAMLStyle::binary_encoding_from_string(const String &p
 		binary_map["hex"] = BIN_HEX;
 	});
 
-	auto it = binary_map.find(p_string);
+	auto it = binary_map.find(string);
 	return it != binary_map.end() ? it->second : BIN_ANY;
 }
 
@@ -530,10 +531,6 @@ void YAMLStyle::simplify() {
 			child_styles.erase(key);
 		}
 	}
-}
-
-bool YAMLStyle::is_container() const {
-	return container_form == FORM_DICTIONARY || container_form == FORM_ARRAY;
 }
 
 bool YAMLStyle::is_block_style() const {

@@ -1,4 +1,5 @@
 #include "class_registry.h"
+
 #include <godot_cpp/classes/resource.hpp>
 #include <godot_cpp/classes/script.hpp>
 #include <godot_cpp/variant/utility_functions.hpp>
@@ -11,6 +12,9 @@ std::unordered_map<String, YAMLClassRegistry::ClassInfo, StringHasher, StringEqu
 
 void YAMLClassRegistry::register_class(Ref<Script> p_class, const Variant &p_serialize, const Variant &p_deserialize) {
 	const StringName class_name = get_script_class(p_class);
+	if (class_name.is_empty()) {
+		return;
+	}
 
 	// Prevent duplicates
 	if (has_class(class_name)) {
@@ -81,17 +85,20 @@ void YAMLClassRegistry::register_class(Ref<Script> p_class, const Variant &p_ser
 	}
 
 #ifdef GODOT_YAML_DEBUG
-	UtilityFunctions::print(vformat("Registered YAML class: %s", class_name));
+	UtilityFunctions::print(vformat("Registered class %s with YAML", class_name));
 #endif
 }
 
 void YAMLClassRegistry::unregister_class(Ref<Script> p_class) {
 	const StringName class_name = get_script_class(p_class);
+	if (class_name.is_empty()) {
+		return;
+	}
 
 	// Prevent duplicates
 	if (!has_class(class_name)) {
 #ifdef GODOT_YAML_DEBUG
-		ERR_PRINT(vformat("Class %s is not registered", class_name));
+		ERR_PRINT(vformat("Class %s is not registered with YAML", class_name));
 #endif
 		return;
 	}
@@ -103,7 +110,7 @@ void YAMLClassRegistry::unregister_class(Ref<Script> p_class) {
 	}
 
 #ifdef GODOT_YAML_DEBUG
-	UtilityFunctions::print(vformat("Unregistered YAML class: %s", class_name));
+	UtilityFunctions::print(vformat("Unregistered class %s from YAML", class_name));
 #endif
 }
 

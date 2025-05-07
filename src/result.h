@@ -105,7 +105,7 @@ public:
 	 * @param index Document index (0 for single documents)
 	 * @return Variant The document data or null if the index is invalid
 	 */
-	Variant get_document(int index = 0) const { return get_data(index); }
+	Variant get_document(int index = 0) const;
 
 	/**
 	 * @brief Gets the number of documents in the result.
@@ -119,35 +119,35 @@ public:
 	 *
 	 * @return bool True if an error occurred, false otherwise
 	 */
-	bool has_error() const { return !error_message.is_empty(); }
+	bool has_error() const;
 
 	/**
 	 * @brief Gets the error message.
 	 *
 	 * @return String The error message or empty if no error
 	 */
-	String get_error_message() const { return error_message; }
+	String get_error_message() const;
 
 	/**
 	 * @brief Gets the line number where the error occurred.
 	 *
 	 * @return int Line number or -1 if not applicable
 	 */
-	int get_error_line() const { return error_line; }
+	int get_error_line() const;
 
 	/**
 	 * @brief Gets the column number where the error occurred.
 	 *
 	 * @return int Column number or -1 if not applicable
 	 */
-	int get_error_column() const { return error_column; }
+	int get_error_column() const;
 
 	/**
-	 * @brief Gets a formatted error string with location information.
+	 * @brief Gets a formatted error string with location information if applicable.
 	 *
-	 * @return String Formatted error message with line and column
+	 * @return String Formatted error message with line and column if applicable
 	 */
-	String get_error() const { return vformat("%s (line %d, column %d)", error_message, error_line, error_column); }
+	String get_error() const;
 
 	/**
 	 * @brief Style handling methods.
@@ -158,14 +158,14 @@ public:
 	 *
 	 * @return bool True if style information is available
 	 */
-	bool has_style() const { return style.is_valid(); }
+	bool has_style() const;
 
 	/**
 	 * @brief Gets the style information.
 	 *
 	 * @return Ref<YAMLStyle> The style object or null if not available
 	 */
-	Ref<YAMLStyle> get_style() const { return style; }
+	Ref<YAMLStyle> get_style() const;
 
 	/**
 	 * @brief Converts the result to a string representation.

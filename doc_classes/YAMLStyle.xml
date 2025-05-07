@@ -1,242 +1,345 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="YAMLStyle" inherits="RefCounted" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
-		Controls formatting options for YAML serialization.
+		Configures formatting behavior for YAML serialization and style inheritance.
 	</brief_description>
 	<description>
-		Controls formatting options for YAML serialization, letting you customize how Godot data structures appear in YAML text. Provides control over scalar styles, quoting, container formats, and more.
-		Use [YAMLStyle] with [method YAML.stringify] to customize YAML output. You can also get style information from parsed YAML when style detection is enabled, preserving the original formatting when modifying and re-serializing YAML.
-		Style options can be applied hierarchically through child styles, allowing different formatting for different parts of the YAML document.
+		[YAMLStyle] defines how Godot objects are serialized to YAML format. The class allows precise control over serialization styles, enabling better compatibility with existing YAML parsers and improving human readability of exported YAML content.
+		You can customize various styling aspects:
+		- Container styles (array or dictionary)[br]- String styles (plain, quoted, block)[br]- Numeric formats (decimal, hex, octal, binary)[br]- Flow styles (block vs inline)[br]- Binary data encodings (base64, hex)
+		The class supports style inheritance through a parent-child relationship, allowing you to define styles per key. This provides fine-grained control over document layout, which is particularly useful when:
+		- Preserving human readability[br]- Matching existing YAML conventions[br]- Customizing the visual appearance of exported content[br]- Ensuring compatibility with external YAML parsers
 	</description>
 	<tutorials>
 	</tutorials>
 	<methods>
+		<method name="binary_encoding_from_string" qualifiers="static">
+			<return type="int" enum="YAMLStyle.BinaryEncoding" />
+			<param index="0" name="string" type="String" />
+			<description>
+				Converts a string identifier to the corresponding [enum BinaryEncoding] value. This method enables mapping between human-readable encoding names and their enumeration values.
+			</description>
+		</method>
+		<method name="binary_encoding_string" qualifiers="static">
+			<return type="String" />
+			<param index="0" name="encoding" type="int" enum="YAMLStyle.BinaryEncoding" />
+			<description>
+				Converts a [enum BinaryEncoding] value to its string identifier. Returns the string name representing the specified [param encoding].
+			</description>
+		</method>
 		<method name="clear_child">
-			<return type="void" />
+			<return type="YAMLStyle" />
 			<param index="0" name="key" type="String" />
 			<description>
-				Removes a specific child style by key.
+				Removes the child style associated with the specified [param key]. Returns this style instance for method chaining.
 			</description>
 		</method>
 		<method name="clear_children">
-			<return type="void" />
+			<return type="YAMLStyle" />
 			<description>
-				Removes all child styles.
+				Removes all child styles from this style instance. Returns this style instance for method chaining.
 			</description>
 		</method>
-		<method name="get_binary_encoding_string" qualifiers="static">
-			<return type="String" />
-			<param index="0" name="p_style" type="int" enum="YAMLStyle.BinaryEncoding" />
+		<method name="container_form_from_string" qualifiers="static">
+			<return type="int" enum="YAMLStyle.ContainerForm" />
+			<param index="0" name="string" type="String" />
 			<description>
-				Returns a string representation of the specified binary encoding style. Useful for debugging and diagnostic purposes.
+				Converts a string identifier to the corresponding [enum ContainerForm] value. This allows using string names to identify container forms when configuring YAML styles.
+			</description>
+		</method>
+		<method name="container_form_string" qualifiers="static">
+			<return type="String" />
+			<param index="0" name="form" type="int" enum="YAMLStyle.ContainerForm" />
+			<description>
+				Converts a [enum ContainerForm] value to its string identifier. Returns the string name representing the specified container [param form].
+			</description>
+		</method>
+		<method name="float_format_from_string" qualifiers="static">
+			<return type="int" enum="YAMLStyle.FloatFormat" />
+			<param index="0" name="string" type="String" />
+			<description>
+				Converts a string identifier to the corresponding [enum FloatFormat] value. This allows using string names to identify floating-point formats when configuring YAML styles.
+			</description>
+		</method>
+		<method name="float_format_string" qualifiers="static">
+			<return type="String" />
+			<param index="0" name="format" type="int" enum="YAMLStyle.FloatFormat" />
+			<description>
+				Converts a [enum FloatFormat] value to its string identifier. Returns the string name representing the specified floating-point [param format].
+			</description>
+		</method>
+		<method name="flow_style_from_string" qualifiers="static">
+			<return type="int" enum="YAMLStyle.FlowStyle" />
+			<param index="0" name="string" type="String" />
+			<description>
+				Converts a string identifier to the corresponding [enum FlowStyle] value. This allows using string names to identify flow styles when configuring YAML styles.
+			</description>
+		</method>
+		<method name="flow_style_string" qualifiers="static">
+			<return type="String" />
+			<param index="0" name="style" type="int" enum="YAMLStyle.FlowStyle" />
+			<description>
+				Converts a [enum FlowStyle] value to its string identifier. Returns the string name representing the specified flow [param style].
 			</description>
 		</method>
 		<method name="get_child" qualifiers="const">
 			<return type="YAMLStyle" />
 			<param index="0" name="key" type="String" />
 			<description>
-				Returns a child style by key. Returns [code]null[/code] if no child style exists for the given key.
+				Returns the child style associated with the specified [param key], or [code]null[/code] if no child style exists for this key. Use this method to access and modify child styles.
 			</description>
 		</method>
 		<method name="get_children_keys" qualifiers="const">
 			<return type="Array" />
 			<description>
-				Returns all child style keys as an array of strings.
-			</description>
-		</method>
-		<method name="get_container_form_string" qualifiers="static">
-			<return type="String" />
-			<param index="0" name="p_style" type="int" enum="YAMLStyle.ContainerForm" />
-			<description>
-				Returns a string representation of the specified container form style. Useful for debugging and diagnostic purposes.
+				Returns an [Array] containing all keys that have associated child styles. This helps iterate through all child styles defined in this style instance.
 			</description>
 		</method>
 		<method name="get_debug_string" qualifiers="const">
 			<return type="String" />
 			<description>
-				Returns a detailed string representation of all style settings, including child styles. Useful for debugging and inspecting style configurations.
-			</description>
-		</method>
-		<method name="get_float_format_string" qualifiers="static">
-			<return type="String" />
-			<param index="0" name="p_style" type="int" enum="YAMLStyle.FloatFormat" />
-			<description>
-				Returns a string representation of the specified float format. Useful for debugging and diagnostic purposes.
-			</description>
-		</method>
-		<method name="get_flow_style_string" qualifiers="static">
-			<return type="String" />
-			<param index="0" name="p_style" type="int" enum="YAMLStyle.FlowStyle" />
-			<description>
-				Returns a string representation of the specified flow style. Useful for debugging and diagnostic purposes.
-			</description>
-		</method>
-		<method name="get_int_format_string" qualifiers="static">
-			<return type="String" />
-			<param index="0" name="p_style" type="int" enum="YAMLStyle.IntegerFormat" />
-			<description>
-				Returns a string representation of the specified integer format. Useful for debugging and diagnostic purposes.
-			</description>
-		</method>
-		<method name="get_string_style_string" qualifiers="static">
-			<return type="String" />
-			<param index="0" name="p_style" type="int" enum="YAMLStyle.StringStyle" />
-			<description>
-				Returns a string representation of the specified string style. Useful for debugging and diagnostic purposes.
+				Returns a detailed string representation of the style configuration, including all child styles. This method is useful for debugging and inspecting the style hierarchy.
 			</description>
 		</method>
 		<method name="has_child" qualifiers="const">
 			<return type="bool" />
 			<param index="0" name="key" type="String" />
 			<description>
-				Returns [code]true[/code] if a child style exists for the given key.
+				Returns [code]true[/code] if a child style has been defined for the specified [param key], [code]false[/code] otherwise. Use this method to check for the existence of a child style before accessing it.
+			</description>
+		</method>
+		<method name="integer_format_from_string" qualifiers="static">
+			<return type="int" enum="YAMLStyle.IntegerFormat" />
+			<param index="0" name="string" type="String" />
+			<description>
+				Converts a string identifier to the corresponding [enum IntegerFormat] value. This allows using string names to identify integer formats when configuring YAML styles.
+			</description>
+		</method>
+		<method name="integer_format_string" qualifiers="static">
+			<return type="String" />
+			<param index="0" name="format" type="int" enum="YAMLStyle.IntegerFormat" />
+			<description>
+				Converts an [enum IntegerFormat] value to its string identifier. Returns the string name representing the specified integer [param format].
 			</description>
 		</method>
 		<method name="is_block_style" qualifiers="const">
 			<return type="bool" />
 			<description>
-				Returns [code]true[/code] if the current scalar style is a block style ([constant STRING_LITERAL], or [constant STRING_FOLDED]).
+				Returns [code]true[/code] if this style uses block string formatting (literal or folded), [code]false[/code] otherwise. Block styles are useful for multi-line string content.
+			</description>
+		</method>
+		<method name="set_binary_encoding">
+			<return type="YAMLStyle" />
+			<param index="0" name="encoding" type="int" enum="YAMLStyle.BinaryEncoding" />
+			<description>
+				Sets the [member binary_encoding] value to the specified [param encoding]. Returns this style instance for method chaining.
 			</description>
 		</method>
 		<method name="set_child">
-			<return type="void" />
+			<return type="YAMLStyle" />
 			<param index="0" name="key" type="String" />
 			<param index="1" name="style" type="YAMLStyle" />
 			<description>
-				Sets a child style for the given key. If [param style] is [code]null[/code], removes the child style if it exists.
-				[codeblocks]
-				[gdscript]
-				var style = YAML.create_style()
-				var list_style = YAML.create_style()
-				list_style.set_flow_style(YAMLStyle.FLOW_SINGLE)
-				style.set_child("items", list_style)
-
-				# When serializing, elements under "items" will use flow style
-				var data = {
-				    "title": "Shopping List",
-				    "items": ["apples", "bananas", "oranges"]
-				}
-				# Output: title: Shopping List
-				#         items: [apples, bananas, oranges]
-				[/gdscript]
-				[/codeblocks]
+				Associates a child [param style] with the specified [param key]. Use this method to assign different formatting styles to specific elements within a YAML document. Returns this style instance for method chaining.
+			</description>
+		</method>
+		<method name="set_container_form">
+			<return type="YAMLStyle" />
+			<param index="0" name="style" type="int" enum="YAMLStyle.ContainerForm" />
+			<description>
+				Sets the [member container_form] value to the specified [param style]. Returns this style instance for method chaining.
+			</description>
+		</method>
+		<method name="set_custom_settings">
+			<return type="YAMLStyle" />
+			<param index="0" name="style" type="Dictionary" />
+			<description>
+				Sets the [member custom_settings] dictionary to the specified [param style]. Use this for implementation-specific styling options not covered by the standard properties. Returns this style instance for method chaining.
+			</description>
+		</method>
+		<method name="set_float_format">
+			<return type="YAMLStyle" />
+			<param index="0" name="format" type="int" enum="YAMLStyle.FloatFormat" />
+			<description>
+				Sets the [member float_format] value to the specified [param format]. Returns this style instance for method chaining.
+			</description>
+		</method>
+		<method name="set_flow_style">
+			<return type="YAMLStyle" />
+			<param index="0" name="style" type="int" enum="YAMLStyle.FlowStyle" />
+			<description>
+				Sets the [member flow_style] value to the specified [param style]. Returns this style instance for method chaining.
+			</description>
+		</method>
+		<method name="set_integer_format">
+			<return type="YAMLStyle" />
+			<param index="0" name="format" type="int" enum="YAMLStyle.IntegerFormat" />
+			<description>
+				Sets the [member integer_format] value to the specified [param format]. Returns this style instance for method chaining.
+			</description>
+		</method>
+		<method name="set_string_style">
+			<return type="YAMLStyle" />
+			<param index="0" name="style" type="int" enum="YAMLStyle.StringStyle" />
+			<description>
+				Sets the [member string_style] value to the specified [param style]. Returns this style instance for method chaining.
+			</description>
+		</method>
+		<method name="string_style_from_string" qualifiers="static">
+			<return type="int" enum="YAMLStyle.StringStyle" />
+			<param index="0" name="string" type="String" />
+			<description>
+				Converts a string identifier to the corresponding [enum StringStyle] value. This allows using string names to identify string styles when configuring YAML styles.
+			</description>
+		</method>
+		<method name="string_style_string" qualifiers="static">
+			<return type="String" />
+			<param index="0" name="style" type="int" enum="YAMLStyle.StringStyle" />
+			<description>
+				Converts a [enum StringStyle] value to its string identifier. Returns the string name representing the specified string [param style].
 			</description>
 		</method>
 		<method name="uses_flow" qualifiers="const">
 			<return type="bool" />
 			<description>
-				Returns [code]true[/code] if the current flow style is [constant FLOW_SINGLE].
+				Returns [code]true[/code] if this style uses flow (inline) formatting for containers, [code]false[/code] otherwise. Flow styles typically result in more compact YAML representation.
 			</description>
 		</method>
 		<method name="uses_quotes" qualifiers="const">
 			<return type="bool" />
 			<description>
-				Returns [code]true[/code] if the current string style is [constant STRING_QUOTE_SINGLE] or [constant STRING_QUOTE_DOUBLE].
+				Returns [code]true[/code] if this style uses single or double quoted string formatting, [code]false[/code] otherwise. Quoted styles ensure strings are correctly interpreted in YAML.
 			</description>
 		</method>
 	</methods>
 	<members>
 		<member name="binary_encoding" type="int" setter="set_binary_encoding" getter="get_binary_encoding" enum="YAMLStyle.BinaryEncoding" default="0">
-			Controls how binary data is encoded in YAML. Default is [constant BIN_ANY], which lets the emitter decide.
+			Controls how binary data is encoded in the YAML output. See [enum BinaryEncoding] for available options.
 		</member>
 		<member name="container_form" type="int" setter="set_container_form" getter="get_container_form" enum="YAMLStyle.ContainerForm" default="0">
-			Specifies the form for containers (sequence or mapping). Default is [constant FORM_ANY], which lets the emitter decide.
+			Defines whether containers are serialized as arrays or dictionaries. See [enum ContainerForm] for available options.
 		</member>
 		<member name="custom_settings" type="Dictionary" setter="set_custom_settings" getter="get_custom_settings" default="{}">
-			Stores custom styling settings as a Dictionary. Can be used to store additional style information not covered by the main style properties.
+			A dictionary containing custom style settings not covered by standard properties. Used for implementation-specific styling options.
 		</member>
 		<member name="float_format" type="int" setter="set_float_format" getter="get_float_format" enum="YAMLStyle.FloatFormat" default="0">
-			Specifies the format for floating point values. Default is [constant FLOAT_ANY], which lets the emitter decide.
+			Controls how floating point numbers are formatted in the YAML output. See [enum FloatFormat] for available options.
 		</member>
 		<member name="flow_style" type="int" setter="set_flow_style" getter="get_flow_style" enum="YAMLStyle.FlowStyle" default="0">
-			Controls the flow style for containers. Default is [constant FLOW_ANY], which lets the emitter decide.
+			Determines whether containers use flow style (inline) or block style formatting. See [enum FlowStyle] for available options.
 		</member>
 		<member name="integer_format" type="int" setter="set_integer_format" getter="get_integer_format" enum="YAMLStyle.IntegerFormat" default="0">
-			Specifies the format for integer values. Default is [constant INT_ANY], which lets the emitter decide.
+			Controls how integer numbers are formatted in the YAML output. See [enum IntegerFormat] for available options.
 		</member>
 		<member name="string_style" type="int" setter="set_string_style" getter="get_string_style" enum="YAMLStyle.StringStyle" default="0">
-			Specifies the string style. Default is [constant STRING_ANY], which lets the emitter decide.
+			Determines how string values are formatted in the YAML output. See [enum StringStyle] for available options.
 		</member>
 	</members>
 	<constants>
-		<constant name="STRING_ANY" value="0" enum="StringStyle">
-			Let the emitter decide the string style automatically.
-		</constant>
-		<constant name="STRING_PLAIN" value="1" enum="StringStyle">
-			Regular unquoted string, e.g., [code]value[/code].
-		</constant>
-		<constant name="STRING_QUOTE_SINGLE" value="2" enum="StringStyle">
-			Force the use of single quotes for strings, e.g., [code]'value'[/code].
-		</constant>
-		<constant name="STRING_QUOTE_DOUBLE" value="3" enum="StringStyle">
-			Force the use of double quotes for strings, e.g., [code]"value"[/code].
-		</constant>
-		<constant name="STRING_LITERAL" value="4" enum="StringStyle">
-			Literal block string style with [code]|[/code] indicator, preserves newlines, e.g., [code]|
-  Line 1
-  Line 2[/code].
-		</constant>
-		<constant name="STRING_FOLDED" value="5" enum="StringStyle">
-			Folded block string style with [code]>[/code] indicator, folds newlines, e.g., [code]>
-  Line 1
-  Line 2[/code].
-		</constant>
 		<constant name="FORM_ANY" value="0" enum="ContainerForm">
-			Let the emitter decide the container form automatically.
+			Lets the YAML emitter automatically choose the container form based on content. This is the default behavior and typically selects the most appropriate format.
 		</constant>
-		<constant name="FORM_SEQ" value="1" enum="ContainerForm">
-			Force sequence/array style for the container.
+		<constant name="FORM_ARRAY" value="1" enum="ContainerForm">
+			Forces the container to be serialized as an array (sequence in YAML terminology). Arrays are represented as ordered lists, typically with dash ([code]-[/code]) notation:
+			[codeblock lang=text]
+			my_array:
+			- value1
+			- value2
+			- value3
+			[/codeblock]
+			When combined with [constant FLOW_SINGLE] the value can be expressed in a single line:
+			[codeblock lang="text"]
+			my_array: [value1, value2, value3]
+			[/codeblock]
 		</constant>
-		<constant name="FORM_MAP" value="2" enum="ContainerForm">
-			Force mapping/dictionary style for the container.
-		</constant>
-		<constant name="FLOAT_ANY" value="0" enum="FloatFormat">
-			Let the emitter decide the floating point format automatically.
-		</constant>
-		<constant name="FLOAT_DECIMAL" value="1" enum="FloatFormat">
-			Force standard decimal notation for floating point numbers, e.g., [code]3.14[/code].
-		</constant>
-		<constant name="FLOAT_SCIENTIFIC" value="5" enum="IntegerFormat">
-			Force scientific notation for floating point numbers, e.g., [code]1.23e+4[/code].
+		<constant name="FORM_DICTIONARY" value="2" enum="ContainerForm">
+			Forces the container to be serialized as a dictionary (mapping in YAML terminology). Dictionaries are represented as key-value pairs using the colon ([code]:[/code]) notation:
+			[codeblock lang="text"]
+			my_dictionary:
+			  key1: some value
+			  key2: another value
+			  key3: more values
+			[/codeblock]
+			When combined with [constant FLOW_SINGLE] the value can be expressed in a single line:
+			[codeblock lang="text"]
+			my_dictionary: {key1: some value, key2: another value, key3: more values}
+			[/codeblock]
 		</constant>
 		<constant name="FLOW_ANY" value="0" enum="FlowStyle">
-			Let the emitter decide the flow style automatically.
+			Lets the YAML emitter automatically choose the flow style based on content. This is the default behavior and typically selects the most human-readable format.
 		</constant>
 		<constant name="FLOW_NONE" value="1" enum="FlowStyle">
-			Use block style for containers (one element per line).
+			Forces block style (non-flow) formatting, where each element appears on its own line. This style prioritizes readability over compactness.
 		</constant>
 		<constant name="FLOW_SINGLE" value="2" enum="FlowStyle">
-			Use compact flow style for containers, e.g., [code][a, b, c][/code] or [code]{key: value}[/code].
+			Forces flow style (inline) formatting, where elements appear on a single line separated by commas. This style produces more compact YAML but can be less readable for complex structures. See [constant FORM_ARRAY] and [constant FORM_DICTIONARY].
+		</constant>
+		<constant name="STRING_ANY" value="0" enum="StringStyle">
+			Lets the YAML emitter automatically choose the string style based on content. This is the default behavior and typically selects the most appropriate format.
+		</constant>
+		<constant name="STRING_PLAIN" value="1" enum="StringStyle">
+			Forces [code]plain unquoted string[/code] style. This style is most readable but cannot represent all characters and will be automatically quoted if necessary.
+		</constant>
+		<constant name="STRING_QUOTE_SINGLE" value="2" enum="StringStyle">
+			Forces [code]'single-quoted string'[/code] style. Single quotes preserve literal values except for escaped single quotes [code]''[/code].
+		</constant>
+		<constant name="STRING_QUOTE_DOUBLE" value="3" enum="StringStyle">
+			Forces [code]"double-quoted string"[/code] style. Double quotes allow for escape sequences (like [code]\n[/code], [code]\t[/code]) for special characters.
+		</constant>
+		<constant name="STRING_LITERAL" value="4" enum="StringStyle">
+			Forces literal block string style (using the [code]|[/code] indicator). This preserves all newlines and is ideal for multi-line text where line breaks are significant.
+			[codeblock lang=text]
+			literal_string: |
+			  Literal block
+			  strings preserve
+			  all newlines.
+			[/codeblock]
+		</constant>
+		<constant name="STRING_FOLDED" value="5" enum="StringStyle">
+			Forces folded block string style (using the [code]>[/code] indicator). This treats newlines as spaces, preserving paragraph breaks. Useful for long text that should word-wrap.
+			[codeblock lang=text]
+			folded_string: >
+			  Folded block
+			  strings treat
+			  newlines as spaces.
+			[/codeblock]
+			Is equivalent of:
+			[codeblock lang=text]Folded block strings treat newlines as spaces.[/codeblock]
 		</constant>
 		<constant name="INT_ANY" value="0" enum="IntegerFormat">
-			Let the emitter decide the integer format automatically.
+			Lets the YAML emitter automatically choose the integer format based on content. This is the default behavior and typically uses decimal.
 		</constant>
 		<constant name="INT_DECIMAL" value="1" enum="IntegerFormat">
-			Force standard decimal notation for integers, e.g., [code]42[/code], [code]3.14[/code].
+			Forces decimal integer format (base 10). This is the standard representation (e.g., [code]42[/code]).
 		</constant>
 		<constant name="INT_HEX" value="2" enum="IntegerFormat">
-			Force hexadecimal notation for integers, e.g., [code]0xFF[/code].
+			Forces hexadecimal integer format (base 16). Values are prefixed with 0x (e.g., [code]0x2A[/code]).
 		</constant>
 		<constant name="INT_OCTAL" value="3" enum="IntegerFormat">
-			Force octal notation for integers, e.g., [code]0o700[/code].
+			Forces octal integer format (base 8). Values are prefixed with 0o (e.g., [code]0o52[/code]).
 		</constant>
 		<constant name="INT_BINARY" value="4" enum="IntegerFormat">
-			Force binary notation for integers, e.g., [code]0b1010[/code].
+			Forces binary integer format (base 2). Values are prefixed with 0b (e.g., [code]0b101010[/code]).
 		</constant>
-		<constant name="INT_SCIENTIFIC" value="5" enum="IntegerFormat">
-			Force scientific notation for integers, e.g., [code]1.23e+4[/code].
+		<constant name="FLOAT_ANY" value="0" enum="FloatFormat">
+			Lets the YAML emitter automatically choose the float format based on content. This is the default behavior and typically uses decimal.
+		</constant>
+		<constant name="FLOAT_DECIMAL" value="1" enum="FloatFormat">
+			Forces decimal floating-point format. Values include a decimal point (e.g., [code]3.14159[/code]).
+		</constant>
+		<constant name="FLOAT_SCIENTIFIC" value="2" enum="FloatFormat">
+			Forces scientific notation for floating-point format. Values use exponent notation (e.g., [code]3.14159e+00[/code]).
 		</constant>
 		<constant name="BIN_ANY" value="0" enum="BinaryEncoding">
-			Let the emitter decide the binary encoding automatically.
+			Lets the YAML emitter automatically choose the binary encoding based on content. This is the default behavior and typically uses [constant BIN_BASE64].
 		</constant>
-		<constant name="BIN_STRING" value="1" enum="BinaryEncoding">
-			Encode binary data as a plain string.
+		<constant name="BIN_BASE64" value="1" enum="BinaryEncoding">
+			Forces Base64 encoding for binary data. This is the most common and compact encoding for binary data in YAML.
+			[b]Example:[/b] [code]R29kb3Qg4pmlIFlBTUw=[/code]
 		</constant>
-		<constant name="BIN_BASE64" value="2" enum="BinaryEncoding">
-			Encode binary data using Base64 encoding.
-		</constant>
-		<constant name="BIN_HEX" value="3" enum="BinaryEncoding">
-			Encode binary data using hexadecimal encoding.
+		<constant name="BIN_HEX" value="2" enum="BinaryEncoding">
+			Forces hexadecimal encoding for binary data. This produces a more human-readable representation but takes twice as much space as Base64.
+			[b]Example:[/b] [code]476F646F742027642059414D4C[/code]
 		</constant>
 	</constants>
 </class>
