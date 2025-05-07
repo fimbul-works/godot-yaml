@@ -16,30 +16,24 @@
 script = ExtResource("1_7slvv")
 
 [node name="Basic String Usage" type="Node2D" parent="."]
-visible = false
 script = ExtResource("1_iyu1q")
 
-[node name="Load And Save YAML Files" type="Node2D" parent="."]
-visible = false
-script = ExtResource("2_dk2mh")
-
 [node name="Error Handling" type="Node2D" parent="."]
-visible = false
 script = ExtResource("31_xr2li")
+
+[node name="Load And Save YAML Files" type="Node2D" parent="."]
+script = ExtResource("2_dk2mh")
 
 [node name="Style System" type="Node2D" parent="."]
 script = ExtResource("5_61ckj")
 
 [node name="Multiple Documents" type="Node2D" parent="."]
-visible = false
 script = ExtResource("34_84xsb")
 
 [node name="Custom Class" type="Node2D" parent="."]
-visible = false
 script = ExtResource("33_2d3w6")
 
 [node name="Resource Referencing" type="Node2D" parent="."]
-visible = false
 script = ExtResource("35_jnbc0")
 local_texture = SubResource("PlaceholderTexture2D_grb45")
 

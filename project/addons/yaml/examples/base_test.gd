@@ -39,8 +39,6 @@ func expect(condition: bool, message := "") -> bool:
 
 		if condition:
 			result.expectation_passed += 1
-			if LOG_VERBOSE:
-				print("✓ Expectation passed")
 			return true
 		else:
 			var error_msg = "Expectation failed"
@@ -71,8 +69,6 @@ func expect_equal(actual, expected, message := "") -> bool:
 
 		if condition:
 			result.expectation_passed += 1
-			if LOG_VERBOSE:
-				print("✓ Values match")
 			return true
 		else:
 			var error_msg = "Values do not match"
@@ -81,6 +77,33 @@ func expect_equal(actual, expected, message := "") -> bool:
 			# Format for consistent parsing in test_runner.gd
 			error_msg += "\n  Expected: [i]%s[/i]\n  Actual: [i]%s[/i]" % [expected, actual]
 
+			if LOG_VERBOSE:
+				print_rich("[color=red]✗ %s[/color]" % error_msg)
+
+			result.passed = false
+			result.errors.append(error_msg)
+			return false
+
+	return false
+
+# Equality expectation function
+func expect_not_equal(actual, expected, message := "") -> bool:
+	if _current_method == "":
+		push_error("Expect called outside of a test method")
+		return false
+
+	# Perform equality check
+	var condition = actual != expected
+
+	if _current_method in _test_results:
+		var result = _test_results[_current_method]
+		result.expectation_count += 1
+
+		if condition:
+			result.expectation_passed += 1
+			return true
+		else:
+			var error_msg = "Values should not match"
 			if LOG_VERBOSE:
 				print_rich("[color=red]✗ %s[/color]" % error_msg)
 

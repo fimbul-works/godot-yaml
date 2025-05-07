@@ -9,7 +9,6 @@ key: value
   indentation: wrong
 """
 	var result := YAML.parse(invalid_yaml)
-	expect(result.has_error(), result.get_error())
 	expect_equal(result.get_error(), "parse error (line 3, column 14)", "Expected parse error")
 
 func test_unmatched_quotes():
@@ -18,7 +17,6 @@ message: "This quote is not closed
 next_line: value
 """
 	var result = YAML.parse(unmatched_quotes)
-	expect(result.has_error(), "Expected EOF")
 	expect_equal(result.get_error(), "reached end of file looking for closing quote (line 4, column 1)", "Expected EOF")
 
 func test_circular_reference():
@@ -27,7 +25,6 @@ func test_circular_reference():
 	dict1["circular"] = dict2
 
 	var result := YAML.stringify(dict1)
-	expect(result.has_error(), "Expected circular reference")
 	expect_equal(result.get_error_message(), "Maximum nesting depth exceeded (100). Possible circular reference?", "Expected circular reference")
 
 func test_validation():
@@ -38,7 +35,6 @@ key: value
   format
 """
 	var result = YAML.validate(invalid_yaml)
-	expect(result.has_error(), "Expected parse error")
 	expect_equal(result.get_error(), "parse error (line 3, column 1)", "Expected parse error")
 
 func test_error_details():
@@ -49,5 +45,4 @@ another_line: value
 """
 
 	var result := YAML.parse(yaml_with_error)
-	expect(result.has_error(), "Expected error with location info")
 	expect_equal(result.get_error(), "parse error (line 3, column 1)", "Expected parse error")
