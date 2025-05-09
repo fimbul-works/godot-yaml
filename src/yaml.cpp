@@ -74,6 +74,10 @@ Ref<YAMLResult> YAML::load_file(const String &path, const Ref<YAMLSecurity> secu
 	// Open file for reading
 	Ref<FileAccess> file = FileAccess::open(path, FileAccess::READ);
 
+	if (!file.is_valid()) {
+		return YAMLResult::error("Failed to read '" + path + "': " + UtilityFunctions::error_string(ERR_FILE_BAD_PATH));
+	}
+
 	Error err = file->get_error();
 	if (err != OK) {
 		return YAMLResult::error("Failed to read '" + path + "': " + UtilityFunctions::error_string((int)err));
@@ -103,6 +107,10 @@ Ref<YAMLResult> YAML::save_file(const Variant &data, const String &path, const R
 	// Open file for writing
 	Ref<FileAccess> file = FileAccess::open(path, FileAccess::WRITE);
 
+	if (!file.is_valid()) {
+		return YAMLResult::error("Failed to write '" + path + "': " + UtilityFunctions::error_string(ERR_FILE_BAD_PATH));
+	}
+
 	Error err = file->get_error();
 	if (err != OK) {
 		return YAMLResult::error("Failed to write '" + path + "': " + UtilityFunctions::error_string((int)err));
@@ -129,9 +137,13 @@ Ref<YAMLResult> YAML::validate_file(const String &path) {
 	// Open file for reading
 	Ref<FileAccess> file = FileAccess::open(path, FileAccess::READ);
 
+	if (!file.is_valid()) {
+		return YAMLResult::error("Failed to validate '" + path + "': " + UtilityFunctions::error_string(ERR_FILE_BAD_PATH));
+	}
+
 	Error err = file->get_error();
 	if (err != OK) {
-		return YAMLResult::error("Failed to read for validation '" + path + "': " + UtilityFunctions::error_string((int)err));
+		return YAMLResult::error("Failed to validate '" + path + "': " + UtilityFunctions::error_string((int)err));
 	}
 
 	// Read the file content and check for errors
@@ -140,7 +152,7 @@ Ref<YAMLResult> YAML::validate_file(const String &path) {
 	file->close();
 
 	if (err != OK) {
-		return YAMLResult::error("Failed to read for validation '" + path + "': " + UtilityFunctions::error_string((int)err));
+		return YAMLResult::error("Failed to validate '" + path + "': " + UtilityFunctions::error_string((int)err));
 	}
 
 	return validate(content);
