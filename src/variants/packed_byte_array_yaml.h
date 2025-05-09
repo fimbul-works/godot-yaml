@@ -8,7 +8,7 @@
  */
 
 #ifndef PACKED_BYTE_ARRAY_YAML_H
-#define PACKED_BYTE_ARRAY_H
+#define PACKED_BYTE_ARRAY_YAML_H
 
 #include "../variant_converter.h"
 #include <string>
@@ -25,8 +25,8 @@ namespace godot {
  * - Apply appropriate formatting based on style settings
  *
  * PackedByteArray objects can be represented in YAML as:
- * - Base64 encoded strings (default)
- * - Hexadecimal encoded strings
+ * - Base64 encoded strings with "base64:" prefix (default)
+ * - Hexadecimal encoded strings with "hex:" prefix
  *
  * The converter also handles formatting with appropriate line breaks for long binary data.
  *
@@ -50,6 +50,7 @@ public:
 	 *
 	 * Converts a Godot PackedByteArray to a YAML scalar node,
 	 * with encoding format (base64 or hex) determined by style settings.
+	 * Adds appropriate prefix ("base64:" or "hex:") to indicate the format.
 	 *
 	 * @param node The target YAML node
 	 * @param v The PackedByteArray Variant to encode
@@ -61,7 +62,8 @@ public:
 	 * @brief Decodes a YAML node to a PackedByteArray Variant.
 	 *
 	 * Converts a YAML scalar node to a Godot PackedByteArray,
-	 * automatically detecting the encoding format (base64 or hex).
+	 * automatically detecting the encoding format based on prefix ("base64:" or "hex:").
+	 * Also supports legacy format without prefix for backward compatibility.
 	 *
 	 * @param node The source YAML node
 	 * @param context The parser context for style detection
@@ -78,12 +80,19 @@ private:
 	static constexpr size_t BASE64_LINE_LENGTH = 76; ///< Standard base64 line length
 
 	/**
+	 * @brief Format prefix constants.
+	 */
+	static constexpr const char *BASE64_PREFIX = "base64:"; ///< Prefix for base64 format
+	static constexpr const char *HEX_PREFIX = "hex:"; ///< Prefix for hexadecimal format
+
+	/**
 	 * @brief Helper struct for string cleanup and format detection.
 	 */
 	struct CleanupResult {
-		String cleaned; ///< Cleaned string without whitespace
+		String cleaned; ///< Cleaned string without whitespace and prefix
 		bool is_hex; ///< Whether the format is hexadecimal (true) or base64 (false)
 		size_t original_length; ///< Original length of the string before cleaning
+		bool has_prefix; ///< Whether the original string had an explicit format prefix
 	};
 
 	/**
@@ -115,6 +124,8 @@ private:
 	/**
 	 * @brief Cleans up and detects the encoding format of binary data.
 	 *
+	 * Detects format based on prefix and cleans up the string by removing whitespace.
+	 *
 	 * @param input The input string to clean and analyze
 	 * @param node The source YAML node (for error context)
 	 * @param context The parser context for style detection
@@ -125,6 +136,8 @@ private:
 
 	/**
 	 * @brief Formats a string with appropriate line breaks.
+	 *
+	 * Preserves format prefix at the beginning of each line when breaking long lines.
 	 *
 	 * @param str The string to format
 	 * @param line_length The maximum line length
