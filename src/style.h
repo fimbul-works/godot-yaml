@@ -394,6 +394,15 @@ public:
 	 */
 
 	/**
+	 * @brief Creates a new child style if it doesn't exist, or returns the existing one.
+	 *
+	 * @param key The child key
+	 * @param inherit_styles Should the child inherits all scalar styles, like number formats and string styles
+	 * @return Ref<YAMLStyle> The new or existing child style
+	 */
+	Ref<YAMLStyle> create_child(const String &key, const bool inherit_styles = true);
+
+	/**
 	 * @brief Checks if a child style exists for a key.
 	 *
 	 * @param key The child key
@@ -417,14 +426,6 @@ public:
 	 * @return Ref<YAMLStyle> This style object for chaining
 	 */
 	Ref<YAMLStyle> set_child(const String &key, const Ref<YAMLStyle> &style);
-
-	/**
-	 * @brief Creates a new child style if it doesn't exist, or returns the existing one.
-	 *
-	 * @param key The child key
-	 * @return Ref<YAMLStyle> The new or existing child style
-	 */
-	Ref<YAMLStyle> create_child(const String &key);
 
 	/**
 	 * @brief Gets a child style at the specified path, optionally creating missing nodes.
@@ -459,6 +460,21 @@ public:
 	 * @return Array Array of child keys
 	 */
 	Array list_children() const;
+
+	/**
+	 * @brief Copies all scalar styles (string style, number format, binary encoding) to the target.
+	 *
+	 * @param target The recipient of the styles
+	 * @return Ref<YAMLStyle> This style object for chaining
+	 */
+	Ref<YAMLStyle> propagate_scalar_styles(Ref<YAMLStyle> target) const;
+
+	/**
+	 * @brief Copies all scalar styles (string style, number format, binary encoding) to all child styles.
+	 *
+	 * @return Ref<YAMLStyle> This style object for chaining
+	 */
+	Ref<YAMLStyle> apply_scalar_styles_to_children() const;
 
 	/**
 	 * @brief Debug helper.

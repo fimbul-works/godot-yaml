@@ -79,12 +79,14 @@ void YAMLStyle::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_child", "key"), &YAMLStyle::get_child);
 	ClassDB::bind_method(D_METHOD("set_child", "key", "style"), &YAMLStyle::set_child);
 	ClassDB::bind_method(D_METHOD("has_child", "key"), &YAMLStyle::has_child);
-	ClassDB::bind_method(D_METHOD("create_child", "key"), &YAMLStyle::create_child);
+	ClassDB::bind_method(D_METHOD("create_child", "key"), &YAMLStyle::create_child, DEFVAL(true));
 	ClassDB::bind_method(D_METHOD("get_at_path", "path", "create_if_missing"), &YAMLStyle::get_at_path);
 	ClassDB::bind_method(D_METHOD("clear_child", "key"), &YAMLStyle::clear_child);
 	ClassDB::bind_method(D_METHOD("clear_children"), &YAMLStyle::clear_children);
 	ClassDB::bind_method(D_METHOD("list_children"), &YAMLStyle::list_children);
 
+	ClassDB::bind_method(D_METHOD("propagate_scalar_styles", "target"), &YAMLStyle::propagate_scalar_styles);
+	ClassDB::bind_method(D_METHOD("apply_scalar_styles_to_children"), &YAMLStyle::apply_scalar_styles_to_children);
 	ClassDB::bind_method(D_METHOD("is_block_style"), &YAMLStyle::is_block_style);
 	ClassDB::bind_method(D_METHOD("uses_quotes"), &YAMLStyle::uses_quotes);
 	ClassDB::bind_method(D_METHOD("uses_flow"), &YAMLStyle::uses_flow);
@@ -395,6 +397,18 @@ String YAMLStyle::get_custom_tag() const {
 	return "";
 }
 
+Ref<YAMLStyle> YAMLStyle::create_child(const String &key, const bool inherit_styles) {
+	if (!has_child(key)) {
+		Ref<YAMLStyle> child;
+		child.instantiate();
+		set_child(key, child);
+		if (inherit_styles) {
+			propagate_scalar_styles(child);
+		}
+	}
+	return get_child(key);
+}
+
 bool YAMLStyle::has_child(const String &key) const {
 	return child_styles.find(key) != child_styles.end();
 }
@@ -411,15 +425,6 @@ Ref<YAMLStyle> YAMLStyle::set_child(const String &key, const Ref<YAMLStyle> &sty
 		child_styles.erase(key);
 	}
 	return Ref<YAMLStyle>(this);
-}
-
-Ref<YAMLStyle> YAMLStyle::create_child(const String &key) {
-	if (!has_child(key)) {
-		Ref<YAMLStyle> child;
-		child.instantiate();
-		set_child(key, child);
-	}
-	return get_child(key);
 }
 
 Ref<YAMLStyle> YAMLStyle::get_at_path(const String &path, bool create_if_missing) {
@@ -471,6 +476,35 @@ Array YAMLStyle::list_children() const {
 		keys.push_back(pair.first);
 	}
 	return keys;
+}
+
+Ref<YAMLStyle> YAMLStyle::propagate_scalar_styles(Ref<YAMLStyle> target) const {
+	if (string_style != STRING_ANY) {
+		target->set_string_style(string_style);
+	}
+
+	if (integer_format != INT_ANY) {
+		target->set_integer_format(integer_format);
+	}
+
+	if (float_format != FLOAT_ANY) {
+		target->set_float_format(float_format);
+	}
+
+	if (binary_encoding != BIN_ANY) {
+		target->set_binary_encoding(binary_encoding);
+	}
+
+	return Ref<YAMLStyle>(this);
+}
+
+Ref<YAMLStyle> YAMLStyle::apply_scalar_styles_to_children() const {
+	Array keys = list_children();
+	for (size_t i = 0; i < keys.size(); i++) {
+		Ref<YAMLStyle> child = get_child(keys[i]);
+		propagate_scalar_styles(child);
+	}
+	return Ref<YAMLStyle>(this);
 }
 
 String YAMLStyle::container_form_string(ContainerForm form) {
@@ -742,31 +776,31 @@ String YAMLStyle::get_debug_string() const {
 	String debug;
 
 	if (has_container_form) {
-		debug += vformat("Form: %s\n", container_form_string(container_form));
+		debug += vformat("form: %s\n", container_form_string(container_form));
 	}
 
 	if (has_flow_style) {
-		debug += vformat("Flow: %s\n", flow_style_string(flow_style));
+		debug += vformat("flow: %s\n", flow_style_string(flow_style));
 	}
 
 	if (has_string_style) {
-		debug += vformat("String: %s\n", string_style_string(string_style));
+		debug += vformat("string: %s\n", string_style_string(string_style));
 	}
 
 	if (has_integer_format) {
-		debug += vformat("Integer: %s\n", integer_format_string(integer_format));
+		debug += vformat("integer: %s\n", integer_format_string(integer_format));
 	}
 
 	if (has_float_format) {
-		debug += vformat("Float: %s\n", float_format_string(float_format));
+		debug += vformat("float: %s\n", float_format_string(float_format));
 	}
 
 	if (has_binary_encoding) {
-		debug += vformat("Binary: %s\n", binary_encoding_string(binary_encoding));
+		debug += vformat("binary: %s\n", binary_encoding_string(binary_encoding));
 	}
 
 	if (!custom_settings.is_empty()) {
-		debug += "\nSettings:\n";
+		debug += "\nsettings:\n";
 		Array keys = custom_settings.keys();
 		for (int i = 0; i < keys.size(); i++) {
 			debug += vformat("  %s: %s\n", String(keys[i]), String(custom_settings[keys[i]]));
@@ -774,7 +808,7 @@ String YAMLStyle::get_debug_string() const {
 	}
 
 	if (!child_styles.empty()) {
-		debug += "\nChildren:\n";
+		debug += "\nchildren:\n";
 		for (const auto &pair : child_styles) {
 			debug += vformat("  %s:\n", pair.first);
 			String child_debug = pair.second->get_debug_string();
