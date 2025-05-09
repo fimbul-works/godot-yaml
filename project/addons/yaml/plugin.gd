@@ -91,4 +91,4 @@ func get_plugin_path() -> String:
 	return get_script().resource_path.get_base_dir()
 
 func _get_plugin_icon() -> Texture2D:
-	return load(get_plugin_path() + "/assets/icon.svg")
+	return load(get_plugin_path() + "/icon.svg")

@@ -46,10 +46,10 @@ func _ready() -> void:
 
 	# Create timer for clearing recent saves
 	ignore_update_timer = Timer.new()
+	add_child(ignore_update_timer)
 	ignore_update_timer.one_shot = true
 	ignore_update_timer.wait_time = 0.5  # 500ms
 	ignore_update_timer.timeout.connect(_on_ignore_update_timer_timeout)
-	add_child(ignore_update_timer)
 
 func setup(p_file_list: YAMLEditorFileList, p_code_editor: YAMLCodeEditor) -> void:
 	file_list = p_file_list

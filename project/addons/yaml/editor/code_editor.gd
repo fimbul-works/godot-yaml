@@ -39,10 +39,10 @@ func _ready() -> void:
 
 	# Create debounce timer for content changes
 	snapshot_debounce_timer = Timer.new()
+	add_child(snapshot_debounce_timer)
 	snapshot_debounce_timer.one_shot = true
 	snapshot_debounce_timer.wait_time = 0.3  # 300ms
 	snapshot_debounce_timer.timeout.connect(_on_snapshot_debounce_timeout)
-	add_child(snapshot_debounce_timer)
 
 	# Connect signals
 	text_changed.connect(_on_text_changed)
@@ -205,9 +205,10 @@ func set_text_and_preserve_state(new_text: String, preserve_state: bool = true) 
 
 func _restore_scroll_position(v_scroll: float, h_scroll: float) -> void:
 	# Wait for one frame to ensure the text has been updated and rendered
-	await get_tree().process_frame
-	get_v_scroll_bar().value = v_scroll
-	get_h_scroll_bar().value = h_scroll
+	if get_tree():
+		await get_tree().process_frame
+		get_v_scroll_bar().value = v_scroll
+		get_h_scroll_bar().value = h_scroll
 
 func _handle_indent() -> void:
 	# Get current line and text

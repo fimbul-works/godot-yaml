@@ -6,60 +6,134 @@
 	<description>
 		[YAMLSecurity] manages restrictions on which resources can be loaded from YAML files using the [code]!Resource[/code] tag. It helps guard against unsafe loading of untrusted content by allowing control over allowed resource paths and types.
 		Loading resources is limited to [code]res://[/code] and [code]user://[/code] root paths for security reasons.
-		Paths can include wildcard patterns, such as [code]*[/code] for single-segment and [code]**[/code] for recursive matching. Resources can also be filtered by type, such as blocking [code]Script[/code] or [code]GDExtension[/code] by default. Calling [method clear_type_restrictions] will remove the default blocks.
-		[b]Note:[/b] No path-based restrictions will be enforced until [method allow_path] is called.
-		[b]Example:[/b]
+		[b]Basic Security Example:[/b]
 		[codeblock lang=gdscript]
 		var security = YAML.create_security()
-		security.allow_path("user://mods/*/textures", ["Texture2D"])
-		security.allow_path("res://**", "MeshInstance3D")
+
+		# Only allow textures from the game's asset folder
+		security.allow_path("res://assets/textures", ["Texture2D"])
+
+		# Block packed scenes for safety
 		security.block_type("PackedScene")
-		# Override the default YAMLSecurity instance with a custom one when parsing
-		var result = YAML.load_file("res://config.yaml", security)
+
+		# Parse YAML with custom security settings
+		var yaml_text = """
+		player:
+		  name: Hero
+		  sprite: !Resource 'res://assets/textures/player.png'
+		"""
+
+		var result = YAML.parse(yaml_text, security)
+		if result.has_error():
+		    push_error("Security error: " + result.get_error_message())
+		else:
+		    var data = result.get_data()
+		    print("Player sprite loaded: " + str(data.player.sprite is Texture2D))
 		[/codeblock]
-		In this example:
-		- [Texture2D] resource types are allowed to load from any direct subfolder of [code]user://mods/[/code] followed by [code]/textures[/code] path, such as [code]user://mods/my_mod/textures/player.png[/code].
-		- [MeshInstance3D] resource types are allowed to load from any directory under [code]res://[/code], such as [code]res://assets/models/player.tres[/code].
-		- [PackedScene] resource types are blocked globally.
 	</description>
-	<tutorials>
-	</tutorials>
 	<methods>
 		<method name="allow_path">
 			<return type="void" />
 			<param index="0" name="path_prefix" type="String" />
 			<param index="1" name="type_names" type="Array" default="[]" />
 			<description>
-				Allows loading resources from paths matching [param path_prefix]. Wildcards are supported:
-				- [code]*[/code] matches a single path segment
-				- [code]**[/code] matches any number of nested segments
-				Optionally restricts allowed types to those listed in [param type_names]. If [param type_names] is empty, all non-blocked types are allowed.
+				Allows loading resources from paths matching [param path_prefix]. Use wildcards [code]*[/code] (single segment) and [code]**[/code] (any number of segments) for pattern matching.
+				If [param type_names] is provided, only resources of those types will be allowed from this path.
+				[codeblock lang=gdscript]
+				var security = YAML.create_security()
+
+				# Allow only textures from the mod folder
+				security.allow_path("user://mods", ["Texture2D", "CompressedTexture2D"])
+
+				# Parse mod configuration with custom security
+				var mod_yaml = """
+				mod_info:
+				  name: Better Weapons
+				  version: 1.2
+				  textures:
+				    sword: !Resource 'user://mods/better_weapons/sword.png'
+				    axe: !Resource 'user://mods/better_weapons/axe.png'
+				"""
+
+				var result = YAML.parse(mod_yaml, security)
+				[/codeblock]
 			</description>
 		</method>
+
 		<method name="block_type">
 			<return type="void" />
 			<param index="0" name="type_name" type="StringName" />
 			<description>
 				Blocks a resource type globally. Any resources of this type will be rejected during YAML parsing.
+				[codeblock lang=gdscript]
+				var security = YAML.create_security()
+
+				# Allow all resources from the game's resource folder
+				security.allow_path("res://**")
+
+				# But block scripts and scenes for security
+				security.block_type("Script")
+				security.block_type("GDExtension")
+				security.block_type("PackedScene")
+
+				# Any YAML with script or scene references will fail to parse
+				var result = YAML.parse(user_yaml, security)
+				[/codeblock]
 			</description>
 		</method>
+
 		<method name="clear_path_restrictions">
 			<return type="void" />
 			<description>
 				Removes all allowed path rules. No path-based restrictions will be enforced until [method allow_path] is used again.
+				[codeblock lang=gdscript]
+				var security = YAML.create_security()
+
+				# Initially limit to specific assets
+				security.allow_path("res://assets/safe_resources")
+
+				# Later, remove all path restrictions
+				security.clear_path_restrictions()
+
+				# Now all paths are allowed (only type restrictions remain)
+				[/codeblock]
 			</description>
 		</method>
+
 		<method name="clear_type_restrictions">
 			<return type="void" />
 			<description>
-				Removes all blocked resource types.
-				[b]Note:[/b] [code]Script[/code] and [code]GDExtension[/code] are blocked by default for security reasons; calling this method will remove those protections.
+				Removes all blocked resource types, including default blocks on [code]Script[/code] and [code]GDExtension[/code].
+				[codeblock lang=gdscript]
+				var security = YAML.create_security()
+
+				# Remove all type restrictions (including defaults)
+				security.clear_type_restrictions()
+
+				# Now even scripts can be loaded (if their paths are allowed)
+				# This is potentially dangerous with untrusted content
+				[/codeblock]
 			</description>
 		</method>
+
 		<method name="reset">
 			<return type="void" />
 			<description>
-				Resets all rules to default values. Clears any custom path or type rules, and blocks the [code]Script[/code] and [code]GDExtension[/code] types again.
+				Resets all rules to default values. Clears any custom path rules and blocks [code]Script[/code] and [code]GDExtension[/code] types.
+				[codeblock lang=gdscript]
+				var security = YAML.create_security()
+
+				# Custom security config for development
+				security.clear_type_restrictions()
+				security.allow_path("res://**")
+
+				# Later, reset to default secure settings for production
+				security.reset()
+
+				# Now back to defaults:
+				# - No paths are allowed
+				# - Script and GDExtension types are blocked
+				[/codeblock]
 			</description>
 		</method>
 	</methods>

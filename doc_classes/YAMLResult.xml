@@ -7,121 +7,255 @@
 		Contains the results from YAML parsing or emitting operations, providing a unified interface for both successful data and error cases. This class serves as a return type for API methods, containing either the parsed/emitted data or error information.
 		[YAMLResult] objects are immutable and can contain either successful data or error information, but not both. When an operation succeeds, the result contains the data and no error. When an operation fails, the result contains error information and empty data.
 		Multi-document YAML is fully supported, allowing you to access each document individually through [method get_document] or [method get_data] with an index parameter.
+		[b]Basic Usage Example:[/b]
+		[codeblock lang=gdscript]
+		# Parse a YAML file and handle the result
+		var result = YAML.load_file("res://data/level_data.yaml")
+
+		if result.has_error():
+		    push_error("YAML parsing failed: " + result.get_error())
+		    return
+
+		# Success - get the data and use it
+		var level_data = result.get_data()
+		print("Loaded level: " + level_data.name)
+		spawn_enemies(level_data.enemies)
+		[/codeblock]
 	</description>
-	<tutorials>
-	</tutorials>
 	<methods>
 		<method name="error" qualifiers="static">
 			<return type="YAMLResult" />
 			<param index="0" name="msg" type="String" />
 			<description>
-				Creates an error result with the specified error message. This is typically used for user-defined errors where line and column numbers are not applicable (they will default to -1).
+				Creates an error result with the specified error message. Useful for custom validation errors.
+				[codeblock lang=gdscript]
+				# Validate player data from YAML
+				func validate_player_data(data):
+				    if !data.has("name"):
+				        return YAMLResult.error("Player data missing 'name' field")
+
+				    if !data.has("level") or typeof(data.level) != TYPE_INT:
+				        return YAMLResult.error("Player requires integer 'level' field")
+
+				    if data.level < 1:
+				        return YAMLResult.error("Player level must be at least 1")
+
+				    # Return the validated data
+				    return data
+
+				# Use the validator
+				var result = YAML.parse(player_yaml)
+				if !result.has_error():
+				    var validate_result = validate_player_data(result.get_data())
+				    if validate_result.has_error():
+				        print("Validation error: " + validate_result.get_error_message())
+				[/codeblock]
 			</description>
 		</method>
+
 		<method name="get_data" qualifiers="const">
 			<return type="Variant" />
 			<param index="0" name="index" type="int" default="0" />
 			<description>
-				Returns the result data. For multi-document YAML, specify an index to access a specific document. Returns [code]null[/code] for error results or if the index is out of range.
-				For single-document results, the [param index] parameter can be omitted or set to 0.
+				Returns the result data. For multi-document YAML, specify [param index] to access a specific document.
 				[codeblock lang=gdscript]
-				# Parse a multi-document YAML string
-				var yaml_string = """
-				# First document
-				title: Document 1
+				var yaml_text = """
+				# Player stats
+				name: Hero
+				health: 100
 				---
-				# Second document
-				title: Document 2
+				# Game settings
+				difficulty: hard
+				enable_tutorial: false
 				"""
 
-				var result = YAML.parse(yaml_string)
+				var result = YAML.parse(yaml_text)
 				if !result.has_error():
-				    var first_doc = result.get_data(0)
-				    var second_doc = result.get_data(1)
-				    print(first_doc.title)  # Output: Document 1
-				    print(second_doc.title) # Output: Document 2
-				[/codeblocks]
+				    var player_data = result.get_data(0)
+				    var settings = result.get_data(1)
+
+				    print("Player: %s (Health: %d)" % [player_data.name, player_data.health])
+				    print("Difficulty: %s" % settings.difficulty)
+				[/codeblock]
 			</description>
 		</method>
+
 		<method name="get_document" qualifiers="const">
 			<return type="Variant" />
 			<param index="0" name="index" type="int" default="0" />
 			<description>
-				Alias for [method get_data] for semantic clarity when working with multiple documents. Returns a specific document from multi-document YAML results. Returns [code]null[/code] for error results or if the index is out of range.
+				Alias for [method get_data] for clarity when working with multiple documents.
+				[codeblock lang=gdscript]
+				var result = YAML.parse(multi_doc_yaml)
+
+				if !result.has_error():
+				    var doc_count = result.get_document_count()
+				    print("Found %d documents" % doc_count)
+
+				    # Process each document
+				    for i in range(doc_count):
+				        var doc = result.get_document(i)
+				        process_document(doc)
+				[/codeblock]
 			</description>
 		</method>
+
 		<method name="get_document_count" qualifiers="const">
 			<return type="int" />
 			<description>
-				Returns the number of documents in the result. Returns [code]0[/code] if an error occurred. For successful results, returns [code]1[/code] for single document results, or the actual document count for multi-document results.
+				Returns the number of documents in the result. Returns [code]0[/code] for error results.
+				[codeblock lang=gdscript]
+				var result = YAML.parse(yaml_text)
+
+				if !result.has_error():
+				    var count = result.get_document_count()
+				    if count > 1:
+				        print("This is a multi-document YAML with %d documents" % count)
+				    else:
+				        print("This is a single-document YAML")
+				[/codeblock]
 			</description>
 		</method>
+
 		<method name="get_error" qualifiers="const">
 			<return type="String" />
 			<description>
-				Returns a formatted error string including the error message, line number, and column number, if available.
+				Returns a formatted error string including message, line number, and column number.
+				[codeblock lang=gdscript]
+				var result = YAML.parse(user_yaml)
+
+				if result.has_error():
+				    push_error("YAML parse error: " + result.get_error())
+				    # Example output: "parse error (line 3, column 5)"
+
+				    # Show the error to the user
+				    show_error_dialog("Your YAML file contains an error:\n" + result.get_error())
+				[/codeblock]
 			</description>
 		</method>
+
 		<method name="get_error_column" qualifiers="const">
 			<return type="int" />
 			<description>
-				Returns the column number where the error occurred, if applicable. Returns [code]-1[/code] if not applicable or if there is no error.
+				Returns the column number where the error occurred. Returns [code]-1[/code] if not applicable.
+				[codeblock lang=gdscript]
+				var result = YAML.parse(yaml_text)
+
+				if result.has_error():
+				    var line = result.get_error_line()
+				    var column = result.get_error_column()
+
+				    if line > 0 and column > 0:
+				        # Highlight the error position
+				        var yaml_lines = yaml_text.split("\n")
+				        var error_line = yaml_lines[line - 1]
+
+				        print(error_line)
+				        print(" ".repeat(column - 1) + "^ Error here")
+				[/codeblock]
 			</description>
 		</method>
+
 		<method name="get_error_line" qualifiers="const">
 			<return type="int" />
 			<description>
-				Returns the line number where the error occurred, if applicable. Returns [code]-1[/code] if not applicable or if there is no error.
+				Returns the line number where the error occurred. Returns [code]-1[/code] if not applicable.
+				[codeblock lang=gdscript]
+				var result = YAML.parse(yaml_text)
+
+				if result.has_error():
+				    var error_line = result.get_error_line()
+
+				    if error_line > 0:
+				        print("Error at line %d" % error_line)
+
+				        # You might load the file in an editor and scroll to this line
+				        editor.goto_line(error_line)
+				[/codeblock]
 			</description>
 		</method>
+
 		<method name="get_error_message" qualifiers="const">
 			<return type="String" />
 			<description>
-				Returns the raw error message if any. Returns an empty string if there is no error.
+				Returns the raw error message without line and column information.
+				[codeblock lang=gdscript]
+				var result = YAML.parse(yaml_text)
+
+				if result.has_error():
+				    var message = result.get_error_message()
+
+				    # Log the basic error type
+				    match message:
+				        "unexpected end of file":
+				            push_error("YAML file is incomplete")
+				        "mapping values are not allowed in this context":
+				            push_error("YAML has incorrect indentation")
+				        _:
+				            push_error("YAML error: " + message)
+				[/codeblock]
 			</description>
 		</method>
+
 		<method name="get_style" qualifiers="const">
 			<return type="YAMLStyle" />
 			<description>
-				Returns the style information if any. Returns [code]null[/code] if no style information is available.
-				Style information is only available if style detection was enabled during parsing using the [param detect_style] parameter of [method YAML.parse] or [method YAML.load_file].
+				Returns the style information if any. Only available if style detection was enabled during parsing.
 				[codeblock lang=gdscript]
-				# Parse with style detection enabled
-				var yaml_string = """
-				list:
-				  - item1
-				nested: {key1: value1}  # Flow style
-				multiline: |            # Literal style
-				  This is a multiline
-				  string
-				"""
+				# Parse with style detection
+				var result = YAML.parse(yaml_text, null, true)
 
-				var result = YAML.parse(yaml_string, null, true)  # Enable style detection
 				if !result.has_error() and result.has_style():
 				    var data = result.get_data()
 				    var style = result.get_style()
 
-				    # Modify data while preserving style
-				    data.list.append("item2")
+				    # Modify the data but preserve formatting
+				    data.player.health = 200
 
-				    # Re-emit with preserved style
-				    var output_result = YAML.stringify(data, style)
-				    if !output_result.has_error():
-				        print(output_result.get_data())
+				    # Reserialize with the same style
+				    var output = YAML.stringify(data, style)
+				    save_file("user://modified_config.yaml", output.get_data())
 				[/codeblock]
 			</description>
 		</method>
+
 		<method name="has_error" qualifiers="const">
 			<return type="bool" />
 			<description>
 				Returns [code]true[/code] if the result contains an error, [code]false[/code] otherwise.
+				[codeblock lang=gdscript]
+				var result = YAML.parse(config_text)
+
+				if result.has_error():
+				    # Error handling
+				    print("Failed to parse configuration: " + result.get_error())
+				    print("Using default configuration instead")
+				    return default_config
+				else:
+				    # Success - use the parsed data
+				    return result.get_data()
+				[/codeblock]
 			</description>
 		</method>
+
 		<method name="has_style" qualifiers="const">
 			<return type="bool" />
 			<description>
 				Returns [code]true[/code] if the result contains style information, [code]false[/code] otherwise.
-				Style information is only available if style detection was enabled during parsing using the [param detect_style] parameter of [method YAML.parse] or [method YAML.load_file].
+				[codeblock lang=gdscript]
+				var result = YAML.load_file("res://data/game_config.yaml", null, true)
+
+				if !result.has_error():
+				    if result.has_style():
+				        print("Style information was successfully detected")
+
+				        # Extract and modify the style
+				        var style = result.get_style()
+				        var nested_style = style.get_at_path("player/inventory", true)
+				        nested_style.set_flow_style(YAMLStyle.FLOW_SINGLE)
+				    else:
+				        print("No style information detected")
+				[/codeblock]
 			</description>
 		</method>
 	</methods>

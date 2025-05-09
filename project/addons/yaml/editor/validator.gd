@@ -18,10 +18,10 @@ func _ready() -> void:
 
 	# Create validation timer
 	validation_timer = Timer.new()
+	add_child(validation_timer)
 	validation_timer.one_shot = true
 	validation_timer.wait_time = 0.5  # 500ms delay
 	validation_timer.timeout.connect(_on_validation_timer_timeout)
-	add_child(validation_timer)
 
 func _exit_tree() -> void:
 	if _thread and _thread.is_started():

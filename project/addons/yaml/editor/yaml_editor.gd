@@ -291,8 +291,9 @@ func _on_replace_all_performed() -> void:
 	if find_replace_panel.visible and find_replace_panel.replace_panel.visible:
 		status_panel.set_status("Replacement complete", Color.GREEN)
 		# Clear the status after a delay
-		await get_tree().create_timer(2.0).timeout
-		status_panel.set_status("")
+		if get_tree():
+			await get_tree().create_timer(2.0).timeout
+			status_panel.set_status("")
 
 func _on_document_changed(document: YAMLEditorDocument) -> void:
 	# Update status panel with document info
@@ -351,5 +352,6 @@ func _notification(what):
 
 func _update_line_col_label() -> void:
 	# Allow one frame to pass to ensure the UI is updated
-	await get_tree().process_frame
-	_on_caret_changed()
+	if get_tree():
+		await get_tree().process_frame
+		_on_caret_changed()

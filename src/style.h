@@ -580,7 +580,6 @@ private:
 	bool has_string_style = false;
 	bool has_integer_format = false;
 	bool has_float_format = false;
-	bool has_binary_encoding = false;
 	bool has_custom_settings = false;
 
 	/**

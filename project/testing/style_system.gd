@@ -31,7 +31,7 @@ func test_stringify_with_style() -> void:
 	var load_result = YAMLStyle.load_file(STYLE_FILE)
 	expect(not load_result.has_error(), load_result.get_error())
 
-	var load_style = load_result.get_style()
+	var load_style = load_result.get_data()
 	expect_equal(style.hash(), load_style.hash(), "Style hashes should match")
 
 	var stringify_result = YAML.stringify(data, load_style)

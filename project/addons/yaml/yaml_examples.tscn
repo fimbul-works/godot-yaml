@@ -1,18 +1,18 @@
-[gd_scene load_steps=10 format=3 uid="uid://dogc1x0c3re7o"]
+[gd_scene load_steps=11 format=3 uid="uid://dogc1x0c3re7o"]
 
-[ext_resource type="Script" path="res://addons/yaml/examples/test_runner.gd" id="1_7slvv"]
-[ext_resource type="Script" path="res://addons/yaml/examples/basic_usage.gd" id="1_iyu1q"]
-[ext_resource type="Script" path="res://addons/yaml/examples/style_system.gd" id="5_61ckj"]
-[ext_resource type="Script" path="res://addons/yaml/examples/security.gd" id="9_pih52"]
-[ext_resource type="Script" path="res://addons/yaml/examples/error_handling.gd" id="31_xr2li"]
-[ext_resource type="Script" path="res://addons/yaml/examples/custom_class.gd" id="33_2d3w6"]
-[ext_resource type="Script" path="res://addons/yaml/examples/multi_document.gd" id="34_84xsb"]
-[ext_resource type="Script" path="res://addons/yaml/examples/resource_referencing.gd" id="35_jnbc0"]
+[ext_resource type="Script" path="res://addons/yaml/examples/example_basic_usage.gd" id="1_iyu1q"]
+[ext_resource type="Script" path="res://addons/yaml/examples/example_variants.gd" id="4_4pc1t"]
+[ext_resource type="Script" path="res://addons/yaml/examples/example_style_system.gd" id="5_61ckj"]
+[ext_resource type="Script" path="res://addons/yaml/examples/example_speed_benchmark.gd" id="9_eedai"]
+[ext_resource type="Script" path="res://addons/yaml/examples/example_security.gd" id="9_pih52"]
+[ext_resource type="Script" path="res://addons/yaml/examples/example_error_handling.gd" id="31_xr2li"]
+[ext_resource type="Script" path="res://addons/yaml/examples/example_custom_class.gd" id="33_2d3w6"]
+[ext_resource type="Script" path="res://addons/yaml/examples/example_multi_document.gd" id="34_84xsb"]
+[ext_resource type="Script" path="res://addons/yaml/examples/example_resource_referencing.gd" id="35_jnbc0"]
 
 [sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_grb45"]
 
 [node name="Examples" type="Node2D"]
-script = ExtResource("1_7slvv")
 
 [node name="Basic Usage" type="Node2D" parent="."]
 script = ExtResource("1_iyu1q")
@@ -22,6 +22,9 @@ script = ExtResource("31_xr2li")
 
 [node name="Multiple Documents" type="Node2D" parent="."]
 script = ExtResource("34_84xsb")
+
+[node name="Variants" type="Node2D" parent="."]
+script = ExtResource("4_4pc1t")
 
 [node name="Custom Class" type="Node2D" parent="."]
 script = ExtResource("33_2d3w6")
@@ -35,3 +38,6 @@ local_texture = SubResource("PlaceholderTexture2D_grb45")
 
 [node name="Security" type="Node2D" parent="."]
 script = ExtResource("9_pih52")
+
+[node name="Speech Benchmark" type="Node2D" parent="."]
+script = ExtResource("9_eedai")

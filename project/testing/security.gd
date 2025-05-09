@@ -81,7 +81,6 @@ func test_clear_type_restrictions() -> void:
 script: !Resource 'res://addons/yaml/examples/classes/my_custom_class.gd'
 """
 	var result := YAML.parse(script_yaml, security)
-	print(result)
 	expect(not result.has_error(), "Should allow Script resources after clearing restrictions")
 
 func test_reset_security() -> void:

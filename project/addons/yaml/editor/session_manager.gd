@@ -20,11 +20,11 @@ func _ready() -> void:
 
 	# Setup autosave timer
 	autosave_timer = Timer.new()
+	add_child(autosave_timer)
 	autosave_timer.wait_time = 10.0  # Save session every 10 seconds
 	autosave_timer.one_shot = false
 	autosave_timer.autostart = true
 	autosave_timer.timeout.connect(_on_autosave_timer_timeout)
-	add_child(autosave_timer)
 
 func setup(p_file_manager: YAMLEditorDocumentManager, p_resizable_container: HSplitContainer) -> void:
 	file_manager = p_file_manager
