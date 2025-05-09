@@ -9,16 +9,14 @@
 		Paths can include wildcard patterns, such as [code]*[/code] for single-segment and [code]**[/code] for recursive matching. Resources can also be filtered by type, such as blocking [code]Script[/code] or [code]GDExtension[/code] by default. Calling [method clear_type_restrictions] will remove the default blocks.
 		[b]Note:[/b] No path-based restrictions will be enforced until [method allow_path] is called.
 		[b]Example:[/b]
-		[codeblocks]
-		[gdscript]
+		[codeblock lang=gdscript]
 		var security = YAML.create_security()
 		security.allow_path("user://mods/*/textures", ["Texture2D"])
 		security.allow_path("res://**", "MeshInstance3D")
 		security.block_type("PackedScene")
 		# Override the default YAMLSecurity instance with a custom one when parsing
 		var result = YAML.load_file("res://config.yaml", security)
-		[/gdscript]
-		[/codeblocks]
+		[/codeblock]
 		In this example:
 		- [Texture2D] resource types are allowed to load from any direct subfolder of [code]user://mods/[/code] followed by [code]/textures[/code] path, such as [code]user://mods/my_mod/textures/player.png[/code].
 		- [MeshInstance3D] resource types are allowed to load from any directory under [code]res://[/code], such as [code]res://assets/models/player.tres[/code].

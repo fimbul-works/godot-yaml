@@ -94,13 +94,6 @@ public:
 	YAMLStyle::FloatFormat get_float_format() const;
 
 	/**
-	 * @brief Gets the binary encoding.
-	 *
-	 * @return YAMLStyle::BinaryEncoding The binary encoding setting
-	 */
-	YAMLStyle::BinaryEncoding get_binary_encoding() const;
-
-	/**
 	 * @brief Gets the template style for array items.
 	 *
 	 * @return YAMLStyle::View The template style or an empty view if not defined
@@ -206,9 +199,6 @@ private:
 
 		bool has_float_format = false;
 		FloatFormat float_format;
-
-		bool has_binary_encoding = false;
-		BinaryEncoding binary_encoding;
 
 		bool has_custom_settings = false;
 		Dictionary custom_settings;

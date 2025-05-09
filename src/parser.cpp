@@ -406,12 +406,9 @@ std::optional<Variant> YAML::Parser::try_parse_tagged_value(const ryml::ConstNod
 		return parse_object_or_resource(node, tag);
 	}
 
-	// Store the tag in custom settings
-	if (detect_style) {
-		Ref<YAMLStyle> current_style = context->current_style();
-		Dictionary custom_settings = current_style->get_custom_settings();
-		custom_settings["tag"] = tag;
-		current_style->set_custom_settings(custom_settings);
+	// Store custom tag
+	if (detect_style && !tag.is_empty()) {
+		context->current_style()->set_custom_tag(tag);
 	}
 
 	// Return null to continue with normal processing in process_node

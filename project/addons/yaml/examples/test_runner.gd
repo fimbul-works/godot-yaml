@@ -25,7 +25,8 @@ func run_tests(test_classes: Array[Node]) -> void:
 
 		# Run all test methods for this class
 		for method_name in test_methods:
-			print_rich("[color=white]❔[b]%s()[/b][/color]" % method_name)
+			if test_class.LOG_VERBOSE:
+				print_rich("[color=white]❔[b] %s()[/b][/color]" % method_name)
 
 			test_class._start_test(method_name)
 			test_class.call(method_name)

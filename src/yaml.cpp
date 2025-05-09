@@ -25,6 +25,11 @@ void YAML::_bind_methods() {
 	ClassDB::bind_static_method("YAML", D_METHOD("save_file", "data", "path", "style"), &YAML::save_file, DEFVAL(nullptr));
 	ClassDB::bind_static_method("YAML", D_METHOD("validate_file", "path"), &YAML::validate_file);
 
+	ClassDB::bind_static_method("YAML", D_METHOD("try_parse", "yaml_text", "security"), &YAML::try_parse, DEFVAL(nullptr));
+	ClassDB::bind_static_method("YAML", D_METHOD("try_stringify", "data", "style"), &YAML::try_stringify, DEFVAL(Variant()));
+	ClassDB::bind_static_method("YAML", D_METHOD("try_load_file", "path", "security"), &YAML::try_load_file, DEFVAL(nullptr));
+	ClassDB::bind_static_method("YAML", D_METHOD("try_save_file", "data", "path", "style"), &YAML::try_save_file, DEFVAL(nullptr));
+
 	ClassDB::bind_static_method("YAML", D_METHOD("register_class", "script_class", "serialize_method", "deserialize_method"), &YAML::register_class, DEFVAL("serialize"), DEFVAL("deserialize"));
 	ClassDB::bind_static_method("YAML", D_METHOD("unregister_class", "script_class"), &YAML::unregister_class);
 	ClassDB::bind_static_method("YAML", D_METHOD("has_registered_class", "script_class"), &YAML::has_registered_class);
@@ -156,6 +161,43 @@ Ref<YAMLResult> YAML::validate_file(const String &path) {
 	}
 
 	return validate(content);
+}
+
+Variant YAML::try_parse(const String &input, const Ref<YAMLSecurity> security) {
+	Ref<YAMLResult> result = parse(input, security);
+	if (result->has_error()) {
+		UtilityFunctions::push_error(result->get_error());
+		return Variant();
+	}
+
+	return result->get_data();
+}
+
+String YAML::try_stringify(const Variant &input, const Ref<YAMLStyle> &style) {
+	Ref<YAMLResult> result = stringify(input, style);
+	if (result->has_error()) {
+		UtilityFunctions::push_error(result->get_error());
+		return Variant();
+	}
+	return result->get_data();
+}
+
+Variant YAML::try_load_file(const String &path, const Ref<YAMLSecurity> security) {
+	Ref<YAMLResult> result = load_file(path, security);
+	if (result->has_error()) {
+		UtilityFunctions::push_error(result->get_error());
+		return Variant();
+	}
+	return result->get_data();
+}
+
+bool YAML::try_save_file(const Variant &data, const String &path, const Ref<YAMLStyle> &style) {
+	Ref<YAMLResult> result = save_file(data, path, style);
+	if (result->has_error()) {
+		UtilityFunctions::push_error(result->get_error());
+		return false;
+	}
+	return true;
 }
 
 Ref<YAMLStyle> YAML::create_style() {

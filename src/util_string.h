@@ -10,6 +10,8 @@
 #ifndef UTIL_STRING_H
 #define UTIL_STRING_H
 
+#include <godot_cpp/classes/reg_ex.hpp>
+#include <godot_cpp/classes/reg_ex_match.hpp>
 #include <godot_cpp/variant/string.hpp>
 #include <ryml.hpp>
 #include <ryml_std.hpp>
@@ -77,7 +79,11 @@ inline bool needs_block_style(const ryml::csubstr &str) {
  * @return bool True if the string should be quoted
  */
 inline bool needs_quotes(const String &value) {
-	return value.begins_with(" ") || value.ends_with(" ") || value.begins_with("#") || value.contains(":") || value.contains("{") || value.contains("}") || value.contains("[") || value.contains("]");
+	if (value.begins_with(" ") || value.ends_with(" ") || value.begins_with("#")) {
+		return true;
+	}
+	Ref<RegEx> special_reg_ex = RegEx::create_from_string("[{}\\[\\],&:\\*?|\\-<>=!%@\\/]");
+	return special_reg_ex->search(value).is_valid();
 }
 
 /**

@@ -6,25 +6,17 @@
 	<description>
 		[YAMLStyle] defines how Godot objects are serialized to YAML format. The class allows precise control over serialization styles, enabling better compatibility with existing YAML parsers and improving human readability of exported YAML content.
 		You can customize various styling aspects:
-		- Container styles (array or dictionary)[br]- String styles (plain, quoted, block)[br]- Numeric formats (decimal, hex, octal, binary, scientific)[br]- Flow styles (block vs inline)[br]- Binary data encodings (base64, hex)
+		- Container styles (array or dictionary)[br]- String styles (plain, quoted, block)[br]- Numeric formats (decimal, hex, octal, binary, scientific)[br]- Flow styles (block vs inline)
 		The class supports hierarchical style organization through a parent-child relationship, allowing you to define specific styles per key. This provides fine-grained control over document layout, which is particularly useful when:
 		- Preserving human readability[br]- Matching existing YAML conventions[br]- Customizing the visual appearance of exported content[br]- Ensuring compatibility with external YAML parsers
 	</description>
 	<tutorials>
 	</tutorials>
 	<methods>
-		<method name="binary_encoding_from_string" qualifiers="static">
-			<return type="int" enum="YAMLStyle.BinaryEncoding" />
-			<param index="0" name="string" type="String" />
+		<method name="apply_scalar_styles_to_children" qualifiers="const">
+			<return type="YAMLStyle" />
 			<description>
-				Converts a string identifier to the corresponding [enum BinaryEncoding] value. This method enables mapping between human-readable encoding names and their enumeration values.
-			</description>
-		</method>
-		<method name="binary_encoding_string" qualifiers="static">
-			<return type="String" />
-			<param index="0" name="encoding" type="int" enum="YAMLStyle.BinaryEncoding" />
-			<description>
-				Converts a [enum BinaryEncoding] value to its string identifier. Returns the string name representing the specified [param encoding].
+				Applies all scalar styles [enum StringStyle], [enum IntegerFormat], and [enum FloatFormat] and to all child styles.
 			</description>
 		</method>
 		<method name="clear_child">
@@ -63,8 +55,10 @@
 		<method name="create_child">
 			<return type="YAMLStyle" />
 			<param index="0" name="key" type="String" />
+			<param index="1" name="_unnamed_arg1" type="bool" default="true" />
 			<description>
 				Creates a new child style for the specified [param key] if it doesn't exist, or returns the existing one. This method combines checking for a child's existence and creating it in a single call.
+				If [param inherit_styles] is [code]true[/code], all scalar styles are copied from parent to child. See [method propagate_scalar_styles].
 				Returns the new or existing child style, allowing for method chaining.
 				[codeblock lang=gdscript]
 				var style = YAML.create_style()
@@ -147,6 +141,11 @@
 				Returns [code]true[/code] if a child style has been defined for the specified [param key], [code]false[/code] otherwise. Use this method to check for the existence of a child style before accessing it.
 			</description>
 		</method>
+		<method name="hash" qualifiers="const">
+			<return type="int" />
+			<description>
+			</description>
+		</method>
 		<method name="integer_format_from_string" qualifiers="static">
 			<return type="int" enum="YAMLStyle.IntegerFormat" />
 			<param index="0" name="string" type="String" />
@@ -187,18 +186,18 @@
 				Incorporates settings from another style into this style. Any property explicitly set in [param other] overrides the corresponding property in this style. Child styles are merged recursively. Returns this style instance for method chaining.
 			</description>
 		</method>
+		<method name="propagate_scalar_styles" qualifiers="const">
+			<return type="YAMLStyle" />
+			<param index="0" name="target" type="YAMLStyle" />
+			<description>
+				Applies all scalar styles [enum StringStyle], [enum IntegerFormat], and [enum FloatFormat] to target style.
+			</description>
+		</method>
 		<method name="save_file">
 			<return type="YAMLResult" />
 			<param index="0" name="path" type="String" />
 			<description>
 				Saves this style to a YAML file at the specified [param path]. Converts the style to a dictionary and writes it to disk. Returns a [YAMLResult] object that indicates success or contains error information if the operation failed.
-			</description>
-		</method>
-		<method name="set_binary_encoding">
-			<return type="YAMLStyle" />
-			<param index="0" name="encoding" type="int" enum="YAMLStyle.BinaryEncoding" />
-			<description>
-				Sets the [member binary_encoding] value to the specified [param encoding]. Returns this style instance for method chaining.
 			</description>
 		</method>
 		<method name="set_child">
@@ -285,9 +284,6 @@
 		</method>
 	</methods>
 	<members>
-		<member name="binary_encoding" type="int" setter="set_binary_encoding" getter="get_binary_encoding" enum="YAMLStyle.BinaryEncoding" default="0">
-			Controls how binary data is encoded in the YAML output. See [enum BinaryEncoding] for available options.
-		</member>
 		<member name="container_form" type="int" setter="set_container_form" getter="get_container_form" enum="YAMLStyle.ContainerForm" default="0">
 			Defines whether containers are serialized as arrays or dictionaries. See [enum ContainerForm] for available options.
 		</member>
@@ -401,17 +397,6 @@
 		</constant>
 		<constant name="FLOAT_SCIENTIFIC" value="2" enum="FloatFormat">
 			Forces scientific notation for floating-point format. Values use exponent notation (e.g., [code]3.14159e+00[/code]).
-		</constant>
-		<constant name="BIN_ANY" value="0" enum="BinaryEncoding">
-			Lets the YAML emitter automatically choose the binary encoding based on content. This is the default behavior and typically uses [constant BIN_BASE64].
-		</constant>
-		<constant name="BIN_BASE64" value="1" enum="BinaryEncoding">
-			Forces Base64 encoding for binary data. This is the most common and compact encoding for binary data in YAML.
-			[b]Example:[/b] [code]R29kb3Qg4pmlIFlBTUw=[/code]
-		</constant>
-		<constant name="BIN_HEX" value="2" enum="BinaryEncoding">
-			Forces hexadecimal encoding for binary data. This produces a more human-readable representation but takes twice as much space as Base64.
-			[b]Example:[/b] [code]476F646F742027642059414D4C[/code]
 		</constant>
 	</constants>
 </class>

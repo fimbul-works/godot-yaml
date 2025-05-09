@@ -110,16 +110,6 @@ public:
 	};
 
 	/**
-	 * @enum BinaryEncoding
-	 * @brief Determines the encoding for binary data.
-	 */
-	enum BinaryEncoding {
-		BIN_ANY, ///< Let emitter decide
-		BIN_BASE64, ///< Base64 encoded
-		BIN_HEX ///< Hexadecimal encoded
-	};
-
-	/**
 	 * @brief Default constructor.
 	 *
 	 * Initializes a style with default "ANY" values for all style options.
@@ -261,21 +251,6 @@ public:
 	 * @return FloatFormat The current float format
 	 */
 	FloatFormat get_float_format() const;
-
-	/**
-	 * @brief Sets the binary encoding.
-	 *
-	 * @param encoding The binary encoding
-	 * @return Ref<YAMLStyle> This style object for chaining
-	 */
-	Ref<YAMLStyle> set_binary_encoding(BinaryEncoding encoding);
-
-	/**
-	 * @brief Gets the binary encoding.
-	 *
-	 * @return BinaryEncoding The current binary encoding
-	 */
-	BinaryEncoding get_binary_encoding() const;
 
 	/**
 	 * @brief Sets custom settings as a Dictionary.
@@ -535,14 +510,6 @@ public:
 	static String float_format_string(FloatFormat format);
 
 	/**
-	 * @brief Converts BinaryEncoding to string.
-	 *
-	 * @param encoding The binary encoding
-	 * @return String String representation
-	 */
-	static String binary_encoding_string(BinaryEncoding encoding);
-
-	/**
 	 * @brief Parses string to ContainerForm.
 	 *
 	 * @param string The string to parse
@@ -583,14 +550,6 @@ public:
 	static FloatFormat float_format_from_string(const String &string);
 
 	/**
-	 * @brief Parses string to BinaryEncoding.
-	 *
-	 * @param string The string to parse
-	 * @return BinaryEncoding The parsed binary encoding
-	 */
-	static BinaryEncoding binary_encoding_from_string(const String &string);
-
-	/**
 	 * @brief Custom settings dictionary.
 	 *
 	 * Stores custom settings that aren't covered by the standard style options.
@@ -612,7 +571,6 @@ private:
 	StringStyle string_style = STRING_ANY;
 	IntegerFormat integer_format = INT_ANY;
 	FloatFormat float_format = FLOAT_ANY;
-	BinaryEncoding binary_encoding = BIN_ANY;
 
 	/**
 	 * @brief Flags indicating which options are explicitly set.
@@ -643,6 +601,5 @@ VARIANT_ENUM_CAST(YAMLStyle::FlowStyle);
 VARIANT_ENUM_CAST(YAMLStyle::StringStyle);
 VARIANT_ENUM_CAST(YAMLStyle::IntegerFormat);
 VARIANT_ENUM_CAST(YAMLStyle::FloatFormat);
-VARIANT_ENUM_CAST(YAMLStyle::BinaryEncoding);
 
 #endif // YAML_STYLE_H

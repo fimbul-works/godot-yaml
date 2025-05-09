@@ -2,7 +2,7 @@ extends BaseTest
 
 func _init() -> void:
 	icon = "🧩"
-	LOG_VERBOSE = true
+	LOG_VERBOSE = false
 
 func _enter_tree() -> void:
 	YAML.register_class(MyCustomClass)

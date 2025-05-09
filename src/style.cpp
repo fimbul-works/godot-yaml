@@ -18,8 +18,7 @@ YAMLStyle::YAMLStyle() :
 		flow_style(FLOW_ANY),
 		string_style(STRING_ANY),
 		integer_format(INT_ANY),
-		float_format(FLOAT_ANY),
-		binary_encoding(BIN_ANY) {
+		float_format(FLOAT_ANY) {
 }
 
 void YAMLStyle::_bind_methods() {
@@ -49,10 +48,6 @@ void YAMLStyle::_bind_methods() {
 	BIND_ENUM_CONSTANT(FLOAT_DECIMAL);
 	BIND_ENUM_CONSTANT(FLOAT_SCIENTIFIC);
 
-	BIND_ENUM_CONSTANT(BIN_ANY);
-	BIND_ENUM_CONSTANT(BIN_BASE64);
-	BIND_ENUM_CONSTANT(BIN_HEX);
-
 	ClassDB::bind_method(D_METHOD("set_container_form", "style"), &YAMLStyle::set_container_form);
 	ClassDB::bind_method(D_METHOD("get_container_form"), &YAMLStyle::get_container_form);
 	ClassDB::bind_method(D_METHOD("set_flow_style", "style"), &YAMLStyle::set_flow_style);
@@ -63,11 +58,10 @@ void YAMLStyle::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_integer_format"), &YAMLStyle::get_integer_format);
 	ClassDB::bind_method(D_METHOD("set_float_format", "format"), &YAMLStyle::set_float_format);
 	ClassDB::bind_method(D_METHOD("get_float_format"), &YAMLStyle::get_float_format);
-	ClassDB::bind_method(D_METHOD("set_binary_encoding", "encoding"), &YAMLStyle::set_binary_encoding);
-	ClassDB::bind_method(D_METHOD("get_binary_encoding"), &YAMLStyle::get_binary_encoding);
 	ClassDB::bind_method(D_METHOD("set_custom_settings", "style"), &YAMLStyle::set_custom_settings);
 	ClassDB::bind_method(D_METHOD("get_custom_settings"), &YAMLStyle::get_custom_settings);
 
+	ClassDB::bind_method(D_METHOD("hash"), &YAMLStyle::hash);
 	ClassDB::bind_method(D_METHOD("clone"), &YAMLStyle::clone);
 	ClassDB::bind_method(D_METHOD("merge_with", "other"), &YAMLStyle::merge_with);
 
@@ -80,7 +74,7 @@ void YAMLStyle::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_child", "key", "style"), &YAMLStyle::set_child);
 	ClassDB::bind_method(D_METHOD("has_child", "key"), &YAMLStyle::has_child);
 	ClassDB::bind_method(D_METHOD("create_child", "key"), &YAMLStyle::create_child, DEFVAL(true));
-	ClassDB::bind_method(D_METHOD("get_at_path", "path", "create_if_missing"), &YAMLStyle::get_at_path);
+	ClassDB::bind_method(D_METHOD("get_at_path", "path", "create_if_missing"), &YAMLStyle::get_at_path, DEFVAL(false));
 	ClassDB::bind_method(D_METHOD("clear_child", "key"), &YAMLStyle::clear_child);
 	ClassDB::bind_method(D_METHOD("clear_children"), &YAMLStyle::clear_children);
 	ClassDB::bind_method(D_METHOD("list_children"), &YAMLStyle::list_children);
@@ -96,14 +90,12 @@ void YAMLStyle::_bind_methods() {
 	ClassDB::bind_static_method("YAMLStyle", D_METHOD("string_style_string", "style"), &YAMLStyle::string_style_string);
 	ClassDB::bind_static_method("YAMLStyle", D_METHOD("integer_format_string", "format"), &YAMLStyle::integer_format_string);
 	ClassDB::bind_static_method("YAMLStyle", D_METHOD("float_format_string", "format"), &YAMLStyle::float_format_string);
-	ClassDB::bind_static_method("YAMLStyle", D_METHOD("binary_encoding_string", "encoding"), &YAMLStyle::binary_encoding_string);
 
 	ClassDB::bind_static_method("YAMLStyle", D_METHOD("container_form_from_string", "string"), &YAMLStyle::container_form_from_string);
 	ClassDB::bind_static_method("YAMLStyle", D_METHOD("flow_style_from_string", "string"), &YAMLStyle::flow_style_from_string);
 	ClassDB::bind_static_method("YAMLStyle", D_METHOD("string_style_from_string", "string"), &YAMLStyle::string_style_from_string);
 	ClassDB::bind_static_method("YAMLStyle", D_METHOD("integer_format_from_string", "string"), &YAMLStyle::integer_format_from_string);
 	ClassDB::bind_static_method("YAMLStyle", D_METHOD("float_format_from_string", "string"), &YAMLStyle::float_format_from_string);
-	ClassDB::bind_static_method("YAMLStyle", D_METHOD("binary_encoding_from_string", "string"), &YAMLStyle::binary_encoding_from_string);
 
 	ClassDB::bind_method(D_METHOD("get_debug_string"), &YAMLStyle::get_debug_string);
 
@@ -114,7 +106,6 @@ void YAMLStyle::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "string_style", PROPERTY_HINT_ENUM, "Any,Plain,Single Quoted,Double Quoted,Literal,Folded"), "set_string_style", "get_string_style");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "integer_format", PROPERTY_HINT_ENUM, "Any,Decimal,Hex,Octal,Binary"), "set_integer_format", "get_integer_format");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "float_format", PROPERTY_HINT_ENUM, "Any,Decimal,Scientific"), "set_float_format", "get_float_format");
-	ADD_PROPERTY(PropertyInfo(Variant::INT, "binary_encoding", PROPERTY_HINT_ENUM, "Any,Base64,Hex"), "set_binary_encoding", "get_binary_encoding");
 	ADD_PROPERTY(PropertyInfo(Variant::DICTIONARY, "custom_settings"), "set_custom_settings", "get_custom_settings");
 }
 
@@ -136,9 +127,6 @@ Ref<YAMLStyle> YAMLStyle::clone() const {
 
 	clone->has_float_format = has_float_format;
 	clone->float_format = float_format;
-
-	clone->has_binary_encoding = has_binary_encoding;
-	clone->binary_encoding = binary_encoding;
 
 	clone->custom_settings = custom_settings.duplicate(true);
 
@@ -172,10 +160,6 @@ Ref<YAMLStyle> YAMLStyle::merge_with(const Ref<YAMLStyle> &other) {
 
 	if (other->has_float_format) {
 		set_float_format(other->float_format);
-	}
-
-	if (other->has_binary_encoding) {
-		set_binary_encoding(other->binary_encoding);
 	}
 
 	custom_settings.merge(other->custom_settings, true);
@@ -219,12 +203,8 @@ Dictionary YAMLStyle::to_dictionary() const {
 		dict["float"] = float_format_string(float_format);
 	}
 
-	if (has_binary_encoding) {
-		dict["binary"] = binary_encoding_string(binary_encoding);
-	}
-
 	if (!custom_settings.is_empty()) {
-		dict["custom_settings"] = custom_settings.duplicate(true);
+		dict["custom_settings"] = custom_settings.duplicate();
 	}
 
 	Array keys = list_children();
@@ -265,10 +245,6 @@ Ref<YAMLStyle> YAMLStyle::from_dictionary(const Dictionary &dict) {
 		style->set_float_format(float_format_from_string(String(dict["float"])));
 	}
 
-	if (dict.has("binary")) {
-		style->set_binary_encoding(binary_encoding_from_string(String(dict["binary"])));
-	}
-
 	if (dict.has("custom_settings") && dict["custom_settings"].get_type() == Variant::DICTIONARY) {
 		style->set_custom_settings(dict["custom_settings"].duplicate(true));
 	}
@@ -302,8 +278,8 @@ Ref<YAMLResult> YAMLStyle::load_file(const String &path) {
 	if (result->has_error()) {
 		return result;
 	}
-
-	return YAMLResult::success(from_dictionary(result->get_data()));
+	Ref<YAMLStyle> style = from_dictionary(result->get_data());
+	return YAMLResult::success(style, style);
 }
 
 Ref<YAMLStyle> YAMLStyle::set_container_form(ContainerForm form) {
@@ -356,16 +332,6 @@ YAMLStyle::FloatFormat YAMLStyle::get_float_format() const {
 	return float_format;
 }
 
-Ref<YAMLStyle> YAMLStyle::set_binary_encoding(BinaryEncoding encoding) {
-	binary_encoding = encoding;
-	has_binary_encoding = true;
-	return Ref<YAMLStyle>(this);
-}
-
-YAMLStyle::BinaryEncoding YAMLStyle::get_binary_encoding() const {
-	return binary_encoding;
-}
-
 Ref<YAMLStyle> YAMLStyle::set_custom_settings(Dictionary settings) {
 	custom_settings = settings;
 	has_custom_settings = true;
@@ -377,22 +343,24 @@ Dictionary YAMLStyle::get_custom_settings() const {
 }
 
 Ref<YAMLStyle> YAMLStyle::set_custom_setting(const String &key, const Variant &value) {
-	get_custom_settings()[key] = value;
+	custom_settings[key] = value;
+	has_custom_settings = true;
 	return Ref<YAMLStyle>(this);
 }
 
 Variant YAMLStyle::get_custom_setting(const String &key) const {
-	return get_custom_settings()[key];
+	return custom_settings[key];
 }
 
 Ref<YAMLStyle> YAMLStyle::set_custom_tag(const String &tag) {
 	set_custom_setting("tag", tag);
+	has_custom_settings = true;
 	return Ref<YAMLStyle>(this);
 }
 
 String YAMLStyle::get_custom_tag() const {
 	if (custom_settings.has("tag")) {
-		return get_custom_setting("tag");
+		return custom_settings["tag"];
 	}
 	return "";
 }
@@ -489,10 +457,6 @@ Ref<YAMLStyle> YAMLStyle::propagate_scalar_styles(Ref<YAMLStyle> target) const {
 
 	if (float_format != FLOAT_ANY) {
 		target->set_float_format(float_format);
-	}
-
-	if (binary_encoding != BIN_ANY) {
-		target->set_binary_encoding(binary_encoding);
 	}
 
 	return Ref<YAMLStyle>(this);
@@ -657,45 +621,30 @@ YAMLStyle::FloatFormat YAMLStyle::float_format_from_string(const String &string)
 	return it != float_map.end() ? it->second : FLOAT_ANY;
 }
 
-String YAMLStyle::binary_encoding_string(BinaryEncoding encoding) {
-	switch (encoding) {
-		case BIN_ANY:
-			return "any";
-		case BIN_BASE64:
-			return "base64";
-		case BIN_HEX:
-			return "hex";
-		default:
-			return "any";
-	}
-}
-
-YAMLStyle::BinaryEncoding YAMLStyle::binary_encoding_from_string(const String &string) {
-	static std::unordered_map<String, BinaryEncoding, StringHasher, StringEqual> binary_map;
-	static std::once_flag init_flag;
-
-	std::call_once(init_flag, []() {
-		binary_map["any"] = BIN_ANY;
-		binary_map["base64"] = BIN_BASE64;
-		binary_map["hex"] = BIN_HEX;
-	});
-
-	auto it = binary_map.find(string);
-	return it != binary_map.end() ? it->second : BIN_ANY;
-}
-
 uint32_t YAMLStyle::hash() const {
 	uint32_t hash = hash_murmur3_one_32(container_form);
 	hash = hash_murmur3_one_32(flow_style, hash);
 	hash = hash_murmur3_one_32(string_style, hash);
 	hash = hash_murmur3_one_32(integer_format, hash);
 	hash = hash_murmur3_one_32(float_format, hash);
-	hash = hash_murmur3_one_32(binary_encoding, hash);
 	hash = hash_murmur3_one_32(custom_settings.hash(), hash);
+
+	// Sort keys first to ensure deterministic ordering
+	std::vector<String> sorted_keys;
+	sorted_keys.reserve(child_styles.size());
+
 	for (const auto &pair : child_styles) {
-		hash = hash_murmur3_one_32(pair.first.hash(), hash);
-		hash = hash_murmur3_one_32(pair.second->hash(), hash);
+		sorted_keys.push_back(pair.first);
 	}
+
+	std::sort(sorted_keys.begin(), sorted_keys.end());
+
+	// Hash in sorted order
+	for (const auto &key : sorted_keys) {
+		hash = hash_murmur3_one_32(key.hash(), hash);
+		hash = hash_murmur3_one_32(child_styles.at(key)->hash(), hash);
+	}
+
 	return hash;
 }
 
@@ -793,10 +742,6 @@ String YAMLStyle::get_debug_string() const {
 
 	if (has_float_format) {
 		debug += vformat("float: %s\n", float_format_string(float_format));
-	}
-
-	if (has_binary_encoding) {
-		debug += vformat("binary: %s\n", binary_encoding_string(binary_encoding));
 	}
 
 	if (!custom_settings.is_empty()) {

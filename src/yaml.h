@@ -123,6 +123,55 @@ public:
 	static Ref<YAMLResult> validate_file(const String &path);
 
 	/**
+	 * @brief Parses a YAML string, pushing errors to Godot's error system.
+	 *
+	 * This is a simplified version of parse() that returns null on error and
+	 * automatically reports errors through Godot's error reporting system.
+	 *
+	 * @param input The YAML string to parse.
+	 * @param security Optional security settings for resource loading.
+	 * @return Variant The parsed data or null if parsing failed.
+	 */
+	static Variant try_parse(const String &input, const Ref<YAMLSecurity> security = nullptr);
+
+	/**
+	 * @brief Serializes a Godot Variant to YAML, pushing errors to Godot's error system.
+	 *
+	 * This is a simplified version of stringify() that returns an empty string on error
+	 * and automatically reports errors through Godot's error reporting system.
+	 *
+	 * @param input The Variant to convert to YAML.
+	 * @param format Optional style settings for formatting the output.
+	 * @return String The YAML string or empty string if serialization failed.
+	 */
+	static String try_stringify(const Variant &input, const Ref<YAMLStyle> &format = nullptr);
+
+	/**
+	 * @brief Loads and parses a YAML file, pushing errors to Godot's error system.
+	 *
+	 * This is a simplified version of load_file() that returns null on error and
+	 * automatically reports errors through Godot's error reporting system.
+	 *
+	 * @param path Path to the YAML file.
+	 * @param security Optional security settings for resource loading.
+	 * @return Variant The parsed data or null if loading failed.
+	 */
+	static Variant try_load_file(const String &path, const Ref<YAMLSecurity> security = nullptr);
+
+	/**
+	 * @brief Serializes and saves a Godot Variant to a YAML file, pushing errors to Godot's error system.
+	 *
+	 * This is a simplified version of save_file() that returns a boolean success indicator and
+	 * automatically reports errors through Godot's error reporting system.
+	 *
+	 * @param data The Variant to convert to YAML.
+	 * @param path Path where the YAML file will be saved.
+	 * @param style Optional style settings for formatting the output.
+	 * @return bool True if saving succeeded, false otherwise.
+	 */
+	static bool try_save_file(const Variant &data, const String &path, const Ref<YAMLStyle> &style = nullptr);
+
+	/**
 	 * @brief Registers a custom class for YAML serialization/deserialization.
 	 *
 	 * This allows custom GDScript classes to be serialized to YAML and deserialized from YAML

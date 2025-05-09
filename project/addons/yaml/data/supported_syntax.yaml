@@ -1,22 +1,24 @@
-# Scalars
-string_value: "Hello, World!"
-unquoted_string: Hello World
-single_quoted: 'Hello, ''World'''
-folded_string: >
-  This is a long string
-  that will be folded
-  into a single line
+# Strings
+plain_string: Hello World
+single_quoted_string: 'Hello, ''World'''
+double_quoted_string: "Hello, World!"
 literal_string: |
   This is a long string
   that will preserve
   newlines
+folded_string: >
+  This is a long string
+  that will be folded
+  into a single line
 
-# Numeric types
+# Integer formats
 integer: 42
-float: 3.14159
 hex: 0xff
 octal: 0o700
 binary: 0b1010
+
+# Float formats
+float: 3.14159
 scientific_notation: 6.022e23
 infinity: .inf
 not_a_number: .nan
@@ -29,25 +31,23 @@ boolean_false: false
 null_value: null
 null_value_2: ~
 
-# Dates and times
+# Dates and times are treated as strings
 date: 2023-04-01
 canonical_datetime: 2023-04-01T12:00:00Z
 iso8601_datetime: 2023-04-01t12:00:00.000-05:00
 
-# Collections
-## Lists
+# Arrays
 fruits:
 - apple
 - banana
 - cherry
 
-
-nested_list:
-  - - nested
-  - items
-  - - more
-  - nested
-  - items
+nested_array:
+- - nested
+- items
+- - more
+- nested
+- items
 
 ## Dictionaries
 person:
@@ -55,26 +55,26 @@ person:
   age: 30
   occupation: Developer
 
-## Flow style list
-flow_style_list: [1, 2, 3, 4, 5]
+## Flow style array
+flow_style_array: [1, 2, 3, 4, 5]
 
 ## Flow style dictionary
 flow_style_dict: {key1: value1, key2: value2, key3: 124.5}
 
-## Nested flow list
-nested_flow_style_list: ["hello", 10, {foo: bar}, [4.20, 6.9]]
+## Nested flow array
+nested_flow_style_array: ["hello", 10, {foo: bar}, [4.20, 6.9]]
 
 ## Nested flow dictionary
 nested_flow_style_dictionary: { key1: {foo: 'bar'}, key2: [4.20, 6.9] }
 
-# Anchors and aliases
+# Anchors and aliases get resolved during parsing
 anchor_example: &anchor_name
   key1: value1
   key2: value2
 
 alias_example: *anchor_name
 
-# Merge key
+# Merge keys are also resolved during parsing
 base: &base
   name: John Doe
   age: 30
@@ -83,16 +83,17 @@ merge_example:
   <<: *base
   occupation: Developer
 
-# Ordered maps
-ordered_map: !!omap
-  - key1: value1
-  - key2: value2
-
-# Binary data
+# Binary data - !!binary is converted to !PackedByteArray
 binary_data: !!binary |
   R0lGODlhDAAMAIQAAP//9/X17unp5WZmZgAAAOfn515eXvPz7Y6OjuDg4J+fn5
   OTk6enp56enmleECcgggoBADs=
 
-# Tags
-custom_tag: !my_custom_tag
-  key: value
+# Custom tags are preserved, and can describe Godot Variants,
+# and classes registered using YAML.register_class()
+game_object: !MyHeroClass
+  name: "Hero"
+  health: 100
+  inventory:
+  - sword
+  - shield
+  - potion_healing

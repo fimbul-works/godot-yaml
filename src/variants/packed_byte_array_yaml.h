@@ -49,8 +49,7 @@ public:
 	 * @brief Encodes a PackedByteArray Variant to a YAML node.
 	 *
 	 * Converts a Godot PackedByteArray to a YAML scalar node,
-	 * with encoding format (base64 or hex) determined by style settings.
-	 * Adds appropriate prefix ("base64:" or "hex:") to indicate the format.
+	 * as base64 encoded literal string.
 	 *
 	 * @param node The target YAML node
 	 * @param v The PackedByteArray Variant to encode
@@ -76,46 +75,19 @@ private:
 	/**
 	 * @brief Constants for formatting.
 	 */
-	static constexpr size_t HEX_LINE_LENGTH = 32; ///< Characters per line for hex format
 	static constexpr size_t BASE64_LINE_LENGTH = 76; ///< Standard base64 line length
-
-	/**
-	 * @brief Format prefix constants.
-	 */
-	static constexpr const char *BASE64_PREFIX = "base64:"; ///< Prefix for base64 format
-	static constexpr const char *HEX_PREFIX = "hex:"; ///< Prefix for hexadecimal format
 
 	/**
 	 * @brief Helper struct for string cleanup and format detection.
 	 */
 	struct CleanupResult {
 		String cleaned; ///< Cleaned string without whitespace and prefix
-		bool is_hex; ///< Whether the format is hexadecimal (true) or base64 (false)
 		size_t original_length; ///< Original length of the string before cleaning
-		bool has_prefix; ///< Whether the original string had an explicit format prefix
 	};
 
 	/**
 	 * @brief Encoding helper methods.
 	 */
-
-	/**
-	 * @brief Encodes a PackedByteArray as hexadecimal.
-	 *
-	 * @param node The target YAML node
-	 * @param array The byte array to encode
-	 * @param style The style settings to apply
-	 */
-	void emit_as_hex(ryml::NodeRef &node, const PackedByteArray &array, const YAMLStyle::View &style) const;
-
-	/**
-	 * @brief Encodes a PackedByteArray as base64.
-	 *
-	 * @param node The target YAML node
-	 * @param array The byte array to encode
-	 * @param style The style settings to apply
-	 */
-	void emit_as_base64(ryml::NodeRef &node, const PackedByteArray &array, const YAMLStyle::View &style) const;
 
 	/**
 	 * @brief String processing helper methods.
@@ -129,10 +101,10 @@ private:
 	 * @param input The input string to clean and analyze
 	 * @param node The source YAML node (for error context)
 	 * @param context The parser context for style detection
-	 * @return CleanupResult The cleaned string and detected format
+	 * @return String The cleaned string and detected format
 	 * @throws YAMLException If the data format is invalid
 	 */
-	CleanupResult cleanup_and_detect(const ryml::csubstr &input, const ryml::ConstNodeRef &node, ParserContext *context) const;
+	String cleanup(const ryml::csubstr &input, const ryml::ConstNodeRef &node, ParserContext *context) const;
 
 	/**
 	 * @brief Formats a string with appropriate line breaks.
@@ -144,14 +116,6 @@ private:
 	 * @return ryml::csubstr The formatted string
 	 */
 	ryml::csubstr format_output(const String &str, size_t line_length) const;
-
-	/**
-	 * @brief Converts a hexadecimal string to a byte array.
-	 *
-	 * @param hex The hexadecimal string
-	 * @return PackedByteArray The resulting byte array
-	 */
-	PackedByteArray hex_to_bytes(const String &hex) const;
 
 	/**
 	 * @brief Checks if a character is a valid base64 character.

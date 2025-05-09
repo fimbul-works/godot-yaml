@@ -1,6 +1,6 @@
-string: string_value
+string: gadzooks
 number: 1234
-list:
-  - apples
-  - oranges
-  - pineapple
+fruits:
+- apples
+- oranges
+- pineapple

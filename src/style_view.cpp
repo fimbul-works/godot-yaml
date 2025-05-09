@@ -38,9 +38,6 @@ YAMLStyle::View YAMLStyle::View::create_view(const Ref<YAMLStyle> &style) {
 	view_data->has_float_format = style->has_float_format;
 	view_data->float_format = style->float_format;
 
-	view_data->has_binary_encoding = style->has_binary_encoding;
-	view_data->binary_encoding = style->binary_encoding;
-
 	view_data->has_custom_settings = style->has_custom_settings;
 	view_data->custom_settings = style->custom_settings;
 
@@ -103,14 +100,6 @@ YAMLStyle::FloatFormat YAMLStyle::View::get_float_format() const {
 	}
 
 	return YAMLStyle::FLOAT_ANY;
-}
-
-YAMLStyle::BinaryEncoding YAMLStyle::View::get_binary_encoding() const {
-	if (data && data->has_binary_encoding) {
-		return data->binary_encoding;
-	}
-
-	return YAMLStyle::BIN_ANY;
 }
 
 String YAMLStyle::View::get_custom_tag() const {
