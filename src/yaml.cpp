@@ -50,7 +50,7 @@ String YAML::version() {
 #else
 	String target = "release";
 #endif
-	return String("Godot YAML " + String(GODOT_YAML_VERSION) + " (" + target + ")");
+	return vformat("%s (%s)", GODOT_YAML_VERSION, target);
 }
 
 Ref<YAMLResult> YAML::parse(const String &input, const Ref<YAMLSecurity> security, const bool detect_style) {
