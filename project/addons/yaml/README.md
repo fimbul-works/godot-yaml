@@ -2,38 +2,38 @@
 
 A high-performance YAML parsing and serialization plugin for Godot 4.3, powered by [RapidYAML](https://github.com/biojppm/rapidyaml). This plugin offers comprehensive YAML support with customizable styling options, full Godot variant type handling, and custom class serialization.
 
+**New to YAML in Godot?** Check out the [`examples/`](./addons/yaml/examples/) directory for comprehensive usage examples covering all features.
+
 ## Version History
 
-- **0.12.1** (Current) - Build support for Linux (x86 64-bit)
-- **0.12.0** - Performance optimizations, bug fixes, and comprehensive tests for all variant types (see [`examples/variants/`](./examples/variants/))
+- **1.0.0** (Current) - First major release with custom YAML editor, streamlined API, and several fixes. See [the full changelog and a migration guide](./CHANGELOG.md#version-100) for details
+- **0.12.1** - Build support for Linux (x86 64-bit)
+- **0.12.0** - Performance optimizations, bug fixes, and comprehensive tests for all variant types
 - **0.11.0** - Added support for parsing multiple documents, and error handling for custom class deserialization
 - **0.10.1** - Fixed issue with custom Resources not being serializable
 - **0.10.0** - Added custom class serialization support, upgraded to Godot 4.3
 - **0.9.0** - Initial public release
 
+## Features
+
+- ⚡ **High Performance**: Built on the lightweight and efficient [RapidYAML](https://github.com/biojppm/rapidyaml) library
+- 🧩 **Comprehensive Variant Support**: Handles all Godot built-in Variant types (except Callable and RID)
+- 🧪 **Custom Class Serialization**: Register your GDScript classes for seamless serialization and deserialization
+- 🔄 **Multi-Document Support**: Parse YAML files with multiple `---` separated documents
+- 🎨 **Style Customization**: Control how YAML is formatted with customizable style options
+- 🔍 **Comprehensive Error Handling**: Detailed error reporting with line and column information
+- 🔀 **Thread-Safe**: Fully supports multi-threaded parsing and emission
+- ✅ **Validation**: Separate validation step for checking YAML syntax without full parsing
+- 🗂️ **Resource References**: Use `!Resource` tags to reference and load external resources
+- 🛡️ **Security Controls**: Manage resource loading security during YAML parsing
+
 ## Compatibility
 
-- Requires **Godot 4.3** or higher (previous version 0.9.0 worked with Godot 4.2.2)
+- Requires **Godot 4.3** or higher
 - Currently supported platforms:
   - Windows
   - Linux (x86 64-bit)
   - macOS, Android, and iOS support coming soon
-
-## Features
-
-- ⚡ **High Performance**: Built on the lightweight and efficient [RapidYAML](https://github.com/biojppm/rapidyaml) library.
-- 🧩 **Full Variant Support** – Handles all\* **Godot built-in Variant types.**
-- 🧪 [**Custom Class Support**](#custom-class-serialization): Register your GDScript classes for seamless serialization and deserialization.
-- 🗂️ [**Resource References**](#referencing-external-resources) – Use `!Resource` to auto-load scenes, textures, audio, and other assets via `ResourceLoader`.
-- 📑 [**Multi-Document Support**](#multi-document-yaml-support) – Parse YAML files with multiple `---` separated documents.
-- 🎨 [**Style Customization**](#style-customization): Control how YAML is formatted with customizable style options with `YAMLStyle`.
-- 🛡️ [**Security Controls**](#security-controls): Manage resource loading security during YAML parsing.
-- 📌 **Tagged Types**: Support for custom YAML tags and automatic tagging of Godot types.
-- 🛡️ **Error Handling**: Comprehensive error reporting with line and column information.
-- 🧵 **Thread-Safe**: Fully supports multi-threaded parsing and emission without locking.
-- 🛡️ [**Validation**](#validation): Separate validation step for checking YAML syntax without full parsing.
-
-<sub>\* Except Callable or RID.</sub>
 
 ## Basic Usage
 
@@ -41,107 +41,153 @@ A high-performance YAML parsing and serialization plugin for Godot 4.3, powered 
 
 ```gdscript
 # Parse a YAML string
-var yaml_string = """
+var yaml_text = """
 player:
-  name: Hero
-  level: 10
+  name: Knight
+  health: 100
   inventory:
     - Sword
     - Shield
+    - Health Potion
 """
 
-var result = YAML.parse(yaml_string)
+var result = YAML.parse(yaml_text)
 if result.has_error():
-    print("Error: ", result.get_error_message())
-else:
-    var data = result.get_data()
-    print("Player name: ", data.player.name)
+    push_error("Parse error: %s" % result.get_error())
+    return
+
+var player = result.get_data()
+print("Player name: %s" % player.name)
+print("Health: %d" % player.health)
+print("First item: %s" % player.inventory[0])
 ```
 
-### Generating YAML
+### Converting Data to YAML
 
 ```gdscript
-# Convert dictionary to YAML
-var data = {
-    "name": "Stranger",
-    "dialogue": ["Hello, traveler.", "What brings you here?"]
+# Convert Godot data to YAML
+var enemy_data = {
+    "name": "Dragon",
+    "health": 500,
+    "attacks": ["Bite", "Fire Breath", "Tail Whip"]
 }
 
-var result = YAML.stringify(data)
-if !result.has_error():
-    var yaml = result.get_data()
-    print(yaml)
+var string_result = YAML.stringify(enemy_data)
+if !string_result.has_error():
+    print(string_result.get_data())
 ```
 
 ### Working with Files
 
 ```gdscript
 # Load YAML from a file
-var load_result = YAML.load_file("res://data/config.yaml")
-if load_result.has_error():
-    print("Error loading file: ", load_result.get_error_message())
-else:
-    var config = load_result.get_data()
-    print("Loaded config: ", config)
+var result = YAML.load_file("res://data/level_data.yaml")
+
+if result.has_error():
+    push_error("YAML parsing failed: " + result.get_error())
+    return
+
+# Success - get the data and use it
+var level_data = result.get_data()
+print("Loaded level: " + level_data.name)
 
 # Save data to a YAML file
-var data = {"settings": {"volume": 0.8, "fullscreen": true}}
-var save_result = YAML.save_file(data, "user://settings.yaml")
-if save_result.has_error():
-    print("Error saving file: ", save_result.get_error_message())
+var save_data = {
+    "player": {
+        "name": "Hero",
+        "level": 10,
+        "position": [25, 48]
+    },
+    "quests_completed": ["Rats in the Cellar", "Lost Artifact"]
+}
+
+var save_result = YAML.save_file(save_data, "user://save_game.yaml")
+if !save_result.has_error():
+    print("Game saved successfully!")
 else:
-    print("File saved successfully")
+    push_error("Save failed: " + save_result.get_error())
 ```
 
-### Validation
+### Simplified API
+
+The extension provides simplified methods that return direct results rather than YAMLResult objects:
 
 ```gdscript
-# Validate YAML syntax without full parsing
-var yaml_string = "key: value\ninvalid -list"
-var validation = YAML.validate(yaml_string)
-if validation.has_error():
-    print("Invalid YAML: ", validation.get_error_message())
+# Quick parsing without error checking
+var data = YAML.try_parse("""
+weapon: Axe
+damage: 25
+""")
+# Or YAML.try_load_file
+
+if data:
+    print("Weapon: %s (Damage: %d)" % [data.weapon, data.damage])
 else:
-    print("YAML syntax is valid")
+    print("Failed to parse weapon data")
+
+# Quick stringify
+var npc = {
+    "name": "Merchant",
+    "dialog": "Welcome to my shop!",
+    "shop_items": ["Potion", "Map", "Torch"]
+}
+
+var yaml_text = YAML.try_stringify(npc)
+# Or YAML.try_save_file
+if yaml_text:
+    save_to_file(yaml_text)
 ```
 
-## Installation
-
-1. Download the plugin from the Godot Asset Library or from the [GitHub repository](https://github.com/fimbul-works/godot-yaml)
-2. Extract the contents into your project's `addons/` directory
-3. Enable the plugin in Project Settings → Plugins
-
-## Supported Types
-
-The plugin automatically handles conversion between YAML and all standard Godot variant types:
-
-- Basic types: `bool`, `int`, `float`, `String`, `StringName`
-- Collection types: `Array`, `Dictionary`
-- Vector types: `Vector2`, `Vector2i`, `Vector3`, `Vector3i`, `Vector4`, `Vector4i`
-- Transform types: `Transform2D`, `Transform3D`, `Projection`
-- Geometric types: `AABB`, `Basis`, `Plane`, `Quaternion`, `Rect2`, `Rect2i`
-- Color type: `Color`
-- Array types: `PackedByteArray`, `PackedColorArray`, `PackedFloat32Array`, `PackedFloat64Array`, `PackedInt32Array`, `PackedInt64Array`, `PackedStringArray`, `PackedVector2Array`, `PackedVector3Array`
-- Reference types: `NodePath`, `Resource` (see [Resource references](#referencing-external-resources))
-- **Custom GDScript classes** (with registration)
-- Unknown YAML types are safely converted to strings or dictionaries, ensuring no data loss
-
-### Referencing External Resources
-You can use the `!Resource` tag to automatically load external resources using `ResourceLoader.load()`. This allows YAML files to reference any loadable Godot resource, like scenes, textures, audio files, and more.
+## Multi-Document YAML Support
 
 ```gdscript
-var yaml_string = """
-sprite:
-  texture: !Resource res://textures/hero.png
-  scene: !Resource res://scenes/npc.tscn
+var yaml_text = """
+# Player stats
+name: Hero
+health: 100
+---
+# Game settings
+difficulty: hard
+enable_tutorial: false
 """
 
-var result = YAML.parse(yaml_string)
-var data = result.get_data()
+var result = YAML.parse(yaml_text)
+if !result.has_error():
+    var player_data = result.get_data(0)
+    var settings = result.get_data(1)
 
-# These will be actual loaded Resource instances
-print(data.sprite.texture is Texture2D)  # true
-print(data.sprite.scene is PackedScene)  # true
+    print("Player: %s (Health: %d)" % [player_data.name, player_data.health])
+    print("Difficulty: %s" % settings.difficulty)
+
+    # Check document count
+    var doc_count = result.get_document_count()
+    print("Found %d documents" % doc_count)
+```
+
+## Error Handling
+
+The `YAMLResult` class provides detailed error information:
+
+```gdscript
+var result = YAML.parse(user_yaml)
+
+if result.has_error():
+    push_error("YAML parse error: " + result.get_error())
+    # Example output: "parse error (line 3, column 5)"
+
+    # Get detailed error information
+    var error_message = result.get_error_message()
+    var error_line = result.get_error_line()
+    var error_column = result.get_error_column()
+
+    print("Error at line %d, column %d: %s" % [error_line, error_column, error_message])
+
+    # Highlight the error position
+    if error_line > 0 and error_column > 0:
+        var yaml_lines = yaml_text.split("\n")
+        var error_line_content = yaml_lines[error_line - 1]
+        print(error_line_content)
+        print(" ".repeat(error_column - 1) + "^ Error here")
 ```
 
 ## Custom Class Serialization
@@ -150,227 +196,138 @@ You can register your custom GDScript classes for seamless serialization:
 
 ```gdscript
 # Define a custom class
-class_name Player extends Node
+class_name Item extends Resource
 
 var name: String
-var level: int
-var inventory: Array
+var weight: float
+var value: int
 
-static func deserialize(dict) -> Player:
-    var player = Player.new()
-    player.name = dict.get("name", "")
-    player.level = dict.get("level", 1)
-    player.inventory = dict.get("inventory", [])
-    return player
+func _init(p_name = "", p_weight = 0.0, p_value = 0):
+    name = p_name
+    weight = p_weight
+    value = p_value
 
-func serialize() -> Dictionary:
+static func deserialize(data):
+    if typeof(data) != TYPE_DICTIONARY:
+        return YAMLResult.error("Item requires a dictionary")
+
+    return Item.new(
+        data.get("name", ""),
+        data.get("weight", 0.0),
+        data.get("value", 0)
+    )
+
+func serialize():
     return {
         "name": name,
-        "level": level,
-        "inventory": inventory
+        "weight": weight,
+        "value": value
     }
 
-# Register the class with YAML
-func _ready() -> void:
-    YAML.register_class(Player)
+# Register the class for YAML serialization
+YAML.register_class(Item)
 
-    # Now you can serialize and deserialize Player objects
-    var player = Player.new()
-    player.name = "Hero"
-    player.level = 10
-    player.inventory = ["Sword", "Shield"]
-
-    var data = {"player": player}
-    var yaml = YAML.stringify(data).get_data()
-    print(yaml)
-
-    # Deserialize from YAML
-    var parsed = YAML.parse(yaml).get_data()
-    var restored_player = parsed.player
-    print(restored_player.name)  # Hero
+# Now we can serialize/deserialize Item objects
+var sword = Item.new("Iron Sword", 5.0, 100)
+var result = YAML.stringify(sword)
+print(result.get_data())
+# Output: !Item {name: Iron Sword, weight: 5.0, value: 100}
 ```
 
-### Error Handling for Custom Classes
+## Security Controls with YAMLSecurity
 
-You can add validation and return detailed error messages from your `deserialize` method by returning a `YAMLResult` object:
-
-```gdscript
-static func deserialize(data: Variant):
-    # Validate data type
-    if typeof(data) != TYPE_DICTIONARY:
-        return YAMLResult.error("Deserializing Player expects Dictionary")
-
-    # Validate required fields
-    if !data.has("name"):
-        return YAMLResult.error("Player class missing required 'name' field")
-
-    # Create object if validation passes
-    var player = Player.new()
-    player.name = data.get("name", "")
-    player.level = data.get("level", 1)
-    return player
-```
-
-## Security Controls
-
-The plugin provides security controls for resource loading via the `YAMLSecurity` class. This helps protect against potential security vulnerabilities when loading YAML from untrusted sources.
+The `YAMLSecurity` class helps guard against unsafe loading of untrusted content:
 
 ```gdscript
-# Create custom security settings
 var security = YAML.create_security()
 
-# Allow resources from specific directories
-security.allow_path("res://assets/")
-security.allow_path("res://textures/", ["Texture2D", "Image"])
+# Only allow textures from the game's asset folder
+security.allow_path("res://assets/textures", ["Texture2D"])
 
-# Block specific resource types
-security.block_type("Script")
-security.block_type("AudioStreamMP3")
+# Block scenes for safety
+security.block_type("PackedScene")
 
 # Parse YAML with custom security settings
-var yaml_string = """
+var yaml_text = """
 player:
-  sprite: !Resource res://assets/player.png
-  script: !Resource res://scripts/player.gd
+  name: Hero
+  sprite: !Resource 'res://assets/textures/player.png'
 """
-var result = YAML.parse(yaml_string, false, security)
+
+var result = YAML.parse(yaml_text, security)
+if result.has_error():
+    push_error(result.get_error())
+else:
+    var data = result.get_data()
+    print("Player sprite loaded: " + str(data.player.sprite is Texture2D))
 ```
 
-### Default Security
+## Style Customization with YAMLStyle
 
-By default, Script and GDExtension resource types are blocked for security reasons. You can also use the static methods of the YAML class for simple security management:
-
-```gdscript
-# Using the default security instance
-YAML.allow_resource_path("res://assets/")
-YAML.block_resource_type("AudioStreamMP3")
-
-# Reset to defaults (blocks only Script and GDExtension)
-YAML.reset_security()
-```
-
-## Style Customization
-
-YAML output can be customized using the `YAMLStyle` class:
+Control the formatting and appearance of your YAML output:
 
 ```gdscript
-# Create a new style
+# Create a new style configuration
 var style = YAML.create_style()
 
-# Set scalar style (SCALAR_PLAIN, SCALAR_BLOCK, SCALAR_LITERAL, SCALAR_FOLDED)
-style.set_scalar_style(YAMLStyle.SCALAR_LITERAL)  # Use | for multiline strings
+# Set global string style to double-quoted
+style.set_string_style(YAMLStyle.STRING_QUOTE_DOUBLE)
 
-# Set quote style (QUOTE_NONE, QUOTE_SINGLE, QUOTE_DOUBLE)
-style.set_quote_style(YAMLStyle.QUOTE_DOUBLE)     # Use " for strings
+# Set integers to display in hexadecimal format
+style.set_integer_format(YAMLStyle.INT_HEX)
 
-# Set flow style (FLOW_NONE, FLOW_SINGLE)
-style.set_flow_style(YAMLStyle.FLOW_SINGLE)       # Use [] and {} style
+# Define specific style for player inventory items to use flow style
+var inventory_style = style.create_child("inventory")
+inventory_style.set_flow_style(YAMLStyle.FLOW_SINGLE)
 
-# Apply style to specific child nodes
-var nested_style = YAML.create_style()
-nested_style.set_flow_style(YAMLStyle.FLOW_NONE)  # Use block style for this child
-style.set_child("nested", nested_style)
-
-# Apply the style when generating YAML
-var data = {
-    "string": "Hello\nWorld",
-    "nested": {"list": [1, 2, 3]}
+# Create some data to format
+var player_data = {
+    "name": "Hero",
+    "level": 42,
+    "inventory": ["Sword", "Shield", "Potion"]
 }
-var yaml = YAML.stringify(data, style).get_data()
-print(yaml)
 
-# Apply style to file output
-var file_result = YAML.save_file(data, "user://styled_output.yaml", style)
+# Apply the style when stringifying
+var result = YAML.stringify(player_data, style)
+print(result.get_data())
+
+# Output will look like:
+# name: "Hero"
+# level: 0x2A
+# inventory: ["Sword", "Shield", "Potion"]
 ```
 
-### Style Detection
+### Style Detection and Preservation
 
-You can automatically detect and preserve the styling of parsed YAML:
+You can detect and preserve the style of existing YAML:
 
 ```gdscript
-# Parse with style detection enabled
-var yaml_string = """
-list:
-  - item1
-nested: {key1: value1}  # Flow style
-multiline: |            # Literal style
-  This is a multiline
-  string
-"""
+# Parse with style detection
+var result = YAML.parse(yaml_text, null, true)
 
-var result = YAML.parse(yaml_string, true)  # Enable style detection
-if !result.has_error() && result.has_style():
+if !result.has_error() and result.has_style():
     var data = result.get_data()
     var style = result.get_style()
 
-    # Modify data while preserving style
-    data.list.append("item2")
+    # Modify the data but preserve formatting
+    data.player.health = 200
 
-    # Re-emit with preserved style
-    var output = YAML.stringify(data, style).get_data()
-    print(output)
-
-    # Or save to file with preserved style
-    YAML.save_file(data, "user://preserved_style.yaml", style)
+    # Reserialize with the same style
+    var output = YAML.stringify(data, style)
+    save_file("user://modified_config.yaml", output.get_data())
 ```
 
-## Multi-Document YAML Support
+## Examples
 
-The plugin fully supports YAML files containing multiple documents separated by `---` delimiters.
+## Installation
 
-```gdscript
-# Parse a multi-document YAML string
-var yaml_string = """
-# First document
-title: Document 1
----
-# Second document
-title: Document 2
-"""
-
-var result = YAML.parse(yaml_string)
-if !result.has_error():
-    # Get number of documents
-    var doc_count = result.get_document_count()
-    print("Number of documents: ", doc_count)  # Output: 2
-
-    # Access documents by index
-    var first_doc = result.get_document(0)
-    var second_doc = result.get_document(1)
-
-    print(first_doc.title)   # Output: Document 1
-    print(second_doc.title)  # Output: Document 2
-```
-
-## Error Handling and Troubleshooting
-
-### Common Error Types
-
-- **Syntax Errors**: Invalid YAML structure detected during parsing
-- **Type Conversion Errors**: When YAML values can't be converted to expected types
-- **Circular Reference Errors**: When data structures contain circular references
-- **File Access Errors**: When reading from or writing to files fails
-
-### Troubleshooting Tips
-
-1. **Check Indentation**: YAML is sensitive to indentation. Use spaces consistently.
-2. **Validate First**: Use `YAML.validate()` to check syntax before full parsing.
-3. **Inspect Error Details**: Always check `get_error_line()` and `get_error_column()` to pinpoint issues.
-4. **Escape Special Characters**: Use quotes when values contain special characters.
-
-## Reporting Issues and Contributing
-
-- **Bug Reports**: Please use the [GitHub issue tracker](https://github.com/fimbul-works/godot-yaml/issues).
-- **Feature Requests**: Feel free to suggest improvements through GitHub issues.
-- **Contributing**: Pull requests are welcome! See the main repository README for development guidelines.
-
-## Credits
-
-- Powered by [RapidYAML](https://github.com/biojppm/rapidyaml) (ryml) - an efficient C++ library for YAML processing.
+1. Download the plugin from the Godot Asset Library or from the GitHub repository
+2. Extract the contents into your project's `addons/` directory
+3. Enable the plugin in Project Settings → Plugins
 
 ## License
 
-MIT License - See [LICENSE](LICENSE) file for details.
+MIT License - See LICENSE file for details.
 
 ---
 
