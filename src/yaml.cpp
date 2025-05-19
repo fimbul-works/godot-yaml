@@ -177,7 +177,7 @@ String YAML::try_stringify(const Variant &input, const Ref<YAMLStyle> &style) {
 	Ref<YAMLResult> result = stringify(input, style);
 	if (result->has_error()) {
 		UtilityFunctions::push_error(result->get_error());
-		return Variant();
+		return "";
 	}
 	return result->get_data();
 }

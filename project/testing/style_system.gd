@@ -1,6 +1,6 @@
 extends BaseTest
 
-const YAML_FILE = "res://addons/yaml/data/supported_syntax.yaml"
+const YAML_FILE = "res://addons/yaml/examples/data/supported_syntax.yaml"
 const STYLE_FILE = "user://supported_syntax.style.yaml"
 
 var data
@@ -70,6 +70,26 @@ func test_style_merging() -> void:
 	expect_equal(style1.get_flow_style(), YAMLStyle.FLOW_SINGLE,
 		"Properties from merged style should be added")
 
+func test_style_manipulation() -> void:
+	var style = YAML.create_style()
+	var child = YAML.create_style()
+	child.set_string_style(YAMLStyle.STRING_QUOTE_SINGLE)
+
+	# Test set_child
+	style.set_child("test_key", child)
+	expect(style.has_child("test_key"), "Should have child after setting")
+	expect_equal(style.get_child("test_key"), child, "Should retrieve same child")
+
+	# Test clear_child
+	style.clear_child("test_key")
+	expect(!style.has_child("test_key"), "Should not have child after clearing")
+
+	# Test clear_children
+	style.set_child("child1", child)
+	style.set_child("child2", child.clone())
+	style.clear_children()
+	expect_equal(style.list_children().size(), 0, "Should have no children after clearing all")
+
 func test_child_styles() -> void:
 	var style := YAML.create_style()
 	style.set_string_style(YAMLStyle.STRING_QUOTE_DOUBLE)
@@ -94,16 +114,17 @@ func test_get_at_path() -> void:
 	first_item_style.set_string_style(YAMLStyle.STRING_LITERAL)
 
 	# Get style at path
-	var path_style := style.get_at_path("maps/items/0")
+	var path_style = style.get_at_path("maps/items/0")
 	expect_equal(path_style.get_string_style(), YAMLStyle.STRING_LITERAL,
 		"Should get style at specified path")
 
 	# Create missing path
-	var new_path_style := style.get_at_path("maps/items/1/properties", true)
+	var new_path_style = style.get_at_path("maps/items/1/properties", true)
 	expect_not_equal(new_path_style, null, "Should create missing path nodes")
 
 	# Try to get non-existent path without creating
-	var missing_style := style.get_at_path("non/existent/path", false)
+	var missing_style = style.get_at_path("non/existent/path", false)
+	print(missing_style)
 	expect_equal(missing_style, null, "Should return null for non-existent path")
 
 func test_propagate_scalar_styles() -> void:
@@ -147,7 +168,7 @@ func test_various_style_combinations() -> void:
 	}
 
 	var style := YAML.create_style()
-	style.set_string_style(YAMLStyle.STRING_LITERAL)
+	style.set_string_style(YAMLStyle.STRING_QUOTE_DOUBLE)
 	style.set_integer_format(YAMLStyle.INT_HEX)
 	style.set_float_format(YAMLStyle.FLOAT_SCIENTIFIC)
 
@@ -160,20 +181,68 @@ func test_various_style_combinations() -> void:
 	dict_style.set_flow_style(YAMLStyle.FLOW_NONE)
 
 	var result := YAML.stringify(data, style)
-	expect(not result.has_error(), result.get_error_message())
+	expect(not result.has_error(), result.get_error())
 
 	if LOG_VERBOSE:
 		print_rich("\n[b]Styled YAML output:[/b]\n%s" % result.get_data())
 
 	# Now parse it back with style detection
 	var parse_result := YAML.parse(result.get_data(), null, true)
-	expect(not parse_result.has_error(), parse_result.get_error_message())
+	expect(not parse_result.has_error(), parse_result.get_error())
 
 	var detected_style := parse_result.get_style()
 	expect(detected_style != null, "Style should be detected")
 
 	if LOG_VERBOSE and detected_style:
 		print_rich("\n[b]Detected Style Tree:[/b]\n%s" % detected_style.get_debug_string())
+
+func test_style_setters() -> void:
+	var style = YAML.create_style()
+
+	# Test direct property setters
+	style.set_container_form(YAMLStyle.FORM_ARRAY)
+	expect_equal(style.get_container_form(), YAMLStyle.FORM_ARRAY)
+
+	style.set_float_format(YAMLStyle.FLOAT_SCIENTIFIC)
+	expect_equal(style.get_float_format(), YAMLStyle.FLOAT_SCIENTIFIC)
+
+	style.set_integer_format(YAMLStyle.INT_HEX)
+	expect_equal(style.get_integer_format(), YAMLStyle.INT_HEX)
+
+	# Test custom settings
+	var custom = {"custom_option": "value"}
+	style.set_custom_settings(custom)
+	expect_equal(style.get_custom_settings(), custom)
+
+func test_style_queries() -> void:
+	var style = YAML.create_style()
+
+	# Test block style detection
+	style.set_string_style(YAMLStyle.STRING_LITERAL)
+	expect(style.is_block_style(), "Literal string should be block style")
+
+	style.set_string_style(YAMLStyle.STRING_FOLDED)
+	expect(style.is_block_style(), "Folded string should be block style")
+
+	style.set_string_style(YAMLStyle.STRING_PLAIN)
+	expect(!style.is_block_style(), "Plain string should not be block style")
+
+	# Test flow detection
+	style.set_flow_style(YAMLStyle.FLOW_SINGLE)
+	expect(style.uses_flow(), "Single flow should be flow style")
+
+	style.set_flow_style(YAMLStyle.FLOW_NONE)
+	expect(!style.uses_flow(), "Flow none should not be flow style")
+
+	# Test quote detection
+	style.set_string_style(YAMLStyle.STRING_QUOTE_DOUBLE)
+	expect(style.uses_quotes(), "Double quoted should use quotes")
+
+	style.set_string_style(YAMLStyle.STRING_QUOTE_SINGLE)
+	expect(style.uses_quotes(), "Single quoted should use quotes")
+
+	style.set_string_style(YAMLStyle.STRING_PLAIN)
+	expect(!style.uses_quotes(), "Plain string should not use quotes")
 
 func test_to_from_dictionary() -> void:
 	var style := YAML.create_style()

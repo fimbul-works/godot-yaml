@@ -410,9 +410,9 @@ public:
 	 *
 	 * @param path The path to the child style
 	 * @param create_if_missing Whether to create missing children along the path
-	 * @return Ref<YAMLStyle> The child style or null if not found (and create_if_missing is false)
+	 * @return Variant The child style or null if not found (and create_if_missing is false)
 	 */
-	Ref<YAMLStyle> get_at_path(const String &path, bool create_if_missing = false);
+	Variant get_at_path(const String &path, bool create_if_missing = false);
 
 	/**
 	 * @brief Removes a child style.

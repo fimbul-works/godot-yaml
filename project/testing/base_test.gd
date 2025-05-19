@@ -61,7 +61,7 @@ func expect_equal(actual, expected, message := "") -> bool:
 		return false
 
 	# Perform equality check
-	var condition = actual == expected
+	var condition = actual == expected if typeof(expected) != TYPE_NIL else typeof(actual) == TYPE_NIL
 
 	if _current_method in _test_results:
 		var result = _test_results[_current_method]
@@ -78,7 +78,7 @@ func expect_equal(actual, expected, message := "") -> bool:
 			error_msg += "\n  Expected: [i]%s[/i]\n  Actual: [i]%s[/i]" % [expected, actual]
 
 			if LOG_VERBOSE:
-				print_rich("[color=red]✗ %s[/color]" % error_msg)
+				print_rich("[color=red]✗ %s" % error_msg)
 
 			result.passed = false
 			result.errors.append(error_msg)

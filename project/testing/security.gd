@@ -16,11 +16,11 @@ func test_custom_security_allow_path() -> void:
 	var security := YAML.create_security()
 
 	# Allow only textures from a specific path
-	security.allow_path("res://addons/yaml/examples/assets", ["Texture2D"])
+	security.allow_path("res://addons/yaml", ["Texture2D"])
 
 	# This should succeed (texture in allowed path)
 	var allowed_yaml := """
-texture: !Resource 'res://addons/yaml/examples/assets/texture.png'
+texture: !Resource 'res://addons/yaml/icon.svg'
 """
 	var result := YAML.parse(allowed_yaml, security)
 	expect(not result.has_error(), result.get_error_message())
@@ -34,7 +34,7 @@ texture: !Resource 'res://addons/yaml/examples/wrong_path/test.png'
 
 	# This should fail (wrong type)
 	var wrong_type_yaml := """
-scene: !Resource 'res://addons/yaml/examples/assets/textures/test.tscn'
+scene: !Resource 'res://addons/yaml/examples/assets/test.tscn'
 """
 	result = YAML.parse(wrong_type_yaml, security)
 	expect(result.has_error(), "Should block non-texture resources")
@@ -43,13 +43,14 @@ func test_wildcard_paths() -> void:
 	var security := YAML.create_security()
 
 	# Test single segment wildcard (*)
-	security.allow_path("res://addons/yaml/*/assets", ["Texture2D"])
+	security.allow_path("res://addons/*", ["Texture2D"])
 
 	var single_wildcard_yaml := """
-texture: !Resource 'res://addons/yaml/examples/assets/texture.png'
+texture: !Resource 'res://addons/yaml/icon.svg'
 """
 	var result := YAML.parse(single_wildcard_yaml, security)
 	expect(not result.has_error(), result.get_error_message())
+	print("done")
 
 	# Test recursive wildcard (**)
 	security.clear_path_restrictions()

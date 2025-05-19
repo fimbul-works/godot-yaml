@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3 uid="uid://bleexld1184du"]
+[gd_scene load_steps=10 format=3 uid="uid://bleexld1184du"]
 
 [ext_resource type="Script" path="res://testing/test_runner.gd" id="1_e6x8o"]
 [ext_resource type="Script" path="res://testing/basic_usage.gd" id="2_61s01"]
@@ -8,6 +8,8 @@
 [ext_resource type="Script" path="res://testing/style_system.gd" id="6_wfasd"]
 [ext_resource type="Script" path="res://testing/resource_referencing.gd" id="7_w42oc"]
 [ext_resource type="Script" path="res://testing/security.gd" id="8_ppula"]
+
+[sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_daco7"]
 
 [node name="Tests" type="Node2D"]
 script = ExtResource("1_e6x8o")
@@ -29,6 +31,7 @@ script = ExtResource("6_wfasd")
 
 [node name="Resource Referencing" type="Node2D" parent="."]
 script = ExtResource("7_w42oc")
+local_texture = SubResource("PlaceholderTexture2D_daco7")
 
 [node name="Security" type="Node2D" parent="."]
 script = ExtResource("8_ppula")

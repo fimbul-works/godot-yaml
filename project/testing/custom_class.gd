@@ -2,7 +2,6 @@ extends BaseTest
 
 func _init() -> void:
 	icon = "🧩"
-	LOG_VERBOSE = false
 
 func _enter_tree() -> void:
 	YAML.register_class(MyCustomClass)
@@ -13,6 +12,10 @@ func _exit_tree() -> void:
 	YAML.unregister_class(MyCustomClass)
 	YAML.unregister_class(MyCustomResource)
 	YAML.unregister_class(MyStringClass)
+
+func test_has_registered_class() -> void:
+	expect(!YAML.has_registered_class("NonExistentClass"), "Should return false for unregistered class")
+	expect(YAML.has_registered_class("MyCustomClass"), "Should return true for registered class")
 
 func test_custom_node_class() -> void:
 	var object = MyCustomClass.new("hello world", 123, PI)

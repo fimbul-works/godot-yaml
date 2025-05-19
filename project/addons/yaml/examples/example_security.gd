@@ -39,7 +39,7 @@ func custom_security_allow_path() -> void:
 
 	log_info("Testing allowed path and type...")
 	var allowed_yaml := """
-texture: !Resource 'res://addons/yaml/examples/assets/texture.png'
+texture: !Resource 'res://addons/yaml/icon.svg'
 """
 	log_code_block(allowed_yaml)
 
@@ -86,7 +86,7 @@ func wildcard_paths() -> void:
 	security.allow_path("res://addons/yaml/*/assets", ["Texture2D"])
 
 	var single_wildcard_yaml := """
-texture: !Resource 'res://addons/yaml/examples/assets/texture.png'
+texture: !Resource 'res://addons/yaml/icon.svg'
 """
 	log_code_block(single_wildcard_yaml)
 

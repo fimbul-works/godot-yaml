@@ -249,8 +249,8 @@
 				}
 
 				var yaml_text = YAML.try_stringify(npc)
-				if yaml_text:
-				    save_to_file(yaml_text)
+				if !yaml_text.is_empty():
+				    print("YAML text:\n", yaml_text)
 				[/codeblock]
 			</description>
 		</method>

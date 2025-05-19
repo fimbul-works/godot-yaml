@@ -395,7 +395,7 @@ Ref<YAMLStyle> YAMLStyle::set_child(const String &key, const Ref<YAMLStyle> &sty
 	return Ref<YAMLStyle>(this);
 }
 
-Ref<YAMLStyle> YAMLStyle::get_at_path(const String &path, bool create_if_missing) {
+Variant YAMLStyle::get_at_path(const String &path, bool create_if_missing) {
 	if (path.is_empty()) {
 		return Ref<YAMLStyle>(this); // Return self for empty path
 	}
@@ -415,13 +415,13 @@ Ref<YAMLStyle> YAMLStyle::get_at_path(const String &path, bool create_if_missing
 			if (create_if_missing) {
 				current->create_child(key);
 			} else {
-				return Ref<YAMLStyle>(); // Return null if child doesn't exist and we're not creating
+				return Variant(); // Return null if child doesn't exist and we're not creating
 			}
 		}
 
 		current = current->get_child(key);
 		if (!current.is_valid()) {
-			return Ref<YAMLStyle>(); // Return null if we got an invalid reference somehow
+			return Variant(); // Return null if we got an invalid reference somehow
 		}
 	}
 
