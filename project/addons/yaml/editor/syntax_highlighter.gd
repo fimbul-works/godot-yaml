@@ -21,7 +21,7 @@ var re_patterns := {
 	"comment": RegEx.create_from_string("^\\s*#.*$"),
 	"merge_key": RegEx.create_from_string("^\\s*<<:\\s*\\*[^\\s]+"),
 	"multiline_indicator": RegEx.create_from_string("(>|\\|-?)\\s*$"),
-	"array_item": RegEx.create_from_string("^\\s*-(\\s-|\\s+)+(.*)$"),
+	"array_item": RegEx.create_from_string("^(\\s*-(?:\\s*-)*\\s*)(.*)$"),
 	"key_value": RegEx.create_from_string("^\\s*([^:]+):(.*)$"),
 
 	# Added a pattern to detect tags at the beginning of a line
@@ -128,25 +128,28 @@ func _highlight_line(text: String) -> Dictionary:
 					_add_scalar_color(colors, remaining, remaining_start)
 		return colors
 
-	# Handle regular key-value pairs first
-	var key_value_match: RegExMatch = re_patterns.key_value.search(text)
-	if key_value_match:
-		return _parse_key_value(text, key_value_match)
-
 	# Handle array items
 	var array_match: RegExMatch = re_patterns.array_item.search(text)
 	if array_match:
 		var colors := {}
+
+		# Color the entire dash section as symbols
 		_add_color(colors, array_match.get_start(1), array_match.get_end(1), TokenType.SYMBOL)
+
+		# Process the content after the dashes
 		var content: String = array_match.get_string(2).strip_edges()
 		if content:
-			var content_start := text.find(content, array_match.get_end(1))
-			if content_start != -1:
-				if content.begins_with("[") or content.begins_with("{"):
-					colors.merge(_parse_flow_style(content, content_start))
-				else:
-					_add_scalar_color(colors, content, content_start)
+			var content_start: int = array_match.get_start(2)
+			if content.begins_with("[") or content.begins_with("{"):
+				colors.merge(_parse_flow_style(content, content_start))
+			else:
+				_add_scalar_color(colors, content, content_start)
 		return colors
+
+	# Handle regular key-value pairs
+	var key_value_match: RegExMatch = re_patterns.key_value.search(text)
+	if key_value_match:
+		return _parse_key_value(text, key_value_match)
 
 	# Handle flow-style collections at the root level
 	if "[" in text or "{" in text:

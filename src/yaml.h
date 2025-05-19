@@ -9,8 +9,6 @@
  *
  * The class uses a modular architecture with specialized components for
  * parsing, emitting, and validation.
- *
- * @version 0.12.1
  */
 
 #ifndef YAML_H

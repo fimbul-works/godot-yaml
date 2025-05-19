@@ -32,6 +32,8 @@ texture: !Resource 'res://icon.svg'
 
 	if data.scene is PackedScene:
 		log_success("PackedScene loaded successfully")
+		var scene = data.scene.instantiate()
+		add_child(scene)
 	else:
 		log_warning("PackedScene not loaded (might be missing file or security restrictions)")
 
