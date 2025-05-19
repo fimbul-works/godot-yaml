@@ -1,7 +1,7 @@
 class_name ExampleBase extends Node2D
 
 # Whether to show detailed logs
-var LOG_VERBOSE := true
+var LOG_VERBOSE := false
 
 # Extra emoji to make logs visually distinct
 var icon := ""
@@ -44,7 +44,7 @@ func log_info(text: String) -> void:
 
 func log_code_block(code: String) -> void:
 	print_rich("\n[b]Code:[/b]")
-	print_rich("[color=#aaaaff]%s[/color]" % code)
+	print_rich("[color=#aaaaff]%s" % code)
 
 func log_result(text: String) -> void:
 	print_rich("\n[b]Result:[/b]\n%s" % text)

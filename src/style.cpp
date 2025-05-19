@@ -73,7 +73,7 @@ void YAMLStyle::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_child", "key"), &YAMLStyle::get_child);
 	ClassDB::bind_method(D_METHOD("set_child", "key", "style"), &YAMLStyle::set_child);
 	ClassDB::bind_method(D_METHOD("has_child", "key"), &YAMLStyle::has_child);
-	ClassDB::bind_method(D_METHOD("create_child", "key"), &YAMLStyle::create_child, DEFVAL(true));
+	ClassDB::bind_method(D_METHOD("create_child", "key", "propagate_scalar_styles"), &YAMLStyle::create_child, DEFVAL(true));
 	ClassDB::bind_method(D_METHOD("get_at_path", "path", "create_if_missing"), &YAMLStyle::get_at_path, DEFVAL(false));
 	ClassDB::bind_method(D_METHOD("clear_child", "key"), &YAMLStyle::clear_child);
 	ClassDB::bind_method(D_METHOD("clear_children"), &YAMLStyle::clear_children);

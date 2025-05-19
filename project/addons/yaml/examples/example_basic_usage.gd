@@ -1,7 +1,7 @@
 extends ExampleBase
 
 const YAML_FILE = "res://addons/yaml/examples/data/supported_syntax.yaml"
-const USER_FILE = "user://example.yaml"
+const OUTPUT_FILE = "user://supported_syntax_copy.yaml"
 
 var yaml_text := """
 string: string_value
@@ -113,8 +113,8 @@ func save_file() -> void:
 	if data == null:
 		data = {"example": "data", "created": "now", "values": [1, 2, 3]}
 
-	log_info("Saving data to YAML file: " + USER_FILE)
-	var result := YAML.save_file(data, USER_FILE)
+	log_info("Saving data to YAML file: " + OUTPUT_FILE)
+	var result := YAML.save_file(data, OUTPUT_FILE)
 
 	if result.has_error():
 		log_error("File saving failed: " + result.get_error_message())
@@ -126,8 +126,8 @@ func save_file() -> void:
 		log_result(result.get_data())
 
 func load_saved_file() -> void:
-	log_info("Loading previously saved file: " + USER_FILE)
-	var result := YAML.load_file(USER_FILE)
+	log_info("Loading previously saved file: " + OUTPUT_FILE)
+	var result := YAML.load_file(OUTPUT_FILE)
 
 	if result.has_error():
 		log_error("File loading failed: " + result.get_error_message())

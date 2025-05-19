@@ -171,7 +171,8 @@ YAMLStyle::View YAMLStyle::View::get_child(const String &key) const {
 		return YAMLStyle::View(data->children.at(key));
 	}
 
-	return View();
+	// If no specific child style exists, return the current style
+	return *this;
 }
 
 bool YAMLStyle::View::has_child(const String &key) const {

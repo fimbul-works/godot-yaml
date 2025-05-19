@@ -10,9 +10,6 @@ func _enter_tree() -> void:
 	# Initialize YAMLFileSystem singleton
 	YAMLFileSystem.get_singleton()
 
-	# Register YAML as a custom resource type
-	add_custom_type("YAMLFile", "Resource", null, null)
-
 	# Create the instance
 	yaml_editor_instance = YAMLEditorPanel.instantiate()
 
@@ -46,7 +43,6 @@ func _exit_tree() -> void:
 	# Clean up other resources
 	get_editor_interface().get_resource_filesystem().resources_reimported.disconnect(_on_resources_reimported)
 	get_editor_interface().get_resource_filesystem().filesystem_changed.disconnect(_on_filesystem_changed)
-	remove_custom_type("YAMLFile")
 
 func _on_filesystem_changed() -> void:
 	# Notify the YAML editor that the filesystem has changed
