@@ -56,10 +56,10 @@ if result.has_error():
     push_error("Parse error: %s" % result.get_error())
     return
 
-var player = result.get_data()
-print("Player name: %s" % player.name)
-print("Health: %d" % player.health)
-print("First item: %s" % player.inventory[0])
+var data = result.get_data()
+print("Player name: %s" % data.player.name)
+print("Health: %d" % data.player.health)
+print("First item: %s" % data.player.inventory[0])
 ```
 
 ### Converting Data to YAML

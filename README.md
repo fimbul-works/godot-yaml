@@ -2,12 +2,10 @@
 
 This is the **C++ GDExtension implementation** of the Godot YAML plugin. It provides **high-performance YAML parsing and serialization** using [RapidYAML](https://github.com/biojppm/rapidyaml) as the core engine, offering **sub-millisecond processing** for most YAML documents. This extension is built for Godot 4.3 or later.
 
-📌 **For full usage details and API documentation, see the plugin README:**
-📂 [`project/addons/yaml/README.md`](project/addons/yaml/README.md)
-
 ## 🔄 Version History
 
-- **0.12.1** (Current) - Build support for Linux (x86 64-bit)
+- **1.0.0** (Current) - First major release with custom YAML editor, streamlined API, and several fixes. See [the plugin changelog](project/addons/yaml/CHANGELOG.md#version-100) for details
+- **0.12.1** - Build support for Linux (x86 64-bit)
 - **0.12.0** - Performance optimizations, bug fixes, and comprehensive tests for all variant types.
 - **0.11.0** - Added support for parsing multiple documents, and error handling for custom class deserialization.
 - **0.10.1** - Fixed issue with custom Resources not being serializable.
@@ -19,47 +17,34 @@ This is the **C++ GDExtension implementation** of the Godot YAML plugin. It prov
 ```gdscript
 # Parse YAML
 var result = YAML.parse("key: value\nlist:\n  - item1\n  - item2")
-if !result.has_error():
-    var data = result.get_data()
-    print(data.key)  # Outputs: value
-    print(data.list) # Outputs: [item1, item2]
+if result.has_error():
+    push_error(result.get_error())
+    return
+
+var data = result.get_data()
+print(data.key)  # Outputs: value
+print(data.list) # Outputs: [item1, item2]
 
 # Generate YAML
-var yaml = YAML.stringify({"numbers": [1, 2, 3]}).get_data()
-print(yaml)  # Outputs: "numbers:\n  - 1\n  - 2\n  - 3\n"
-
-# Register a custom class
-class_name MyCustomClass extends RefCounted
-var name = ""
-var value = 0
-
-static func from_dict(dict):
-    var obj = MyCustomClass.new()
-    obj.name = dict.get("name", "")
-    obj.value = dict.get("value", 0)
-    return obj
-
-func to_dict():
-    return {"name": name, "value": value}
-
-# In your initialization code:
-YAML.register_class(MyCustomClass)
+var yaml_text = YAML.stringify(data).get_data()
+print(yaml_text)
 ```
+
+📌 **For full usage details and API documentation, see the plugin README:**
+📂 [`project/addons/yaml/README.md`](project/addons/yaml/README.md)
 
 ## 🔥 Key Features
 
-- ⚡ **High Performance** – Optimized for speed with zero-copy parsing.
-- 🧩 **Full Variant Support** – Handles all\* **Godot built-in Variant types**.
-- 🧪 **Custom Class Support** - Register GDScript classes for serialization/deserialization.
-- 🗂️ **Resource References** – Use `!Resource` to auto-load scenes, textures, audio, and other assets via `ResourceLoader`.
-- 📑 **Multi-Document Support** – Parse YAML files with multiple `---` separated documents.
-- 🎨 **Style Customization**: Control how YAML is formatted with customizable style options with `YAMLStyle`.
-- 📌 **Tagged Types**: Support for custom YAML tags and automatic tagging of Godot types.
-- 🛡️ **Error Handling**: Comprehensive error reporting with line and column information.
-- 🧵 **Thread-Safe**: Fully supports multi-threaded parsing and emission without locking.
-- 🛡️ **Validation**: Separate validation step for checking YAML syntax without full parsing.
-
-<sub>\* Except Callable or RID.</sub>
+- ⚡ **High Performance**: Built on the lightweight and efficient [RapidYAML](https://github.com/biojppm/rapidyaml) library
+- 🧩 **Comprehensive Variant Support**: Handles all Godot built-in Variant types (except Callable and RID)
+- 🧪 **Custom Class Serialization**: Register your GDScript classes for seamless serialization and deserialization
+- 🔄 **Multi-Document Support**: Parse YAML files with multiple `---` separated documents
+- 🎨 **Style Customization**: Control how YAML is formatted with customizable style options
+- 🔍 **Comprehensive Error Handling**: Detailed error reporting with line and column information
+- 🔀 **Thread-Safe**: Fully supports multi-threaded parsing and emission
+- ✅ **Validation**: Separate validation step for checking YAML syntax without full parsing
+- 🗂️ **Resource References**: Use `!Resource` tags to reference and load external resources
+- 🛡️ **Security Controls**: Manage resource loading security during YAML parsing
 
 ## 🛠️ Installation & Setup
 
@@ -112,26 +97,6 @@ scons platform=linux target=template_release
 - **macOS**: 🚧 Not yet prebuilt, but **should compile without issues**.
 
 📌 **Contributions welcome!** If you can help with Linux/macOS, open a PR.
-
----
-
-## ⚙️ **Error Handling in GDScript**
-
-When working with YAML, errors **always return detailed messages** with line/column numbers.
-
-#### **Example: Handling Parse Errors**
-```gdscript
-var result = YAML.parse("invalid_yaml: - missing_indent")
-
-if result.has_error():
-    print("❌ Error:", result.get_error_message())
-    print("📍 Line:", result.get_error_line(), "Column:", result.get_error_column())
-else:
-    var data = result.get_data()
-    print("✅ Parsed successfully:", data)
-```
-
-📂 **See [`project/addons/yaml/README.md`](project/addons/yaml/README.md) for more examples.**
 
 ---
 
