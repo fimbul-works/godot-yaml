@@ -7,7 +7,7 @@ using namespace godot;
 void ColorVariantConverter::encode(ryml::NodeRef &node, const Variant &v, const YAMLStyle::View &style) const {
 	const Color color = v.operator Color();
 
-	if (style.get_container_form() == YAMLStyle::FORM_DICTIONARY || style.get_container_form() == YAMLStyle::FORM_ARRAY) {
+	if (style.get_container_form() != YAMLStyle::FORM_ANY) {
 		ryml::NodeRef r_node;
 		ryml::NodeRef g_node;
 		ryml::NodeRef b_node;

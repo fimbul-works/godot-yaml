@@ -28,8 +28,9 @@ void Rect2iVariantConverter::encode(ryml::NodeRef &node, const Variant &v, const
 		size_node = node.append_child();
 	}
 
-	vec2i_converter->encode(position_node, rect.position, style.has_child("position") ? style.get_child("position") : YAMLStyle::View());
-	vec2i_converter->encode(size_node, rect.size, style.has_child("size") ? style.get_child("size") : YAMLStyle::View());
+	auto scalar_style = style.get_scalar_view();
+	vec2i_converter->encode(position_node, rect.position, style.has_child("position") ? style.get_child("position") : scalar_style);
+	vec2i_converter->encode(size_node, rect.size, style.has_child("size") ? style.get_child("size") : scalar_style);
 }
 
 Variant Rect2iVariantConverter::decode(const ryml::ConstNodeRef &node, ParserContext *context) const {

@@ -31,9 +31,10 @@ void BasisVariantConverter::encode(ryml::NodeRef &node, const Variant &v, const 
 		z_node = node.append_child();
 	}
 
-	vec3_converter->encode(x_node, basis.get_column(0), style.has_child("x") ? style.get_child("x") : YAMLStyle::View());
-	vec3_converter->encode(y_node, basis.get_column(1), style.has_child("y") ? style.get_child("y") : YAMLStyle::View());
-	vec3_converter->encode(z_node, basis.get_column(2), style.has_child("z") ? style.get_child("z") : YAMLStyle::View());
+	auto scalar_style = style.get_scalar_view();
+	vec3_converter->encode(x_node, basis.get_column(0), style.has_child("x") ? style.get_child("x") : scalar_style);
+	vec3_converter->encode(y_node, basis.get_column(1), style.has_child("y") ? style.get_child("y") : scalar_style);
+	vec3_converter->encode(z_node, basis.get_column(2), style.has_child("z") ? style.get_child("z") : scalar_style);
 }
 
 Variant BasisVariantConverter::decode(const ryml::ConstNodeRef &node, ParserContext *context) const {

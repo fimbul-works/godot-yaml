@@ -55,6 +55,13 @@ public:
 	static View create_view(const Ref<YAMLStyle> &style = Ref<YAMLStyle>());
 
 	/**
+	 * @brief Returns a view for scalar values.
+	 *
+	 * @return View A new view containing the scalar style settings of the current view
+	 */
+	View get_scalar_view() const;
+
+	/**
 	 * @brief Accessors for style settings.
 	 */
 
@@ -185,22 +192,12 @@ private:
 	 * Stores all style settings and child styles in an immutable format.
 	 */
 	struct ViewData {
-		bool has_container_form = false;
 		ContainerForm container_form;
-
-		bool has_flow_style = false;
 		FlowStyle flow_style;
-
-		bool has_string_style = false;
 		StringStyle string_style;
-
-		bool has_integer_format = false;
 		IntegerFormat integer_format;
-
-		bool has_float_format = false;
 		FloatFormat float_format;
 
-		bool has_custom_settings = false;
 		Dictionary custom_settings;
 
 		std::unordered_map<String, std::shared_ptr<const ViewData>, StringHasher, StringEqual> children;

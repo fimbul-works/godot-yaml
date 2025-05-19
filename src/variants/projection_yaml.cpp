@@ -34,10 +34,11 @@ void ProjectionVariantConverter::encode(ryml::NodeRef &node, const Variant &v, c
 		w_node = node.append_child();
 	}
 
-	vec4_converter->encode(x_node, proj.columns[0], style.has_child("x") ? style.get_child("x") : YAMLStyle::View());
-	vec4_converter->encode(y_node, proj.columns[1], style.has_child("y") ? style.get_child("y") : YAMLStyle::View());
-	vec4_converter->encode(z_node, proj.columns[2], style.has_child("z") ? style.get_child("z") : YAMLStyle::View());
-	vec4_converter->encode(w_node, proj.columns[3], style.has_child("w") ? style.get_child("w") : YAMLStyle::View());
+	auto scalar_style = style.get_scalar_view();
+	vec4_converter->encode(x_node, proj.columns[0], style.has_child("x") ? style.get_child("x") : scalar_style);
+	vec4_converter->encode(y_node, proj.columns[1], style.has_child("y") ? style.get_child("y") : scalar_style);
+	vec4_converter->encode(z_node, proj.columns[2], style.has_child("z") ? style.get_child("z") : scalar_style);
+	vec4_converter->encode(w_node, proj.columns[3], style.has_child("w") ? style.get_child("w") : scalar_style);
 }
 
 Variant ProjectionVariantConverter::decode(const ryml::ConstNodeRef &node, ParserContext *context) const {

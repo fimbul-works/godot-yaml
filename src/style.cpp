@@ -113,19 +113,10 @@ Ref<YAMLStyle> YAMLStyle::clone() const {
 	Ref<YAMLStyle> clone;
 	clone.instantiate();
 
-	clone->has_container_form = has_container_form;
 	clone->container_form = container_form;
-
-	clone->has_flow_style = has_flow_style;
 	clone->flow_style = flow_style;
-
-	clone->has_string_style = has_string_style;
 	clone->string_style = string_style;
-
-	clone->has_integer_format = has_integer_format;
 	clone->integer_format = integer_format;
-
-	clone->has_float_format = has_float_format;
 	clone->float_format = float_format;
 
 	clone->custom_settings = custom_settings.duplicate(true);
@@ -142,23 +133,23 @@ Ref<YAMLStyle> YAMLStyle::merge_with(const Ref<YAMLStyle> &other) {
 		return Ref<YAMLStyle>(this);
 	}
 
-	if (other->has_container_form) {
+	if (other->container_form != FORM_ANY) {
 		set_container_form(other->container_form);
 	}
 
-	if (other->has_flow_style) {
+	if (other->flow_style != FLOW_ANY) {
 		set_flow_style(other->flow_style);
 	}
 
-	if (other->has_string_style) {
+	if (other->string_style != STRING_ANY) {
 		set_string_style(other->string_style);
 	}
 
-	if (other->has_integer_format) {
+	if (other->integer_format != INT_ANY) {
 		set_integer_format(other->integer_format);
 	}
 
-	if (other->has_float_format) {
+	if (other->float_format != FLOAT_ANY) {
 		set_float_format(other->float_format);
 	}
 
@@ -183,23 +174,23 @@ Ref<YAMLStyle> YAMLStyle::merge_with(const Ref<YAMLStyle> &other) {
 Dictionary YAMLStyle::to_dictionary() const {
 	Dictionary dict;
 
-	if (has_container_form) {
+	if (container_form != FORM_ANY) {
 		dict["form"] = container_form_string(container_form);
 	}
 
-	if (has_flow_style) {
+	if (flow_style != FLOW_ANY) {
 		dict["flow"] = flow_style_string(flow_style);
 	}
 
-	if (has_string_style) {
+	if (string_style != STRING_ANY) {
 		dict["string"] = string_style_string(string_style);
 	}
 
-	if (has_integer_format) {
+	if (integer_format != INT_ANY) {
 		dict["integer"] = integer_format_string(integer_format);
 	}
 
-	if (has_float_format) {
+	if (float_format != FLOAT_ANY) {
 		dict["float"] = float_format_string(float_format);
 	}
 
@@ -284,7 +275,6 @@ Ref<YAMLResult> YAMLStyle::load_file(const String &path) {
 
 Ref<YAMLStyle> YAMLStyle::set_container_form(ContainerForm form) {
 	container_form = form;
-	has_container_form = true;
 	return Ref<YAMLStyle>(this);
 }
 
@@ -294,7 +284,6 @@ YAMLStyle::ContainerForm YAMLStyle::get_container_form() const {
 
 Ref<YAMLStyle> YAMLStyle::set_flow_style(FlowStyle style) {
 	flow_style = style;
-	has_flow_style = true;
 	return Ref<YAMLStyle>(this);
 }
 
@@ -304,7 +293,6 @@ YAMLStyle::FlowStyle YAMLStyle::get_flow_style() const {
 
 Ref<YAMLStyle> YAMLStyle::set_string_style(StringStyle style) {
 	string_style = style;
-	has_string_style = true;
 	return Ref<YAMLStyle>(this);
 }
 
@@ -314,7 +302,6 @@ YAMLStyle::StringStyle YAMLStyle::get_string_style() const {
 
 Ref<YAMLStyle> YAMLStyle::set_integer_format(IntegerFormat format) {
 	integer_format = format;
-	has_integer_format = true;
 	return Ref<YAMLStyle>(this);
 }
 
@@ -324,7 +311,6 @@ YAMLStyle::IntegerFormat YAMLStyle::get_integer_format() const {
 
 Ref<YAMLStyle> YAMLStyle::set_float_format(FloatFormat format) {
 	float_format = format;
-	has_float_format = true;
 	return Ref<YAMLStyle>(this);
 }
 
@@ -334,7 +320,6 @@ YAMLStyle::FloatFormat YAMLStyle::get_float_format() const {
 
 Ref<YAMLStyle> YAMLStyle::set_custom_settings(Dictionary settings) {
 	custom_settings = settings;
-	has_custom_settings = true;
 	return Ref<YAMLStyle>(this);
 }
 
@@ -344,7 +329,6 @@ Dictionary YAMLStyle::get_custom_settings() const {
 
 Ref<YAMLStyle> YAMLStyle::set_custom_setting(const String &key, const Variant &value) {
 	custom_settings[key] = value;
-	has_custom_settings = true;
 	return Ref<YAMLStyle>(this);
 }
 
@@ -354,7 +338,6 @@ Variant YAMLStyle::get_custom_setting(const String &key) const {
 
 Ref<YAMLStyle> YAMLStyle::set_custom_tag(const String &tag) {
 	set_custom_setting("tag", tag);
-	has_custom_settings = true;
 	return Ref<YAMLStyle>(this);
 }
 
@@ -724,23 +707,23 @@ String YAMLStyle::_to_string() const {
 String YAMLStyle::get_debug_string() const {
 	String debug;
 
-	if (has_container_form) {
+	if (container_form != FORM_ANY) {
 		debug += vformat("form: %s\n", container_form_string(container_form));
 	}
 
-	if (has_flow_style) {
+	if (flow_style != FLOW_ANY) {
 		debug += vformat("flow: %s\n", flow_style_string(flow_style));
 	}
 
-	if (has_string_style) {
+	if (string_style != STRING_ANY) {
 		debug += vformat("string: %s\n", string_style_string(string_style));
 	}
 
-	if (has_integer_format) {
+	if (integer_format != INT_ANY) {
 		debug += vformat("integer: %s\n", integer_format_string(integer_format));
 	}
 
-	if (has_float_format) {
+	if (float_format != FLOAT_ANY) {
 		debug += vformat("float: %s\n", float_format_string(float_format));
 	}
 

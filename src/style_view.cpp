@@ -7,7 +7,6 @@
 
 using namespace godot;
 
-// YAMLStyleView implementation
 YAMLStyle::View::View(std::shared_ptr<const ViewData> p_data) :
 		data(std::move(p_data)) {
 }
@@ -23,23 +22,13 @@ YAMLStyle::View YAMLStyle::View::create_view(const Ref<YAMLStyle> &style) {
 	}
 
 	// Copy all style values
-	view_data->has_container_form = style->has_container_form;
 	view_data->container_form = style->container_form;
-
-	view_data->has_flow_style = style->has_flow_style;
 	view_data->flow_style = style->flow_style;
-
-	view_data->has_string_style = style->has_string_style;
 	view_data->string_style = style->string_style;
-
-	view_data->has_integer_format = style->has_integer_format;
 	view_data->integer_format = style->integer_format;
-
-	view_data->has_float_format = style->has_float_format;
 	view_data->float_format = style->float_format;
 
-	view_data->has_custom_settings = style->has_custom_settings;
-	view_data->custom_settings = style->custom_settings;
+	view_data->custom_settings = style->custom_settings.duplicate(true);
 
 	// Create views for all children
 	Array keys = style->list_children();
@@ -61,45 +50,42 @@ YAMLStyle::View YAMLStyle::View::create_view(const Ref<YAMLStyle> &style) {
 	return YAMLStyle::View(std::move(view_data));
 }
 
-// YAMLStyleView accessors
-YAMLStyle::ContainerForm YAMLStyle::View::get_container_form() const {
-	if (data && data->has_container_form) {
-		return data->container_form;
+YAMLStyle::View YAMLStyle::View::get_scalar_view() const {
+	if (data) {
+		auto scalar_view_data = std::make_shared<ViewData>();
+
+		if (scalar_view_data) {
+			scalar_view_data->container_form = data->container_form;
+			scalar_view_data->flow_style = data->flow_style;
+			scalar_view_data->string_style = data->string_style;
+			scalar_view_data->integer_format = data->integer_format;
+			scalar_view_data->float_format = data->float_format;
+
+			return YAMLStyle::View(std::move(scalar_view_data));
+		}
 	}
 
-	return YAMLStyle::FORM_ANY;
+	return YAMLStyle::View();
+}
+
+YAMLStyle::ContainerForm YAMLStyle::View::get_container_form() const {
+	return data ? data->container_form : YAMLStyle::FORM_ANY;
 }
 
 YAMLStyle::FlowStyle YAMLStyle::View::get_flow_style() const {
-	if (data && data->has_flow_style) {
-		return data->flow_style;
-	}
-
-	return YAMLStyle::FLOW_ANY;
+	return data ? data->flow_style : YAMLStyle::FLOW_ANY;
 }
 
 YAMLStyle::StringStyle YAMLStyle::View::get_string_style() const {
-	if (data && data->has_string_style) {
-		return data->string_style;
-	}
-
-	return YAMLStyle::STRING_ANY;
+	return data ? data->string_style : YAMLStyle::STRING_ANY;
 }
 
 YAMLStyle::IntegerFormat YAMLStyle::View::get_integer_format() const {
-	if (data && data->has_integer_format) {
-		return data->integer_format;
-	}
-
-	return YAMLStyle::INT_ANY;
+	return data ? data->integer_format : YAMLStyle::INT_ANY;
 }
 
 YAMLStyle::FloatFormat YAMLStyle::View::get_float_format() const {
-	if (data && data->has_float_format) {
-		return data->float_format;
-	}
-
-	return YAMLStyle::FLOAT_ANY;
+	return data ? data->float_format : YAMLStyle::FLOAT_ANY;
 }
 
 String YAMLStyle::View::get_custom_tag() const {
@@ -171,8 +157,8 @@ YAMLStyle::View YAMLStyle::View::get_child(const String &key) const {
 		return YAMLStyle::View(data->children.at(key));
 	}
 
-	// If no specific child style exists, return the current style
-	return *this;
+	// If no specific child style exists, return scalar styles
+	return get_scalar_view();
 }
 
 bool YAMLStyle::View::has_child(const String &key) const {

@@ -30,9 +30,10 @@ void Transform2DVariantConverter::encode(ryml::NodeRef &node, const Variant &v, 
 		origin_node = node.append_child();
 	}
 
-	vec2_converter->encode(x_node, transform.columns[0], style.has_child("x") ? style.get_child("x") : YAMLStyle::View());
-	vec2_converter->encode(y_node, transform.columns[1], style.has_child("y") ? style.get_child("y") : YAMLStyle::View());
-	vec2_converter->encode(origin_node, transform.columns[2], style.has_child("origin") ? style.get_child("origin") : YAMLStyle::View());
+	auto scalar_style = style.get_scalar_view();
+	vec2_converter->encode(x_node, transform.columns[0], style.has_child("x") ? style.get_child("x") : scalar_style);
+	vec2_converter->encode(y_node, transform.columns[1], style.has_child("y") ? style.get_child("y") : scalar_style);
+	vec2_converter->encode(origin_node, transform.columns[2], style.has_child("origin") ? style.get_child("origin") : scalar_style);
 }
 
 Variant Transform2DVariantConverter::decode(const ryml::ConstNodeRef &node, ParserContext *context) const {

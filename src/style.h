@@ -573,16 +573,6 @@ private:
 	FloatFormat float_format = FLOAT_ANY;
 
 	/**
-	 * @brief Flags indicating which options are explicitly set.
-	 */
-	bool has_container_form = false;
-	bool has_flow_style = false;
-	bool has_string_style = false;
-	bool has_integer_format = false;
-	bool has_float_format = false;
-	bool has_custom_settings = false;
-
-	/**
 	 * @brief Child styles for hierarchical formatting.
 	 *
 	 * Maps keys to child style objects.

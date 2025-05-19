@@ -29,8 +29,9 @@ void Transform3DVariantConverter::encode(ryml::NodeRef &node, const Variant &v, 
 		origin_node = node.append_child();
 	}
 
-	basis_converter->encode(basis_node, transform.basis, style.has_child("basis") ? style.get_child("basis") : YAMLStyle::View());
-	vec3_converter->encode(origin_node, transform.origin, style.has_child("origin") ? style.get_child("origin") : YAMLStyle::View());
+	auto scalar_style = style.get_scalar_view();
+	basis_converter->encode(basis_node, transform.basis, style.has_child("basis") ? style.get_child("basis") : scalar_style);
+	vec3_converter->encode(origin_node, transform.origin, style.has_child("origin") ? style.get_child("origin") : scalar_style);
 }
 
 Variant Transform3DVariantConverter::decode(const ryml::ConstNodeRef &node, ParserContext *context) const {
