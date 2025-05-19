@@ -13,20 +13,21 @@ void Vector2VariantConverter::encode(ryml::NodeRef &node, const Variant &v, cons
 		node |= ryml::FLOW_SL;
 	}
 
-	YAMLStyle::FloatFormat x_format = style.has_child("x") ? style.get_child("x").get_float_format() : style.get_float_format();
-	YAMLStyle::FloatFormat y_format = style.has_child("y") ? style.get_child("y").get_float_format() : style.get_float_format();
+	ryml::NodeRef x_node;
+	ryml::NodeRef y_node;
 
 	if (!style.is_valid() || style.get_container_form() != YAMLStyle::FORM_ARRAY) {
 		node |= ryml::MAP;
-
-		node["x"] << float_to_string(vec.x, x_format);
-		node["y"] << float_to_string(vec.y, y_format);
+		x_node = node["x"];
+		y_node = node["y"];
 	} else {
 		node |= ryml::SEQ;
-
-		node.append_child() << float_to_string(vec.x, x_format);
-		node.append_child() << float_to_string(vec.y, y_format);
+		x_node = node.append_child();
+		y_node = node.append_child();
 	}
+
+	x_node << float_to_string(vec.x, style.has_child("x") ? style.get_child("x").get_float_format() : style.get_float_format());
+	y_node << float_to_string(vec.y, style.has_child("y") ? style.get_child("y").get_float_format() : style.get_float_format());
 }
 
 Variant Vector2VariantConverter::decode(const ryml::ConstNodeRef &node, ParserContext *context) const {

@@ -69,28 +69,6 @@ public:
 
 private:
 	/**
-	 * @brief Emission helper methods.
-	 */
-
-	/**
-	 * @brief Emits a Color as a map.
-	 *
-	 * @param node The target YAML node
-	 * @param color The Color to emit
-	 * @param style The style settings to apply
-	 */
-	void emit_as_map(ryml::NodeRef &node, const Color &color, const YAMLStyle::View &style) const;
-
-	/**
-	 * @brief Emits a Color as a sequence.
-	 *
-	 * @param node The target YAML node
-	 * @param color The Color to emit
-	 * @param style The style settings to apply
-	 */
-	void emit_as_sequence(ryml::NodeRef &node, const Color &color, const YAMLStyle::View &style) const;
-
-	/**
 	 * @brief Decode helper methods.
 	 */
 

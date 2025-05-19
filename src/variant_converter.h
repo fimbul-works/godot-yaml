@@ -165,7 +165,7 @@ protected:
 	 * @return YAMLException The created exception
 	 */
 	inline YAMLException create_exception(const String &message, const ryml::ConstNodeRef &node) const {
-		if (m_parser && node.valid()) {
+		if (m_parser && !node.invalid()) {
 			try {
 				ryml::Location loc = m_parser->location(node);
 				return YAMLException(message, loc);

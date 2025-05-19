@@ -15,15 +15,21 @@ void PlaneVariantConverter::encode(ryml::NodeRef &node, const Variant &v, const 
 
 	style.apply_flow_style(node);
 
+	ryml::NodeRef normal_node;
+	ryml::NodeRef d_node;
+	
 	if (!style.is_valid() || style.get_container_form() != YAMLStyle::FORM_ARRAY) {
 		node |= ryml::MAP;
-		vec3_converter->encode(node["normal"], plane.normal, style.get_child("normal"));
-		node["d"] << float_to_string(plane.d, style.get_child("d").get_float_format());
+		normal_node = node["normal"];
+		d_node = node["d"];
 	} else {
 		node |= ryml::SEQ;
-		vec3_converter->encode(node.append_child(), plane.normal, style.get_child("normal"));
-		node.append_child() << float_to_string(plane.d, style.get_child("d").get_float_format());
+		normal_node = node.append_child();
+		d_node = node.append_child();
 	}
+
+	vec3_converter->encode(normal_node, plane.normal, style.has_child("normal") ? style.get_child("normal") : YAMLStyle::View());
+	d_node << float_to_string(plane.d, style.has_child("d") ? style.get_child("d").get_float_format() : YAMLStyle::FLOAT_ANY);
 }
 
 Variant PlaneVariantConverter::decode(const ryml::ConstNodeRef &node, ParserContext *context) const {

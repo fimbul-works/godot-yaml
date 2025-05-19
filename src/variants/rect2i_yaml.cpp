@@ -15,15 +15,21 @@ void Rect2iVariantConverter::encode(ryml::NodeRef &node, const Variant &v, const
 
 	style.apply_flow_style(node);
 
+	ryml::NodeRef position_node;
+	ryml::NodeRef size_node;
+
 	if (!style.is_valid() || style.get_container_form() != YAMLStyle::FORM_ARRAY) {
 		node |= ryml::MAP;
-		vec2i_converter->encode(node["position"], rect.position, style.get_child("position"));
-		vec2i_converter->encode(node["size"], rect.size, style.get_child("size"));
+		position_node = node["position"];
+		size_node = node["size"];
 	} else {
 		node |= ryml::SEQ;
-		vec2i_converter->encode(node.append_child(), rect.position, style.get_child("position"));
-		vec2i_converter->encode(node.append_child(), rect.size, style.get_child("size"));
+		position_node = node.append_child();
+		size_node = node.append_child();
 	}
+
+	vec2i_converter->encode(position_node, rect.position, style.has_child("position") ? style.get_child("position") : YAMLStyle::View());
+	vec2i_converter->encode(size_node, rect.size, style.has_child("size") ? style.get_child("size") : YAMLStyle::View());
 }
 
 Variant Rect2iVariantConverter::decode(const ryml::ConstNodeRef &node, ParserContext *context) const {

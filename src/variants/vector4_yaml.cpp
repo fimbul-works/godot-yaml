@@ -13,26 +13,29 @@ void Vector4VariantConverter::encode(ryml::NodeRef &node, const Variant &v, cons
 		node |= ryml::FLOW_SL;
 	}
 
-	YAMLStyle::FloatFormat x_format = style.has_child("x") ? style.get_child("x").get_float_format() : style.get_float_format();
-	YAMLStyle::FloatFormat y_format = style.has_child("y") ? style.get_child("y").get_float_format() : style.get_float_format();
-	YAMLStyle::FloatFormat z_format = style.has_child("z") ? style.get_child("z").get_float_format() : style.get_float_format();
-	YAMLStyle::FloatFormat w_format = style.has_child("w") ? style.get_child("w").get_float_format() : style.get_float_format();
+	ryml::NodeRef x_node;
+	ryml::NodeRef y_node;
+	ryml::NodeRef z_node;
+	ryml::NodeRef w_node;
 
 	if (!style.is_valid() || style.get_container_form() != YAMLStyle::FORM_ARRAY) {
 		node |= ryml::MAP;
-
-		node["x"] << float_to_string(vec.x, x_format);
-		node["y"] << float_to_string(vec.y, y_format);
-		node["z"] << float_to_string(vec.z, z_format);
-		node["w"] << float_to_string(vec.w, w_format);
+		x_node = node["x"];
+		y_node = node["y"];
+		z_node = node["z"];
+		w_node = node["w"];
 	} else {
 		node |= ryml::SEQ;
-
-		node.append_child() << float_to_string(vec.x, x_format);
-		node.append_child() << float_to_string(vec.y, y_format);
-		node.append_child() << float_to_string(vec.z, z_format);
-		node.append_child() << float_to_string(vec.w, w_format);
+		x_node = node.append_child();
+		y_node = node.append_child();
+		z_node = node.append_child();
+		w_node = node.append_child();
 	}
+
+	x_node << float_to_string(vec.x, style.has_child("x") ? style.get_child("x").get_float_format() : style.get_float_format());
+	y_node << float_to_string(vec.y, style.has_child("y") ? style.get_child("y").get_float_format() : style.get_float_format());
+	z_node << float_to_string(vec.z, style.has_child("z") ? style.get_child("z").get_float_format() : style.get_float_format());
+	w_node << float_to_string(vec.w, style.has_child("w") ? style.get_child("w").get_float_format() : style.get_float_format());
 }
 
 Variant Vector4VariantConverter::decode(const ryml::ConstNodeRef &node, ParserContext *context) const {

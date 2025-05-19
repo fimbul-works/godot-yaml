@@ -14,17 +14,25 @@ void Transform2DVariantConverter::encode(ryml::NodeRef &node, const Variant &v, 
 
 	style.apply_flow_style(node);
 
+	ryml::NodeRef x_node;
+	ryml::NodeRef y_node;
+	ryml::NodeRef origin_node;
+
 	if (!style.is_valid() || style.get_container_form() != YAMLStyle::FORM_ARRAY) {
 		node |= ryml::MAP;
-		vec2_converter->encode(node["x"], transform.columns[0], style.get_child("x"));
-		vec2_converter->encode(node["y"], transform.columns[1], style.get_child("y"));
-		vec2_converter->encode(node["origin"], transform.columns[2], style.get_child("origin"));
+		x_node = node["x"];
+		y_node = node["y"];
+		origin_node = node["origin"];
 	} else {
 		node |= ryml::SEQ;
-		vec2_converter->encode(node.append_child(), transform.columns[0], style.get_child("x"));
-		vec2_converter->encode(node.append_child(), transform.columns[1], style.get_child("y"));
-		vec2_converter->encode(node.append_child(), transform.columns[2], style.get_child("origin"));
+		x_node = node.append_child();
+		y_node = node.append_child();
+		origin_node = node.append_child();
 	}
+
+	vec2_converter->encode(x_node, transform.columns[0], style.has_child("x") ? style.get_child("x") : YAMLStyle::View());
+	vec2_converter->encode(y_node, transform.columns[1], style.has_child("y") ? style.get_child("y") : YAMLStyle::View());
+	vec2_converter->encode(origin_node, transform.columns[2], style.has_child("origin") ? style.get_child("origin") : YAMLStyle::View());
 }
 
 Variant Transform2DVariantConverter::decode(const ryml::ConstNodeRef &node, ParserContext *context) const {

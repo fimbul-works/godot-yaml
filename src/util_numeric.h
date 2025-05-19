@@ -88,10 +88,10 @@ T string_to_int(const ryml::csubstr &value, YAMLStyle::IntegerFormat *format = n
 	if (ec == std::errc()) {
 		return is_negative ? -result : result;
 	} else if (ec == std::errc::result_out_of_range) {
-		throw std::exception("Integer value out of range");
-	} else {
-		throw std::exception("Invalid integer format");
+		throw YAMLException("Integer value out of range");
 	}
+
+	throw YAMLException("Invalid integer format");
 }
 
 /**
@@ -188,30 +188,30 @@ T string_to_float(const ryml::csubstr &value, YAMLStyle::FloatFormat *format = n
 		return std::numeric_limits<T>::infinity();
 	} else if (value == "-.inf") {
 		return -std::numeric_limits<T>::infinity();
-	} else {
-		auto span = value.first_real_span();
-		if (span.empty()) {
-			throw std::exception("Invalid float format");
-		}
-
-		T result;
-		auto [ptr, ec] = std::from_chars(span.begin(), span.end(), result);
-
-		if (ec == std::errc()) {
-			if (format != nullptr) {
-				if (value.find("e") != ryml::npos || value.find("E") != ryml::npos) {
-					*format = YAMLStyle::FLOAT_SCIENTIFIC;
-				} else {
-					*format = YAMLStyle::FLOAT_DECIMAL;
-				}
-			}
-			return result;
-		} else if (ec == std::errc::result_out_of_range) {
-			throw std::exception("Float value out of range");
-		} else {
-			throw std::exception("Invalid float format");
-		}
 	}
+
+	auto span = value.first_real_span();
+	if (span.empty()) {
+		throw YAMLException("Invalid float format");
+	}
+
+	T result;
+	auto [ptr, ec] = std::from_chars(span.begin(), span.end(), result);
+
+	if (ec == std::errc()) {
+		if (format != nullptr) {
+			if (value.find("e") != ryml::npos || value.find("E") != ryml::npos) {
+				*format = YAMLStyle::FLOAT_SCIENTIFIC;
+			} else {
+				*format = YAMLStyle::FLOAT_DECIMAL;
+			}
+		}
+		return result;
+	} else if (ec == std::errc::result_out_of_range) {
+		throw YAMLException("Float value out of range");
+	}
+
+	throw YAMLException("Invalid float format");
 }
 
 /**
@@ -258,38 +258,38 @@ ryml::csubstr float_to_string(const T value, YAMLStyle::FloatFormat format = YAM
 		return ".nan";
 	} else if (std::isinf(value)) {
 		return value > 0 ? ".inf" : "-.inf";
-	} else {
-		static thread_local char buf[64];
-		const char *format_str;
-
-		switch (format) {
-			case YAMLStyle::FLOAT_SCIENTIFIC: {
-				// Manual scientific notation formatting
-				int exp = 0;
-				T mantissa = value;
-
-				if (mantissa != 0) {
-					while (std::abs(mantissa) >= 10.0) {
-						mantissa /= 10.0;
-						exp++;
-					}
-					while (std::abs(mantissa) < 1.0) {
-						mantissa *= 10.0;
-						exp--;
-					}
-				}
-
-				size_t len = snprintf(buf, sizeof(buf), "%.6fe%+d", mantissa, exp);
-				return ryml::csubstr(buf, len);
-			}
-			default:
-				format_str = "{}";
-				break;
-		}
-
-		size_t len = ryml::format(buf, format_str, value);
-		return ryml::csubstr(buf, len);
 	}
+
+	static thread_local char buf[64];
+	const char *format_str;
+
+	switch (format) {
+		case YAMLStyle::FLOAT_SCIENTIFIC: {
+			// Manual scientific notation formatting
+			int exp = 0;
+			T mantissa = value;
+
+			if (mantissa != 0) {
+				while (std::abs(mantissa) >= 10.0) {
+					mantissa /= 10.0;
+					exp++;
+				}
+				while (std::abs(mantissa) < 1.0) {
+					mantissa *= 10.0;
+					exp--;
+				}
+			}
+
+			size_t len = snprintf(buf, sizeof(buf), "%.6fe%+d", mantissa, exp);
+			return ryml::csubstr(buf, len);
+		}
+		default:
+			format_str = "{}";
+			break;
+	}
+
+	size_t len = ryml::format(buf, format_str, value);
+	return ryml::csubstr(buf, len);
 }
 
 } // namespace godot

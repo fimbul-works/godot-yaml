@@ -16,15 +16,21 @@ void Transform3DVariantConverter::encode(ryml::NodeRef &node, const Variant &v, 
 
 	style.apply_flow_style(node);
 
+	ryml::NodeRef basis_node;
+	ryml::NodeRef origin_node;
+
 	if (!style.is_valid() || style.get_container_form() != YAMLStyle::FORM_ARRAY) {
 		node |= ryml::MAP;
-		basis_converter->encode(node["basis"], transform.basis, style.get_child("basis"));
-		vec3_converter->encode(node["origin"], transform.origin, style.get_child("origin"));
+		basis_node = node["basis"];
+		origin_node = node["origin"];
 	} else {
 		node |= ryml::SEQ;
-		basis_converter->encode(node.append_child(), transform.basis, style.get_child("basis"));
-		vec3_converter->encode(node.append_child(), transform.origin, style.get_child("origin"));
+		basis_node = node.append_child();
+		origin_node = node.append_child();
 	}
+
+	basis_converter->encode(basis_node, transform.basis, style.has_child("basis") ? style.get_child("basis") : YAMLStyle::View());
+	vec3_converter->encode(origin_node, transform.origin, style.has_child("origin") ? style.get_child("origin") : YAMLStyle::View());
 }
 
 Variant Transform3DVariantConverter::decode(const ryml::ConstNodeRef &node, ParserContext *context) const {

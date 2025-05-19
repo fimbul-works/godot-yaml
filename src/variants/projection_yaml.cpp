@@ -15,24 +15,29 @@ void ProjectionVariantConverter::encode(ryml::NodeRef &node, const Variant &v, c
 
 	style.apply_flow_style(node);
 
-	YAMLStyle::View x_style = style.is_valid() ? style.get_child("x") : YAMLStyle::View();
-	YAMLStyle::View y_style = style.is_valid() ? style.get_child("y") : YAMLStyle::View();
-	YAMLStyle::View z_style = style.is_valid() ? style.get_child("z") : YAMLStyle::View();
-	YAMLStyle::View w_style = style.is_valid() ? style.get_child("w") : YAMLStyle::View();
+	ryml::NodeRef x_node;
+	ryml::NodeRef y_node;
+	ryml::NodeRef z_node;
+	ryml::NodeRef w_node;
 
 	if (!style.is_valid() || style.get_container_form() != YAMLStyle::FORM_ARRAY) {
 		node |= ryml::MAP;
-		vec4_converter->encode(node["x"], proj.columns[0], x_style);
-		vec4_converter->encode(node["y"], proj.columns[1], y_style);
-		vec4_converter->encode(node["z"], proj.columns[2], z_style);
-		vec4_converter->encode(node["w"], proj.columns[3], w_style);
+		x_node = node["x"];
+		y_node = node["y"];
+		z_node = node["z"];
+		w_node = node["w"];
 	} else {
 		node |= ryml::SEQ;
-		vec4_converter->encode(node.append_child(), proj.columns[0], x_style);
-		vec4_converter->encode(node.append_child(), proj.columns[1], y_style);
-		vec4_converter->encode(node.append_child(), proj.columns[2], z_style);
-		vec4_converter->encode(node.append_child(), proj.columns[3], w_style);
+		x_node = node.append_child();
+		y_node = node.append_child();
+		z_node = node.append_child();
+		w_node = node.append_child();
 	}
+
+	vec4_converter->encode(x_node, proj.columns[0], style.has_child("x") ? style.get_child("x") : YAMLStyle::View());
+	vec4_converter->encode(y_node, proj.columns[1], style.has_child("y") ? style.get_child("y") : YAMLStyle::View());
+	vec4_converter->encode(z_node, proj.columns[2], style.has_child("z") ? style.get_child("z") : YAMLStyle::View());
+	vec4_converter->encode(w_node, proj.columns[3], style.has_child("w") ? style.get_child("w") : YAMLStyle::View());
 }
 
 Variant ProjectionVariantConverter::decode(const ryml::ConstNodeRef &node, ParserContext *context) const {

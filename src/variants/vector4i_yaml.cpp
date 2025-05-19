@@ -13,26 +13,29 @@ void Vector4iVariantConverter::encode(ryml::NodeRef &node, const Variant &v, con
 		node |= ryml::FLOW_SL;
 	}
 
-	YAMLStyle::IntegerFormat x_format = style.has_child("x") ? style.get_child("x").get_integer_format() : style.get_integer_format();
-	YAMLStyle::IntegerFormat y_format = style.has_child("y") ? style.get_child("y").get_integer_format() : style.get_integer_format();
-	YAMLStyle::IntegerFormat z_format = style.has_child("z") ? style.get_child("z").get_integer_format() : style.get_integer_format();
-	YAMLStyle::IntegerFormat w_format = style.has_child("w") ? style.get_child("w").get_integer_format() : style.get_integer_format();
+	ryml::NodeRef x_node;
+	ryml::NodeRef y_node;
+	ryml::NodeRef z_node;
+	ryml::NodeRef w_node;
 
 	if (!style.is_valid() || style.get_container_form() != YAMLStyle::FORM_ARRAY) {
 		node |= ryml::MAP;
-
-		node["x"] << int_to_string(vec.x, x_format);
-		node["y"] << int_to_string(vec.y, y_format);
-		node["z"] << int_to_string(vec.z, z_format);
-		node["w"] << int_to_string(vec.w, w_format);
+		x_node = node["x"];
+		y_node = node["y"];
+		z_node = node["z"];
+		w_node = node["w"];
 	} else {
 		node |= ryml::SEQ;
-
-		node.append_child() << int_to_string(vec.x, x_format);
-		node.append_child() << int_to_string(vec.y, y_format);
-		node.append_child() << int_to_string(vec.z, z_format);
-		node.append_child() << int_to_string(vec.w, w_format);
+		x_node = node.append_child();
+		y_node = node.append_child();
+		z_node = node.append_child();
+		w_node = node.append_child();
 	}
+
+	x_node << int_to_string(vec.x, style.has_child("x") ? style.get_child("x").get_integer_format() : style.get_integer_format());
+	y_node << int_to_string(vec.y, style.has_child("y") ? style.get_child("y").get_integer_format() : style.get_integer_format());
+	z_node << int_to_string(vec.z, style.has_child("z") ? style.get_child("z").get_integer_format() : style.get_integer_format());
+	w_node << int_to_string(vec.w, style.has_child("w") ? style.get_child("w").get_integer_format() : style.get_integer_format());
 }
 
 Variant Vector4iVariantConverter::decode(const ryml::ConstNodeRef &node, ParserContext *context) const {

@@ -7,59 +7,38 @@ using namespace godot;
 void ColorVariantConverter::encode(ryml::NodeRef &node, const Variant &v, const YAMLStyle::View &style) const {
 	const Color color = v.operator Color();
 
-	if (style.get_container_form() == YAMLStyle::FORM_DICTIONARY) {
-		emit_as_map(node, color, style);
-	} else if (style.get_container_form() == YAMLStyle::FORM_ARRAY) {
-		emit_as_sequence(node, color, style);
+	if (style.get_container_form() == YAMLStyle::FORM_DICTIONARY || style.get_container_form() == YAMLStyle::FORM_ARRAY) {
+		ryml::NodeRef r_node;
+		ryml::NodeRef g_node;
+		ryml::NodeRef b_node;
+		ryml::NodeRef a_node;
+
+		if (style.get_container_form() == YAMLStyle::FORM_DICTIONARY) {
+			node |= ryml::MAP;
+			r_node = node["r"];
+			g_node = node["g"];
+			b_node = node["b"];
+			if (color.a < 1.0f) {
+				a_node = node["a"];
+			}
+		} else {
+			node |= ryml::SEQ;
+			r_node = node.append_child();
+			g_node = node.append_child();
+			b_node = node.append_child();
+			if (color.a < 1.0f) {
+				a_node = node.append_child();
+			}
+		}
+
+		r_node << float_to_string(color.r, style.has_child("r") ? style.get_child("r").get_float_format() : style.get_float_format());
+		g_node << float_to_string(color.g, style.has_child("g") ? style.get_child("g").get_float_format() : style.get_float_format());
+		b_node << float_to_string(color.b, style.has_child("b") ? style.get_child("b").get_float_format() : style.get_float_format());
+		if (color.a < 1.0f) {
+			a_node << float_to_string(color.a, style.has_child("a") ? style.get_child("a").get_float_format() : style.get_float_format());
+		}
 	} else {
 		node << store_string(color.to_html(color.a < 1.0f));
-	}
-}
-
-void ColorVariantConverter::emit_as_map(ryml::NodeRef &node, const Color &color, const YAMLStyle::View &style) const {
-	node |= ryml::MAP;
-
-	if (style.is_valid()) {
-		style.apply_flow_style(node);
-	} else {
-		node |= ryml::FLOW_SL;
-	}
-
-	YAMLStyle::FloatFormat r_format = style.has_child("r") ? style.get_child("r").get_float_format() : style.get_float_format();
-	YAMLStyle::FloatFormat g_format = style.has_child("g") ? style.get_child("g").get_float_format() : style.get_float_format();
-	YAMLStyle::FloatFormat b_format = style.has_child("b") ? style.get_child("b").get_float_format() : style.get_float_format();
-
-	node["r"] << float_to_string(color.r, r_format);
-	node["g"] << float_to_string(color.g, g_format);
-	node["b"] << float_to_string(color.b, b_format);
-
-	if (color.a < 1.0f) {
-		YAMLStyle::FloatFormat a_format = style.has_child("a") ? style.get_child("a").get_float_format() : style.get_float_format();
-		node["a"] << float_to_string(color.a, a_format);
-	}
-}
-
-void ColorVariantConverter::emit_as_sequence(ryml::NodeRef &node, const Color &color, const YAMLStyle::View &style) const {
-	node |= ryml::SEQ;
-
-	if (style.is_valid()) {
-		style.apply_flow_style(node);
-	} else {
-		// Default to flow-style
-		node |= ryml::FLOW_SL;
-	}
-
-	YAMLStyle::FloatFormat r_format = style.has_child("r") ? style.get_child("r").get_float_format() : style.get_float_format();
-	YAMLStyle::FloatFormat g_format = style.has_child("g") ? style.get_child("g").get_float_format() : style.get_float_format();
-	YAMLStyle::FloatFormat b_format = style.has_child("b") ? style.get_child("b").get_float_format() : style.get_float_format();
-
-	node.append_child() << float_to_string(color.r, r_format);
-	node.append_child() << float_to_string(color.g, g_format);
-	node.append_child() << float_to_string(color.b, b_format);
-
-	if (color.a < 1.0f) {
-		YAMLStyle::FloatFormat a_format = style.has_child("a") ? style.get_child("a").get_float_format() : style.get_float_format();
-		node.append_child() << float_to_string(color.a, a_format);
 	}
 }
 

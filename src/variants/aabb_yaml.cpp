@@ -16,15 +16,21 @@ void AABBVariantConverter::encode(ryml::NodeRef &node, const Variant &v, const Y
 
 	style.apply_flow_style(node);
 
+	ryml::NodeRef position_node;
+	ryml::NodeRef size_node;
+
 	if (!style.is_valid() || style.get_container_form() != YAMLStyle::FORM_ARRAY) {
 		node |= ryml::MAP;
-		vec3_converter->encode(node["position"], aabb.position, style.get_child("position"));
-		vec3_converter->encode(node["size"], aabb.size, style.get_child("size"));
+		position_node = node["position"];
+		size_node = node["size"];
 	} else {
 		node |= ryml::SEQ;
-		vec3_converter->encode(node.append_child(), aabb.position, style.get_child("position"));
-		vec3_converter->encode(node.append_child(), aabb.size, style.get_child("size"));
+		position_node = node.append_child();
+		size_node = node.append_child();
 	}
+
+	vec3_converter->encode(position_node, aabb.position, style.has_child("position") ? style.get_child("position") : YAMLStyle::View());
+	vec3_converter->encode(size_node, aabb.size, style.has_child("size") ? style.get_child("size") : YAMLStyle::View());
 }
 
 Variant AABBVariantConverter::decode(const ryml::ConstNodeRef &node, ParserContext *context) const {
