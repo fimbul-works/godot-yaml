@@ -10,13 +10,27 @@
 
 using namespace godot;
 
-YAML::Parser::Parser() {
+YAML::Parser::Parser(std::unordered_set<String, StringHasher, StringEqual> *shared_paths) {
 	callbacks.m_error = error_callback;
 	callbacks.m_user_data = this;
 	evt_handler = std::make_unique<ryml::EventHandlerTree>(callbacks);
 	ryml_parser = std::make_unique<ryml::Parser>(evt_handler.get(), ryml::ParserOptions().locations(true));
 
+	if (shared_paths) {
+		loading_yaml_paths = shared_paths;
+		owns_yaml_paths = false;
+	} else {
+		loading_yaml_paths = new std::unordered_set<String, StringHasher, StringEqual>();
+		owns_yaml_paths = true;
+	}
+
 	init_converters();
+}
+
+YAML::Parser::~Parser() {
+	if (owns_yaml_paths) {
+		delete loading_yaml_paths;
+	}
 }
 
 void YAML::Parser::init_converters() {
@@ -453,6 +467,26 @@ Variant YAML::Parser::parse_object_or_resource(const ryml::ConstNodeRef &node, c
 }
 
 Variant YAML::Parser::load_resource(const String &path, const ryml::ConstNodeRef &node) const {
+	if (path.ends_with(".yaml") || path.ends_with(".yml")) {
+		if (!security_view.is_path_allowed(path)) {
+			throw YAMLException(vformat("Resource path not allowed: %s", path), ryml_parser->location(node));
+		}
+
+		if (loading_yaml_paths->find(path) != loading_yaml_paths->end()) {
+			throw YAMLException(vformat("Cyclical YAML reference detected: %s", path), ryml_parser->location(node));
+		}
+
+		loading_yaml_paths->insert(path);
+		Ref<YAMLResult> result = YAML::parser_load_file(path, security_view, loading_yaml_paths);
+		loading_yaml_paths->erase(path);
+
+		if (result->has_error()) {
+			throw YAMLException(vformat("Failed to load YAML resource: %s - %s", path, result->get_error()), ryml_parser->location(node));
+		}
+
+		return result->get_data();
+	}
+
 	ResourceLoader *loader = ResourceLoader::get_singleton();
 	if (!loader) {
 		throw YAMLException("ResourceLoader singleton not available");

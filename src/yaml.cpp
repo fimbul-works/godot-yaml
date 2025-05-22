@@ -101,6 +101,37 @@ Ref<YAMLResult> YAML::load_file(const String &path, const Ref<YAMLSecurity> secu
 	return parse(content, security, detect_style);
 }
 
+Ref<YAMLResult> YAML::parser_load_file(const String &path, const YAMLSecurity::View &security_view, std::unordered_set<String, StringHasher, StringEqual> *loading_yaml_paths) {
+	if (!FileAccess::file_exists(path)) {
+		return YAMLResult::error("File not found '" + path + "': " + UtilityFunctions::error_string(ERR_FILE_NOT_FOUND));
+	}
+
+	// Open file for reading
+	Ref<FileAccess> file = FileAccess::open(path, FileAccess::READ);
+
+	if (!file.is_valid()) {
+		return YAMLResult::error("Failed to read '" + path + "': " + UtilityFunctions::error_string(ERR_FILE_BAD_PATH));
+	}
+
+	Error err = file->get_error();
+	if (err != OK) {
+		return YAMLResult::error("Failed to read '" + path + "': " + UtilityFunctions::error_string((int)err));
+	}
+
+	// Read the file content and check for errors
+	String content = file->get_as_text();
+
+	err = file->get_error();
+	file->close();
+
+	if (err != OK) {
+		return YAMLResult::error("Failed to read '" + path + "': " + UtilityFunctions::error_string((int)err));
+	}
+
+	Parser parser(loading_yaml_paths);
+	return parser.parse(content, security_view, false);
+}
+
 Ref<YAMLResult> YAML::save_file(const Variant &data, const String &path, const Ref<YAMLStyle> &style) {
 	Ref<YAMLResult> stringify_result = stringify(data, style);
 	if (stringify_result->has_error()) {

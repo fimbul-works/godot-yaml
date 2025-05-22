@@ -48,14 +48,14 @@ public:
 	/**
 	 * @brief Constructs a new Parser instance.
 	 *
-	 * Initializes the ryml parser and converter factory.
+	 * @param shared_paths Optional set of paths for shared YAML loading
 	 */
-	Parser();
+	Parser(std::unordered_set<String, StringHasher, StringEqual> *shared_paths = nullptr);
 
 	/**
-	 * @brief Destructor with default implementation.
+	 * @brief Destructor to clean up.
 	 */
-	~Parser() = default;
+	~Parser();
 
 	/**
 	 * @brief Non-copyable class.
@@ -96,6 +96,12 @@ private:
 	std::unique_ptr<ParserContext> context;
 	Ref<YAMLStyle> style;
 	bool detect_style = false;
+
+	/**
+	 * @brief Tracks currently loading YAML paths to detect cyclical references.
+	 */
+	std::unordered_set<String, StringHasher, StringEqual> *loading_yaml_paths;
+	bool owns_yaml_paths; // Whether this parser owns the set
 
 	/**
 	 * @brief Callback for error handling during parsing.

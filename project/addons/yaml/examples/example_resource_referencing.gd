@@ -17,6 +17,7 @@ func parsing_resources() -> void:
 	var yaml_text := """
 scene: !Resource 'res://addons/yaml/examples/assets/simple_scene.tscn'
 texture: !Resource 'res://icon.svg'
+yaml: !Resource 'res://addons/yaml/examples/data/simple.yaml'
 """
 	log_code_block(yaml_text)
 
@@ -42,10 +43,17 @@ texture: !Resource 'res://icon.svg'
 	else:
 		log_warning("Texture not loaded (might be missing file or security restrictions)")
 
+	if data.yaml is Dictionary:
+		log_success("Nested YAML loaded successfully")
+	else:
+		log_warning("Nested YAML not loaded (might be missing file or security restrictions)")
+
 	if LOG_VERBOSE:
 		log_info("Resource types:")
 		log_info("• scene type: " + str(typeof(data.scene)))
 		log_info("• texture type: " + str(typeof(data.texture)))
+		log_info("YAML resource:")
+		log_info(str(data.yaml))
 
 func stringifying_resources() -> void:
 	log_info("Stringifying a resource...")

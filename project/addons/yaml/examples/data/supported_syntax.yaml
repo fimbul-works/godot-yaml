@@ -41,14 +41,14 @@ fruits:
   - apple
   - banana
   - cherry
-  
+
 nested_array:
   - - nested
     - items
   - - more
     - nested
     - items
-  
+
 ## Dictionaries
 person:
   name: John Doe
@@ -97,4 +97,83 @@ game_object: !MyHeroClass
     - sword
     - shield
     - potion_healing
-  
+
+# Variants
+AABB: !AABB
+  position: {x: 1,y: 2,z: 4}
+  size: {x: 8,y: 16,z: 32}
+Basis: !Basis
+  x: {x: 1,y: 2,z: 4}
+  y: {x: 8,y: 16,z: 32}
+  z: {x: 64,y: 128,z: 256}
+Color: !Color ff804080
+NodePath: !NodePath "root/level/player"
+PackedByteArray: !PackedByteArray |
+  AQIECA==
+PackedColorArray: !PackedColorArray
+  - ff0000
+  - 00ff00
+  - 0000ff
+  - red
+  - green
+  - blue
+PackedFloat32Array: !PackedFloat32Array
+  - 3.1415927
+  - 6.2831855
+  - 12.566371
+PackedFloat64Array: !PackedFloat64Array
+  - 3.141592653589793
+  - 6.283185307179586
+  - 12.566370614359172
+PackedInt32Array: !PackedInt32Array
+  - 1
+  - 2
+  - 4
+  - 8
+PackedInt64Array: !PackedInt64Array
+  - 1
+  - 2
+  - 4
+  - 8
+PackedStringArray: !PackedStringArray
+  - "one"
+  - "one\ntwo"
+  - "one\ntwo\nthree"
+PackedVector2Array: !PackedVector2Array
+  - {x: 1,y: 2}
+  - {x: 4,y: 8}
+PackedVector3Array: !PackedVector3Array
+  - {x: 1,y: 2,z: 4}
+  - {x: 8,y: 16,z: 32}
+Plane: !Plane
+  normal: {x: 1,y: 2,z: 4}
+  d: 3.1415927
+Projection: !Projection
+  x: {x: 1,y: 2,z: 4,w: 8}
+  y: {x: 16,y: 32,z: 64,w: 128}
+  z: {x: 256,y: 512,z: 1024,w: 2048}
+  w: {x: 4096,y: 8192,z: 16384,w: 32768}
+Quaternion: !Quaternion {x: 3.1415927,y: 6.2831855,z: 12.566371,w: 25.132742}
+Rect2: !Rect2
+  position: {x: 1,y: 2}
+  size: {x: 4,y: 8}
+Rect2i: !Rect2i
+  position: {x: 2,y: 4}
+  size: {x: 8,y: 16}
+StringName: !StringName test_string_name
+Transform2D: !Transform2D
+  x: {x: -1,y: -8.742278e-08}
+  y: {x: 8.742278e-08,y: -1}
+  origin: {x: 6.2831855,y: 12.566371}
+Transform3D: !Transform3D
+  basis:
+    x: {x: 1,y: 0,z: 0}
+    y: {x: 0,y: 1,z: 0}
+    z: {x: 0,y: 0,z: 1}
+  origin: {x: 1,y: 2,z: 4}
+Vector2: !Vector2 {x: 1,y: 2}
+Vector2i: !Vector2i {x: 2,y: 4}
+Vector3: !Vector3 {x: 1,y: 2,z: 4}
+Vector3i: !Vector3i {x: 2,y: 4,z: 8}
+Vector4: !Vector4 {x: 1,y: 2,z: 4,w: 8}
+Vector4i: !Vector4i {x: 2,y: 4,z: 8,w: 16}

@@ -103,6 +103,15 @@ public:
 	static Ref<YAMLResult> load_file(const String &path, const Ref<YAMLSecurity> security = nullptr, const bool detect_style = false);
 
 	/**
+	 * @brief Loads and parses a YAML file inside an existing parser context.
+	 *
+	 * @param path Path to the YAML file.
+	 * @param security Optional security settings for resource loading.
+	 * @return Ref<YAMLResult> Result object containing parsed data or error information.
+	 */
+	static Ref<YAMLResult> parser_load_file(const String &path, const YAMLSecurity::View &security_view, std::unordered_set<String, StringHasher, StringEqual> *loading_yaml_paths);
+
+	/**
 	 * @brief Serializes a Godot Variant and saves it to a YAML file.
 	 *
 	 * @param data The Variant to convert to YAML.

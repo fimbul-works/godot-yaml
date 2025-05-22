@@ -9,6 +9,7 @@ func test_parsing_resources() -> void:
 	var yaml_text := """
 scene: !Resource 'res://addons/yaml/examples/assets/simple_scene.tscn'
 texture: !Resource 'res://icon.svg'
+YAML: !Resource 'res://addons/yaml/examples/data/simple.yaml'
 """
 	var parse_result := YAML.parse(yaml_text)
 	expect(!parse_result.has_error(), parse_result.get_error())
@@ -28,3 +29,10 @@ func test_stringifying_resources() -> void:
 
 	var invalid_result := YAML.stringify(local_texture)
 	expect_equal(invalid_result.get_error_message(), "Cannot serialize local Resource")
+
+func test_cyclical_references() -> void:
+	var yaml_text := """
+YAML: !Resource 'res://testing/data/cyclical_a.yaml'
+"""
+	var parse_result := YAML.parse(yaml_text)
+	expect(parse_result.has_error(), "Parser should detect cyclical references")
