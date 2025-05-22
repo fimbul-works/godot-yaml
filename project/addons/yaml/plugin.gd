@@ -7,8 +7,9 @@ const ShortcutsClass = preload("res://addons/yaml/editor/editor_shortcuts.gd")
 var yaml_editor_instance
 
 func _enter_tree() -> void:
-	# Initialize YAMLFileSystem singleton
-	YAMLFileSystem.get_singleton()
+	# Initialize YAMLFileSystem singleton and pass editor interface
+	var file_system = YAMLFileSystem.get_singleton()
+	file_system.set_editor_interface(get_editor_interface())
 
 	# Create the instance
 	yaml_editor_instance = YAMLEditorPanel.instantiate()
@@ -77,8 +78,18 @@ func _handles(object) -> bool:
 
 func _edit(object) -> void:
 	if object and yaml_editor_instance:
+		var file_path = object.resource_path
+
+		# Check if file is already open before trying to open it
+		if yaml_editor_instance.file_manager.has_document(file_path):
+			# File is already open, just switch to it
+			var document = yaml_editor_instance.file_manager.get_document(file_path)
+			yaml_editor_instance.file_manager.set_current_document(document)
+		else:
+			# File is not open, open it normally
+			yaml_editor_instance.file_manager.open_file(file_path)
+
 		_make_visible(true)
-		yaml_editor_instance.file_manager.open_file(object.resource_path)
 
 func _get_plugin_name() -> String:
 	return "YAML"

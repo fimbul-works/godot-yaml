@@ -7,6 +7,9 @@ signal file_updated(path)
 signal file_closed(path)
 signal file_renamed(old_path, new_path)
 
+# Reference to editor interface for filesystem operations
+var editor_interface: EditorInterface
+
 # Singleton pattern
 static var _instance: YAMLFileSystem
 static func get_singleton() -> YAMLFileSystem:
@@ -23,8 +26,14 @@ func _init() -> void:
 	# Mark as persistent so it doesn't get destroyed on scene changes
 	process_mode = Node.PROCESS_MODE_ALWAYS
 
+# Set the editor interface reference
+func set_editor_interface(p_editor_interface: EditorInterface) -> void:
+	editor_interface = p_editor_interface
+
 # File operations with signals
 func save_file(path: String, content: String) -> Error:
+	var was_new_file = not file_exists(path)
+
 	var file := FileAccess.open(path, FileAccess.WRITE)
 	if not file:
 		return FileAccess.get_open_error()
@@ -32,6 +41,11 @@ func save_file(path: String, content: String) -> Error:
 	file.store_string(_convert_tabs_to_spaces(content))
 	file_saved.emit(path)
 	file_updated.emit(path)
+
+	# If this was a new file, notify Godot's filesystem
+	if was_new_file and editor_interface:
+		call_deferred("_refresh_filesystem", path)
+
 	return OK
 
 func read_file(path: String) -> Variant:
@@ -82,6 +96,10 @@ func find_file_in_filesystem(dir: EditorFileSystemDirectory, filename: String) -
 			return result
 
 	return ""
+
+func _refresh_filesystem(path: String) -> void:
+	if editor_interface:
+		editor_interface.get_resource_filesystem().update_file(path)
 
 func _convert_tabs_to_spaces(yaml_content: String) -> String:
 	var lines = yaml_content.split("\n")

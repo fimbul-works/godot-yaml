@@ -60,39 +60,56 @@ func setup(p_file_list: YAMLEditorFileList, p_code_editor: YAMLCodeEditor) -> vo
 	file_list.file_context_requested.connect(_on_file_context_requested)
 
 func create_document(path: String, content: String = "") -> YAMLEditorDocument:
-	var document := YAMLEditorDocument.new(path, content)
+	var normalized_path = _normalize_path(path)
+
+	# Check if document already exists with normalized path
+	if documents.has(normalized_path):
+		return documents[normalized_path]
+
+	var document := YAMLEditorDocument.new(normalized_path, content)
 
 	# Connect document signals
 	document.content_changed.connect(_on_document_content_changed)
 	document.modified_changed.connect(_on_document_modified_changed)
 
 	# Store document
-	documents[path] = document
+	documents[normalized_path] = document
 	document_created.emit(document)
 
 	return document
 
 func open_file(path: String) -> void:
+	var normalized_path = _normalize_path(path)
+
 	# Check if already open
-	if documents.has(path):
-		set_current_document(documents[path])
+	if documents.has(normalized_path):
+		set_current_document(documents[normalized_path])
 		return
 
+	# Look for any document with the same base filename
+	var filename = normalized_path.get_file()
+	for existing_path in documents.keys():
+		if existing_path.get_file() == filename and existing_path != normalized_path:
+			# Check if they point to the same actual file
+			if _paths_point_to_same_file(normalized_path, existing_path):
+				set_current_document(documents[existing_path])
+				return
+
 	# Use the file system singleton to read the file
-	var content := file_system.read_file(path)
+	var content := file_system.read_file(normalized_path)
 	if typeof(content) == TYPE_INT:  # Error code
-		push_error("Could not open file '%s': %s" % [path, error_string(content)])
+		push_error("Could not open file '%s': %s" % [normalized_path, error_string(content)])
 		return
 
 	# Create new document
-	var document := create_document(path, content)
+	var document := create_document(normalized_path, content)
 	document.mark_saved()  # Initial state is saved
 
 	# Switch to the new document
 	set_current_document(document)
 
 	# Notify the file system
-	file_system.notify_file_opened(path)
+	file_system.notify_file_opened(normalized_path)
 
 func close_document(document: YAMLEditorDocument) -> bool:
 	if document == null:
@@ -130,7 +147,17 @@ func close_document(document: YAMLEditorDocument) -> bool:
 	return _close_document_internal(document)
 
 func _close_document_internal(document: YAMLEditorDocument) -> bool:
-	if document == null or not documents.has(document.path):
+	if document == null:
+		return false
+
+	# Find the document in our dictionary
+	var path_to_remove = ""
+	for path in documents.keys():
+		if documents[path] == document:
+			path_to_remove = path
+			break
+
+	if path_to_remove.is_empty():
 		return false
 
 	# Notify document is being closed
@@ -189,21 +216,28 @@ func save_document_as(document: YAMLEditorDocument, new_path: String) -> bool:
 	if document == null or new_path.is_empty():
 		return false
 
+	var normalized_new_path = _normalize_path(new_path)
+
+	# Check if we're trying to save to a path that's already open
+	if documents.has(normalized_new_path) and documents[normalized_new_path] != document:
+		push_error("Cannot save as '%s' - file is already open" % normalized_new_path)
+		return false
+
 	# Remember the old path
 	var old_path := document.path
 
 	# Update document path
-	document.path = new_path
+	document.path = normalized_new_path
 
 	# Update the documents dictionary
-	if old_path != new_path:
+	if old_path != normalized_new_path:
 		documents.erase(old_path)
-		documents[new_path] = document
+		documents[normalized_new_path] = document
 
 	# Save the document
 	if save_document(document):
 		# If old path was temporary, clean up
-		if old_path != new_path and old_path.begins_with("untitled"):
+		if old_path != normalized_new_path  and old_path.begins_with("untitled"):
 			file_system.notify_file_closed(old_path)
 
 		# Update UI
@@ -215,9 +249,9 @@ func save_document_as(document: YAMLEditorDocument, new_path: String) -> bool:
 		return true
 
 	# Restore old path if save failed
-	if old_path != new_path:
+	if old_path != normalized_new_path:
 		document.path = old_path
-		documents.erase(new_path)
+		documents.erase(normalized_new_path)
 		documents[old_path] = document
 
 	return false
@@ -273,6 +307,34 @@ func update_document_content(document: YAMLEditorDocument, new_content: String) 
 
 	document.set_content(new_content, caret_line, caret_column)
 
+func _normalize_path(path: String) -> String:
+	# Convert to absolute path and normalize
+	var normalized = path
+
+	# Handle different path formats
+	if normalized.begins_with("res://"):
+		normalized = ProjectSettings.globalize_path(normalized)
+
+	# Convert to canonical form
+	normalized = normalized.simplify_path()
+
+	# Convert back to res:// format if it was originally a project path
+	if path.begins_with("res://"):
+		normalized = ProjectSettings.localize_path(normalized)
+
+	return normalized
+
+func _paths_point_to_same_file(path1: String, path2: String) -> bool:
+	# For project files, compare the res:// paths
+	if path1.begins_with("res://") and path2.begins_with("res://"):
+		return path1 == path2
+
+	# For absolute paths, normalize and compare
+	var abs_path1 = ProjectSettings.globalize_path(path1) if path1.begins_with("res://") else path1
+	var abs_path2 = ProjectSettings.globalize_path(path2) if path2.begins_with("res://") else path2
+
+	return abs_path1.simplify_path() == abs_path2.simplify_path()
+
 func _on_document_content_changed(document: YAMLEditorDocument) -> void:
 	# Update UI if this is the current document
 	if document == current_document:
@@ -301,16 +363,24 @@ func update_ui() -> void:
 	file_list.update_files(file_data, current_path)
 
 func _on_file_selected(path: String) -> void:
-	if path.is_empty() or not documents.has(path):
+	if path.is_empty():
 		return
 
-	set_current_document(documents[path])
+	var normalized_path = _normalize_path(path)
+	if not documents.has(normalized_path):
+		return
+
+	set_current_document(documents[normalized_path])
 
 func _on_file_context_requested(path: String, at_position: Vector2) -> void:
-	if path.is_empty() or not documents.has(path):
+	if path.is_empty():
 		return
 
-	set_current_document(documents[path])
+	var normalized_path = _normalize_path(path)
+	if not documents.has(normalized_path):
+		return
+
+	set_current_document(documents[normalized_path])
 
 	# Calculate the global position for the popup
 	var global_rect := Rect2(file_list.get_global_mouse_position(), Vector2.ZERO)
@@ -318,10 +388,14 @@ func _on_file_context_requested(path: String, at_position: Vector2) -> void:
 
 func _on_file_popup_menu_id_pressed(id: int) -> void:
 	var path := file_list.get_selected_file_path()
-	if path.is_empty() or not documents.has(path):
+	if path.is_empty():
 		return
 
-	var document: YAMLEditorDocument = documents[path]
+	var normalized_path = _normalize_path(path)
+	if not documents.has(normalized_path):
+		return
+
+	var document: YAMLEditorDocument = documents[normalized_path]
 
 	match id:
 		0:  # Save
@@ -336,23 +410,25 @@ func _on_file_popup_menu_id_pressed(id: int) -> void:
 				EditorInterface.get_file_system_dock().navigate_to_path(document.path)
 
 func _on_external_file_updated(path: String) -> void:
+	var normalized_path = _normalize_path(path)
+
 	# Only process if the file is open and it's a YAML file
-	if documents.has(path) and file_system.is_yaml_file(path):
+	if documents.has(normalized_path) and file_system.is_yaml_file(normalized_path):
 		# Check if we just saved this file ourselves
-		if recently_saved_files.has(path):
-			var save_time: int = recently_saved_files[path]
+		if recently_saved_files.has(normalized_path):
+			var save_time: int = recently_saved_files[normalized_path]
 			var current_time := Time.get_unix_time_from_system()
 
 			# If saved less than 1 second ago, ignore this update
 			if current_time - save_time < 1.0:
 				return
 
-		var document: YAMLEditorDocument = documents[path]
+		var document: YAMLEditorDocument = documents[normalized_path]
 
 		# Check if the document has unsaved changes
 		if not document.is_modified:
 			# Document is not modified locally, safe to reload
-			var content = file_system.read_file(path)
+			var content = file_system.read_file(normalized_path)
 			if typeof(content) != TYPE_INT:  # Not an error
 				# Update document content
 				document.content = content
@@ -417,19 +493,20 @@ func _on_ignore_update_timer_timeout() -> void:
 		recently_saved_files.erase(path)
 
 func _on_file_renamed(old_path: String, new_path: String) -> void:
-	# If we have this document open, update our references
-	if documents.has(old_path):
-		var document: YAMLEditorDocument = documents[old_path]
-		document.path = new_path
+	var normalized_old_path = _normalize_path(old_path)
+	var normalized_new_path = _normalize_path(new_path)
 
-		documents.erase(old_path)
-		documents[new_path] = document
+	# If we have this document open, update our references
+	if documents.has(normalized_old_path):
+		var document: YAMLEditorDocument = documents[normalized_old_path]
+		document.path = normalized_new_path
+
+		documents.erase(normalized_old_path)
+		documents[normalized_new_path] = document
 
 		update_ui()
 
 func handle_filesystem_change() -> void:
-	# Handle file renaming/moving
-
 	# Check if any of our open res:// files no longer exist
 	var missing_files: PackedStringArray = []
 
@@ -447,10 +524,12 @@ func handle_filesystem_change() -> void:
 		var new_path := file_system.find_file_in_filesystem(filesystem_root, filename)
 
 		if not new_path.is_empty():
+			var normalized_new_path = _normalize_path(new_path)
+
 			# Found potential match - update the document path
-			document.path = new_path
+			document.path = normalized_new_path
 			documents.erase(old_path)
-			documents[new_path] = document
+			documents[normalized_new_path] = document
 
 			# If this is the current document, emit signal
 			if document == current_document:
@@ -461,8 +540,8 @@ func handle_filesystem_change() -> void:
 
 			# Notify file system
 			file_system.notify_file_closed(old_path)
-			file_system.notify_file_opened(new_path)
-			file_system.notify_file_renamed(old_path, new_path)
+			file_system.notify_file_opened(normalized_new_path)
+			file_system.notify_file_renamed(old_path, normalized_new_path)
 		else:
 			# Keep it open but mark as potentially moved/deleted to avoid losing unsaved changes
 			pass
