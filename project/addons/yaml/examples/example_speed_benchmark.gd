@@ -37,9 +37,6 @@ func load_yaml_file_benchmark() -> void:
 		return
 
 	yaml_input = file.get_as_text()
-	# Replace tabs with spaces for consistent parsing
-	yaml_input = yaml_input.replace("\t", "    ")
-
 	log_success("File loaded, size: " + str(yaml_input.length()) + " characters")
 
 	if LOG_VERBOSE:
