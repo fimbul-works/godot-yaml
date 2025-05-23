@@ -284,6 +284,11 @@ YAMLStyle::ContainerForm YAMLStyle::get_container_form() const {
 
 Ref<YAMLStyle> YAMLStyle::set_flow_style(FlowStyle style) {
 	flow_style = style;
+	// Block scalar styles are not compatible with flow styles
+	if (flow_style == FLOW_SINGLE && is_block_style()) {
+		UtilityFunctions::push_warning("Flow style cannot be used with block string styles");
+		set_string_style(STRING_ANY);
+	}
 	return Ref<YAMLStyle>(this);
 }
 
@@ -293,6 +298,11 @@ YAMLStyle::FlowStyle YAMLStyle::get_flow_style() const {
 
 Ref<YAMLStyle> YAMLStyle::set_string_style(StringStyle style) {
 	string_style = style;
+	// Block scalar styles are not compatible with flow styles
+	if (flow_style == FLOW_SINGLE && is_block_style()) {
+		UtilityFunctions::push_warning("Flow style cannot be used with block string styles");
+		set_flow_style(FLOW_ANY);
+	}
 	return Ref<YAMLStyle>(this);
 }
 
