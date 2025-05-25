@@ -1,5 +1,15 @@
 # Godot YAML Changelog
 
+## Version 1.1.0
+
+- YAML files can now be loaded with the `!Resource` tag, allowing modular composition
+- Fixes:
+    - Force YAML indentation to always use spaces instead of tabs
+    - The file system should now update properly when saving a new YAML file
+    - Fixed tab indentation not working correctly in the YAML editor
+    - Fixed Packed Array types not detecting array templates
+    - Prevent duplicates in YAML editor file list
+
 ## Version 1.0.0
 
 The first major version of Godot YAML includes many improvements, and some breaking changes. See the [migration guide](#migration-guide-from-version-0121-to-100) for details.

@@ -6,7 +6,8 @@ A high-performance YAML parsing and serialization plugin for Godot 4.3, powered 
 
 ## Version History
 
-- **1.0.0** (Current) - First major release with custom YAML editor, streamlined API, and several fixes. See [the full changelog and a migration guide](./CHANGELOG.md#version-100) for details
+- **1.1.0** (Current) - YAML files can now be loaded with the `!Resource` tag, and some fixes
+- **1.0.0** - First major release with custom YAML editor, streamlined API, and several fixes. See [the full changelog and a migration guide](./CHANGELOG.md#version-100) for details
 - **0.12.1** - Build support for Linux (x86 64-bit)
 - **0.12.0** - Performance optimizations, bug fixes, and comprehensive tests for all variant types
 - **0.11.0** - Added support for parsing multiple documents, and error handling for custom class deserialization
