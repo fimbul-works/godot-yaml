@@ -25,6 +25,7 @@ func _ready() -> void:
 
 	# Do not lose selection when focus is lost
 	deselect_on_focus_loss_enabled = false
+	set_focus_mode(Control.FOCUS_ALL)
 
 	# Configure YAML-specific settings
 	set_indent_size(2)
@@ -46,6 +47,7 @@ func _ready() -> void:
 
 	# Connect signals
 	text_changed.connect(_on_text_changed)
+	gui_input.connect(_on_gui_input_focus)
 
 	# Register YAML code completion
 	register_yaml_code_completion()
@@ -69,6 +71,11 @@ func _on_snapshot_debounce_timeout() -> void:
 
 	# Request validation
 	validation_requested.emit()
+
+func _on_gui_input_focus(event: InputEvent) -> void:
+	# Grab focus when clicked
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		grab_focus()
 
 func cut_selection() -> void:
 	if has_selection():
@@ -142,6 +149,20 @@ func _update_font_size() -> void:
 	var new_size = int(default_font_size * zoom_level)
 	add_theme_font_size_override("font_size", new_size)
 
+func _unhandled_key_input(event: InputEvent) -> void:
+	# Handle tab key before focus system gets it
+	if event is InputEventKey and event.pressed and has_focus():
+		match event.keycode:
+			KEY_TAB:
+				if event.shift_pressed:
+					# Handle Shift+Tab for unindent
+					_handle_unindent()
+				else:
+					# Handle Tab for indent
+					_handle_indent()
+				get_viewport().set_input_as_handled()
+				return
+
 func _gui_input(event: InputEvent) -> void:
 	# Handle shortcuts for saving/closing
 	if event is InputEventKey and event.pressed:
@@ -151,10 +172,6 @@ func _gui_input(event: InputEvent) -> void:
 				get_viewport().set_input_as_handled()
 			KEY_MASK_CTRL | KEY_W:
 				close_requested.emit()
-				get_viewport().set_input_as_handled()
-			KEY_TAB:
-				# Smart indent for YAML
-				_handle_indent()
 				get_viewport().set_input_as_handled()
 			KEY_ENTER, KEY_KP_ENTER:
 				# Handle auto-continuation of YAML structures
@@ -213,7 +230,7 @@ func _restore_scroll_position(v_scroll: float, h_scroll: float) -> void:
 func _handle_indent() -> void:
 	# Get current line and text
 	var line := get_caret_line()
-	var text := get_line(line)
+	var line_text := get_line(line)
 
 	# Get selection so we can handle multi-line indentation
 	var selection_active := has_selection()
@@ -227,8 +244,40 @@ func _handle_indent() -> void:
 			set_line(i, "  " + get_line(i))
 		end_complex_operation()
 	else:
-		# Simple indent
+		# Simple indent - insert 2 spaces at caret position
 		insert_text_at_caret("  ")
+
+	# Trigger text changed to update the document
+	text_changed.emit()
+
+func _handle_unindent() -> void:
+	# Get current line and text
+	var line := get_caret_line()
+	var text := get_line(line)
+
+	# Get selection so we can handle multi-line unindentation
+	var selection_active := has_selection()
+	var selection_from := get_selection_from_line()
+	var selection_to := get_selection_to_line()
+
+	if selection_active:
+		# Unindent multiple lines
+		begin_complex_operation()
+		for i in range(selection_from, selection_to + 1):
+			var line_text := get_line(i)
+			if line_text.begins_with("  "):
+				set_line(i, line_text.substr(2))
+			elif line_text.begins_with(" "):
+				set_line(i, line_text.substr(1))
+		end_complex_operation()
+	else:
+		# Simple unindent - remove up to 2 spaces from beginning of line
+		if text.begins_with("  "):
+			set_line(line, text.substr(2))
+			set_caret_column(max(0, get_caret_column() - 2))
+		elif text.begins_with(" "):
+			set_line(line, text.substr(1))
+			set_caret_column(max(0, get_caret_column() - 1))
 
 func _handle_enter_key() -> void:
 	var line := get_caret_line()
