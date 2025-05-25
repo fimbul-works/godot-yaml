@@ -50,8 +50,10 @@ Variant PackedInt64ArrayVariantConverter::decode(const ryml::ConstNodeRef &node,
 
 	const bool detect_style = context->detect_style;
 
+	Ref<YAMLStyle> style;
+
 	if (detect_style) {
-		Ref<YAMLStyle> style = context->current_style();
+		style = context->current_style();
 		YAMLStyle::detect_flow_style(node, style);
 		style->set_container_form(YAMLStyle::FORM_ARRAY);
 	}
@@ -67,6 +69,12 @@ Variant PackedInt64ArrayVariantConverter::decode(const ryml::ConstNodeRef &node,
 
 			if (detect_style) {
 				context->current_style()->set_integer_format(int_format);
+
+				// First element style is used for template
+				if (i == 0) {
+					style->set_child("_template", context->current_style()->clone());
+				}
+
 				context->pop_style();
 			}
 		} catch (const YAMLException &e) {
@@ -74,6 +82,10 @@ Variant PackedInt64ArrayVariantConverter::decode(const ryml::ConstNodeRef &node,
 		} catch (const std::exception &e) {
 			throw YAMLException(vformat("Failed to decode PackedInt64Array value at index %d: %s", i, e.what()), context->get_ryml_parser()->location(node[i]));
 		}
+	}
+
+	if (detect_style) {
+		context->current_style()->simplify();
 	}
 
 	return array;

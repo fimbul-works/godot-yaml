@@ -55,8 +55,10 @@ Variant PackedVector3ArrayVariantConverter::decode(const ryml::ConstNodeRef &nod
 
 	const bool detect_style = context->detect_style;
 
+	Ref<YAMLStyle> style;
+
 	if (detect_style) {
-		Ref<YAMLStyle> style = context->current_style();
+		style = context->current_style();
 		YAMLStyle::detect_flow_style(node, style);
 		style->set_container_form(YAMLStyle::FORM_ARRAY);
 	}
@@ -72,6 +74,11 @@ Variant PackedVector3ArrayVariantConverter::decode(const ryml::ConstNodeRef &nod
 				array.set(i, vec3);
 
 				if (detect_style) {
+					// First element style is used for template
+					if (i == 0) {
+						style->set_child("_template", context->current_style()->clone());
+					}
+
 					context->pop_style();
 				}
 			} catch (const YAMLException &e) {
@@ -80,6 +87,10 @@ Variant PackedVector3ArrayVariantConverter::decode(const ryml::ConstNodeRef &nod
 				throw YAMLException(vformat("Failed to decode PackedVector3Array value at index %d: %s", i, e.what()), context->get_ryml_parser()->location(node[i]));
 			}
 		}
+	}
+
+	if (detect_style) {
+		context->current_style()->simplify();
 	}
 
 	return array;
