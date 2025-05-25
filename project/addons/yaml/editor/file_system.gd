@@ -38,7 +38,7 @@ func save_file(path: String, content: String) -> Error:
 	if not file:
 		return FileAccess.get_open_error()
 
-	file.store_string(_convert_tabs_to_spaces(content))
+	file.store_string(content)
 	file_saved.emit(path)
 	file_updated.emit(path)
 
@@ -61,8 +61,7 @@ func file_exists(path: String) -> bool:
 
 # Utility to check if a path is a YAML file
 func is_yaml_file(path: String) -> bool:
-	var extension := path.get_extension().to_lower()
-	return extension in ["yaml", "yml"]
+	return path.get_extension().to_lower() in ["yaml", "yml"]
 
 # For external updates, allow code to manually trigger the signal
 func notify_file_updated(path: String) -> void:
@@ -100,22 +99,3 @@ func find_file_in_filesystem(dir: EditorFileSystemDirectory, filename: String) -
 func _refresh_filesystem(path: String) -> void:
 	if editor_interface:
 		editor_interface.get_resource_filesystem().update_file(path)
-
-func _convert_tabs_to_spaces(yaml_content: String) -> String:
-	var lines = yaml_content.split("\n")
-	var converted_lines = []
-
-	for line in lines:
-		var converted_line = ""
-		var i = 0
-
-		# Process leading tabs
-		while i < line.length() and line[i] == "\t":
-			converted_line += "    "  # Replace each tab with 4 spaces
-			i += 1
-
-		# Add the rest of the line unchanged
-		converted_line += line.substr(i)
-		converted_lines.append(converted_line)
-
-	return "\n".join(converted_lines)

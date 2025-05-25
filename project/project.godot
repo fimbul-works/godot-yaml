@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="YAML GDExtension Demo"
-run/main_scene="res://addons/yaml/yaml_examples.tscn"
+run/main_scene="res://addons/yaml/examples/yaml_examples.tscn"
 config/features=PackedStringArray("4.3", "GL Compatibility")
 config/icon="res://icon.svg"
 

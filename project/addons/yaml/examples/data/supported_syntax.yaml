@@ -44,10 +44,10 @@ fruits:
 
 nested_array:
   - - nested
-	- items
+    - items
   - - more
-	- nested
-	- items
+    - nested
+    - items
 
 ## Dictionaries
 person:
@@ -94,9 +94,9 @@ game_object: !MyHeroClass
   name: "Hero"
   health: 100
   inventory:
-	- sword
-	- shield
-	- potion_healing
+    - sword
+    - shield
+    - potion_healing
 
 # Variants
 AABB: !AABB
@@ -167,9 +167,9 @@ Transform2D: !Transform2D
   origin: {x: 6.2831855,y: 12.566371}
 Transform3D: !Transform3D
   basis:
-	x: {x: 1,y: 0,z: 0}
-	y: {x: 0,y: 1,z: 0}
-	z: {x: 0,y: 0,z: 1}
+    x: {x: 1,y: 0,z: 0}
+    y: {x: 0,y: 1,z: 0}
+    z: {x: 0,y: 0,z: 1}
   origin: {x: 1,y: 2,z: 4}
 Vector2: !Vector2 {x: 1,y: 2}
 Vector2i: !Vector2i {x: 2,y: 4}
