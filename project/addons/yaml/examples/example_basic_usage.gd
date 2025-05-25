@@ -32,7 +32,7 @@ func validate_yaml_string() -> void:
 	var result := YAML.validate(yaml_text)
 
 	if result.has_error():
-		log_error("Validation failed: " + result.get_error_message())
+		log_error("Validation failed: " + result.get_error())
 		return
 
 	log_success("YAML is valid!")
@@ -42,7 +42,7 @@ func parse_yaml_text() -> void:
 	var result := YAML.parse(yaml_text)
 
 	if result.has_error():
-		log_error("Parse failed: " + result.get_error_message())
+		log_error("Parse failed: " + result.get_error())
 		return
 
 	data = result.get_data()
@@ -65,7 +65,7 @@ func stringify_data() -> void:
 	var result := YAML.stringify(data)
 
 	if result.has_error():
-		log_error("Stringify failed: " + result.get_error_message())
+		log_error("Stringify failed: " + result.get_error())
 		return
 
 	log_success("Data converted to YAML successfully")
@@ -88,7 +88,7 @@ func validate_file() -> void:
 	var result := YAML.validate_file(YAML_FILE)
 
 	if result.has_error():
-		log_error("File validation failed: " + result.get_error_message())
+		log_error("File validation failed: " + result.get_error())
 		return
 
 	log_success("YAML file is valid")
@@ -98,7 +98,7 @@ func load_file() -> void:
 	var result := YAML.load_file(YAML_FILE)
 
 	if result.has_error():
-		log_error("File loading failed: " + result.get_error_message())
+		log_error("File loading failed: " + result.get_error())
 		return
 
 	data = result.get_data()
@@ -117,7 +117,7 @@ func save_file() -> void:
 	var result := YAML.save_file(data, OUTPUT_FILE)
 
 	if result.has_error():
-		log_error("File saving failed: " + result.get_error_message())
+		log_error("File saving failed: " + result.get_error())
 		return
 
 	log_success("Data saved to YAML file successfully")
@@ -130,7 +130,7 @@ func load_saved_file() -> void:
 	var result := YAML.load_file(OUTPUT_FILE)
 
 	if result.has_error():
-		log_error("File loading failed: " + result.get_error_message())
+		log_error("File loading failed: " + result.get_error())
 		return
 
 	var loaded_data = result.get_data()

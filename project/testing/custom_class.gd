@@ -22,7 +22,7 @@ func test_custom_node_class() -> void:
 
 	# Stringify to YAML
 	var str_result := YAML.stringify(object)
-	expect(!str_result.has_error(), str_result.get_error_message())
+	expect(!str_result.has_error(), str_result.get_error())
 
 	var yaml_text: String = str_result.get_data()
 	if LOG_VERBOSE:
@@ -30,7 +30,7 @@ func test_custom_node_class() -> void:
 
 	# Parse YAML string
 	var parse_result := YAML.parse(yaml_text)
-	expect(!parse_result.has_error(), parse_result.get_error_message())
+	expect(!parse_result.has_error(), parse_result.get_error())
 
 	var obj: MyCustomClass = parse_result.get_data()
 
@@ -57,7 +57,7 @@ func test_custom_string_class() -> void:
 	var object = MyStringClass.new("hello world")
 
 	var str_result := YAML.stringify(object)
-	expect(!str_result.has_error(), str_result.get_error_message())
+	expect(!str_result.has_error(), str_result.get_error())
 
 	var text: String = str_result.get_data()
 	if LOG_VERBOSE:
@@ -67,13 +67,13 @@ func test_custom_string_class() -> void:
 	expect_equal(text, "!MyStringClass hello world\n")
 
 	var parse_result := YAML.parse(text)
-	expect(!parse_result.has_error(), parse_result.get_error_message())
+	expect(!parse_result.has_error(), parse_result.get_error())
 
 func test_custom_resource() -> void:	# Custom (Resource) class
 	var resource = MyCustomResource.new("I am resource", 42, 69.69)
 
 	var str_result := YAML.stringify(resource)
-	expect(!str_result.has_error(), str_result.get_error_message())
+	expect(!str_result.has_error(), str_result.get_error())
 
 	var yaml_text: String = str_result.get_data()
 
@@ -82,7 +82,7 @@ func test_custom_resource() -> void:	# Custom (Resource) class
 
 	# Parse YAML string
 	var parse_result := YAML.parse(yaml_text)
-	expect(!parse_result.has_error(), parse_result.get_error_message())
+	expect(!parse_result.has_error(), parse_result.get_error())
 
 func test_custom_resource_errors() -> void:
 	var yaml_text = """

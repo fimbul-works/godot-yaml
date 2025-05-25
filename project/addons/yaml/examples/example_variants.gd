@@ -16,13 +16,13 @@ func run_examples():
 	print_rich("\n[b]Testing Full Dictionary Conversion:[/b]")
 	var yaml_result := YAML.stringify(variants)
 	if yaml_result.has_error():
-		print_rich("[color=red]Dictionary stringify failed: %s[/color]" % yaml_result.get_error_message())
+		print_rich("[color=red]Dictionary stringify failed: %s[/color]" % yaml_result.get_error())
 		return
 
 	var yaml_text = yaml_result.get_data()
 	var parse_result := YAML.parse(yaml_text)
 	if parse_result.has_error():
-		print_rich("[color=red]Dictionary parse failed: %s[/color]" % parse_result.get_error_message())
+		print_rich("[color=red]Dictionary parse failed: %s[/color]" % parse_result.get_error())
 		return
 
 	var decoded := parse_result.get_data()
@@ -45,7 +45,7 @@ func run_variant_conversion(type_name: String, value: Variant) -> void:
 	# Test stringification
 	var yaml_result := YAML.stringify(value)
 	if yaml_result.has_error():
-		print_rich("[color=red]Stringify failed: %s[/color]" % yaml_result.get_error_message())
+		print_rich("[color=red]Stringify failed: %s[/color]" % yaml_result.get_error())
 		return
 
 	var yaml := yaml_result.get_data()
@@ -54,7 +54,7 @@ func run_variant_conversion(type_name: String, value: Variant) -> void:
 	# Test parsing
 	var parse_result := YAML.parse(yaml)
 	if parse_result.has_error():
-		print_rich("[color=red]Parse failed: %s[/color]" % parse_result.get_error_message())
+		print_rich("[color=red]Parse failed: %s[/color]" % parse_result.get_error())
 		return
 
 	var decoded := parse_result.get_data()

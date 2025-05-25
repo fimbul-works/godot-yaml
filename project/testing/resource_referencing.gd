@@ -22,13 +22,13 @@ YAML: !Resource 'res://addons/yaml/examples/data/simple.yaml'
 
 func test_stringifying_resources() -> void:
 	var str_result := YAML.stringify(load("res://addons/yaml/icon.svg"))
-	expect(!str_result.has_error(), str_result.get_error_message())
+	expect(!str_result.has_error(), str_result.get_error())
 
 	if LOG_VERBOSE:
 		print_rich("[b]Stringified Resource:[/b] %s" % str_result.get_data())
 
 	var invalid_result := YAML.stringify(local_texture)
-	expect_equal(invalid_result.get_error_message(), "Cannot serialize local Resource")
+	expect_equal(invalid_result.get_error(), "Cannot serialize local Resource")
 
 func test_cyclical_references() -> void:
 	var yaml_text := """

@@ -292,7 +292,7 @@ func various_style_combinations() -> void:
 	var result := YAML.stringify(data, style)
 
 	if result.has_error():
-		log_error("Stringify failed: " + result.get_error_message())
+		log_error("Stringify failed: " + result.get_error())
 		return
 
 	log_success("Data stringified with custom styles")
@@ -304,7 +304,7 @@ func various_style_combinations() -> void:
 	var parse_result := YAML.parse(result.get_data(), null, true)
 
 	if parse_result.has_error():
-		log_error("Parse failed: " + parse_result.get_error_message())
+		log_error("Parse failed: " + parse_result.get_error())
 		return
 
 	var detected_style := parse_result.get_style()

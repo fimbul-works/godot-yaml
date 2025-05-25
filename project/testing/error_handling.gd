@@ -25,7 +25,7 @@ func test_circular_reference():
 	dict1["circular"] = dict2
 
 	var result := YAML.stringify(dict1)
-	expect_equal(result.get_error_message(), "Maximum nesting depth exceeded (100). Possible circular reference?", "Expected circular reference")
+	expect_equal(result.get_error(), "Maximum nesting depth exceeded (100). Possible circular reference?", "Expected circular reference")
 
 func test_validation():
 	var invalid_yaml := """

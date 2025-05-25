@@ -18,14 +18,14 @@ func _init() -> void:
 
 func test_validate_string() -> void:
 	var result := YAML.validate(yaml_text)
-	expect(not result.has_error(), result.get_error_message())
+	expect(not result.has_error(), result.get_error())
 
 	if result.has_error():
 		return push_error(result.get_error())
 
 func test_parse_text() -> void:
 	var result := YAML.parse(yaml_text)
-	expect(not result.has_error(), result.get_error_message())
+	expect(not result.has_error(), result.get_error())
 
 	if result.has_error():
 		return push_error(result.get_error())
@@ -37,7 +37,7 @@ func test_stringify_data() -> void:
 	var data = YAML.parse(yaml_text).get_data()
 
 	var result := YAML.stringify(data)
-	expect(not result.has_error(), result.get_error_message())
+	expect(not result.has_error(), result.get_error())
 
 	if result.has_error():
 		return push_error(result.get_error())
@@ -50,11 +50,11 @@ func test_stringify_data() -> void:
 
 func test_validate_file() -> void:
 	var result := YAML.validate_file(YAML_FILE)
-	expect(not result.has_error(), result.get_error_message())
+	expect(not result.has_error(), result.get_error())
 
 func test_load_file() -> void:
 	var result := YAML.load_file(YAML_FILE)
-	expect(not result.has_error(), result.get_error_message())
+	expect(not result.has_error(), result.get_error())
 
 	data = result.get_data()
 
@@ -63,14 +63,14 @@ func test_load_file() -> void:
 
 func test_save_file() -> void:
 	var result := YAML.save_file(data, USER_FILE)
-	expect(not result.has_error(), result.get_error_message())
+	expect(not result.has_error(), result.get_error())
 
 	if LOG_VERBOSE:
 		print_rich("\n[b]Saved YAML to %s:[/b]\n%s\n" % [USER_FILE, result.get_data()])
 
 func test_load_saved_file() -> void:
 	var result := YAML.load_file(USER_FILE)
-	expect(not result.has_error(), result.get_error_message())
+	expect(not result.has_error(), result.get_error())
 
 	if LOG_VERBOSE:
 		print_rich("\n[b]%s Contents:[/b]\n%s" % [USER_FILE, result.get_data()])

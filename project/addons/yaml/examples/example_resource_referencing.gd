@@ -25,7 +25,7 @@ yaml: !Resource 'res://addons/yaml/examples/data/simple.yaml'
 	var parse_result := YAML.parse(yaml_text)
 
 	if parse_result.has_error():
-		log_error("Parse failed: " + parse_result.get_error_message())
+		log_error("Parse failed: " + parse_result.get_error())
 		return
 
 	var data: Dictionary = parse_result.get_data()
@@ -65,7 +65,7 @@ func stringifying_resources() -> void:
 
 	var str_result := YAML.stringify(resource)
 	if str_result.has_error():
-		log_error("Stringify failed: " + str_result.get_error_message())
+		log_error("Stringify failed: " + str_result.get_error())
 		return
 
 	log_success("Resource stringified successfully")
@@ -80,7 +80,7 @@ func stringifying_resources() -> void:
 
 		if invalid_result.has_error():
 			log_success("Correctly failed to serialize local resource")
-			log_info("Error: " + invalid_result.get_error_message())
+			log_info("Error: " + invalid_result.get_error())
 		else:
 			log_error("Incorrectly serialized local resource")
 	else:
@@ -99,7 +99,7 @@ script: !Resource 'res://addons/yaml/examples/scripts/dangerous_script.gd'
 
 	if parse_result.has_error():
 		log_success("Default security correctly blocked script resource")
-		log_info("Error: " + parse_result.get_error_message())
+		log_info("Error: " + parse_result.get_error())
 	else:
 		log_error("Default security failed to block script resource")
 
@@ -114,7 +114,7 @@ script: !Resource 'res://addons/yaml/examples/scripts/dangerous_script.gd'
 
 	if parse_result.has_error():
 		log_success("Custom security correctly blocked script resource")
-		log_info("Error: " + parse_result.get_error_message())
+		log_info("Error: " + parse_result.get_error())
 	else:
 		log_error("Custom security failed to block script resource")
 

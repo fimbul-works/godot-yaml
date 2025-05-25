@@ -31,7 +31,7 @@ func custom_node_class() -> void:
 	var str_result := YAML.stringify(object)
 
 	if str_result.has_error():
-		log_error("Stringify failed: " + str_result.get_error_message())
+		log_error("Stringify failed: " + str_result.get_error())
 		return
 
 	var yaml_text: String = str_result.get_data()
@@ -44,7 +44,7 @@ func custom_node_class() -> void:
 	var parse_result := YAML.parse(yaml_text)
 
 	if parse_result.has_error():
-		log_error("Parse failed: " + parse_result.get_error_message())
+		log_error("Parse failed: " + parse_result.get_error())
 		return
 
 	var obj: MyCustomClass = parse_result.get_data()
@@ -72,7 +72,7 @@ string_val: foo
 
 	if result.has_error():
 		log_success("Correctly detected missing field error")
-		log_info("Error message: " + result.get_error_message())
+		log_info("Error message: " + result.get_error())
 	else:
 		log_error("Failed to detect missing required field")
 
@@ -88,7 +88,7 @@ string_val: foo
 
 	if bad_result.has_error():
 		log_success("Correctly detected wrong data structure error")
-		log_info("Error message: " + bad_result.get_error_message())
+		log_info("Error message: " + bad_result.get_error())
 	else:
 		log_error("Failed to detect wrong data structure")
 
@@ -100,7 +100,7 @@ func custom_string_class() -> void:
 	var str_result := YAML.stringify(object)
 
 	if str_result.has_error():
-		log_error("Stringify failed: " + str_result.get_error_message())
+		log_error("Stringify failed: " + str_result.get_error())
 		return
 
 	var text: String = str_result.get_data()
@@ -113,7 +113,7 @@ func custom_string_class() -> void:
 	var parse_result := YAML.parse(text)
 
 	if parse_result.has_error():
-		log_error("Parse failed: " + parse_result.get_error_message())
+		log_error("Parse failed: " + parse_result.get_error())
 		return
 
 	var obj = parse_result.get_data()
@@ -132,7 +132,7 @@ func custom_resource() -> void:
 	var str_result := YAML.stringify(resource)
 
 	if str_result.has_error():
-		log_error("Stringify failed: " + str_result.get_error_message())
+		log_error("Stringify failed: " + str_result.get_error())
 		return
 
 	var yaml_text: String = str_result.get_data()
@@ -145,7 +145,7 @@ func custom_resource() -> void:
 	var parse_result := YAML.parse(yaml_text)
 
 	if parse_result.has_error():
-		log_error("Parse failed: " + parse_result.get_error_message())
+		log_error("Parse failed: " + parse_result.get_error())
 		return
 
 	var obj = parse_result.get_data()
@@ -173,7 +173,7 @@ color_val: black
 
 	if result.has_error():
 		log_success("Correctly detected missing field error")
-		log_info("Error message: " + result.get_error_message())
+		log_info("Error message: " + result.get_error())
 	else:
 		log_error("Failed to detect missing required field")
 
@@ -189,7 +189,7 @@ color_val: black
 
 	if bad_result.has_error():
 		log_success("Correctly detected wrong data structure error")
-		log_info("Error message: " + bad_result.get_error_message())
+		log_info("Error message: " + bad_result.get_error())
 	else:
 		log_error("Failed to detect wrong data structure")
 

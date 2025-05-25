@@ -25,7 +25,7 @@ dangerous: !Resource 'res://addons/yaml/examples/classes/my_custom_class.gd'
 
 	if result.has_error():
 		log_success("Default security correctly blocked Script resource")
-		log_info("Error message: " + result.get_error_message())
+		log_info("Error message: " + result.get_error())
 		return
 
 	log_error("Security failed to block unsafe resource")
@@ -47,7 +47,7 @@ texture: !Resource 'res://addons/yaml/icon.svg'
 	if !result.has_error():
 		log_success("Correctly allowed texture in permitted path")
 	else:
-		log_error("Incorrectly blocked permitted resource: " + result.get_error_message())
+		log_error("Incorrectly blocked permitted resource: " + result.get_error())
 
 	log_info("Testing incorrect path...")
 	var wrong_path_yaml := """
@@ -58,7 +58,7 @@ texture: !Resource 'res://addons/yaml/examples/wrong_path/test.png'
 	result = YAML.parse(wrong_path_yaml, security)
 	if result.has_error():
 		log_success("Correctly blocked resource outside allowed path")
-		log_info("Error message: " + result.get_error_message())
+		log_info("Error message: " + result.get_error())
 	else:
 		log_error("Security failed to block resource outside allowed path")
 
@@ -71,7 +71,7 @@ scene: !Resource 'res://addons/yaml/examples/assets/textures/test.tscn'
 	result = YAML.parse(wrong_type_yaml, security)
 	if result.has_error():
 		log_success("Correctly blocked non-texture resource")
-		log_info("Error message: " + result.get_error_message())
+		log_info("Error message: " + result.get_error())
 	else:
 		log_error("Security failed to block non-texture resource")
 
@@ -94,7 +94,7 @@ texture: !Resource 'res://addons/yaml/icon.svg'
 	if !result.has_error():
 		log_success("Single wildcard pattern matched correctly")
 	else:
-		log_error("Single wildcard failed: " + result.get_error_message())
+		log_error("Single wildcard failed: " + result.get_error())
 
 	# Test recursive wildcard (**)
 	log_info("\nRecursive wildcard (**) example:")
@@ -110,7 +110,7 @@ scene: !Resource 'res://addons/yaml/examples/assets/simple_scene.tscn'
 	if !result.has_error():
 		log_success("Recursive wildcard pattern matched correctly")
 	else:
-		log_error("Recursive wildcard failed: " + result.get_error_message())
+		log_error("Recursive wildcard failed: " + result.get_error())
 
 func block_type() -> void:
 	log_info("Testing type blocking functionality...")
@@ -127,7 +127,7 @@ scene: !Resource 'res://addons/yaml/examples/assets/test.tscn'
 	var result := YAML.parse(blocked_yaml, security)
 	if result.has_error():
 		log_success("Correctly blocked resource of blocked type")
-		log_info("Error message: " + result.get_error_message())
+		log_info("Error message: " + result.get_error())
 	else:
 		log_error("Failed to block specified resource type")
 
@@ -148,7 +148,7 @@ script: !Resource 'res://addons/yaml/examples/classes/my_custom_class.gd'
 	if !result.has_error():
 		log_success("Script resource allowed after clearing restrictions")
 	else:
-		log_error("Failed to allow script after clearing restrictions: " + result.get_error_message())
+		log_error("Failed to allow script after clearing restrictions: " + result.get_error())
 
 func reset_security() -> void:
 	log_info("Testing security reset functionality...")
@@ -170,7 +170,7 @@ script: !Resource 'res://addons/yaml/examples/assets/my_custom_class.gd'
 	var result := YAML.parse(script_yaml, security)
 	if result.has_error():
 		log_success("Script correctly blocked after security reset")
-		log_info("Error message: " + result.get_error_message())
+		log_info("Error message: " + result.get_error())
 	else:
 		log_error("Security reset failed to restore default restrictions")
 

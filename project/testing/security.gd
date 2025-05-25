@@ -10,7 +10,7 @@ dangerous: !Resource 'res://addons/yaml/examples/classes/my_custom_class.gd'
 """
 	var result := YAML.parse(yaml_text)
 	expect(result.has_error(), "Default security should block Script resources")
-	expect(result.get_error_message().contains("Script"), "Error should mention Script type")
+	expect(result.get_error().contains("Script"), "Error should mention Script type")
 
 func test_custom_security_allow_path() -> void:
 	var security := YAML.create_security()
@@ -23,7 +23,7 @@ func test_custom_security_allow_path() -> void:
 texture: !Resource 'res://addons/yaml/icon.svg'
 """
 	var result := YAML.parse(allowed_yaml, security)
-	expect(not result.has_error(), result.get_error_message())
+	expect(not result.has_error(), result.get_error())
 
 	# This should fail (wrong path)
 	var wrong_path_yaml := """
@@ -49,7 +49,7 @@ func test_wildcard_paths() -> void:
 texture: !Resource 'res://addons/yaml/icon.svg'
 """
 	var result := YAML.parse(single_wildcard_yaml, security)
-	expect(not result.has_error(), result.get_error_message())
+	expect(not result.has_error(), result.get_error())
 	print("done")
 
 	# Test recursive wildcard (**)
@@ -60,7 +60,7 @@ texture: !Resource 'res://addons/yaml/icon.svg'
 scene: !Resource 'res://addons/yaml/examples/assets/simple_scene.tscn'
 """
 	result = YAML.parse(recursive_wildcard_yaml, security)
-	expect(not result.has_error(), result.get_error_message())
+	expect(not result.has_error(), result.get_error())
 
 func test_block_type() -> void:
 	var security := YAML.create_security()

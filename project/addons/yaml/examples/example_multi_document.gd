@@ -57,7 +57,7 @@ func circular_reference() -> void:
 	var result := YAML.stringify(dict1)
 
 	if result.has_error():
-		log_success("Correctly detected error: " + result.get_error_message())
+		log_success("Correctly detected error: " + result.get_error())
 		return
 
 	log_error("Failed to detect circular reference")

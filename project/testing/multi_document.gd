@@ -13,7 +13,7 @@ title: Document 3
 
 func test_multi_document_parsing() -> void:
 	var parse_result := YAML.parse(yaml_text)
-	expect(!parse_result.get_error_message(), parse_result.get_error_message())
+	expect(!parse_result.has_error(), parse_result.get_error())
 
 	var count := parse_result.get_document_count()
 	expect_equal(count, 3, "Result should have 3 documents")

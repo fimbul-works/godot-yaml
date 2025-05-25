@@ -55,7 +55,7 @@ func parse_benchmark() -> void:
 		var elapsed := Time.get_ticks_usec() - start
 
 		if result.has_error():
-			log_error("Iteration " + str(i + 1) + " failed: " + result.get_error_message())
+			log_error("Iteration " + str(i + 1) + " failed: " + result.get_error())
 			continue
 
 		data = result.get_data()
@@ -81,7 +81,7 @@ func parse_with_style_benchmark() -> void:
 		var elapsed := Time.get_ticks_usec() - start
 
 		if result.has_error():
-			log_error("Iteration " + str(i + 1) + " failed: " + result.get_error_message())
+			log_error("Iteration " + str(i + 1) + " failed: " + result.get_error())
 			continue
 
 		if i == 0:
@@ -109,7 +109,7 @@ func stringify_benchmark() -> void:
 		var elapsed := Time.get_ticks_usec() - start
 
 		if result.has_error():
-			log_error("Iteration " + str(i + 1) + " failed: " + result.get_error_message())
+			log_error("Iteration " + str(i + 1) + " failed: " + result.get_error())
 			continue
 
 		stringify_times.append(elapsed)
@@ -134,7 +134,7 @@ func stringify_with_style_benchmark() -> void:
 		var elapsed := Time.get_ticks_usec() - start
 
 		if result.has_error():
-			log_error("Iteration " + str(i + 1) + " failed: " + result.get_error_message())
+			log_error("Iteration " + str(i + 1) + " failed: " + result.get_error())
 			continue
 
 		style_stringify_times.append(elapsed)
