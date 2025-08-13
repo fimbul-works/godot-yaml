@@ -196,19 +196,37 @@ T string_to_float(const ryml::csubstr &value, YAMLStyle::FloatFormat *format = n
 	}
 
 	T result;
-	auto [ptr, ec] = std::from_chars(span.begin(), span.end(), result);
-
-	if (ec == std::errc()) {
-		if (format != nullptr) {
-			if (value.find("e") != ryml::npos || value.find("E") != ryml::npos) {
-				*format = YAMLStyle::FLOAT_SCIENTIFIC;
-			} else {
-				*format = YAMLStyle::FLOAT_DECIMAL;
-			}
+	// Use standard library functions for floating-point parsing
+	// (works on all platforms, including Apple where std::from_chars for floats is missing)
+	std::string str(span.begin(), span.end());
+	char* end_ptr;
+	
+	if constexpr (std::is_same_v<T, float>) {
+		result = std::strtof(str.c_str(), &end_ptr);
+	} else if constexpr (std::is_same_v<T, double>) {
+		result = std::strtod(str.c_str(), &end_ptr);
+	} else {
+		result = std::strtold(str.c_str(), &end_ptr);
+	}
+	
+	// Check if conversion was successful
+	if (end_ptr == str.c_str()) {
+		throw YAMLException("Invalid float format");
+	}
+	
+	// Check for out of range (infinity values)
+	if (result == std::numeric_limits<T>::infinity() || result == -std::numeric_limits<T>::infinity()) {
+		if (str != ".inf" && str != "-.inf" && str != "+.inf") {
+			throw YAMLException("Float value out of range");
 		}
-		return result;
-	} else if (ec == std::errc::result_out_of_range) {
-		throw YAMLException("Float value out of range");
+	}
+
+	if (format != nullptr) {
+		if (value.find("e") != ryml::npos || value.find("E") != ryml::npos) {
+			*format = YAMLStyle::FLOAT_SCIENTIFIC;
+		} else {
+			*format = YAMLStyle::FLOAT_DECIMAL;
+		}
 	}
 
 	throw YAMLException("Invalid float format");

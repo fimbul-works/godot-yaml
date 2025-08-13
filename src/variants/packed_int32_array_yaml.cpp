@@ -68,7 +68,7 @@ Variant PackedInt32ArrayVariantConverter::decode(const ryml::ConstNodeRef &node,
 			int64_t value = string_to_int<int64_t>(node[i].val(), detect_style ? &int_format : nullptr);
 
 			if (value < INT32_MIN || value > INT32_MAX) {
-				throw YAMLException(vformat("Failed to decode PackedInt32Array value at index %d: Integer value out of range", i), context->get_ryml_parser()->location(node[i]));
+				throw YAMLException(vformat("Failed to decode PackedInt32Array value at index %d: Integer value out of range", static_cast<int64_t>(i)), context->get_ryml_parser()->location(node[i]));
 			}
 
 			array.set(i, static_cast<int32_t>(value));
@@ -84,9 +84,11 @@ Variant PackedInt32ArrayVariantConverter::decode(const ryml::ConstNodeRef &node,
 				context->pop_style();
 			}
 		} catch (const YAMLException &e) {
-			throw YAMLException(vformat("Failed to decode PackedInt32Array value at index %d: %s", i, e.what()), e.get_location());
+			// NOTE: Cast size_t to int64_t for ARM64 macOS Variant compatibility
+			throw YAMLException(vformat("Failed to decode PackedInt32Array value at index %d: %s", static_cast<int64_t>(i), e.what()), e.get_location());
 		} catch (const std::exception &e) {
-			throw YAMLException(vformat("Failed to decode PackedInt32Array value at index %d: %s", i, e.what()), context->get_ryml_parser()->location(node[i]));
+			// NOTE: Cast size_t to int64_t for ARM64 macOS Variant compatibility
+			throw YAMLException(vformat("Failed to decode PackedInt32Array value at index %d: %s", static_cast<int64_t>(i), e.what()), context->get_ryml_parser()->location(node[i]));
 		}
 	}
 
