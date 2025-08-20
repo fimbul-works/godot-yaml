@@ -78,9 +78,11 @@ Variant PackedFloat64ArrayVariantConverter::decode(const ryml::ConstNodeRef &nod
 				context->pop_style();
 			}
 		} catch (const YAMLException &e) {
-			throw YAMLException(vformat("Failed to decode PackedFloat64Array value at index %d: %s", i, e.what()), e.get_location());
+			// NOTE: Cast size_t to int64_t for ARM64 macOS Variant compatibility
+			throw YAMLException(vformat("Failed to decode PackedFloat64Array value at index %d: %s", static_cast<int64_t>(i), e.what()), e.get_location());
 		} catch (const std::exception &e) {
-			throw YAMLException(vformat("Failed to decode PackedFloat64Array value at index %d: %s", i, e.what()), context->get_ryml_parser()->location(node[i]));
+			// NOTE: Cast size_t to int64_t for ARM64 macOS Variant compatibility
+			throw YAMLException(vformat("Failed to decode PackedFloat64Array value at index %d: %s", static_cast<int64_t>(i), e.what()), context->get_ryml_parser()->location(node[i]));
 		}
 	}
 

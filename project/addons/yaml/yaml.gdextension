@@ -14,6 +14,9 @@ windows.release.x86_64 = "res://addons/yaml/bin/libgdyaml.windows.release.x86_64
 linux.debug.x86_64 = "res://addons/yaml/bin/libgdyaml.linux.debug.x86_64.so"
 linux.release.x86_64 = "res://addons/yaml/bin/libgdyaml.linux.release.x86_64.so"
 
+macos.debug.arm64 = "res://addons/yaml/bin/libgdyaml.macos.debug"
+macos.release.arm64 = "res://addons/yaml/bin/libgdyaml.macos.release"
+
 [icons]
 
 YAML = "res://addons/yaml/assets/icon.svg"

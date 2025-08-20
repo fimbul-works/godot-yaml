@@ -260,7 +260,8 @@ String YAMLSecurity::_to_string() const {
 			if (!first_path) {
 				result_paths += "; ";
 			}
-			result_paths += vformat("%s (types: %d)", pair.first.get_path(), pair.second.size());
+			// NOTE: Cast size_t to int64_t for ARM64 macOS Variant compatibility
+			result_paths += vformat("%s (types: %d)", pair.first.get_path(), static_cast<int64_t>(pair.second.size()));
 			first_path = false;
 		}
 	}
