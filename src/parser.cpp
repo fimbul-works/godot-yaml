@@ -259,6 +259,20 @@ Variant YAML::Parser::process_value(const ryml::ConstNodeRef &node) const {
 	ryml::csubstr val = node.val();
 	String str_val = from_ryml_str(val);
 
+	// Quoted and block style values are always strings
+	if (node.is_val_quoted() || node.is_block()) {
+		if (detect_style) {
+			YAMLStyle::detect_string_style(node, context->current_style());
+		}
+
+		return str_val;
+	}
+
+	// Empty string is null in YAML
+	if (str_val.length() == 0) {
+		return Variant();
+	}
+
 	if (auto special_val = try_parse_special_value(str_val)) {
 		return *special_val;
 	}
@@ -321,11 +335,165 @@ std::optional<Variant> YAML::Parser::try_parse_special_value(const String &str_v
 }
 
 std::optional<Variant> YAML::Parser::try_parse_numeric_value(const String &str_val, const ryml::csubstr &val) const {
-	if (str_val.begins_with("0x") || str_val.begins_with("0X") || // Hexadecimal
-			str_val.begins_with("0b") || str_val.begins_with("0B") || // Binary
-			str_val.begins_with("0o") || str_val.begins_with("0O") || // Octal
-			(str_val.length() > 1 && str_val[0] == '0' && str_val[1] >= '0' && str_val[1] <= '7')) // Octal
-	{
+	// Helper function to validate hexadecimal string
+	auto is_valid_hex = [](const String &s) -> bool {
+		if (s.length() > 20) {
+			return false; // 64-bit hex (16 digits) + "0x" + sign = reasonable limit
+		}
+
+		size_t start = 0;
+		if (s[0] == '+' || s[0] == '-') {
+			start = 1;
+		}
+
+		if (start + 2 >= s.length()) {
+			return false;
+		}
+		if (s[start] != '0' || (s[start + 1] != 'x' && s[start + 1] != 'X')) {
+			return false;
+		}
+
+		for (int i = start + 2; i < s.length(); i++) {
+			char c = s[i];
+			if (!((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F'))) {
+				return false;
+			}
+		}
+		return true;
+	};
+
+	// Helper function to validate binary string
+	auto is_valid_binary = [](const String &s) -> bool {
+		if (s.length() > 68) {
+			return false; // 64-bit binary (64 digits) + "0b" + sign = reasonable limit
+		}
+
+		size_t start = 0;
+		if (s[0] == '+' || s[0] == '-') {
+			start = 1;
+		}
+
+		if (start + 2 >= s.length()) {
+			return false;
+		}
+		if (s[start] != '0' || (s[start + 1] != 'b' && s[start + 1] != 'B')) {
+			return false;
+		}
+
+		for (int i = start + 2; i < s.length(); i++) {
+			char c = s[i];
+			if (c != '0' && c != '1') {
+				return false;
+			}
+		}
+		return true;
+	};
+
+	// Helper function to validate octal string (YAML 1.2 explicit format only)
+	auto is_valid_octal = [](const String &s) -> bool {
+		if (s.length() > 26) {
+			return false; // 64-bit octal (~22 digits) + "0o" + sign = reasonable limit
+		}
+
+		size_t start = 0;
+		if (s[0] == '+' || s[0] == '-') {
+			start = 1;
+		}
+
+		if (start + 2 >= s.length()) {
+			return false;
+		}
+		if (s[start] != '0' || (s[start + 1] != 'o' && s[start + 1] != 'O')) {
+			return false;
+		}
+
+		for (int i = start + 2; i < s.length(); i++) {
+			char c = s[i];
+			if (c < '0' || c > '7') {
+				return false;
+			}
+		}
+		return true;
+	};
+
+	// Helper function to validate decimal integer string
+	auto is_valid_decimal_int = [](const String &s) -> bool {
+		if (s.length() > 22) {
+			return false; // 64-bit decimal (~20 digits) + sign = reasonable limit
+		}
+
+		size_t start = 0;
+		if (s[0] == '+' || s[0] == '-') {
+			start = 1;
+			if (s.length() == 1) {
+				return false; // Just a sign is not valid
+			}
+		}
+
+		for (int i = start; i < s.length(); i++) {
+			char c = s[i];
+			if (c < '0' || c > '9') {
+				return false;
+			}
+		}
+		return true;
+	};
+
+	// Helper function to validate floating point string
+	auto is_valid_float = [](const String &s) -> bool {
+		if (s.length() > 50) {
+			return false; // Reasonable limit for float strings
+		}
+
+		bool has_dot = false;
+		bool has_e = false;
+		bool has_sign_after_e = false;
+		size_t start = 0;
+
+		// Handle leading sign
+		if (s[0] == '+' || s[0] == '-') {
+			start = 1;
+			if (s.length() == 1) {
+				return false;
+			}
+		}
+
+		for (int i = start; i < s.length(); i++) {
+			char c = s[i];
+
+			if (c >= '0' && c <= '9') {
+				continue; // Digits are always okay
+			} else if (c == '.') {
+				if (has_dot || has_e) {
+					return false; // Only one dot, and not after 'e'
+				}
+				has_dot = true;
+			} else if (c == 'e' || c == 'E') {
+				if (has_e) {
+					return false; // Only one 'e'
+				}
+				if (i == start) {
+					return false; // Can't start with 'e'
+				}
+				has_e = true;
+			} else if ((c == '+' || c == '-') && has_e && !has_sign_after_e) {
+				// Sign after 'e' is allowed, but only once and immediately after 'e'
+				if (i == 0 || (s[i - 1] != 'e' && s[i - 1] != 'E')) {
+					return false;
+				}
+				has_sign_after_e = true;
+			} else {
+				return false; // Invalid character
+			}
+		}
+
+		// Must have at least one digit and a dot to be a valid float
+		return has_dot;
+	};
+
+	// Check for explicit numeric formats (hex, binary, octal)
+	// At minimum "0x", "0b", or "0o" + 1 digit
+	if (str_val.length() >= 3 && (is_valid_hex(str_val) || is_valid_binary(str_val) || is_valid_octal(str_val))) {
 		try {
 			YAMLStyle::IntegerFormat int_format = YAMLStyle::INT_ANY;
 			auto int_val = string_to_int<int64_t>(val, detect_style ? &int_format : nullptr);
@@ -340,7 +508,7 @@ std::optional<Variant> YAML::Parser::try_parse_numeric_value(const String &str_v
 		}
 	}
 
-	if (str_val.contains(".")) {
+	if (str_val.contains(".") && is_valid_float(str_val)) {
 		try {
 			YAMLStyle::FloatFormat float_format = YAMLStyle::FLOAT_ANY;
 			auto float_val = string_to_float<double>(val, detect_style ? &float_format : nullptr);
@@ -355,9 +523,9 @@ std::optional<Variant> YAML::Parser::try_parse_numeric_value(const String &str_v
 		}
 	}
 
-	if (str_val.is_valid_int()) {
+	if (is_valid_decimal_int(str_val)) {
 		try {
-			YAMLStyle::IntegerFormat int_format;
+			YAMLStyle::IntegerFormat int_format = YAMLStyle::INT_DECIMAL;
 			auto int_val = string_to_int<int64_t>(val, detect_style ? &int_format : nullptr);
 
 			if (detect_style) {

@@ -1,5 +1,10 @@
 # Godot YAML Changelog
 
+## Version 1.1.1
+
+- Fixes:
+    - Fixed invalid numeric value parsing
+
 ## Version 1.1.0
 
 - YAML files can now be loaded with the `!Resource` tag, allowing modular composition
