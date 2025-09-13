@@ -4,7 +4,10 @@ import subprocess
 import shutil
 
 # Use cache for faster build times
-os.environ['SCONS_CACHE'] = 'build/scons_cache'
+cache_dir = os.path.abspath('build/scons_cache')
+if not os.path.exists(cache_dir):
+    os.makedirs(cache_dir, exist_ok=True)
+os.environ['SCONS_CACHE'] = cache_dir
 
 base_env = SConscript('godot-cpp/SConstruct')
 
