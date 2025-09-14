@@ -2,7 +2,7 @@
 
 ## Version 2.0.0
 
-The second major version of Godot YAML includes new methods for multi-document result handling, fixes, and a breaking API change. See the [migration guide](#migration-guide-from-version-1*-to-200) for details.
+The second major version of Godot YAML includes new methods for multi-document result handling, several bug fixes, and a breaking API change. See the [migration guide](#migration-guide-from-version-1*-to-200) for details.
 
 ### Changes
 
@@ -13,6 +13,7 @@ The second major version of Godot YAML includes new methods for multi-document r
 - Fixes:
     - Fixed `YAMLResult.get_data()` only returning the first element of a document that only contains an array
     - Fixed invalid numeric value parsing
+    - Fixed YAML files not opening correctly in Godot 4.3
 
 ### Migration Guide From Version 1.* to 2.0.0
 

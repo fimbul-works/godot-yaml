@@ -12,21 +12,25 @@ var resource_saver: YAMLResourceFormat.Saver
 var previous_textfile_extensions: String
 
 func _enter_tree() -> void:
-	add_custom_type(
-		"YAMLResource", "Resource",
-		load("res://addons/yaml/yaml_resource.gd"),
-		_get_plugin_icon()
-	)
+	var engine_version_info := Engine.get_version_info()
+
+	# Modify editor settings to remove YAML from text files
+	_modify_file_extensions()
 
 	# Create and register resource format handlers
 	resource_loader = YAMLResourceFormat.Loader.new()
 	resource_saver = YAMLResourceFormat.Saver.new()
 
-	ResourceLoader.add_resource_format_loader(resource_loader)
-	ResourceSaver.add_resource_format_saver(resource_saver)
+	ResourceLoader.add_resource_format_loader(resource_loader, true)
+	ResourceSaver.add_resource_format_saver(resource_saver, true)
 
-	# Modify editor settings to remove YAML from text files
-	_modify_file_extensions()
+	# Enable YAMLResource in Godot 4.4 and above
+	if engine_version_info.major == 4 and engine_version_info.minor >= 4:
+		add_custom_type(
+			"YAMLResource", "Resource",
+			load("res://addons/yaml/yaml_resource.gd"),
+			_get_plugin_icon()
+		)
 
 	# Initialize YAMLFileSystem singleton and pass editor interface
 	var file_system = YAMLFileSystem.get_singleton()
