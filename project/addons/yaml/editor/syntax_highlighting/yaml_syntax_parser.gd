@@ -1,11 +1,7 @@
 @tool
-class_name YAMLEditorSyntaxHighlighter extends EditorSyntaxHighlighter
+class_name YAMLSyntaxParser extends RefCounted
 
-# Theme settings and cache
-var theme_overrides: Dictionary
-var cache: Dictionary = {}
-
-# Token types for clearer code organization
+## Token types
 enum TokenType {
 	TEXT,               # For keys only
 	COMMENT,            # Comments
@@ -16,16 +12,11 @@ enum TokenType {
 	DOCUMENT_SEPARATOR, # New document separator
 }
 
-# Regular expressions for top-level patterns
 var re_patterns := {
-	"comment": RegEx.create_from_string("^\\s*#.*$"),
 	"merge_key": RegEx.create_from_string("^\\s*<<:\\s*\\*[^\\s]+"),
 	"multiline_indicator": RegEx.create_from_string("(>|\\|-?)\\s*$"),
 	"array_item": RegEx.create_from_string("^(\\s*-(?:\\s*-)*\\s*)(.*)$"),
 	"key_value": RegEx.create_from_string("^\\s*([^:]+):(.*)$"),
-
-	# Added a pattern to detect tags at the beginning of a line
-	"top_level_tag": RegEx.create_from_string("^\\s*(!!?[a-zA-Z0-9][a-zA-Z0-9_-]*)\\s*(.*)$"),
 
 	# Scalar patterns
 	"quoted_string": RegEx.create_from_string("^(['\"])(?:\\\\.|[^\\\\])*\\1$"),
@@ -33,9 +24,12 @@ var re_patterns := {
 	"boolean": RegEx.create_from_string("^(true|false)$"),
 	"nullish": RegEx.create_from_string("^(null|~)$"),
 	"special": RegEx.create_from_string("^(\\.inf|\\.nan)$"),
+
+	# YAML functionality
 	"anchor": RegEx.create_from_string("^\\s*&([^\\s]+)"),
 	"alias": RegEx.create_from_string("^\\s*\\*([^\\s]+)"),
 	"tag": RegEx.create_from_string("!!?[a-zA-Z0-9][a-zA-Z0-9_-]*"),
+	"top_level_tag": RegEx.create_from_string("^\\s*(!!?[a-zA-Z0-9][a-zA-Z0-9_-]*)\\s*(.*)$"),
 	"document_separator": RegEx.create_from_string("^---$")
 }
 
@@ -55,59 +49,99 @@ class ParserState:
 	func peek() -> String:
 		return stack.back() if not stack.is_empty() else ""
 
-func clear_highlighting_cache() -> void:
-	cache.clear()
-
-func _update_theme_overrides() -> void:
-	var settings = EditorInterface.get_editor_settings()
-	theme_overrides = {
-		"text_color": settings.get_setting("text_editor/theme/highlighting/text_color"),
-		"comment_color": settings.get_setting("text_editor/theme/highlighting/comment_color"),
-		"symbol_color": settings.get_setting("text_editor/theme/highlighting/symbol_color"),
-		"string_color": settings.get_setting("text_editor/theme/highlighting/string_color"),
-		"number_color": settings.get_setting("text_editor/theme/highlighting/number_color"),
-		"keyword_color": settings.get_setting("text_editor/theme/highlighting/keyword_color"),
-		"document_separator": settings.get_setting("text_editor/theme/highlighting/comment_color"),
+## Provides colors to the syntax highlighter
+class ColorProvider:
+	# Default theme colors
+	var theme: Dictionary = {
+		"text": Color(0.8025, 0.81, 0.8225, 1),
+		"comment": Color(0.8025, 0.81, 0.8225, 0.5),
+		"symbol": Color(0.67, 0.79, 1, 1),
+		"string": Color(1, 0.93, 0.63, 1),
+		"number": Color(0.63, 1, 0.88, 1),
+		"keyword": Color(1, 0.44, 0.52, 1),
+		"document_separator": Color(0.8025, 0.81, 0.8225, 0.5)
 	}
 
-func _get_color_for_type(type: TokenType) -> Color:
-	match type:
-		TokenType.TEXT: return theme_overrides.text_color
-		TokenType.COMMENT: return theme_overrides.comment_color
-		TokenType.SYMBOL: return theme_overrides.symbol_color
-		TokenType.STRING: return theme_overrides.string_color
-		TokenType.NUMBER: return theme_overrides.number_color
-		TokenType.KEYWORD: return theme_overrides.keyword_color
-		TokenType.DOCUMENT_SEPARATOR: return theme_overrides.document_separator
-		_: return theme_overrides.string_color  # Default fallback is string color
+	func _init():
+		update_theme()
 
-func _get_line_syntax_highlighting(line: int) -> Dictionary:
-	var text: String = get_text_edit().get_line(line)
-	_update_theme_overrides()
+	## Updates the theme colors from Godot Editor settings
+	func update_theme() -> void:
+		# Only inside the Godot Editor
+		if !Engine.is_editor_hint():
+			return
 
-	# Use cache if available
-	if text in cache:
-		return cache[text]
+		# Read theme from editor settings
+		var settings = EditorInterface.get_editor_settings()
+		theme = {
+			"text": settings.get_setting("text_editor/theme/highlighting/text_color"),
+			"comment": settings.get_setting("text_editor/theme/highlighting/comment_color"),
+			"symbol": settings.get_setting("text_editor/theme/highlighting/symbol_color"),
+			"string": settings.get_setting("text_editor/theme/highlighting/string_color"),
+			"number": settings.get_setting("text_editor/theme/highlighting/number_color"),
+			"keyword": settings.get_setting("text_editor/theme/highlighting/keyword_color"),
+			"document_separator": settings.get_setting("text_editor/theme/highlighting/comment_color"),
+		}
 
-	var colors := _highlight_line(text)
-	cache[text] = _sort_colors(colors)
-	return cache[text]
+	## Get color for tokens
+	func get_color_for_type(type: TokenType) -> Color:
+		match type:
+			YAMLSyntaxParser.TokenType.TEXT: return theme.text
+			YAMLSyntaxParser.TokenType.COMMENT: return theme.comment
+			YAMLSyntaxParser.TokenType.SYMBOL: return theme.symbol
+			YAMLSyntaxParser.TokenType.STRING: return theme.string
+			YAMLSyntaxParser.TokenType.NUMBER: return theme.number
+			YAMLSyntaxParser.TokenType.KEYWORD: return theme.keyword
+			YAMLSyntaxParser.TokenType.DOCUMENT_SEPARATOR: return theme.document_separator
+			_: return theme.string # Default fallback is string color
 
-func _highlight_line(text: String) -> Dictionary:
-	# Handle comments first
-	if re_patterns.comment.search(text):
-		return {0: {"color": _get_color_for_type(TokenType.COMMENT)}}
+## Highlight a line of YAML
+func highlight_line(text: String, color_provider: ColorProvider = ColorProvider.new()) -> Dictionary:
+	var comment_pos := _find_comment_start(text)
+	var content := text if comment_pos == -1 else text.substr(0, comment_pos).rstrip(" \t")
+	var colors := {}
 
+	if content.strip_edges():
+		colors = _highlight_line_content(content, color_provider)
+
+	if comment_pos != -1:
+		colors[comment_pos] = {"color": color_provider.get_color_for_type(TokenType.COMMENT)}
+
+	return _sort_colors(colors)
+
+# Find the beginning position of a comment
+func _find_comment_start(text: String) -> int:
+	var in_string := false
+	var string_char := ""
+
+	for i in range(text.length()):
+		var char := text[i]
+
+		if not in_string:
+			if char in ['"', "'"] and (i == 0 or text[i - 1] != '\\'):
+				in_string = true
+				string_char = char
+			elif char == '#' and (i == 0 or text[i - 1] == ' ' or text[i - 1] == '\t'):
+				return i
+		else:
+			if char == string_char and (i == 0 or text[i - 1] != '\\'):
+				in_string = false
+				string_char = ""
+
+	return -1
+
+# Highlight line content
+func _highlight_line_content(text: String, color_provider: ColorProvider) -> Dictionary:
 	# Handle document separator
 	var separator_match: RegExMatch = re_patterns.document_separator.search(text)
 	if separator_match:
-		return {0: {"color": _get_color_for_type(TokenType.DOCUMENT_SEPARATOR)}}
+		return {0: {"color": color_provider.get_color_for_type(TokenType.DOCUMENT_SEPARATOR)}}
 
 	# Handle merge keys
 	var merge_match: RegExMatch = re_patterns.merge_key.search(text)
 	if merge_match:
 		return {
-			merge_match.get_start(0): {"color": _get_color_for_type(TokenType.KEYWORD)}
+			merge_match.get_start(0): {"color": color_provider.get_color_for_type(TokenType.KEYWORD)}
 		}
 
 	# Check for top-level tags
@@ -115,7 +149,7 @@ func _highlight_line(text: String) -> Dictionary:
 	if tag_match:
 		var colors := {}
 		# Color just the tag part as keyword (red)
-		_add_color(colors, tag_match.get_start(1), tag_match.get_end(1), TokenType.KEYWORD)
+		_add_color(color_provider, colors, tag_match.get_start(1), tag_match.get_end(1), TokenType.KEYWORD)
 
 		# Process any remaining content after the tag
 		var remaining = tag_match.get_string(2).strip_edges()
@@ -123,9 +157,9 @@ func _highlight_line(text: String) -> Dictionary:
 			var remaining_start = text.find(remaining, tag_match.get_end(1))
 			if remaining_start != -1:
 				if remaining.begins_with("{") or remaining.begins_with("["):
-					colors.merge(_parse_flow_style(remaining, remaining_start))
+					colors.merge(_parse_flow_style(color_provider, remaining, remaining_start))
 				else:
-					_add_scalar_color(colors, remaining, remaining_start)
+					_add_scalar_color(color_provider, colors, remaining, remaining_start)
 		return colors
 
 	# Handle array items
@@ -134,42 +168,43 @@ func _highlight_line(text: String) -> Dictionary:
 		var colors := {}
 
 		# Color the entire dash section as symbols
-		_add_color(colors, array_match.get_start(1), array_match.get_end(1), TokenType.SYMBOL)
+		_add_color(color_provider, colors, array_match.get_start(1), array_match.get_end(1), TokenType.SYMBOL)
 
 		# Process the content after the dashes
 		var content: String = array_match.get_string(2).strip_edges()
 		if content:
 			var content_start: int = array_match.get_start(2)
 			if content.begins_with("[") or content.begins_with("{"):
-				colors.merge(_parse_flow_style(content, content_start))
+				colors.merge(_parse_flow_style(color_provider, content, content_start))
 			else:
-				_add_scalar_color(colors, content, content_start)
+				_add_scalar_color(color_provider, colors, content, content_start)
 		return colors
 
 	# Handle regular key-value pairs
 	var key_value_match: RegExMatch = re_patterns.key_value.search(text)
 	if key_value_match:
-		return _parse_key_value(text, key_value_match)
+		return _parse_key_value(color_provider, text, key_value_match)
 
 	# Handle flow-style collections at the root level
 	if "[" in text or "{" in text:
-		return _parse_flow_style(text, 0)
+		return _parse_flow_style(color_provider, text, 0)
 
 	# Handle multi-line string indicators
 	var multiline_match: RegExMatch = re_patterns.multiline_indicator.search(text)
 	if multiline_match:
 		var colors := {}
 		# Color the indicator (> or |) as symbol
-		_add_color(colors, multiline_match.get_start(1), multiline_match.get_end(1), TokenType.SYMBOL)
+		_add_color(color_provider, colors, multiline_match.get_start(1), multiline_match.get_end(1), TokenType.SYMBOL)
 		return colors
 
 	# Default case: treat as string content (for multi-line string content)
 	if text.strip_edges():
-		return {0: {"color": _get_color_for_type(TokenType.STRING)}}
+		return {0: {"color": color_provider.get_color_for_type(TokenType.STRING)}}
 
 	return {}
 
-func _parse_flow_style(text: String, offset: int) -> Dictionary:
+# Parse flow collections
+func _parse_flow_style(color_provider: ColorProvider, text: String, offset: int) -> Dictionary:
 	var state := ParserState.new()
 	var pos := 0
 
@@ -184,14 +219,14 @@ func _parse_flow_style(text: String, offset: int) -> Dictionary:
 				state.token_start = pos
 			elif char == state.string_char:
 				state.in_string = false
-				_add_color(state.colors, offset + state.token_start, offset + pos + 1, TokenType.STRING)
+				_add_color(color_provider, state.colors, offset + state.token_start, offset + pos + 1, TokenType.STRING)
 				state.token_start = -1
 
 		# Handle flow collection brackets when not in string
 		elif not state.in_string:
 			if char in ['[', '{']:
 				state.push(char)
-				_add_color(state.colors, offset + pos, offset + pos + 1, TokenType.SYMBOL)
+				_add_color(color_provider, state.colors, offset + pos, offset + pos + 1, TokenType.SYMBOL)
 				state.token_start = pos + 1
 
 			elif char in [']', '}']:
@@ -201,8 +236,8 @@ func _parse_flow_style(text: String, offset: int) -> Dictionary:
 					if state.token_start != -1:
 						var token := text.substr(state.token_start, pos - state.token_start).strip_edges()
 						if token:
-							_add_scalar_color(state.colors, token, offset + state.token_start)
-					_add_color(state.colors, offset + pos, offset + pos + 1, TokenType.SYMBOL)
+							_add_scalar_color(color_provider, state.colors, token, offset + state.token_start)
+					_add_color(color_provider, state.colors, offset + pos, offset + pos + 1, TokenType.SYMBOL)
 					state.token_start = -1
 
 			elif char in [':', ',']:
@@ -211,10 +246,10 @@ func _parse_flow_style(text: String, offset: int) -> Dictionary:
 					if token:
 						if char == ':':
 							# All map keys should be text colored, regardless of content
-							_add_color(state.colors, offset + state.token_start, offset + pos, TokenType.TEXT)
+							_add_color(color_provider, state.colors, offset + state.token_start, offset + pos, TokenType.TEXT)
 						else:
-							_add_scalar_color(state.colors, token, offset + state.token_start)
-				_add_color(state.colors, offset + pos, offset + pos + 1, TokenType.SYMBOL)
+							_add_scalar_color(color_provider, state.colors, token, offset + state.token_start)
+				_add_color(color_provider, state.colors, offset + pos, offset + pos + 1, TokenType.SYMBOL)
 				state.token_start = pos + 1
 
 			elif char != ' ' and state.token_start == -1:
@@ -228,20 +263,21 @@ func _parse_flow_style(text: String, offset: int) -> Dictionary:
 		if token:
 			# Check if this is a key in a map context
 			if not state.stack.is_empty() and state.stack.back() == '{' and ':' in text.substr(pos):
-				_add_color(state.colors, offset + state.token_start, offset + pos, TokenType.TEXT)
+				_add_color(color_provider, state.colors, offset + state.token_start, offset + pos, TokenType.TEXT)
 			else:
-				_add_scalar_color(state.colors, token, offset + state.token_start)
+				_add_scalar_color(color_provider, state.colors, token, offset + state.token_start)
 
 	return state.colors
 
-func _parse_key_value(text: String, match: RegExMatch) -> Dictionary:
+# Parse dictionary key and value
+func _parse_key_value(color_provider: ColorProvider, text: String, match: RegExMatch) -> Dictionary:
 	var colors := {}
 
 	# Color the key
-	_add_color(colors, match.get_start(1), match.get_end(1), TokenType.TEXT)
+	_add_color(color_provider, colors, match.get_start(1), match.get_end(1), TokenType.TEXT)
 
 	# Color the colon
-	_add_color(colors, match.get_end(1), match.get_end(1) + 1, TokenType.SYMBOL)
+	_add_color(color_provider,colors, match.get_end(1), match.get_end(1) + 1, TokenType.SYMBOL)
 
 	# Get and process the value if present
 	var value := match.get_string(2).strip_edges()
@@ -251,7 +287,7 @@ func _parse_key_value(text: String, match: RegExMatch) -> Dictionary:
 			# First check for and handle any tags
 			var tag_match: RegExMatch = re_patterns.tag.search(value)
 			if tag_match:
-				_add_color(colors, value_start + tag_match.get_start(0),
+				_add_color(color_provider, colors, value_start + tag_match.get_start(0),
 						  value_start + tag_match.get_end(0), TokenType.KEYWORD)
 				# Get remaining content after tag
 				var after_tag := value.substr(tag_match.get_end(0)).strip_edges()
@@ -261,26 +297,27 @@ func _parse_key_value(text: String, match: RegExMatch) -> Dictionary:
 						# Now check for multiline indicator in remaining content
 						var indicator_match: RegExMatch = re_patterns.multiline_indicator.search(after_tag)
 						if indicator_match:
-							_add_color(colors, after_tag_start + indicator_match.get_start(1), after_tag_start + indicator_match.get_end(1), TokenType.SYMBOL)
+							_add_color(color_provider, colors, after_tag_start + indicator_match.get_start(1), after_tag_start + indicator_match.get_end(1), TokenType.SYMBOL)
 						elif after_tag.begins_with("{") or after_tag.begins_with("["):
 							# Process flow style collections after the tag
-							colors.merge(_parse_flow_style(after_tag, after_tag_start))
+							colors.merge(_parse_flow_style(color_provider, after_tag, after_tag_start))
 						else:
 							# Process normal scalar after the tag
-							_add_scalar_color(colors, after_tag, after_tag_start)
+							_add_scalar_color(color_provider, colors, after_tag, after_tag_start)
 					return colors
 
 			# If no tag, check for multiline indicator in full value
 			var indicator_match: RegExMatch = re_patterns.multiline_indicator.search(value)
 			if indicator_match:
-				_add_color(colors, value_start + indicator_match.get_start(1), value_start + indicator_match.get_end(1), TokenType.SYMBOL)
+				_add_color(color_provider, colors, value_start + indicator_match.get_start(1), value_start + indicator_match.get_end(1), TokenType.SYMBOL)
 			elif value.begins_with("[") or value.begins_with("{"):
-				colors.merge(_parse_flow_style(value, value_start))
+				colors.merge(_parse_flow_style(color_provider, value, value_start))
 			else:
-				_add_scalar_color(colors, value, value_start)
+				_add_scalar_color(color_provider, colors, value, value_start)
 	return colors
 
-func _add_scalar_color(colors: Dictionary, token: String, start_index: int) -> void:
+# Colors for scalar values
+func _add_scalar_color(color_provider: ColorProvider, colors: Dictionary, token: String, start_index: int) -> void:
 	# Handle empty or whitespace-only tokens
 	token = token.strip_edges()
 	if token.is_empty():
@@ -288,17 +325,17 @@ func _add_scalar_color(colors: Dictionary, token: String, start_index: int) -> v
 
 	# Check for quoted strings first
 	if re_patterns.quoted_string.search(token):
-		_add_color(colors, start_index, start_index + token.length(), TokenType.STRING)
+		_add_color(color_provider, colors, start_index, start_index + token.length(), TokenType.STRING)
 		return  # Important: return early to prevent parsing tags inside strings
 
-	# Check for tags - improved handling to only color the tag portion
+	# Check for tags
 	var tag_match: RegExMatch = re_patterns.tag.search(token)
 	if tag_match:
 		var tag_start := tag_match.get_start(0)
 		var tag_end := tag_match.get_end(0)
 
 		# Only color the tag portion
-		_add_color(colors, start_index + tag_start, start_index + tag_end, TokenType.KEYWORD)
+		_add_color(color_provider, colors, start_index + tag_start, start_index + tag_end, TokenType.KEYWORD)
 
 		# Process any remaining content after the tag
 		if tag_end < token.length():
@@ -307,31 +344,33 @@ func _add_scalar_color(colors: Dictionary, token: String, start_index: int) -> v
 				var remaining_start = start_index + token.find(remaining, tag_end)
 				if remaining_start != -1:
 					if remaining.begins_with("{") or remaining.begins_with("["):
-						colors.merge(_parse_flow_style(remaining, remaining_start))
+						colors.merge(_parse_flow_style(color_provider, remaining, remaining_start))
 					else:
 						# Apply appropriate coloring for the remaining content
 						if re_patterns.number.search(remaining):
-							_add_color(colors, remaining_start, remaining_start + remaining.length(), TokenType.NUMBER)
+							_add_color(color_provider, colors, remaining_start, remaining_start + remaining.length(), TokenType.NUMBER)
 						elif re_patterns.boolean.search(remaining) or re_patterns.nullish.search(remaining) or re_patterns.special.search(remaining):
-							_add_color(colors, remaining_start, remaining_start + remaining.length(), TokenType.KEYWORD)
+							_add_color(color_provider, colors, remaining_start, remaining_start + remaining.length(), TokenType.KEYWORD)
 						else:
-							_add_color(colors, remaining_start, remaining_start + remaining.length(), TokenType.STRING)
+							_add_color(color_provider, colors, remaining_start, remaining_start + remaining.length(), TokenType.STRING)
 		return
 
 	# Rest of the scalar checks for non-tag content
 	elif re_patterns.number.search(token):
-		_add_color(colors, start_index, start_index + token.length(), TokenType.NUMBER)
+		_add_color(color_provider, colors, start_index, start_index + token.length(), TokenType.NUMBER)
 	elif re_patterns.boolean.search(token) or re_patterns.nullish.search(token) or re_patterns.special.search(token):
-		_add_color(colors, start_index, start_index + token.length(), TokenType.KEYWORD)
+		_add_color(color_provider, colors, start_index, start_index + token.length(), TokenType.KEYWORD)
 	elif re_patterns.anchor.search(token) or re_patterns.alias.search(token):
-		_add_color(colors, start_index, start_index + token.length(), TokenType.SYMBOL)
+		_add_color(color_provider, colors, start_index, start_index + token.length(), TokenType.SYMBOL)
 	else:
 		# Default fallback is string color
-		_add_color(colors, start_index, start_index + token.length(), TokenType.STRING)
+		_add_color(color_provider, colors, start_index, start_index + token.length(), TokenType.STRING)
 
-func _add_color(colors: Dictionary, start: int, end: int, type: TokenType) -> void:
-	colors[start] = {"color": _get_color_for_type(type)}
+# Add color for a type
+func _add_color(color_provider: ColorProvider, colors: Dictionary, start: int, end: int, type: TokenType) -> void:
+	colors[start] = {"color": color_provider.get_color_for_type(type)}
 
+# Sort the colors dictionary by index
 func _sort_colors(colors: Dictionary) -> Dictionary:
 	# Get all indices as an array
 	var indices := colors.keys()

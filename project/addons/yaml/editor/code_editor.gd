@@ -12,7 +12,7 @@ signal zoom_changed(zoom_level)  # New signal for zoom changes
 var error_indicators := {}
 var snapshot_debounce_timer: Timer
 var error_line_color: Color = Color(1.0, 0.3, 0.3, 0.1)
-var syntax_highlighter_script = preload("res://addons/yaml/editor/syntax_highlighter.gd")
+var syntax_highlighter_script = preload("res://addons/yaml/editor/syntax_highlighting/editor_syntax_highlighter.gd")
 var suppress_text_changed: bool = false
 
 # Zoom functionality variables
@@ -23,20 +23,20 @@ func _ready() -> void:
 	# Clear text to reset the editor state
 	text = ""
 
-	# Do not lose selection when focus is lost
-	deselect_on_focus_loss_enabled = false
-	set_focus_mode(Control.FOCUS_ALL)
-
-	# Configure YAML-specific settings
+	# YAML indentation
 	set_indent_size(2)
 	set_indent_using_spaces(true)
-	indent_automatic = true
+	indent_automatic_prefixes = [":"]
 	scroll_smooth = true
 	set_highlight_current_line(true)
 
-	# Set up syntax highlighter
+	# Syntax highlighting
 	if not syntax_highlighter:
 		syntax_highlighter = syntax_highlighter_script.new()
+
+	# Do not lose selection when focus is lost
+	deselect_on_focus_loss_enabled = false
+	set_focus_mode(Control.FOCUS_ALL)
 
 	# Create debounce timer for content changes
 	snapshot_debounce_timer = Timer.new()

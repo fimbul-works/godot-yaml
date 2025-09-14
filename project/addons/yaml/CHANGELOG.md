@@ -7,9 +7,11 @@ The second major version of Godot YAML includes new methods for multi-document r
 ### Changes
 
 - **Breaking:** Removed the `YAMLResult.get_data(index)` parameter. Use `YAMLResult.get_document(index)` instead.
-- Added `YAMLResult.get_documents()` and `YAMLResult.has_multiple_documents()` methods
+- Added `YAMLResult.get_documents()` and `YAMLResult.has_multiple_documents()` methods to help working with multi-document YAML files
+- Added `YAMLCodeEdit` class to enable embedding the YAML editor into projects
 - Added missing example for handling multi-document YAML files
 - Fixes:
+    - Fixed `YAMLResult.get_data()` only returning the first element of a document that only contains an array
     - Fixed invalid numeric value parsing
 
 ### Migration Guide From Version 1.* to 2.0.0
