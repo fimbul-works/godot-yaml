@@ -25,7 +25,7 @@ func run_examples():
 		print_rich("[color=red]Dictionary parse failed: %s[/color]" % parse_result.get_error())
 		return
 
-	var decoded := parse_result.get_data()
+	var decoded = parse_result.get_data()
 	var all_passed := true
 	for key in variants:
 		if !is_approximately_equal(variants[key], decoded[key]):
@@ -35,12 +35,11 @@ func run_examples():
 			all_passed = false
 
 	if all_passed:
-		print(yaml_text)
 		print_rich("[color=green]✓ All variant type conversions passed![/color]")
 
 func run_variant_conversion(type_name: String, value: Variant) -> void:
 	print_rich("\n[b]Testing %s:[/b]" % type_name)
-	print_rich("[i]Original:[/i] %s" % value)
+	print_rich("[i]Original:[/i] %s" % str(value))
 
 	# Test stringification
 	var yaml_result := YAML.stringify(value)
@@ -48,7 +47,7 @@ func run_variant_conversion(type_name: String, value: Variant) -> void:
 		print_rich("[color=red]Stringify failed: %s[/color]" % yaml_result.get_error())
 		return
 
-	var yaml := yaml_result.get_data()
+	var yaml = yaml_result.get_data()
 	print_rich("[i]As YAML:[/i]\n%s" % yaml)
 
 	# Test parsing
@@ -57,19 +56,23 @@ func run_variant_conversion(type_name: String, value: Variant) -> void:
 		print_rich("[color=red]Parse failed: %s[/color]" % parse_result.get_error())
 		return
 
-	var decoded := parse_result.get_data()
-	print_rich("[i]Decoded:[/i] %s" % decoded)
+	var decoded = parse_result.get_data()
+	print_rich("[i]Decoded:[/i] %s" % str(decoded))
 
 	# Verify value equality
 	if !is_approximately_equal(value, decoded):
 		print_rich("[color=red]Value mismatch:[/color]")
-		print_rich("  Expected: %s" % value)
+		print_rich("  Expected: %s" % str(value))
 		print_rich("  Got: %s" % decoded)
 	else:
 		print_rich("[color=green]✓ Values match[/color]")
 
 func is_approximately_equal(a: Variant, b: Variant) -> bool:
+	if typeof(b) == TYPE_STRING:
+		return str(a) == b
 	match typeof(a):
+		TYPE_STRING, TYPE_STRING_NAME:
+			return a == b
 		TYPE_FLOAT:
 			return abs(a - b) < EPSILON
 		TYPE_VECTOR2, TYPE_VECTOR3, TYPE_VECTOR4:

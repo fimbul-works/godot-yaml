@@ -28,12 +28,13 @@ class YAMLStyle;
  *
  * The YAMLResult class provides a consistent way to handle both successful
  * and failed YAML operations. It can store:
- * - Parsed data as a Godot Variant
+ * - Parsed data as a Godot Variant (single document)
+ * - Multiple YAML documents as an Array
  * - Error information (message, line, column)
  * - Style information for formatting
  *
- * It supports multiple YAML documents within a single result and
- * provides access to the result data with appropriate error handling.
+ * The class explicitly distinguishes between single documents and multi-document
+ * results to avoid ambiguity when the single document happens to be an Array.
  *
  * @extends RefCounted
  */
@@ -51,20 +52,28 @@ public:
 	 * @brief Default constructor that creates an empty successful result.
 	 */
 	YAMLResult() :
-			data(Variant()), error_message(""), error_line(-1), error_column(-1) {}
+			data(Variant()), is_multi_document(false), error_message(""), error_line(-1), error_column(-1) {}
 
 	/**
 	 * @brief Static factory methods to create result objects.
 	 */
 
 	/**
-	 * @brief Creates a successful result with data.
+	 * @brief Creates a successful result with single document data.
 	 *
-	 * @param data The parsed or processed data
+	 * @param data The parsed or processed data (single document)
 	 * @param style Optional style information
-	 * @return Ref<YAMLResult> A successful result object
+	 * @return Ref<YAMLResult> A successful single-document result object
 	 */
 	static Ref<YAMLResult> success(const Variant &data, const Ref<YAMLStyle> &style = nullptr);
+
+	/**
+	 * @brief Creates a successful result with multiple documents.
+	 *
+	 * @param documents Array containing multiple document data
+	 * @return Ref<YAMLResult> A successful multi-document result object
+	 */
+	static Ref<YAMLResult> multi_document_success(const Array &documents);
 
 	/**
 	 * @brief Creates an error result with location information.
@@ -92,17 +101,24 @@ public:
 	 */
 
 	/**
-	 * @brief Gets the data for a specific document index.
+	 * @brief Gets the result data.
 	 *
-	 * @param index Document index (0 for single documents)
-	 * @return Variant The data or null if the index is invalid
+	 * Returns the data contained in this result:
+	 * - For parsing operations: the parsed Variant data
+	 * - For emission operations: the generated YAML string
+	 *
+	 * For single documents, returns the data directly.
+	 * For multi-document results, returns the first document and logs a warning.
+	 * Use get_document() or get_documents() for explicit multi-document access.
+	 *
+	 * @return Variant The result data or first document data
 	 */
-	Variant get_data(int index = 0) const;
+	Variant get_data() const;
 
 	/**
-	 * @brief Alias for get_data() for clarity when working with multiple documents.
+	 * @brief Get a specific document by index.
 	 *
-	 * @param index Document index (0 for single documents)
+	 * @param index Document index (0 for first document)
 	 * @return Variant The document data or null if the index is invalid
 	 */
 	Variant get_document(int index = 0) const;
@@ -110,9 +126,30 @@ public:
 	/**
 	 * @brief Gets the number of documents in the result.
 	 *
-	 * @return int Number of documents (0 if an error occurred)
+	 * @return int Number of documents (0 if an error occurred, 1 for single documents)
 	 */
 	int get_document_count() const;
+
+	/**
+	 * @brief Gets all documents as an Array.
+	 *
+	 * For single documents, returns an Array containing the single document.
+	 * For multi-document results, returns the documents Array directly.
+	 *
+	 * @return Array An array containing all document data
+	 */
+	Array get_documents() const;
+
+	/**
+	 * @brief Checks if this result contains multiple documents.
+	 *
+	 * @return bool True if this result contains multiple documents
+	 */
+	bool has_multiple_documents() const;
+
+	/**
+	 * @brief Error handling methods.
+	 */
 
 	/**
 	 * @brief Checks if the result contains an error.
@@ -179,6 +216,7 @@ private:
 	 * @brief Private constructor to enforce factory method usage.
 	 *
 	 * @param data_ The result data
+	 * @param is_multi_document_ Whether this contains multiple documents
 	 * @param style_ Optional style information
 	 * @param error_ Optional error message
 	 * @param line Optional error line number
@@ -186,16 +224,18 @@ private:
 	 */
 	YAMLResult(
 			const Variant &data_,
+			bool is_multi_document_,
 			const Ref<YAMLStyle> &style_ = nullptr,
 			const String &error_ = "",
 			int line = -1,
 			int col = -1) :
-			data(data_), style(style_), error_message(error_), error_line(line), error_column(col) {}
+			data(data_), is_multi_document(is_multi_document_), style(style_), error_message(error_), error_line(line), error_column(col) {}
 
 	/**
 	 * @brief Immutable state members.
 	 */
-	const Variant data; ///< The result data (parsed YAML or serialized string)
+	const Variant data; ///< The result data (single document) or documents Array (multi-document)
+	const bool is_multi_document; ///< Whether this result contains multiple documents
 	const String error_message; ///< Error message if an error occurred
 	const int error_line; ///< Line number where the error occurred
 	const int error_column; ///< Column number where the error occurred

@@ -9,6 +9,32 @@ number: 1234
 list:
   - apples
   - oranges
+aaron:
+  birthday: "01-15-1995"
+bob:
+  birthday: "02/15/1995"
+chris:
+  birthday: "03%15%1995"
+dan:
+  birthday: "04M15M1995"
+evan:
+  birthday: "05151995"
+fred:
+  birthday: "06-15-1995"
+greg:
+  birthday: "07-15-1995"
+harry:
+  birthday: "08-15-1995"
+ivan:
+  birthday: "09-15-1995"
+john:
+  birthday: "10-15-1995"
+kevin:
+  birthday: "00-15-1995"
+larry:
+  birthday: "20-15-1995"
+martin:
+  birthday: "1995-01-15"
 """
 
 var data
@@ -34,19 +60,23 @@ func test_parse_text() -> void:
 		print_rich("\n[b]Parse Result:[/b]\n%s\n" % result.get_data())
 
 func test_stringify_data() -> void:
-	var data = YAML.parse(yaml_text).get_data()
+	var parse_result := YAML.parse(yaml_text, null, true)
+	if parse_result.has_error():
+		return push_error(parse_result.get_error())
 
-	var result := YAML.stringify(data)
-	expect(not result.has_error(), result.get_error())
+	var data = parse_result.get_data()
 
-	if result.has_error():
-		return push_error(result.get_error())
+	var stringify_result := YAML.stringify(data, parse_result.get_style())
+	expect(not stringify_result.has_error(), stringify_result.get_error())
 
-	expect_equal(result.get_data().strip_edges(), yaml_text.strip_edges(),
+	if stringify_result.has_error():
+		return push_error(stringify_result.get_error())
+
+	expect_equal(stringify_result.get_data().strip_edges(), yaml_text.strip_edges(),
 		"Stringified YAML should match original")
 
 	if LOG_VERBOSE:
-		print_rich("\n[b]Stringify Result:[/b]\n%s\n" % result.get_data())
+		print_rich("\n[b]Stringify Result:[/b]\n%s\n" % stringify_result.get_data())
 
 func test_validate_file() -> void:
 	var result := YAML.validate_file(YAML_FILE)

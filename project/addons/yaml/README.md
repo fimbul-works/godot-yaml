@@ -154,15 +154,22 @@ enable_tutorial: false
 
 var result = YAML.parse(yaml_text)
 if !result.has_error():
-    var player_data = result.get_data(0)
-    var settings = result.get_data(1)
-
-    print("Player: %s (Health: %d)" % [player_data.name, player_data.health])
-    print("Difficulty: %s" % settings.difficulty)
+    # Check if the result contains multiple documents
+    print("Has multiple documents: %s" % result.has_multiple_documents())
 
     # Check document count
     var doc_count = result.get_document_count()
     print("Found %d documents" % doc_count)
+
+    # Get the documents
+    var player_data = result.get_document(0)
+    var settings = result.get_document(1)
+
+    print("Player: %s (Health: %d)" % [player_data.name, player_data.health])
+    print("Difficulty: %s" % settings.difficulty)
+
+    # Get documents as an array
+    var docs = result.get_documents()
 ```
 
 ## Error Handling

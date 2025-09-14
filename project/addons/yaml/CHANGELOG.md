@@ -1,9 +1,20 @@
 # Godot YAML Changelog
 
-## Version 1.1.1
+## Version 2.0.0
 
+The second major version of Godot YAML includes new methods for multi-document result handling, fixes, and a breaking API change. See the [migration guide](#migration-guide-from-version-1*-to-200) for details.
+
+### Changes
+
+- **Breaking:** Removed the `YAMLResult.get_data(index)` parameter. Use `YAMLResult.get_document(index)` instead.
+- Added `YAMLResult.get_documents()` and `YAMLResult.has_multiple_documents()` methods
+- Added missing example for handling multi-document YAML files
 - Fixes:
     - Fixed invalid numeric value parsing
+
+### Migration Guide From Version 1.* to 2.0.0
+
+Replace `YAMLResult.get_data(index)` calls with `YAMLResult.get_document(index)`.
 
 ## Version 1.1.0
 

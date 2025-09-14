@@ -105,12 +105,14 @@ Ref<YAMLResult> YAML::Parser::parse(const String &input, const YAMLSecurity::Vie
 
 		if (!current_result->has_error()) {
 			if (tree.rootref().is_stream() && tree.rootref().num_children() > 1) {
+				// Handle multi-document parsing
 				Array documents;
 				for (const auto &child : tree.rootref().children()) {
 					documents.push_back(process_node(child));
 				}
-				current_result = YAMLResult::success(documents);
+				current_result = YAMLResult::multi_document_success(documents);
 			} else {
+				// Single document result
 				current_result = YAMLResult::success(process_node(tree.rootref()), style);
 			}
 		}
@@ -169,15 +171,13 @@ Variant YAML::Parser::process_map(const ryml::ConstNodeRef &node) const {
 	}
 
 	for (const auto &child : node.children()) {
-		std::optional<String> key_result = extract_key(child);
-		if (!key_result.has_value()) {
+		String key = extract_key(child);
+		if (key.is_empty()) {
 			return Variant();
 		}
 
-		String &key_ref = key_result.value();
-
 		if (detect_style) {
-			context->push_style(key_ref);
+			context->push_style(key);
 		}
 
 		Variant value = process_node(child);
@@ -190,7 +190,7 @@ Variant YAML::Parser::process_map(const ryml::ConstNodeRef &node) const {
 			return Variant();
 		}
 
-		dict[key_ref] = value;
+		dict[key] = value;
 	}
 
 	return dict;

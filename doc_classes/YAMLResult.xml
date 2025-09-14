@@ -6,7 +6,7 @@
 	<description>
 		Contains the results from YAML parsing or stringifying operations, providing a unified interface for both successful data and error cases. This class serves as a return type for API methods, containing either the parsed/stringified data or error information.
 		[YAMLResult] objects are immutable and can contain either successful data or error information, but not both. When an operation succeeds, the result contains the data and no error. When an operation fails, the result contains error information and empty data.
-		Multi-document YAML is fully supported, allowing you to access each document individually through [method get_document] or [method get_data] with an index parameter.
+		Multi-document YAML is fully supported, allowing you to access each document individually through [method get_document], and [method get_documents] for all documents.
 	</description>
 	<tutorials>
 	</tutorials>
@@ -20,9 +20,15 @@
 		</method>
 		<method name="get_data" qualifiers="const">
 			<return type="Variant" />
+			<description>
+				Returns the result data. For multi-document results, returns the first document and logs a warning (use [method get_document] or [method get_documents] instead). Returns [code]null[/code] for error results.
+			</description>
+		</method>
+		<method name="get_document" qualifiers="const">
+			<return type="Variant" />
 			<param index="0" name="index" type="int" default="0" />
 			<description>
-				Returns the result data. For multi-document YAML, specify [param index] to access a specific document.
+				Get a document at index. Returns [code]null[/code] for error results.
 				[codeblock lang=gdscript]
 				var yaml_text = """
 				# Player stats
@@ -36,25 +42,47 @@
 
 				var result = YAML.parse(yaml_text)
 				if !result.has_error():
-				    var player_data = result.get_data(0)
-				    var settings = result.get_data(1)
+				    var player_data = result.get_document(0)
+				    var settings = result.get_document(1)
 
 				    print("Player: %s (Health: %d)" % [player_data.name, player_data.health])
 				    print("Difficulty: %s" % settings.difficulty)
 				[/codeblock]
 			</description>
 		</method>
-		<method name="get_document" qualifiers="const">
-			<return type="Variant" />
-			<param index="0" name="index" type="int" default="0" />
-			<description>
-				Alias for [method get_data] for clarity when working with multiple documents.
-			</description>
-		</method>
 		<method name="get_document_count" qualifiers="const">
 			<return type="int" />
 			<description>
 				Returns the number of documents in the result. Returns [code]0[/code] for error results.
+			</description>
+		</method>
+		<method name="get_documents" qualifiers="const">
+			<return type="Array" />
+			<description>
+				Returns all documents as an [Array]. Returns an empty [Array] for error results.
+				[codeblock lang=gdscript]
+				var yaml_text = """
+				# Player stats
+				name: Hero
+				health: 100
+				---
+				# Game settings
+				difficulty: hard
+				enable_tutorial: false
+				"""
+
+				var result = YAML.parse(yaml_text)
+				if !result.has_error():
+				    var documents = result.get_documents()
+
+				    print("Player: %s (Health: %d)" % [documents[0].name, documents[1].difficulty])
+				[/codeblock]
+			</description>
+		</method>
+		<method name="has_multiple_documents" qualifiers="const">
+			<return type="bool" />
+			<description>
+				Returns [code]true[/code] if the result contains multiple documents, [code]false[/code] otherwise.
 			</description>
 		</method>
 		<method name="get_error" qualifiers="const">

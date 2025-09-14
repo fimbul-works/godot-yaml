@@ -4,9 +4,11 @@
 using namespace godot;
 
 void YAMLResult::_bind_methods() {
-	ClassDB::bind_method(D_METHOD("get_data", "index"), &YAMLResult::get_data, DEFVAL(0));
+	ClassDB::bind_method(D_METHOD("get_data"), &YAMLResult::get_data);
 	ClassDB::bind_method(D_METHOD("get_document", "index"), &YAMLResult::get_document, DEFVAL(0));
 	ClassDB::bind_method(D_METHOD("get_document_count"), &YAMLResult::get_document_count);
+	ClassDB::bind_method(D_METHOD("get_documents"), &YAMLResult::get_documents);
+	ClassDB::bind_method(D_METHOD("has_multiple_documents"), &YAMLResult::has_multiple_documents);
 
 	ClassDB::bind_method(D_METHOD("has_error"), &YAMLResult::has_error);
 	ClassDB::bind_method(D_METHOD("get_error_message"), &YAMLResult::get_error_message);
@@ -23,49 +25,87 @@ void YAMLResult::_bind_methods() {
 }
 
 Ref<YAMLResult> YAMLResult::success(const Variant &data, const Ref<YAMLStyle> &style) {
-	return Ref<YAMLResult>(memnew(YAMLResult(data, style)));
+	return Ref<YAMLResult>(memnew(YAMLResult(data, false, style)));
+}
+
+Ref<YAMLResult> YAMLResult::multi_document_success(const Array &documents) {
+	return Ref<YAMLResult>(memnew(YAMLResult(documents, true, nullptr)));
 }
 
 Ref<YAMLResult> YAMLResult::error(const String &msg, int line, int column) {
-	return Ref<YAMLResult>(memnew(YAMLResult(Variant(), nullptr, msg, line, column)));
+	return Ref<YAMLResult>(memnew(YAMLResult(Variant(), false, nullptr, msg, line, column)));
 }
 
 Ref<YAMLResult> YAMLResult::user_error(const String &msg) {
-	return Ref<YAMLResult>(memnew(YAMLResult(Variant(), nullptr, msg)));
+	return Ref<YAMLResult>(memnew(YAMLResult(Variant(), false, nullptr, msg)));
 }
 
-Variant YAMLResult::get_data(int index) const {
-	// If data is not an array or index is 0, return as before for backward compatibility
-	if (data.get_type() != Variant::ARRAY || index == 0 && data.operator Array().size() == 0) {
-		return data;
+Variant YAMLResult::get_data() const {
+	if (has_error()) {
+		return Variant();
 	}
 
-	// Handle array of documents
-	Array documents = data;
+	if (is_multi_document) {
+		UtilityFunctions::push_warning("YAMLResult.get_data() called on multi-document YAML. Use get_document() instead.");
+
+		Array documents = data.operator Array();
+		return documents.size() > 0 ? documents[0] : Variant();
+	}
+
+	return data;
+}
+
+Variant YAMLResult::get_document(int index) const {
+	if (has_error()) {
+		return Variant();
+	}
+
+	// Single document: return data if index is 0, null otherwise
+	if (!is_multi_document) {
+		return index == 0 ? data : Variant();
+	}
+
+	// Multi-document: access from documents array
+	Array documents = data.operator Array();
 	if (index >= 0 && index < documents.size()) {
 		return documents[index];
 	}
 
-	// Return null for out of range indices
+	// Out of range
 	return Variant();
 }
 
-Variant YAMLResult::get_document(int index) const {
-	return get_data(index);
-}
-
 int YAMLResult::get_document_count() const {
-	if (!error_message.is_empty()) {
+	if (has_error()) {
 		return 0;
 	}
 
-	// If data is an array of documents
-	if (data.get_type() == Variant::ARRAY) {
-		Array documents = data;
+	if (is_multi_document) {
+		Array documents = data.operator Array();
 		return documents.size();
 	}
 
-	return 1;
+	return 1; // Single document
+}
+
+Array YAMLResult::get_documents() const {
+	if (has_error()) {
+		return Array();
+	}
+
+	// Multi-document: return the documents array directly
+	if (is_multi_document) {
+		return data.operator Array();
+	}
+
+	// Single document: wrap in array for consistency
+	Array single_doc_array;
+	single_doc_array.push_back(data);
+	return single_doc_array;
+}
+
+bool YAMLResult::has_multiple_documents() const {
+	return !has_error() && is_multi_document;
 }
 
 bool YAMLResult::has_error() const {
@@ -100,5 +140,12 @@ Ref<YAMLStyle> YAMLResult::get_style() const {
 }
 
 String YAMLResult::_to_string() const {
-	return vformat("YAMLResult(%s)", has_error() ? get_error_message() : "Success");
+	if (has_error()) {
+		return vformat("YAMLResult(Error: %s)", get_error_message());
+	}
+
+	return vformat("YAMLResult(%s, %d document%s)",
+			"Success",
+			get_document_count(),
+			get_document_count() == 1 ? "" : "s");
 }
