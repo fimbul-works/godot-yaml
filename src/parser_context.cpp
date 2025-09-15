@@ -1,4 +1,4 @@
-#include "parser_context.h"
+#include "parser_context.hpp"
 
 #include <godot_cpp/classes/resource.hpp>
 #include <godot_cpp/classes/resource_loader.hpp>
@@ -6,14 +6,14 @@
 
 using namespace godot;
 
-ParserContext::ParserContext(const ryml::Parser *p_ryml_parser, const Ref<YAMLStyle> &root_style) :
+YAMLParserContext::YAMLParserContext(const ryml::Parser *p_ryml_parser, const Ref<YAMLStyle> &root_style) :
 		ryml_parser(p_ryml_parser), detect_style(root_style.is_valid()) {
 	if (detect_style) {
 		style_stack.push(root_style);
 	}
 }
 
-Ref<YAMLStyle> ParserContext::current_style() const {
+Ref<YAMLStyle> YAMLParserContext::current_style() const {
 	if (style_stack.empty()) {
 		throw YAMLException("Style stack is empty!");
 	}
@@ -26,7 +26,7 @@ Ref<YAMLStyle> ParserContext::current_style() const {
 	return current_style;
 }
 
-Ref<YAMLStyle> ParserContext::push_style(const String &key) {
+Ref<YAMLStyle> YAMLParserContext::push_style(const String &key) {
 	if (!detect_style) {
 		return Ref<YAMLStyle>();
 	}
@@ -43,7 +43,7 @@ Ref<YAMLStyle> ParserContext::push_style(const String &key) {
 	return child;
 }
 
-void ParserContext::pop_style() {
+void YAMLParserContext::pop_style() {
 	if (!detect_style || style_stack.empty()) {
 		return;
 	}
@@ -51,6 +51,6 @@ void ParserContext::pop_style() {
 	style_stack.pop();
 }
 
-const ryml::Parser *ParserContext::get_ryml_parser() const {
+const ryml::Parser *YAMLParserContext::get_ryml_parser() const {
 	return ryml_parser;
 }

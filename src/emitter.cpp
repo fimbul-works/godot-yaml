@@ -1,10 +1,7 @@
-#include "emitter.h"
-#include "class_registry.h"
-#include "converter_factory.h"
-#include "style.h"
-#include "util_numeric.h"
-#include "util_string.h"
-#include "yaml.h"
+#include "emitter.hpp"
+#include "class_registry.hpp"
+#include "util_numeric.hpp"
+#include "util_string.hpp"
 
 #include <godot_cpp/classes/project_settings.hpp>
 #include <godot_cpp/classes/resource.hpp>
@@ -14,7 +11,7 @@
 
 using namespace godot;
 
-YAML::Emitter::Emitter() {
+YAMLEmitter::YAMLEmitter() {
 	callbacks.m_error = error_callback;
 	callbacks.m_user_data = this;
 	evt_handler = std::make_unique<ryml::EventHandlerTree>(callbacks);
@@ -22,7 +19,7 @@ YAML::Emitter::Emitter() {
 	init_converters();
 }
 
-void YAML::Emitter::init_converters() {
+void YAMLEmitter::init_converters() {
 	type_converters = factory.create_converter_set();
 
 	for (const auto &pair : type_converters) {
@@ -32,7 +29,7 @@ void YAML::Emitter::init_converters() {
 	}
 }
 
-void YAML::Emitter::error_callback(const char *msg, size_t len, ryml::Location loc, void *user_data) {
+void YAMLEmitter::error_callback(const char *msg, size_t len, ryml::Location loc, void *user_data) {
 	ryml::csubstr error_msg(msg, len);
 
 	// Strip "ERROR: " prefix if present
@@ -47,7 +44,7 @@ void YAML::Emitter::error_callback(const char *msg, size_t len, ryml::Location l
 		error_msg = error_msg.sub(0, newline_pos);
 	}
 
-	auto *emitter = static_cast<Emitter *>(user_data);
+	auto *emitter = static_cast<YAMLEmitter *>(user_data);
 	if (!emitter) {
 		throw YAMLException(from_ryml_str(error_msg));
 	}
@@ -61,21 +58,21 @@ void YAML::Emitter::error_callback(const char *msg, size_t len, ryml::Location l
 	throw YAMLException(emitter->current_result->get_error_message());
 }
 
-ryml::csubstr YAML::Emitter::store_string(const String &str) {
+ryml::csubstr YAMLEmitter::store_string(const String &str) {
 	return string_pool.store(str);
 }
 
-VariantConverter *YAML::Emitter::get_converter_for_type(Variant::Type type) const {
+YAMLVariantConverter *YAMLEmitter::get_converter_for_type(Variant::Type type) const {
 	auto it = type_converters.find(type);
 	return it != type_converters.end() ? it->second.get() : nullptr;
 }
 
-VariantConverter *YAML::Emitter::get_converter_for_tag(const String &tag) const {
+YAMLVariantConverter *YAMLEmitter::get_converter_for_tag(const String &tag) const {
 	auto it = tag_converters.find(tag);
 	return it != tag_converters.end() ? it->second : nullptr;
 }
 
-Ref<YAMLResult> YAML::Emitter::emit(const Variant &input, const YAMLStyle::View &style) {
+Ref<YAMLResult> YAMLEmitter::emit(const Variant &input, const YAMLStyle::View &style) {
 	try {
 		current_result = YAMLResult::success(Variant());
 
@@ -96,7 +93,7 @@ Ref<YAMLResult> YAML::Emitter::emit(const Variant &input, const YAMLStyle::View 
 	}
 }
 
-void YAML::Emitter::emit_value(ryml::NodeRef node, const Variant &value, const YAMLStyle::View &style) {
+void YAMLEmitter::emit_value(ryml::NodeRef node, const Variant &value, const YAMLStyle::View &style) {
 	static int depth = 0;
 	depth++;
 
@@ -147,12 +144,12 @@ void YAML::Emitter::emit_value(ryml::NodeRef node, const Variant &value, const Y
 			}
 
 			default: {
-				VariantConverter *converter = get_converter_for_type(value.get_type());
+				YAMLVariantConverter *converter = get_converter_for_type(value.get_type());
 				if (converter) {
 					node.set_val_tag(converter->get_full_tag());
 					converter->encode(node, value, style);
 				} else {
-					String type_name = Variant::get_type_name(value.get_type());
+					String type_name = type_str(value);
 					String error = vformat("Cannot serialize type: %s", type_name);
 					current_result = YAMLResult::error(error);
 					throw YAMLException(error);
@@ -176,16 +173,16 @@ void YAML::Emitter::emit_value(ryml::NodeRef node, const Variant &value, const Y
 	}
 }
 
-void YAML::Emitter::emit_nil(ryml::NodeRef &node) {
+void YAMLEmitter::emit_nil(ryml::NodeRef &node) {
 	ryml::csubstr null = {};
 	node << null;
 }
 
-void YAML::Emitter::emit_bool(ryml::NodeRef &node, bool value) {
+void YAMLEmitter::emit_bool(ryml::NodeRef &node, bool value) {
 	node << (value ? "true" : "false");
 }
 
-void YAML::Emitter::emit_number(ryml::NodeRef &node, const Variant &value, const YAMLStyle::View &style) {
+void YAMLEmitter::emit_number(ryml::NodeRef &node, const Variant &value, const YAMLStyle::View &style) {
 	if (value.get_type() == Variant::INT) {
 		YAMLStyle::IntegerFormat format = style.get_integer_format();
 		int64_t int_val = static_cast<int64_t>(value.operator int64_t());
@@ -197,7 +194,7 @@ void YAML::Emitter::emit_number(ryml::NodeRef &node, const Variant &value, const
 	}
 }
 
-void YAML::Emitter::emit_string(ryml::NodeRef &node, const String &value, const YAMLStyle::View &style) {
+void YAMLEmitter::emit_string(ryml::NodeRef &node, const String &value, const YAMLStyle::View &style) {
 	if (value.is_empty()) {
 		node << ryml::csubstr{};
 		return;
@@ -228,7 +225,7 @@ void YAML::Emitter::emit_string(ryml::NodeRef &node, const String &value, const 
 	node << to_ryml_str(value);
 }
 
-void YAML::Emitter::emit_array(ryml::NodeRef &node, const Array &array, const YAMLStyle::View &style) {
+void YAMLEmitter::emit_array(ryml::NodeRef &node, const Array &array, const YAMLStyle::View &style) {
 	node |= ryml::SEQ;
 
 	style.apply_flow_style(node);
@@ -256,7 +253,7 @@ void YAML::Emitter::emit_array(ryml::NodeRef &node, const Array &array, const YA
 	}
 }
 
-void YAML::Emitter::emit_dictionary(ryml::NodeRef &node, const Dictionary &dict, const YAMLStyle::View &style) {
+void YAMLEmitter::emit_dictionary(ryml::NodeRef &node, const Dictionary &dict, const YAMLStyle::View &style) {
 	node |= ryml::MAP;
 
 	style.apply_flow_style(node);
@@ -273,7 +270,7 @@ void YAML::Emitter::emit_dictionary(ryml::NodeRef &node, const Dictionary &dict,
 	}
 }
 
-void YAML::Emitter::emit_object(ryml::NodeRef &node, Object *obj, const YAMLStyle::View &style) {
+void YAMLEmitter::emit_object(ryml::NodeRef &node, Object *obj, const YAMLStyle::View &style) {
 	String class_name = obj->get_class();
 
 	// Handle custom classes
@@ -308,7 +305,7 @@ void YAML::Emitter::emit_object(ryml::NodeRef &node, Object *obj, const YAMLStyl
 	throw YAMLException(error);
 }
 
-void YAML::Emitter::emit_resource(ryml::NodeRef &node, const Resource *res, const YAMLStyle::View &style) {
+void YAMLEmitter::emit_resource(ryml::NodeRef &node, const Resource *res, const YAMLStyle::View &style) {
 	String path = res->get_path();
 	bool is_local = res->is_local_to_scene();
 
@@ -328,7 +325,7 @@ void YAML::Emitter::emit_resource(ryml::NodeRef &node, const Resource *res, cons
 	emit_string(node, path, YAMLStyle::View()); // Use default string style
 }
 
-void YAML::Emitter::check_depth(int current_depth) {
+void YAMLEmitter::check_depth(int current_depth) {
 	if (current_depth > MAX_DEPTH) {
 		String error = vformat("Maximum nesting depth exceeded (%d). Possible circular reference?", MAX_DEPTH);
 		current_result = YAMLResult::error(error);

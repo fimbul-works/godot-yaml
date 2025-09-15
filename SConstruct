@@ -155,7 +155,7 @@ def build_config(env, variant_dir):
 
     # Gather source files
     sources = Glob(os.path.join(variant_dir, 'src', '*.cpp'))
-    sources += Glob(os.path.join(variant_dir, 'src', 'variants', '*.cpp'))
+    sources += Glob(os.path.join(variant_dir, 'src', 'variant_converters', '*.cpp'))
 
     # Embed documentation
     if env["target"] in ["editor", "template_debug"]:

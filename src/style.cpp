@@ -1,8 +1,5 @@
-#include "style.h"
-#include "exception.h"
-#include "result.h"
-#include "style_view.h"
-#include "yaml.h"
+#include "style.hpp"
+#include "yaml.hpp"
 
 #include <godot_cpp/classes/file_access.hpp>
 #include <godot_cpp/core/class_db.hpp>

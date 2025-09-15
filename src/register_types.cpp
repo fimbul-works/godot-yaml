@@ -1,9 +1,9 @@
-#include "register_types.h"
+#include "register_types.hpp"
 
-#include "result.h"
-#include "security.h"
-#include "style.h"
-#include "yaml.h"
+#include "result.hpp"
+#include "security.hpp"
+#include "style.hpp"
+#include "yaml.hpp"
 
 #include <gdextension_interface.h>
 #include <godot_cpp/core/defs.hpp>

@@ -1,4 +1,4 @@
-#include "class_registry.h"
+#include "class_registry.hpp"
 
 #include <godot_cpp/classes/resource.hpp>
 #include <godot_cpp/classes/script.hpp>

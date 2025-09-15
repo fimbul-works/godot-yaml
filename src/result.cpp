@@ -1,4 +1,5 @@
-#include "result.h"
+#include "result.hpp"
+
 #include <godot_cpp/variant/utility_functions.hpp>
 
 using namespace godot;

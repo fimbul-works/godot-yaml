@@ -1,5 +1,4 @@
-#include "security.h"
-#include "yaml.h"
+#include "security.hpp"
 
 // Initialize static members
 YAMLSecurity *YAMLSecurity::default_instance = nullptr;
