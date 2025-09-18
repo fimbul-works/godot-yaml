@@ -55,19 +55,19 @@ String YAML::version() {
 }
 
 Ref<YAMLResult> YAML::parse(const String &input, const Ref<YAMLSecurity> security, const bool detect_style) {
-	YAMLParser parser;
+	Parser parser;
 	return parser.parse(input, security.is_valid() ? security->get_view() : YAMLSecurity::get_default_view(), detect_style);
 }
 
 Ref<YAMLResult> YAML::stringify(const Variant &input, const Ref<YAMLStyle> &style) {
-	YAMLEmitter emitter;
+	Emitter emitter;
 	YAMLStyle::View style_view = style.is_valid() ? YAMLStyle::View::create_view(style) : YAMLStyle::View();
 	Ref<YAMLResult> result = emitter.emit(input, style_view);
 	return result;
 }
 
 Ref<YAMLResult> YAML::validate(const String &input) {
-	YAMLValidator validator;
+	Validator validator;
 	Ref<YAMLResult> result = validator.validate(input);
 	return result;
 }
@@ -129,7 +129,7 @@ Ref<YAMLResult> YAML::parser_load_file(const String &path, const YAMLSecurity::V
 		return YAMLResult::error("Failed to read '" + path + "': " + UtilityFunctions::error_string((int)err));
 	}
 
-	YAMLParser parser(loading_yaml_paths);
+	Parser parser(loading_yaml_paths);
 	return parser.parse(content, security_view, false);
 }
 

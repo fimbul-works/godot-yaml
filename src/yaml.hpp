@@ -51,6 +51,11 @@ protected:
 	static void _bind_methods();
 
 public:
+	// Forward-declare inner classes
+	class Emitter;
+	class Parser;
+	class Validator;
+
 	/**
 	 * @brief Returns the version string of the YAML module.
 	 *

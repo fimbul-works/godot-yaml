@@ -11,6 +11,7 @@
 
 #include "../style/style.hpp"
 #include "../util/string_hash.hpp"
+#include "../yaml.hpp"
 #include "parser_context.hpp"
 #include "result.hpp"
 #include "security.hpp"
@@ -40,25 +41,25 @@ namespace godot {
  * - Security features for resource loading
  * - Error handling with detailed diagnostics
  */
-class YAMLParser {
+class YAML::Parser {
 public:
 	/**
 	 * @brief Constructs a new YAMLParser instance.
 	 *
 	 * @param shared_paths Optional set of paths for shared YAML loading
 	 */
-	YAMLParser(std::unordered_set<String, StringHasher, StringEqual> *shared_paths = nullptr);
+	Parser(std::unordered_set<String, StringHasher, StringEqual> *shared_paths = nullptr);
 
 	/**
 	 * @brief Destructor to clean up.
 	 */
-	~YAMLParser();
+	~Parser();
 
 	/**
 	 * @brief Non-copyable class.
 	 */
-	YAMLParser(const YAMLParser &) = delete;
-	YAMLParser &operator=(const YAMLParser &) = delete;
+	Parser(const Parser &) = delete;
+	Parser &operator=(const Parser &) = delete;
 
 	/**
 	 * @brief Parses a YAML string into a Godot Variant.

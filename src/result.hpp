@@ -78,7 +78,7 @@ public:
 	 * @param column Column number where the error occurred (-1 if unknown)
 	 * @return Ref<YAMLResult> An error result object
 	 */
-	static Ref<YAMLResult> error(const String &msg, int64_t line = -1, int64_t column = -1);
+	static Ref<YAMLResult> error(const String &msg, int line = -1, int column = -1);
 
 	/**
 	 * @brief Creates a user-defined error result.
@@ -222,8 +222,8 @@ private:
 			bool is_multi_document_,
 			const Ref<YAMLStyle> &style_ = nullptr,
 			const String &error_ = "",
-			int64_t line = -1,
-			int64_t col = -1) :
+			int line = -1,
+			int col = -1) :
 			data(data_), is_multi_document(is_multi_document_), style(style_), error_message(error_), error_line(line), error_column(col) {}
 
 	/**
@@ -232,8 +232,8 @@ private:
 	const Variant data; ///< The result data (single document) or documents Array (multi-document)
 	const bool is_multi_document; ///< Whether this result contains multiple documents
 	const String error_message; ///< Error message if an error occurred
-	const int64_t error_line; ///< Line number where the error occurred
-	const int64_t error_column; ///< Column number where the error occurred
+	const int error_line; ///< Line number where the error occurred
+	const int error_column; ///< Column number where the error occurred
 	const Ref<YAMLStyle> style; ///< Style information if available
 };
 

@@ -12,6 +12,7 @@
 #include "../util/string_hash.hpp"
 #include "../util/string_pool.hpp"
 #include "../variant_converters/variant_converter_factory.hpp"
+#include "../yaml.hpp"
 #include "result.hpp"
 
 #include <godot_cpp/classes/resource.hpp>
@@ -34,25 +35,25 @@ namespace godot {
  * Each Godot type is handled by a specialized YAMLVariantConverter, which is
  * managed by the YAMLVariantConverterFactory.
  */
-class YAMLEmitter {
+class YAML::Emitter {
 public:
 	/**
 	 * @brief Constructs a new YAMLEmitter instance.
 	 *
 	 * Initializes the ryml components and type converters.
 	 */
-	YAMLEmitter();
+	Emitter();
 
 	/**
 	 * @brief Default destructor.
 	 */
-	~YAMLEmitter() = default;
+	~Emitter() = default;
 
 	/**
 	 * @brief Non-copyable class.
 	 */
-	YAMLEmitter(const YAMLEmitter &) = delete;
-	YAMLEmitter &operator=(const YAMLEmitter &) = delete;
+	YAML::Emitter(const Emitter &) = delete;
+	YAML::Emitter &operator=(const Emitter &) = delete;
 
 	/**
 	 * @brief Emits a Godot Variant as YAML.

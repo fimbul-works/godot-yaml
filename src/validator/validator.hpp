@@ -10,6 +10,7 @@
 
 #include "../exception.hpp"
 #include "../result.hpp"
+#include "../yaml.hpp"
 
 #include <ryml.hpp>
 
@@ -29,25 +30,25 @@ namespace godot {
  * The validator uses ryml (RapidYAML) for low-level validation and provides
  * detailed error information when validation fails.
  */
-class YAMLValidator {
+class YAML::Validator {
 public:
 	/**
 	 * @brief Constructs a new Validator instance.
 	 *
 	 * Initializes the ryml parser and callbacks for validation.
 	 */
-	YAMLValidator();
+	Validator();
 
 	/**
 	 * @brief Default destructor.
 	 */
-	~YAMLValidator() = default;
+	~Validator() = default;
 
 	/**
 	 * @brief Non-copyable class.
 	 */
-	YAMLValidator(const YAMLValidator &) = delete;
-	YAMLValidator &operator=(const YAMLValidator &) = delete;
+	Validator(const Validator &) = delete;
+	Validator &operator=(const Validator &) = delete;
 
 	/**
 	 * @brief Validates a YAML string without full parsing.

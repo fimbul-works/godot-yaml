@@ -10,7 +10,7 @@
 
 using namespace godot;
 
-YAMLParser::YAMLParser(std::unordered_set<String, StringHasher, StringEqual> *shared_paths) {
+YAML::Parser::Parser(std::unordered_set<String, StringHasher, StringEqual> *shared_paths) {
 	callbacks.m_error = error_callback;
 	callbacks.m_user_data = this;
 	evt_handler = std::make_unique<ryml::EventHandlerTree>(callbacks);
@@ -27,13 +27,13 @@ YAMLParser::YAMLParser(std::unordered_set<String, StringHasher, StringEqual> *sh
 	init_converters();
 }
 
-YAMLParser::~YAMLParser() {
+YAML::Parser::~Parser() {
 	if (owns_yaml_paths) {
 		delete loading_yaml_paths;
 	}
 }
 
-void YAMLParser::init_converters() {
+void YAML::Parser::init_converters() {
 	type_converters = factory.create_converter_set();
 
 	for (const auto &pair : type_converters) {
@@ -43,7 +43,7 @@ void YAMLParser::init_converters() {
 	}
 }
 
-void YAMLParser::error_callback(const char *msg, size_t len, ryml::Location loc, void *user_data) {
+void YAML::Parser::error_callback(const char *msg, size_t len, ryml::Location loc, void *user_data) {
 	ryml::csubstr error_msg(msg, len);
 
 	// Strip "ERROR: " prefix if available
@@ -63,7 +63,7 @@ void YAMLParser::error_callback(const char *msg, size_t len, ryml::Location loc,
 		error_msg = error_msg.sub(0, newline_pos);
 	}
 
-	auto *parser = static_cast<YAMLParser *>(user_data);
+	auto *parser = static_cast<Parser *>(user_data);
 	if (!parser) {
 		throw YAMLException(from_ryml_str(error_msg), loc);
 	}
@@ -77,7 +77,7 @@ void YAMLParser::error_callback(const char *msg, size_t len, ryml::Location loc,
 	throw YAMLException(parser->current_result->get_error_message(), loc);
 }
 
-Ref<YAMLResult> YAMLParser::parse(const String &input, const YAMLSecurity::View &p_security_view, const bool p_detect_style) {
+Ref<YAMLResult> YAML::Parser::parse(const String &input, const YAMLSecurity::View &p_security_view, const bool p_detect_style) {
 	try {
 		current_result = YAMLResult::success(Variant());
 		security_view = p_security_view;
@@ -129,7 +129,7 @@ Ref<YAMLResult> YAMLParser::parse(const String &input, const YAMLSecurity::View 
 	}
 }
 
-Variant YAMLParser::process_node(const ryml::ConstNodeRef &node) const {
+Variant YAML::Parser::process_node(const ryml::ConstNodeRef &node) const {
 	// First check for tagged values
 	auto tagged = try_parse_tagged_value(node);
 	if (tagged) {
@@ -139,7 +139,7 @@ Variant YAMLParser::process_node(const ryml::ConstNodeRef &node) const {
 	return process_common(node);
 }
 
-Variant YAMLParser::process_common(const ryml::ConstNodeRef &node) const {
+Variant YAML::Parser::process_common(const ryml::ConstNodeRef &node) const {
 	if (node.is_keyval()) {
 		return process_value(node);
 	} else if (node.is_map()) {
@@ -159,7 +159,7 @@ Variant YAMLParser::process_common(const ryml::ConstNodeRef &node) const {
 	return Variant();
 }
 
-Variant YAMLParser::process_map(const ryml::ConstNodeRef &node) const {
+Variant YAML::Parser::process_map(const ryml::ConstNodeRef &node) const {
 	Dictionary dict;
 
 	if (detect_style) {
@@ -196,7 +196,7 @@ Variant YAMLParser::process_map(const ryml::ConstNodeRef &node) const {
 	return dict;
 }
 
-Variant YAMLParser::process_sequence(const ryml::ConstNodeRef &node) const {
+Variant YAML::Parser::process_sequence(const ryml::ConstNodeRef &node) const {
 	Array arr;
 
 	if (detect_style) {
@@ -241,14 +241,14 @@ Variant YAMLParser::process_sequence(const ryml::ConstNodeRef &node) const {
 	return arr;
 }
 
-String YAMLParser::extract_key(const ryml::ConstNodeRef &node) const {
+String YAML::Parser::extract_key(const ryml::ConstNodeRef &node) const {
 	if (node.has_key()) {
 		return from_ryml_str(node.key());
 	}
 	return "";
 }
 
-Variant YAMLParser::process_value(const ryml::ConstNodeRef &node) const {
+Variant YAML::Parser::process_value(const ryml::ConstNodeRef &node) const {
 	if (!node.has_val() || node.val().empty() || node.val_is_null()) {
 		if (detect_style) {
 			context->current_style()->set_string_style(YAMLStyle::STRING_PLAIN);
@@ -288,7 +288,7 @@ Variant YAMLParser::process_value(const ryml::ConstNodeRef &node) const {
 	return str_val;
 }
 
-std::optional<Variant> YAMLParser::try_parse_special_value(const String &str_val) const {
+std::optional<Variant> YAML::Parser::try_parse_special_value(const String &str_val) const {
 	if (str_val == "true") {
 		if (detect_style) {
 			context->current_style()->set_string_style(YAMLStyle::STRING_PLAIN);
@@ -334,7 +334,7 @@ std::optional<Variant> YAMLParser::try_parse_special_value(const String &str_val
 	return std::nullopt;
 }
 
-std::optional<Variant> YAMLParser::try_parse_numeric_value(const String &str_val, const ryml::csubstr &val) const {
+std::optional<Variant> YAML::Parser::try_parse_numeric_value(const String &str_val, const ryml::csubstr &val) const {
 	// Helper function to validate hexadecimal string
 	auto is_valid_hex = [](const String &s) -> bool {
 		if (s.length() > 20) {
@@ -541,7 +541,7 @@ std::optional<Variant> YAMLParser::try_parse_numeric_value(const String &str_val
 	return std::nullopt;
 }
 
-std::optional<Variant> YAMLParser::try_parse_tagged_value(const ryml::ConstNodeRef &node) const {
+std::optional<Variant> YAML::Parser::try_parse_tagged_value(const ryml::ConstNodeRef &node) const {
 	String tag = extract_tag(node);
 	if (tag.is_empty()) {
 		// Return null to continue with normal processing in process_node
@@ -597,7 +597,7 @@ std::optional<Variant> YAMLParser::try_parse_tagged_value(const ryml::ConstNodeR
 	return std::nullopt;
 }
 
-Variant YAMLParser::parse_object_or_resource(const ryml::ConstNodeRef &node, const String &class_name) const {
+Variant YAML::Parser::parse_object_or_resource(const ryml::ConstNodeRef &node, const String &class_name) const {
 	// If the node contains just a string value, it might be a resource path
 	if (node.has_val() && !node.is_map() && !node.is_seq()) {
 		String path = from_ryml_str(node.val());
@@ -634,7 +634,7 @@ Variant YAMLParser::parse_object_or_resource(const ryml::ConstNodeRef &node, con
 	return obj;
 }
 
-Variant YAMLParser::load_resource(const String &path, const ryml::ConstNodeRef &node) const {
+Variant YAML::Parser::load_resource(const String &path, const ryml::ConstNodeRef &node) const {
 	if (path.ends_with(".yaml") || path.ends_with(".yml")) {
 		if (!security_view.is_path_allowed(path)) {
 			throw YAMLException(vformat("Resource path not allowed: %s", path), ryml_parser->location(node));
@@ -687,7 +687,7 @@ Variant YAMLParser::load_resource(const String &path, const ryml::ConstNodeRef &
 	return resource;
 }
 
-void YAMLParser::populate_object_properties(Object *obj, const ryml::ConstNodeRef &node) const {
+void YAML::Parser::populate_object_properties(Object *obj, const ryml::ConstNodeRef &node) const {
 	for (const auto &child : node.children()) {
 		String key = from_ryml_str(child.key());
 
@@ -709,7 +709,7 @@ void YAMLParser::populate_object_properties(Object *obj, const ryml::ConstNodeRe
 	}
 }
 
-String YAMLParser::extract_tag(const ryml::ConstNodeRef &node) const {
+String YAML::Parser::extract_tag(const ryml::ConstNodeRef &node) const {
 	if (!node.has_val_tag()) {
 		return String();
 	}
@@ -722,12 +722,12 @@ String YAMLParser::extract_tag(const ryml::ConstNodeRef &node) const {
 	return String::utf8(tag.str, tag.len);
 }
 
-YAMLVariantConverter *YAMLParser::get_converter_for_type(Variant::Type type) const {
+YAMLVariantConverter *YAML::Parser::get_converter_for_type(Variant::Type type) const {
 	auto it = type_converters.find(type);
 	return it != type_converters.end() ? it->second.get() : nullptr;
 }
 
-YAMLVariantConverter *YAMLParser::get_converter_for_tag(const String &tag) const {
+YAMLVariantConverter *YAML::Parser::get_converter_for_tag(const String &tag) const {
 	auto it = tag_converters.find(tag);
 	return it != tag_converters.end() ? it->second : nullptr;
 }
