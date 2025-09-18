@@ -1,8 +1,7 @@
-[submodule "godot-cpp"]
-	path = godot-cpp
-	url = https://github.com/godotengine/godot-cpp
+[submodule "thirdparty/godot-cpp"]
+	path = thirdparty/godot-cpp
+	url = https://github.com/godotengine/godot-cpp.git
 	branch = 4.3
-[submodule "rapidyaml"]
-	path = rapidyaml
+[submodule "thirdparty/rapidyaml"]
+	path = thirdparty/rapidyaml
 	url = https://github.com/biojppm/rapidyaml.git
-	tag = 0.9.0

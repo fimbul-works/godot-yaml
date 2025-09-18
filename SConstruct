@@ -10,7 +10,7 @@ if not os.path.exists(cache_dir):
     os.makedirs(cache_dir, exist_ok=True)
 os.environ['SCONS_CACHE'] = cache_dir
 
-base_env = SConscript('godot-cpp/SConstruct')
+base_env = SConscript('thirdparty/godot-cpp/SConstruct')
 
 def get_library_name(env):
     platform = env.get('platform', 'unknown')
@@ -96,7 +96,7 @@ def build_rapidyaml(env, variant_dir):
 
     cmake_command = [
         'cmake',
-        '-S', 'rapidyaml',
+        '-S', 'thirdparty/rapidyaml',
         '-B', rapidyaml_build_dir,
         f'-DCMAKE_INSTALL_PREFIX={rapidyaml_install_dir}',
         f'-DCMAKE_BUILD_TYPE={cmake_build_type}',
@@ -202,7 +202,6 @@ def build_config(env, variant_dir):
     if platform == 'windows':
         # For Windows, install all generated files that match our library name pattern
         lib_base_name = get_library_name(env).replace('.dll', '')
-        lib_pattern = os.path.join(output_lib_dir, f"{lib_base_name}.*")
 
         # Create a custom install action that uses glob at build time
         def install_windows_files(target, source, env):
