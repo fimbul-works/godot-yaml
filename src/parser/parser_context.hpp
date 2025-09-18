@@ -8,8 +8,8 @@
  */
 #pragma once
 
+#include "../style/style.hpp"
 #include "exception.hpp"
-#include "style.hpp"
 
 #include <ryml.hpp>
 

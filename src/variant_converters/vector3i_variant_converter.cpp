@@ -1,6 +1,6 @@
 #include "vector3i_variant_converter.hpp"
 #include "../exception.hpp"
-#include "../util_numeric.hpp"
+#include "../util/util_numeric.hpp"
 
 using namespace godot;
 

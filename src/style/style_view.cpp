@@ -1,5 +1,5 @@
 #include "style_view.hpp"
-#include "util_string.hpp"
+#include "../util/util_string.hpp"
 
 #include <godot_cpp/core/class_db.hpp>
 #include <godot_cpp/variant/utility_functions.hpp>

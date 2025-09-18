@@ -10,9 +10,9 @@
 #pragma once
 
 #include "../exception.hpp"
-#include "../parser_context.hpp"
-#include "../string_pool.hpp"
-#include "../style_view.hpp"
+#include "../parser/parser_context.hpp"
+#include "../style/style_view.hpp"
+#include "../util/string_pool.hpp"
 
 #include <godot_cpp/classes/ref.hpp>
 #include <godot_cpp/variant/variant.hpp>

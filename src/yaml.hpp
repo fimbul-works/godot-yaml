@@ -12,9 +12,9 @@
  */
 #pragma once
 
+#include "parser/security.hpp"
 #include "result.hpp"
-#include "security.hpp"
-#include "style.hpp"
+#include "style/style.hpp"
 
 #include <godot_cpp/classes/ref.hpp>
 #include <godot_cpp/classes/ref_counted.hpp>

@@ -8,11 +8,11 @@
  */
 #pragma once
 
+#include "../style/style_view.hpp"
+#include "../util/string_hash.hpp"
+#include "../util/string_pool.hpp"
+#include "../variant_converters/variant_converter_factory.hpp"
 #include "result.hpp"
-#include "string_hash.hpp"
-#include "string_pool.hpp"
-#include "style_view.hpp"
-#include "variant_converters/variant_converter_factory.hpp"
 
 #include <godot_cpp/classes/resource.hpp>
 #include <ryml.hpp>

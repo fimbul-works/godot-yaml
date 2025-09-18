@@ -1,8 +1,8 @@
 #include "register_types.hpp"
 
-#include "result.hpp"
-#include "security.hpp"
-#include "style.hpp"
+#include "../parser/security.hpp"
+#include "../result.hpp"
+#include "../style/style.hpp"
 #include "yaml.hpp"
 
 #include <gdextension_interface.h>

@@ -1,5 +1,5 @@
 #include "style.hpp"
-#include "yaml.hpp"
+#include "../yaml.hpp"
 
 #include <godot_cpp/classes/file_access.hpp>
 #include <godot_cpp/core/class_db.hpp>

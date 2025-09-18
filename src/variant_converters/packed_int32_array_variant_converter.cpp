@@ -1,6 +1,6 @@
 #include "packed_int32_array_variant_converter.hpp"
 #include "../exception.hpp"
-#include "../util_numeric.hpp"
+#include "../util/util_numeric.hpp"
 
 using namespace godot;
 

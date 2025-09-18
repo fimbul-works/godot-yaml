@@ -1,7 +1,7 @@
 #include "emitter.hpp"
-#include "class_registry.hpp"
-#include "util_numeric.hpp"
-#include "util_string.hpp"
+#include "../class_registry.hpp"
+#include "../util/util_numeric.hpp"
+#include "../util/util_string.hpp"
 
 #include <godot_cpp/classes/project_settings.hpp>
 #include <godot_cpp/classes/resource.hpp>

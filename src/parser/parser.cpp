@@ -1,8 +1,8 @@
 #include "parser.hpp"
-#include "class_registry.hpp"
+#include "../class_registry.hpp"
+#include "../util/util_numeric.hpp"
+#include "../yaml.hpp"
 #include "security.hpp"
-#include "util_numeric.hpp"
-#include "yaml.hpp"
 
 #include <godot_cpp/classes/resource.hpp>
 #include <godot_cpp/classes/resource_loader.hpp>

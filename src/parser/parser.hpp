@@ -9,11 +9,11 @@
  */
 #pragma once
 
+#include "../style/style.hpp"
+#include "../util/string_hash.hpp"
 #include "parser_context.hpp"
 #include "result.hpp"
 #include "security.hpp"
-#include "string_hash.hpp"
-#include "style.hpp"
 #include "variant_converters/variant_converter_factory.hpp"
 
 #include <ryml.hpp>

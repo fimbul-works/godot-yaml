@@ -1,6 +1,6 @@
 #include "packed_byte_array_variant_converter.hpp"
 #include "../exception.hpp"
-#include "../util_string.hpp"
+#include "../util/util_string.hpp"
 
 #include <godot_cpp/classes/marshalls.hpp>
 #include <godot_cpp/variant/utility_functions.hpp>

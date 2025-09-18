@@ -9,7 +9,7 @@
  */
 #pragma once
 
-#include "string_hash.hpp"
+#include "../util/string_hash.hpp"
 #include "variant_converter.hpp"
 
 #include <godot_cpp/variant/utility_functions.hpp>

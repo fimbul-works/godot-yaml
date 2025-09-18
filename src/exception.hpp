@@ -8,7 +8,7 @@
  */
 #pragma once
 
-#include "util_string.hpp"
+#include "util/util_string.hpp"
 
 #include <godot_cpp/variant/string.hpp>
 #include <godot_cpp/variant/variant.hpp>

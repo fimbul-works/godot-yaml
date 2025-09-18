@@ -2,6 +2,7 @@
 import os
 import subprocess
 import shutil
+import glob
 
 # Use cache for faster build times
 cache_dir = os.path.abspath('build/scons_cache')
@@ -48,6 +49,9 @@ def setup_build_env(base_env):
             env.Append(LINKFLAGS=['/MACHINE:X86'])
         else:  # x86_64
             env.Append(LINKFLAGS=['/MACHINE:X64'])
+
+        # Ensure import library is generated with proper naming
+        env.Append(LINKFLAGS=['/IMPLIB:${TARGET.base}.lib'])
     else:
         env.Append(CCFLAGS=['-std=c++17', '-fexceptions'])
         # Add architecture-specific flags for other platforms
@@ -156,6 +160,12 @@ def build_config(env, variant_dir):
     # Gather source files
     sources = Glob(os.path.join(variant_dir, 'src', '*.cpp'))
     sources += Glob(os.path.join(variant_dir, 'src', 'variant_converters', '*.cpp'))
+    sources += Glob(os.path.join(variant_dir, 'src', 'emitter', '*.cpp'))
+    sources += Glob(os.path.join(variant_dir, 'src', 'extension', '*.cpp'))
+    sources += Glob(os.path.join(variant_dir, 'src', 'parser', '*.cpp'))
+    sources += Glob(os.path.join(variant_dir, 'src', 'style', '*.cpp'))
+    sources += Glob(os.path.join(variant_dir, 'src', 'util', '*.cpp'))
+    sources += Glob(os.path.join(variant_dir, 'src', 'validator', '*.cpp'))
 
     # Embed documentation
     if env["target"] in ["editor", "template_debug"]:
@@ -187,9 +197,38 @@ def build_config(env, variant_dir):
     if not os.path.exists(bin_dir):
         os.makedirs(bin_dir)
 
-    installed_lib = env.Install(bin_dir, library)
-    env.Alias('install', installed_lib)
+    # Handle installation differently for Windows vs other platforms
+    platform = env.get('platform', '')
+    if platform == 'windows':
+        # For Windows, install all generated files that match our library name pattern
+        lib_base_name = get_library_name(env).replace('.dll', '')
+        lib_pattern = os.path.join(output_lib_dir, f"{lib_base_name}.*")
 
+        # Create a custom install action that uses glob at build time
+        def install_windows_files(target, source, env):
+            # Convert SCons File objects to strings and use glob to find all related files
+            lib_pattern_str = os.path.join(output_lib_dir, f"{lib_base_name}.*")
+            generated_files = glob.glob(lib_pattern_str)
+
+            installed_files = []
+            for file_path in generated_files:
+                if os.path.exists(file_path):
+                    dest_path = os.path.join(bin_dir, os.path.basename(file_path))
+                    shutil.copy2(file_path, dest_path)
+                    installed_files.append(dest_path)
+                    print(f"Installed: {dest_path}")
+                else:
+                    print(f"Warning: {file_path} not found, skipping")
+            return None
+
+        # Create a dummy target for the install action
+        install_target = os.path.join(bin_dir, get_library_name(env))
+        installed_lib = env.Command(install_target, library, install_windows_files)
+    else:
+        # For non-Windows platforms, use the standard install
+        installed_lib = env.Install(bin_dir, library)
+
+    env.Alias('install', installed_lib)
     return library, installed_lib
 
 # Setup the build environment

@@ -1,12 +1,12 @@
 #include "yaml.hpp"
 #include "class_registry.hpp"
-#include "emitter.hpp"
-#include "parser.hpp"
+#include "emitter/emitter.hpp"
+#include "parser/parser.hpp"
+#include "parser/security.hpp"
 #include "result.hpp"
-#include "security.hpp"
-#include "style.hpp"
-#include "style_view.hpp"
-#include "validator.hpp"
+#include "style/style.hpp"
+#include "style/style_view.hpp"
+#include "validator/validator.hpp"
 #include "version.hpp"
 
 #include <godot_cpp/classes/file_access.hpp>
