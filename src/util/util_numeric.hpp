@@ -227,7 +227,7 @@ T string_to_float(const ryml::csubstr &value, YAMLStyle::FloatFormat *format = n
 		}
 	}
 
-	throw YAMLException("Invalid float format");
+	return result;
 }
 
 /**

@@ -27,9 +27,9 @@ struct StringHasher {
 	 * @brief Calculates a hash value for a Godot String.
 	 *
 	 * @param str The String to hash
-	 * @return size_t The hash value
+	 * @return int64_t The hash value
 	 */
-	size_t operator()(const String &str) const {
+	int64_t operator()(const String &str) const {
 		return str.hash();
 	}
 };
@@ -46,9 +46,9 @@ struct StringNameHasher {
 	 * @brief Calculates a hash value for a Godot StringName.
 	 *
 	 * @param str The StringName to hash
-	 * @return size_t The hash value
+	 * @return int64_t The hash value
 	 */
-	size_t operator()(const StringName &str) const {
+	int64_t operator()(const StringName &str) const {
 		return str.hash();
 	}
 };
@@ -109,9 +109,9 @@ struct hash<godot::String> {
 	 * @brief Calculates a hash value for a Godot String.
 	 *
 	 * @param str The String to hash
-	 * @return size_t The hash value
+	 * @return int64_t The hash value
 	 */
-	size_t operator()(const godot::String &str) const {
+	int64_t operator()(const godot::String &str) const {
 		return str.hash();
 	}
 };

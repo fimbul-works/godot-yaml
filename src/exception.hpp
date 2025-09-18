@@ -76,18 +76,18 @@ public:
 	/**
 	 * @brief Gets the line number of the error.
 	 *
-	 * @return const size_t The line number (0-based) or undefined if not available
+	 * @return const int64_t The line number (0-based) or undefined if not available
 	 */
-	const size_t get_line() const {
+	const int64_t get_line() const {
 		return m_location.line;
 	}
 
 	/**
 	 * @brief Gets the column number of the error.
 	 *
-	 * @return const size_t The column number (0-based) or undefined if not available
+	 * @return const int64_t The column number (0-based) or undefined if not available
 	 */
-	const size_t get_column() const {
+	const int64_t get_column() const {
 		return m_location.col;
 	}
 

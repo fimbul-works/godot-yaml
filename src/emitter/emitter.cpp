@@ -185,11 +185,11 @@ void YAMLEmitter::emit_bool(ryml::NodeRef &node, bool value) {
 void YAMLEmitter::emit_number(ryml::NodeRef &node, const Variant &value, const YAMLStyle::View &style) {
 	if (value.get_type() == Variant::INT) {
 		YAMLStyle::IntegerFormat format = style.get_integer_format();
-		int64_t int_val = static_cast<int64_t>(value.operator int64_t());
+		int64_t int_val = value.operator int64_t();
 		node << int_to_string(int_val, format);
 	} else {
 		YAMLStyle::FloatFormat format = style.get_float_format();
-		double float_val = static_cast<double>(value.operator double());
+		double float_val = value.operator double();
 		node << float_to_string(float_val, format);
 	}
 }

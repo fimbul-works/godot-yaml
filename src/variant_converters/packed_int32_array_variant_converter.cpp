@@ -68,6 +68,7 @@ Variant YAMLPackedInt32ArrayVariantConverter::decode(const ryml::ConstNodeRef &n
 			int64_t value = string_to_int<int64_t>(node[i].val(), detect_style ? &int_format : nullptr);
 
 			if (value < INT32_MIN || value > INT32_MAX) {
+				// NOTE: Cast size_t to int64_t for ARM64 macOS Variant compatibility
 				throw YAMLException(vformat("Failed to decode PackedInt32Array value at index %d: Integer value out of range", static_cast<int64_t>(i)), context->get_ryml_parser()->location(node[i]));
 			}
 

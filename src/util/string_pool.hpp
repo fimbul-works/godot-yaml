@@ -105,9 +105,9 @@ private:
 		 * @brief Computes a hash for a CharString.
 		 *
 		 * @param str The CharString to hash
-		 * @return size_t The hash value
+		 * @return int64_t The hash value
 		 */
-		size_t operator()(const CharString &str) const {
+		int64_t operator()(const CharString &str) const {
 			// Reuse String's hash function for CharString's content
 			return String(str).hash();
 		}
