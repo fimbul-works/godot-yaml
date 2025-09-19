@@ -9,7 +9,7 @@
 #pragma once
 
 #include "../result.hpp"
-#include "../util/string_hash.hpp"
+#include "../util/hashers.hpp"
 #include "../validator/validator.hpp"
 #include "../yaml.hpp"
 

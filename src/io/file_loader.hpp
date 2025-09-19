@@ -11,7 +11,7 @@
 #include "../parser/parser.hpp"
 #include "../parser/security.hpp"
 #include "../result.hpp"
-#include "../util/string_hash.hpp"
+#include "../util/hashers.hpp"
 #include "../yaml.hpp"
 
 #include <godot_cpp/classes/file_access.hpp>

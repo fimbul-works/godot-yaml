@@ -10,7 +10,7 @@
 #pragma once
 
 #include "../style/style.hpp"
-#include "../util/string_hash.hpp"
+#include "../util/hashers.hpp"
 #include "../yaml.hpp"
 #include "parser_context.hpp"
 #include "result.hpp"

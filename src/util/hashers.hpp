@@ -1,5 +1,5 @@
 /**
- * @file string_hash.hpp
+ * @file hashers.hpp
  * @brief Provides hash and equality functors for Godot string types.
  *
  * This file defines utility structs for hashing and comparing Godot's String

@@ -8,7 +8,7 @@
  */
 #pragma once
 
-#include "../util/string_hash.hpp"
+#include "../util/hashers.hpp"
 #include "style.hpp"
 
 #include <godot_cpp/variant/dictionary.hpp>
