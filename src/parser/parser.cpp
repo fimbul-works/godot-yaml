@@ -1,5 +1,6 @@
 #include "parser.hpp"
 #include "../class_registry.hpp"
+#include "../io/file_loader.hpp"
 #include "../util/util_numeric.hpp"
 #include "../yaml.hpp"
 #include "security.hpp"
@@ -250,9 +251,6 @@ String YAML::Parser::extract_key(const ryml::ConstNodeRef &node) const {
 
 Variant YAML::Parser::process_value(const ryml::ConstNodeRef &node) const {
 	if (!node.has_val() || node.val().empty() || node.val_is_null()) {
-		if (detect_style) {
-			context->current_style()->set_string_style(YAMLStyle::STRING_PLAIN);
-		}
 		return Variant();
 	}
 
