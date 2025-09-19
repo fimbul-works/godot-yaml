@@ -9,32 +9,6 @@ number: 1234
 list:
   - apples
   - oranges
-aaron:
-  birthday: "01-15-1995"
-bob:
-  birthday: "02/15/1995"
-chris:
-  birthday: "03%15%1995"
-dan:
-  birthday: "04M15M1995"
-evan:
-  birthday: "05151995"
-fred:
-  birthday: "06-15-1995"
-greg:
-  birthday: "07-15-1995"
-harry:
-  birthday: "08-15-1995"
-ivan:
-  birthday: "09-15-1995"
-john:
-  birthday: "10-15-1995"
-kevin:
-  birthday: "00-15-1995"
-larry:
-  birthday: "20-15-1995"
-martin:
-  birthday: "1995-01-15"
 """
 
 var data

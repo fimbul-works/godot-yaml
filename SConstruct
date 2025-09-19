@@ -38,9 +38,24 @@ def setup_build_env(base_env):
     is_debug = env.get('target', '') != 'template_release'
     arch = env.get('arch', 'x86_64')  # Default to 64-bit
 
+    # Configuration: Which platforms use C++20 vs C++17
+    cpp20_platforms = ['windows'] # Add "linux" and "macos
+
+    # Determine C++ standard based on platform
+    use_cpp20 = platform in cpp20_platforms
+    cpp_std_version = '20' if use_cpp20 else '17'
+
+    # Store the C++20 flag in the environment for later reference
+    env['USE_CPP20'] = use_cpp20
+
+    print(f"Building for {platform} with C++{cpp_std_version}")
+
     # Platform and release/debug flags
     if platform == 'windows':
-        env.Append(CCFLAGS=['/std:c++17', '/EHsc'])
+        env.Append(CCFLAGS=[f'/std:c++{cpp_std_version}', '/EHsc'])
+        if use_cpp20:
+            env.Append(CCFLAGS=['/Zc:preprocessor'])  # Better preprocessor for C++20
+
         if is_debug:
             env.Append(CCFLAGS=['/Z7'])
 
@@ -53,7 +68,8 @@ def setup_build_env(base_env):
         # Ensure import library is generated with proper naming
         env.Append(LINKFLAGS=['/IMPLIB:${TARGET.base}.lib'])
     else:
-        env.Append(CCFLAGS=['-std=c++17', '-fexceptions'])
+        env.Append(CCFLAGS=[f'-std=c++{cpp_std_version}', '-fexceptions'])
+
         # Add architecture-specific flags for other platforms
         if arch == 'x86_32':
             env.Append(CCFLAGS=['-m32'])
@@ -65,6 +81,9 @@ def setup_build_env(base_env):
     # Set debug flag
     if is_debug:
         env.Append(CPPDEFINES=['GODOT_YAML_DEBUG'])
+        # Only enable SFT tests on platforms with C++20 support
+        if use_cpp20:
+            env.Append(CPPDEFINES=['TESTS_ENABLED'])
 
     env.Append(CPPPATH=['src'])
     return env
@@ -80,6 +99,7 @@ def get_build_path(env):
     return os.path.abspath(build_path)
 
 def build_rapidyaml(env, variant_dir):
+    """ Build RapidYAML """
     platform = env.get('platform', '')
     target = env.get('target', '')
     arch = env.get('arch', 'x86_64')
@@ -129,6 +149,7 @@ def build_rapidyaml(env, variant_dir):
     }
 
 def clean_rapidyaml(env, variant_dir):
+    """ Clean RapidYAML build folders """
     rapidyaml_build_dir = os.path.join(variant_dir, 'rapidyaml_build')
     rapidyaml_install_dir = os.path.join(variant_dir, 'rapidyaml_install')
 
@@ -167,6 +188,12 @@ def build_config(env, variant_dir):
     sources += Glob(os.path.join(variant_dir, 'src', 'style', '*.cpp'))
     sources += Glob(os.path.join(variant_dir, 'src', 'util', '*.cpp'))
     sources += Glob(os.path.join(variant_dir, 'src', 'validator', '*.cpp'))
+
+    # Add test sources only for debug builds with C++20 support
+    # This prevents compilation errors on C++17 platforms
+    if env["target"] == "template_debug" and env.get('USE_CPP20', False):
+        sources += Glob(os.path.join(variant_dir, 'src', 'tests', '*.cpp'))
+        print(f"Including {len(Glob(os.path.join(variant_dir, 'src', 'tests', '*.cpp')))} test files")
 
     # Embed documentation
     if env["target"] in ["editor", "template_debug"]:

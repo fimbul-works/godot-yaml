@@ -9,6 +9,10 @@
 #include <godot_cpp/core/defs.hpp>
 #include <godot_cpp/godot.hpp>
 
+#ifdef TESTS_ENABLED
+#include "../tests/test_runner.hpp" // Inlcude test runner headers
+#endif
+
 namespace godot {
 
 void initialize_yaml_module(ModuleInitializationLevel p_level) {
@@ -31,6 +35,10 @@ void initialize_yaml_module(ModuleInitializationLevel p_level) {
 	if (!ClassDB::class_exists("YAML")) {
 		GDREGISTER_CLASS(YAML);
 	}
+
+#ifdef TESTS_ENABLED
+	YAMLTests::run_all_tests(); // Run tests after registration
+#endif
 }
 
 void uninitialize_yaml_module(ModuleInitializationLevel p_level) {

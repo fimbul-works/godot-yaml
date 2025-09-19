@@ -55,6 +55,9 @@ public:
 	class Emitter;
 	class Parser;
 	class Validator;
+	class FileSaver;
+	class FileLoader;
+	class FileValidator;
 
 	/**
 	 * @brief Returns the version string of the YAML module.
@@ -80,7 +83,7 @@ public:
 	 * @param format Optional style settings for formatting the output.
 	 * @return Ref<YAMLResult> Result object containing the YAML string or error information.
 	 */
-	static Ref<YAMLResult> stringify(const Variant &input, const Ref<YAMLStyle> &format);
+	static Ref<YAMLResult> stringify(const Variant &input, const Ref<YAMLStyle> &format = nullptr);
 
 	/**
 	 * @brief Validates a YAML string without fully parsing it.
