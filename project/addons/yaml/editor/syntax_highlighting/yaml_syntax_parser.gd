@@ -28,8 +28,8 @@ var re_patterns := {
 	# YAML functionality
 	"anchor": RegEx.create_from_string("^\\s*&([^\\s]+)"),
 	"alias": RegEx.create_from_string("^\\s*\\*([^\\s]+)"),
-	"tag": RegEx.create_from_string("!!?[a-zA-Z0-9][a-zA-Z0-9_-]*"),
-	"top_level_tag": RegEx.create_from_string("^\\s*(!!?[a-zA-Z0-9][a-zA-Z0-9_-]*)\\s*(.*)$"),
+	"tag": RegEx.create_from_string("!(?:![\\w\\-\\.]+|[^\\s\\[\\]{}'\"`]+)"),
+	"top_level_tag": RegEx.create_from_string("^\\s*(!(?:![\\w\\-\\.]+|[^\\s\\[\\]{}'\"`]+))\\s*(.*)$"),
 	"document_separator": RegEx.create_from_string("^---$")
 }
 
