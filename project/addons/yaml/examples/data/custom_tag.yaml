@@ -1,0 +1,5 @@
+!ruby:object/MyCustomClass
+string_val: alternate tag
+int_val: 42
+float_val: 1.61803398875
+color_val: !Color 000000
