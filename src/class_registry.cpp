@@ -10,7 +10,7 @@ using namespace godot;
 std::mutex YAMLClassRegistry::registry_mutex;
 std::unordered_map<String, YAMLClassRegistry::ClassInfo, StringHasher, StringEqual> YAMLClassRegistry::class_registry;
 
-void YAMLClassRegistry::register_class(Ref<Script> p_class, const Variant &p_serialize, const Variant &p_deserialize) {
+void YAMLClassRegistry::register_class(Ref<Script> p_class, const Variant &p_serialize, const Variant &p_deserialize, const Variant &p_tag) {
 	const StringName class_name = get_script_class(p_class);
 	if (class_name.is_empty()) {
 		return;
@@ -73,8 +73,10 @@ void YAMLClassRegistry::register_class(Ref<Script> p_class, const Variant &p_ser
 	}
 
 	// Create the class info
+	const StringName tag = p_tag.get_type() == Variant::STRING || p_tag.get_type() == Variant::STRING_NAME ? StringName(p_tag) : class_name;
 	ClassInfo info;
 	info.script_class = p_class;
+	info.tag = tag.length() ? tag : class_name;
 	info.serialize_method = serialize;
 	info.deserialize_method = deserialize;
 
@@ -82,6 +84,10 @@ void YAMLClassRegistry::register_class(Ref<Script> p_class, const Variant &p_ser
 	{
 		std::lock_guard<std::mutex> lock(registry_mutex);
 		class_registry[class_name] = info;
+		// Add alt tag
+		if (class_name != tag && tag.length()) {
+			class_registry[tag] = info;
+		}
 	}
 
 #ifdef GODOT_YAML_DEBUG
@@ -106,7 +112,12 @@ void YAMLClassRegistry::unregister_class(Ref<Script> p_class) {
 	// Remove from registry with thread safety
 	{
 		std::lock_guard<std::mutex> lock(registry_mutex);
+		auto class_info = get_class_info(class_name);
 		class_registry.erase(class_name);
+		// Erase alt tag
+		if (class_info.tag != class_name && class_info.tag.length()) {
+			class_registry.erase(class_info.tag);
+		}
 	}
 
 #ifdef GODOT_YAML_DEBUG

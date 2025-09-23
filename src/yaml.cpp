@@ -31,7 +31,7 @@ void YAML::_bind_methods() {
 	ClassDB::bind_static_method("YAML", D_METHOD("try_load_file", "path", "security"), &YAML::try_load_file, DEFVAL(nullptr));
 	ClassDB::bind_static_method("YAML", D_METHOD("try_save_file", "data", "path", "style"), &YAML::try_save_file, DEFVAL(nullptr));
 
-	ClassDB::bind_static_method("YAML", D_METHOD("register_class", "script_class", "serialize_method", "deserialize_method"), &YAML::register_class, DEFVAL("serialize"), DEFVAL("deserialize"));
+	ClassDB::bind_static_method("YAML", D_METHOD("register_class", "script_class", "serialize_method", "deserialize_method"), &YAML::register_class, DEFVAL("serialize"), DEFVAL("deserialize"), DEFVAL(nullptr));
 	ClassDB::bind_static_method("YAML", D_METHOD("unregister_class", "script_class"), &YAML::unregister_class);
 	ClassDB::bind_static_method("YAML", D_METHOD("has_registered_class", "script_class"), &YAML::has_registered_class);
 
@@ -236,8 +236,8 @@ Ref<YAMLStyle> YAML::create_style() {
 	return Ref<YAMLStyle>(memnew(YAMLStyle()));
 }
 
-void YAML::register_class(Ref<Script> p_class, const Variant &p_serialize, const Variant &p_deserialize) {
-	YAMLClassRegistry::register_class(p_class, p_serialize, p_deserialize);
+void YAML::register_class(Ref<Script> p_class, const Variant &p_serialize, const Variant &p_deserialize, const Variant &p_tag) {
+	YAMLClassRegistry::register_class(p_class, p_serialize, p_deserialize, p_tag);
 }
 
 void YAML::unregister_class(Ref<Script> p_class) {

@@ -85,6 +85,7 @@
 			<param index="0" name="script_class" type="Script" />
 			<param index="1" name="serialize_method" type="Variant" default="&quot;serialize&quot;" />
 			<param index="2" name="deserialize_method" type="Variant" default="&quot;deserialize&quot;" />
+			<param index="3" name="tag" type="Variant" default="null" />
 			<description>
 				Registers a custom script class for YAML serialization and deserialization. It is recommended to do this in an autoloading singleton or a script that runs at the start of your game.
 				[codeblock lang=gdscript]
@@ -118,7 +119,7 @@
 				    }
 
 				# Register the class for YAML serialization
-				YAML.register_class(Item)
+				YAML.register_class(Item, "serialize", "deserialize", "ruby:object/Item")
 				[/codeblock]
 			</description>
 		</method>

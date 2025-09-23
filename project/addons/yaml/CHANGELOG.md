@@ -8,6 +8,7 @@ The second major version of Godot YAML includes new methods for multi-document r
 
 - **Breaking:** Removed the `YAMLResult.get_data(index)` parameter. Use `YAMLResult.get_document(index)` instead.
 - Added `YAMLResult.get_documents()` and `YAMLResult.has_multiple_documents()` methods to help working with multi-document YAML files
+- Added support for custom tags when registering classes with `YAML.register_class()`
 - Added `YAMLCodeEdit` class to enable embedding the YAML editor into projects
 - Added missing example for handling multi-document YAML files
 - Fixes:

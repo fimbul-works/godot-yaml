@@ -5,7 +5,7 @@ func _init() -> void:
 
 func _enter_tree() -> void:
 	# Register our custom classes when the node enters the tree
-	YAML.register_class(MyCustomClass)
+	YAML.register_class(MyCustomClass, "serialize", "deserialize", "ruby/object:MyCustomClass")
 	YAML.register_class(MyCustomResource)
 	YAML.register_class(MyStringClass)
 

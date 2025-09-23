@@ -4,7 +4,7 @@ func _init() -> void:
 	icon = "🧩"
 
 func _enter_tree() -> void:
-	YAML.register_class(MyCustomClass)
+	YAML.register_class(MyCustomClass, "serialize", "deserialize", "ruby:object/MyCustomClass")
 	YAML.register_class(MyCustomResource)
 	YAML.register_class(MyStringClass)
 
@@ -36,6 +36,24 @@ func test_custom_node_class() -> void:
 
 	if LOG_VERBOSE:
 		print_rich("\n[b]MyCustomClass Parse Result:[/b]\n%s" % obj)
+		obj.hello()
+
+func test_custom_tag() -> void:
+	var yaml_text = """
+!ruby:object/MyCustomClass
+string_val: alternate tag
+int_val: 42
+float_val: 1.61803398875
+color_val: !Color 000000
+"""
+	# Parse YAML string
+	var parse_result := YAML.parse(yaml_text)
+	expect(!parse_result.has_error(), parse_result.get_error())
+
+	var obj: MyCustomClass = parse_result.get_data()
+
+	if LOG_VERBOSE:
+		print_rich("\n[b]ruby:object/MyCustomClass Parse Result:[/b]\n%s" % obj)
 		obj.hello()
 
 func test_custom_class_errors() -> void:
