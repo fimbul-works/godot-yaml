@@ -11,8 +11,9 @@ var resource_saver: YAMLResourceFormat.Saver
 # Store original editor settings to restore on exit
 var previous_textfile_extensions: String
 
+var engine_version_info := Engine.get_version_info()
+
 func _enter_tree() -> void:
-	var engine_version_info := Engine.get_version_info()
 
 	# Modify editor settings to remove YAML from text files
 	_modify_file_extensions()
@@ -65,7 +66,8 @@ func _exit_tree() -> void:
 	if resource_saver:
 		ResourceSaver.remove_resource_format_saver(resource_saver)
 
-	remove_custom_type("YAMLResource")
+	if engine_version_info.major == 4 and engine_version_info.minor >= 4:
+		remove_custom_type("YAMLResource")
 
 	# Unregister shortcuts
 	ShortcutsClass.unregister_shortcuts()
