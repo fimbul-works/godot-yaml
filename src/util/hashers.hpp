@@ -10,6 +10,7 @@
 
 #include <godot_cpp/variant/string.hpp>
 #include <godot_cpp/variant/string_name.hpp>
+#include <godot_cpp/variant/variant.hpp>
 
 #include <unordered_map>
 
@@ -113,6 +114,19 @@ struct hash<godot::String> {
 	 */
 	int64_t operator()(const godot::String &str) const {
 		return str.hash();
+	}
+};
+
+template <>
+struct hash<godot::Variant> {
+	/**
+	 * @brief Calculates a hash value for a Godot Variant.
+	 *
+	 * @param str The Variant to hash
+	 * @return int64_t The hash value
+	 */
+	int64_t operator()(const godot::Variant &var) const {
+		return var.hash();
 	}
 };
 
