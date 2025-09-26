@@ -14,6 +14,7 @@ The second major version of Godot YAML includes new methods for multi-document r
 - Fixes:
     - Fixed `YAMLResult.get_data()` only returning the first element of a document that only contains an array
     - Fixed invalid numeric value parsing
+    - Fixed empty strings being parsed and emitted as null value
     - Fixed YAML files not opening correctly in Godot 4.3
 
 ### Migration Guide From Version 1.* to 2.0.0

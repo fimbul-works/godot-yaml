@@ -250,7 +250,7 @@ String YAML::Parser::extract_key(const ryml::ConstNodeRef &node) const {
 }
 
 Variant YAML::Parser::process_value(const ryml::ConstNodeRef &node) const {
-	if (!node.has_val() || node.val().empty() || node.val_is_null()) {
+	if (!node.has_val() || node.val_is_null()) {
 		return Variant();
 	}
 

@@ -195,11 +195,6 @@ void YAML::Emitter::emit_number(ryml::NodeRef &node, const Variant &value, const
 }
 
 void YAML::Emitter::emit_string(ryml::NodeRef &node, const String &value, const YAMLStyle::View &style) {
-	if (value.is_empty()) {
-		node << ryml::csubstr{};
-		return;
-	}
-
 	// First handle explicit style settings if provided
 	if (style.is_valid()) {
 		style.apply_string_style(node);
