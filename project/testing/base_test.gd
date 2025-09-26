@@ -1,6 +1,7 @@
 class_name BaseTest extends Node2D
 
 var LOG_VERBOSE := false
+var ONLY_PATTERNS: PackedStringArray = []
 
 # Extra emoji to make scrolling logs easier
 var icon := ""

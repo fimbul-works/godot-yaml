@@ -1,37 +1,164 @@
-[gd_scene load_steps=10 format=3 uid="uid://bleexld1184du"]
+[gd_scene load_steps=14 format=3 uid="uid://bkdh3qj8xqsnh"]
 
-[ext_resource type="Script" path="res://testing/test_runner.gd" id="1_e6x8o"]
-[ext_resource type="Script" path="res://testing/basic_usage.gd" id="2_61s01"]
-[ext_resource type="Script" path="res://testing/error_handling.gd" id="3_ympc4"]
-[ext_resource type="Script" path="res://testing/multi_document.gd" id="4_07suv"]
-[ext_resource type="Script" path="res://testing/custom_class.gd" id="5_ojoh8"]
-[ext_resource type="Script" path="res://testing/style_system.gd" id="6_wfasd"]
-[ext_resource type="Script" path="res://testing/resource_referencing.gd" id="7_w42oc"]
-[ext_resource type="Script" path="res://testing/security.gd" id="8_ppula"]
+[ext_resource type="Script" path="res://testing/test_runner_ui.gd" id="1_mmc8f"]
+[ext_resource type="Script" path="res://testing/tests/basic_usage.gd" id="2_qvupq"]
+[ext_resource type="Script" path="res://testing/tests/error_handling.gd" id="3_mpim8"]
+[ext_resource type="Script" path="res://testing/tests/multi_document.gd" id="4_62ii0"]
+[ext_resource type="Script" path="res://testing/tests/custom_class.gd" id="5_disdm"]
+[ext_resource type="Script" path="res://testing/tests/style_system.gd" id="6_xu2wr"]
+[ext_resource type="Script" path="res://testing/tests/resource_referencing.gd" id="7_wa8pa"]
+[ext_resource type="Script" path="res://testing/tests/security.gd" id="8_7qecm"]
 
-[sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_daco7"]
+[sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_e1dee"]
 
-[node name="Tests" type="Node2D"]
-script = ExtResource("1_e6x8o")
+[sub_resource type="FontVariation" id="FontVariation_1oue5"]
+variation_embolden = 0.6
 
-[node name="Basic Usage" type="Node2D" parent="."]
-script = ExtResource("2_61s01")
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_8wqys"]
+bg_color = Color(0, 0, 0, 1)
 
-[node name="Error Handling" type="Node2D" parent="."]
-script = ExtResource("3_ympc4")
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_v05f1"]
+bg_color = Color(0.351854, 0.252252, 0.530663, 1)
 
-[node name="Multiple Documents" type="Node2D" parent="."]
-script = ExtResource("4_07suv")
+[sub_resource type="FontVariation" id="FontVariation_2vkfn"]
+variation_embolden = 1.0
 
-[node name="Custom Class" type="Node2D" parent="."]
-script = ExtResource("5_ojoh8")
+[node name="TestRunnerUI" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_mmc8f")
 
-[node name="Style System" type="Node2D" parent="."]
-script = ExtResource("6_wfasd")
+[node name="Tests" type="Node2D" parent="."]
 
-[node name="Resource Referencing" type="Node2D" parent="."]
-script = ExtResource("7_w42oc")
-local_texture = SubResource("PlaceholderTexture2D_daco7")
+[node name="Basic Usage" type="Node2D" parent="Tests"]
+script = ExtResource("2_qvupq")
 
-[node name="Security" type="Node2D" parent="."]
-script = ExtResource("8_ppula")
+[node name="Error Handling" type="Node2D" parent="Tests"]
+visible = false
+script = ExtResource("3_mpim8")
+
+[node name="Multiple Documents" type="Node2D" parent="Tests"]
+visible = false
+script = ExtResource("4_62ii0")
+
+[node name="Custom Class" type="Node2D" parent="Tests"]
+visible = false
+script = ExtResource("5_disdm")
+
+[node name="Style System" type="Node2D" parent="Tests"]
+visible = false
+script = ExtResource("6_xu2wr")
+
+[node name="Resource Referencing" type="Node2D" parent="Tests"]
+visible = false
+script = ExtResource("7_wa8pa")
+local_texture = SubResource("PlaceholderTexture2D_e1dee")
+
+[node name="Security" type="Node2D" parent="Tests"]
+visible = false
+script = ExtResource("8_7qecm")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.1, 0.1, 0.1, 1)
+
+[node name="VBox" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Header" type="VBoxContainer" parent="VBox"]
+layout_mode = 2
+size_flags_vertical = 0
+
+[node name="Title" type="Label" parent="VBox/Header"]
+layout_mode = 2
+theme_override_fonts/font = SubResource("FontVariation_1oue5")
+theme_override_font_sizes/font_size = 24
+text = "Test Runner
+"
+horizontal_alignment = 1
+
+[node name="ProgressBar" type="ProgressBar" parent="VBox/Header"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 10)
+layout_mode = 2
+theme_override_styles/background = SubResource("StyleBoxFlat_8wqys")
+theme_override_styles/fill = SubResource("StyleBoxFlat_v05f1")
+
+[node name="MainContent" type="HSplitContainer" parent="VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+split_offset = -300
+
+[node name="LeftPanel" type="VBoxContainer" parent="VBox/MainContent"]
+custom_minimum_size = Vector2(250, 0)
+layout_mode = 2
+size_flags_horizontal = 2
+
+[node name="SuitesHeader" type="Label" parent="VBox/MainContent/LeftPanel"]
+visible = false
+layout_mode = 2
+text = "Test Suites"
+
+[node name="SuitesScrollContainer" type="ScrollContainer" parent="VBox/MainContent/LeftPanel"]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="TestSuitesList" type="VBoxContainer" parent="VBox/MainContent/LeftPanel/SuitesScrollContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="RightPanel" type="VBoxContainer" parent="VBox/MainContent"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="TestDetailsScroll" type="ScrollContainer" parent="VBox/MainContent/RightPanel"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="TestDetailsContent" type="VBoxContainer" parent="VBox/MainContent/RightPanel/TestDetailsScroll"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="EmptyMessage" type="RichTextLabel" parent="VBox/MainContent/RightPanel/TestDetailsScroll/TestDetailsContent"]
+layout_mode = 2
+size_flags_vertical = 0
+theme_override_colors/default_color = Color(1, 1, 1, 0.498039)
+bbcode_enabled = true
+text = "[i]Select a test suite from the left panel to view details[/i]"
+fit_content = true
+
+[node name="SummaryLabel" type="RichTextLabel" parent="VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+bbcode_enabled = true
+text = "[b]Ready to run tests[/b]"
+fit_content = true
+
+[node name="RunButton" type="Button" parent="."]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_fonts/font = SubResource("FontVariation_2vkfn")
+theme_override_font_sizes/font_size = 16
+text = "Run Tests ▶"

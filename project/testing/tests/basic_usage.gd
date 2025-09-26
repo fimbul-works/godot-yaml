@@ -5,7 +5,9 @@ const USER_FILE = "user://test.yaml"
 
 var yaml_text := """
 string: string_value
+empty_string: ""
 number: 1234
+hex: 0xff
 list:
   - apples
   - oranges
