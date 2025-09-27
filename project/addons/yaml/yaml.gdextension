@@ -19,7 +19,7 @@ macos.release.arm64 = "res://addons/yaml/bin/libgdyaml.macos.release"
 
 [icons]
 
-YAML = "res://addons/yaml/assets/icon.svg"
-YAMLResult = "res://addons/yaml/assets/icon.svg"
-YAMLSecurity = "res://addons/yaml/assets/icon.svg"
-YAMLStyle = "res://addons/yaml/assets/icon.svg"
+YAML = "res://addons/yaml/icon.svg"
+YAMLResult = "res://addons/yaml/icon.svg"
+YAMLSecurity = "res://addons/yaml/icon.svg"
+YAMLStyle = "res://addons/yaml/icon.svg"
