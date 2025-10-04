@@ -20,13 +20,21 @@ void YAMLResult::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("has_style"), &YAMLResult::has_style);
 	ClassDB::bind_method(D_METHOD("get_style"), &YAMLResult::get_style);
 
+	ClassDB::bind_method(D_METHOD("has_validation_result"), &YAMLResult::has_validation_result);
+	ClassDB::bind_method(D_METHOD("get_validation_result"), &YAMLResult::get_validation_result);
+	ClassDB::bind_method(D_METHOD("has_validation_errors"), &YAMLResult::has_validation_errors);
+	ClassDB::bind_method(D_METHOD("get_validation_error_count"), &YAMLResult::get_validation_error_count);
+	ClassDB::bind_method(D_METHOD("get_validation_summary"), &YAMLResult::get_validation_summary);
+	ClassDB::bind_method(D_METHOD("get_validation_errors"), &YAMLResult::get_validation_errors);
+
 	ClassDB::bind_static_method("YAMLResult", D_METHOD("error", "msg"), &YAMLResult::user_error);
 
 	BIND_VIRTUAL_METHOD(YAMLResult, _to_string);
 }
 
-Ref<YAMLResult> YAMLResult::success(const Variant &data, const Ref<YAMLStyle> &style) {
-	return Ref<YAMLResult>(memnew(YAMLResult(data, false, style)));
+Ref<YAMLResult> YAMLResult::success(
+		const Variant &data, const Ref<YAMLStyle> &style, const Ref<SchemaValidationResult> &validation) {
+	return Ref<YAMLResult>(memnew(YAMLResult(data, false, style, "", -1, -1, validation)));
 }
 
 Ref<YAMLResult> YAMLResult::multi_document_success(const Array &documents) {
@@ -139,6 +147,30 @@ bool YAMLResult::has_style() const {
 
 Ref<YAMLStyle> YAMLResult::get_style() const {
 	return style;
+}
+
+bool YAMLResult::has_validation_result() const {
+	return validation_result.is_valid();
+}
+
+Ref<SchemaValidationResult> YAMLResult::get_validation_result() const {
+	return validation_result;
+}
+
+bool YAMLResult::has_validation_errors() const {
+	return validation_result.is_valid() && validation_result->has_errors();
+}
+
+int YAMLResult::get_validation_error_count() const {
+	return validation_result.is_valid() ? validation_result->error_count() : 0;
+}
+
+String YAMLResult::get_validation_summary() const {
+	return validation_result.is_valid() ? validation_result->get_summary() : "";
+}
+
+Array YAMLResult::get_validation_errors() const {
+	return validation_result.is_valid() ? validation_result->get_errors() : Array();
 }
 
 String YAMLResult::_to_string() const {

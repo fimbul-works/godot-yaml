@@ -27,14 +27,14 @@ func test_circular_reference():
 	var result := YAML.stringify(dict1)
 	expect_equal(result.get_error(), "Maximum nesting depth exceeded (100). Possible circular reference?", "Expected circular reference")
 
-func test_validation():
+func test_syntax_validation():
 	var invalid_yaml := """
 key: value
 - invalid
   list
   format
 """
-	var result = YAML.validate(invalid_yaml)
+	var result = YAML.validate_syntax(invalid_yaml)
 	expect_equal(result.get_error(), "parse error (line 3, column 1)", "Expected parse error")
 
 func test_error_details():

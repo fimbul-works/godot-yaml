@@ -19,7 +19,7 @@
 namespace godot {
 
 /**
- * @class YAMLValidator
+ * @class YAML::SyntaxValidator
  * @brief Validates YAML input for correct syntax and structure.
  *
  * The Validator class provides a lightweight mechanism to check if a YAML
@@ -30,25 +30,25 @@ namespace godot {
  * The validator uses ryml (RapidYAML) for low-level validation and provides
  * detailed error information when validation fails.
  */
-class YAML::Validator {
+class YAML::SyntaxValidator {
 public:
 	/**
-	 * @brief Constructs a new Validator instance.
+	 * @brief Constructs a new SyntaxValidator instance.
 	 *
 	 * Initializes the ryml parser and callbacks for validation.
 	 */
-	Validator();
+	SyntaxValidator();
 
 	/**
 	 * @brief Default destructor.
 	 */
-	~Validator() = default;
+	~SyntaxValidator() = default;
 
 	/**
 	 * @brief Non-copyable class.
 	 */
-	Validator(const Validator &) = delete;
-	Validator &operator=(const Validator &) = delete;
+	SyntaxValidator(const SyntaxValidator &) = delete;
+	SyntaxValidator &operator=(const SyntaxValidator &) = delete;
 
 	/**
 	 * @brief Validates a YAML string without full parsing.

@@ -10,6 +10,7 @@
 #pragma once
 
 #include "style/style.hpp"
+#include <validation_result.hpp>
 
 #include <godot_cpp/classes/ref_counted.hpp>
 #include <godot_cpp/core/class_db.hpp>
@@ -59,7 +60,8 @@ public:
 	 * @param style Optional style information
 	 * @return Ref<YAMLResult> A successful single-document result object
 	 */
-	static Ref<YAMLResult> success(const Variant &data, const Ref<YAMLStyle> &style = nullptr);
+	static Ref<YAMLResult> success(const Variant &data, const Ref<YAMLStyle> &style = nullptr,
+			const Ref<SchemaValidationResult> &validation = nullptr);
 
 	/**
 	 * @brief Creates a successful result with multiple documents.
@@ -91,10 +93,6 @@ public:
 	static Ref<YAMLResult> user_error(const String &msg);
 
 	/**
-	 * @brief Immutable accessors for result data.
-	 */
-
-	/**
 	 * @brief Gets the result data.
 	 *
 	 * Returns the data contained in this result:
@@ -111,7 +109,6 @@ public:
 
 	/**
 	 * @brief Get a specific document by index.
-	 *
 	 * @param index Document index (0 for first document)
 	 * @return Variant The document data or null if the index is invalid
 	 */
@@ -119,7 +116,6 @@ public:
 
 	/**
 	 * @brief Gets the number of documents in the result.
-	 *
 	 * @return int Number of documents (0 if an error occurred, 1 for single documents)
 	 */
 	int get_document_count() const;
@@ -136,46 +132,36 @@ public:
 
 	/**
 	 * @brief Checks if this result contains multiple documents.
-	 *
 	 * @return bool True if this result contains multiple documents
 	 */
 	bool has_multiple_documents() const;
 
 	/**
-	 * @brief Error handling methods.
-	 */
-
-	/**
 	 * @brief Checks if the result contains an error.
-	 *
 	 * @return bool True if an error occurred, false otherwise
 	 */
 	bool has_error() const;
 
 	/**
 	 * @brief Gets the error message.
-	 *
 	 * @return String The error message or empty if no error
 	 */
 	String get_error_message() const;
 
 	/**
 	 * @brief Gets the line number where the error occurred.
-	 *
 	 * @return int Line number or -1 if not applicable
 	 */
 	int get_error_line() const;
 
 	/**
 	 * @brief Gets the column number where the error occurred.
-	 *
 	 * @return int Column number or -1 if not applicable
 	 */
 	int get_error_column() const;
 
 	/**
 	 * @brief Gets a formatted error string with location information if applicable.
-	 *
 	 * @return String Formatted error message with line and column if applicable
 	 */
 	String get_error() const;
@@ -186,17 +172,49 @@ public:
 
 	/**
 	 * @brief Checks if the result contains style information.
-	 *
 	 * @return bool True if style information is available
 	 */
 	bool has_style() const;
 
 	/**
 	 * @brief Gets the style information.
-	 *
 	 * @return Ref<YAMLStyle> The style object or null if not available
 	 */
 	Ref<YAMLStyle> get_style() const;
+
+	/**
+	 * @brief Checks if the result contains schema validation information.
+	 */
+	bool has_validation_result() const;
+
+	/**
+	 * @brief Gets the schema validation result.
+	 * @return Ref<SchemaValidationResult> The validation result or null if not available
+	 */
+	Ref<SchemaValidationResult> get_validation_result() const;
+
+	/**
+	 * @brief Checks if there are validation errors.
+	 */
+	bool has_validation_errors() const;
+
+	/**
+	 * @brief Gets the number of validation errors.
+	 */
+	int get_validation_error_count() const;
+
+	/**
+	 * @brief Gets a summary of validation results.
+	 * @return String description of validation results
+	 */
+	String get_validation_summary() const;
+
+	/**
+	 * @brief Gets all validation errors as an Array of Dictionaries.
+	 * Each Dictionary contains keys like "message", "path", "constraint", and "value".
+	 * @return Array of validation error Dictionaries
+	 */
+	Array get_validation_errors() const;
 
 	/**
 	 * @brief Converts the result to a string representation.
@@ -217,13 +235,15 @@ private:
 	 * @param col Optional error column number
 	 */
 	YAMLResult(const Variant &data_, bool is_multi_document_, const Ref<YAMLStyle> &style_ = nullptr,
-			const String &error_ = "", int line = -1, int col = -1) :
+			const String &error_ = "", int line = -1, int col = -1,
+			const Ref<SchemaValidationResult> &validation_ = nullptr) :
 			data(data_),
 			is_multi_document(is_multi_document_),
 			style(style_),
 			error_message(error_),
 			error_line(line),
-			error_column(col) {}
+			error_column(col),
+			validation_result(validation_) {}
 
 	/**
 	 * @brief Immutable state members.
@@ -234,6 +254,7 @@ private:
 	const int error_line; ///< Line number where the error occurred
 	const int error_column; ///< Column number where the error occurred
 	const Ref<YAMLStyle> style; ///< Style information if available
+	const Ref<SchemaValidationResult> validation_result; ///< Schema validation result if available
 };
 
 } // namespace godot

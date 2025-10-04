@@ -72,7 +72,7 @@ key: value
 	log_code_block(invalid_yaml)
 	log_info("Validating incorrect YAML...")
 
-	var result = YAML.validate(invalid_yaml)
+	var result = YAML.validate_syntax(invalid_yaml)
 
 	if result.has_error():
 		log_success("Validation correctly detected error: " + result.get_error())

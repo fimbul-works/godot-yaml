@@ -262,7 +262,7 @@
 				Unregisters a previously registered custom script class from YAML serialization.
 			</description>
 		</method>
-		<method name="validate" qualifiers="static">
+		<method name="validate_syntax" qualifiers="static">
 			<return type="YAMLResult" />
 			<param index="0" name="yaml_text" type="String" />
 			<description>
@@ -271,7 +271,7 @@
 				[codeblock lang=gdscript]
 				var user_input = get_text_from_user()
 
-				var result = YAML.validate(user_input)
+				var result = YAML.validate_syntax(user_input)
 				if result.has_error():
 				    return push_error(result.get_error())
 
@@ -279,14 +279,14 @@
 				[/codeblock]
 			</description>
 		</method>
-		<method name="validate_file" qualifiers="static">
+		<method name="validate_file_syntax" qualifiers="static">
 			<return type="YAMLResult" />
 			<param index="0" name="path" type="String" />
 			<description>
 				Validates YAML syntax in a file without performing a full parse. Returns a [YAMLResult] containing error information.
 				Useful for quickly checking file format validity.
 				[codeblock lang=gdscript]
-				var result = YAML.validate_file("user://mod_config.yaml")
+				var result = YAML.validate_file_syntax("user://mod_config.yaml")
 				if result.has_error():
 				    print("Mod configuration has syntax errors: " + result.get_error())
 				    print("Please fix your mod configuration file.")

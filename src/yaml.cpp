@@ -6,8 +6,9 @@
 #include "result.hpp"
 #include "style/style.hpp"
 #include "style/style_view.hpp"
-#include "validator/validator.hpp"
+#include "syntax_validator/syntax_validator.hpp"
 #include "version.hpp"
+#include <validation_result.hpp>
 
 #include <godot_cpp/classes/file_access.hpp>
 #include <godot_cpp/variant/utility_functions.hpp>
@@ -20,21 +21,37 @@ void YAML::_bind_methods() {
 
 	ClassDB::bind_static_method("YAML", D_METHOD("parse", "yaml_text", "security", "detect_style"), &YAML::parse,
 			DEFVAL(nullptr), DEFVAL(false));
+	ClassDB::bind_static_method("YAML",
+			D_METHOD("parse_and_validate", "yaml_text", "schema", "security", "detect_style"),
+			&YAML::parse_and_validate, DEFVAL(Variant()), DEFVAL(nullptr), DEFVAL(false));
+
 	ClassDB::bind_static_method("YAML", D_METHOD("stringify", "data", "style"), &YAML::stringify, DEFVAL(Variant()));
-	ClassDB::bind_static_method("YAML", D_METHOD("validate", "yaml_text"), &YAML::validate);
+
+	ClassDB::bind_static_method("YAML", D_METHOD("validate_syntax", "yaml_text"), &YAML::validate_syntax);
+	ClassDB::bind_static_method("YAML", D_METHOD("validate_file_syntax", "path"), &YAML::validate_file_syntax);
 
 	ClassDB::bind_static_method("YAML", D_METHOD("load_file", "path", "security", "detect_style"), &YAML::load_file,
 			DEFVAL(nullptr), DEFVAL(false));
+	ClassDB::bind_static_method("YAML",
+			D_METHOD("load_file_and_validate", "path", "schema", "security", "detect_style"),
+			&YAML::load_file_and_validate, DEFVAL(Variant()), DEFVAL(nullptr), DEFVAL(false));
+
 	ClassDB::bind_static_method(
 			"YAML", D_METHOD("save_file", "data", "path", "style"), &YAML::save_file, DEFVAL(nullptr));
-	ClassDB::bind_static_method("YAML", D_METHOD("validate_file", "path"), &YAML::validate_file);
 
 	ClassDB::bind_static_method(
 			"YAML", D_METHOD("try_parse", "yaml_text", "security"), &YAML::try_parse, DEFVAL(nullptr));
+	ClassDB::bind_static_method("YAML", D_METHOD("try_parse_and_validate", "yaml_text", "schema", "security"),
+			&YAML::try_parse_and_validate, DEFVAL(Variant()), DEFVAL(nullptr));
+
 	ClassDB::bind_static_method(
 			"YAML", D_METHOD("try_stringify", "data", "style"), &YAML::try_stringify, DEFVAL(Variant()));
+
 	ClassDB::bind_static_method(
 			"YAML", D_METHOD("try_load_file", "path", "security"), &YAML::try_load_file, DEFVAL(nullptr));
+	ClassDB::bind_static_method("YAML", D_METHOD("try_load_file_and_validate", "path", "schema", "security"),
+			&YAML::try_load_file_and_validate, DEFVAL(Variant()), DEFVAL(nullptr));
+
 	ClassDB::bind_static_method(
 			"YAML", D_METHOD("try_save_file", "data", "path", "style"), &YAML::try_save_file, DEFVAL(nullptr));
 
@@ -70,6 +87,13 @@ Ref<YAMLResult> YAML::parse(const String &input, const Ref<YAMLSecurity> securit
 			input, security.is_valid() ? security->get_view() : YAMLSecurity::get_default_view(), detect_style);
 }
 
+Ref<YAMLResult> YAML::parse_and_validate(
+		const String &input, const Variant &schema, const Ref<YAMLSecurity> security, const bool detect_style) {
+	Parser parser;
+	return parser.parse_and_validate(
+			input, schema, security.is_valid() ? security->get_view() : YAMLSecurity::get_default_view(), detect_style);
+}
+
 Ref<YAMLResult> YAML::stringify(const Variant &input, const Ref<YAMLStyle> &style) {
 	Emitter emitter;
 	YAMLStyle::View style_view = style.is_valid() ? YAMLStyle::View::create_view(style) : YAMLStyle::View();
@@ -77,8 +101,8 @@ Ref<YAMLResult> YAML::stringify(const Variant &input, const Ref<YAMLStyle> &styl
 	return result;
 }
 
-Ref<YAMLResult> YAML::validate(const String &input) {
-	Validator validator;
+Ref<YAMLResult> YAML::validate_syntax(const String &input) {
+	SyntaxValidator validator;
 	Ref<YAMLResult> result = validator.validate(input);
 	return result;
 }
@@ -114,8 +138,40 @@ Ref<YAMLResult> YAML::load_file(const String &path, const Ref<YAMLSecurity> secu
 	return parse(content, security, detect_style);
 }
 
+Ref<YAMLResult> YAML::load_file_and_validate(
+		const String &path, const Variant &schema, const Ref<YAMLSecurity> security, const bool detect_style) {
+	if (!FileAccess::file_exists(path)) {
+		return YAMLResult::error(
+				"File not found '" + path + "': " + UtilityFunctions::error_string(ERR_FILE_NOT_FOUND));
+	}
+
+	// Open file for reading
+	Ref<FileAccess> file = FileAccess::open(path, FileAccess::READ);
+
+	if (!file.is_valid()) {
+		return YAMLResult::error("Failed to read '" + path + "': " + UtilityFunctions::error_string(ERR_FILE_BAD_PATH));
+	}
+
+	Error err = file->get_error();
+	if (err != OK) {
+		return YAMLResult::error("Failed to read '" + path + "': " + UtilityFunctions::error_string((int)err));
+	}
+
+	// Read the file content and check for errors
+	String content = file->get_as_text();
+
+	err = file->get_error();
+	file->close();
+
+	if (err != OK) {
+		return YAMLResult::error("Failed to read '" + path + "': " + UtilityFunctions::error_string((int)err));
+	}
+
+	return parse_and_validate(content, schema, security, detect_style);
+}
+
 Ref<YAMLResult> YAML::parser_load_file(const String &path, const YAMLSecurity::View &security_view,
-		std::unordered_set<String, StringHasher, StringEqual> *loading_yaml_paths) {
+		std::unordered_set<String, StringHasher, StringEqual> *loading_yaml_paths, const bool is_validating) {
 	if (!FileAccess::file_exists(path)) {
 		return YAMLResult::error(
 				"File not found '" + path + "': " + UtilityFunctions::error_string(ERR_FILE_NOT_FOUND));
@@ -144,6 +200,9 @@ Ref<YAMLResult> YAML::parser_load_file(const String &path, const YAMLSecurity::V
 	}
 
 	Parser parser(loading_yaml_paths);
+	if (is_validating) {
+		return parser.parse_and_validate(content, Variant(), security_view, false);
+	}
 	return parser.parse(content, security_view, false);
 }
 
@@ -181,7 +240,7 @@ Ref<YAMLResult> YAML::save_file(const Variant &data, const String &path, const R
 	return YAMLResult::success(yaml_content);
 }
 
-Ref<YAMLResult> YAML::validate_file(const String &path) {
+Ref<YAMLResult> YAML::validate_file_syntax(const String &path) {
 	if (!FileAccess::file_exists(path)) {
 		return YAMLResult::error(
 				"File not found '" + path + "': " + UtilityFunctions::error_string(ERR_FILE_NOT_FOUND));
@@ -192,12 +251,13 @@ Ref<YAMLResult> YAML::validate_file(const String &path) {
 
 	if (!file.is_valid()) {
 		return YAMLResult::error(
-				"Failed to validate '" + path + "': " + UtilityFunctions::error_string(ERR_FILE_BAD_PATH));
+				"Failed to validate syntax of '" + path + "': " + UtilityFunctions::error_string(ERR_FILE_BAD_PATH));
 	}
 
 	Error err = file->get_error();
 	if (err != OK) {
-		return YAMLResult::error("Failed to validate '" + path + "': " + UtilityFunctions::error_string((int)err));
+		return YAMLResult::error(
+				"Failed to validate syntax of '" + path + "': " + UtilityFunctions::error_string((int)err));
 	}
 
 	// Read the file content and check for errors
@@ -206,10 +266,11 @@ Ref<YAMLResult> YAML::validate_file(const String &path) {
 	file->close();
 
 	if (err != OK) {
-		return YAMLResult::error("Failed to validate '" + path + "': " + UtilityFunctions::error_string((int)err));
+		return YAMLResult::error(
+				"Failed to validate syntax of '" + path + "': " + UtilityFunctions::error_string((int)err));
 	}
 
-	return validate(content);
+	return validate_syntax(content);
 }
 
 Variant YAML::try_parse(const String &input, const Ref<YAMLSecurity> security) {
@@ -218,7 +279,15 @@ Variant YAML::try_parse(const String &input, const Ref<YAMLSecurity> security) {
 		UtilityFunctions::push_error(result->get_error());
 		return Variant();
 	}
+	return result->get_data();
+}
 
+Variant YAML::try_parse_and_validate(const String &input, const Variant &schema, const Ref<YAMLSecurity> security) {
+	Ref<YAMLResult> result = parse_and_validate(input, schema, security);
+	if (result->has_error()) {
+		UtilityFunctions::push_error(result->get_error());
+		return Variant();
+	}
 	return result->get_data();
 }
 
@@ -233,6 +302,15 @@ String YAML::try_stringify(const Variant &input, const Ref<YAMLStyle> &style) {
 
 Variant YAML::try_load_file(const String &path, const Ref<YAMLSecurity> security) {
 	Ref<YAMLResult> result = load_file(path, security);
+	if (result->has_error()) {
+		UtilityFunctions::push_error(result->get_error());
+		return Variant();
+	}
+	return result->get_data();
+}
+
+Variant YAML::try_load_file_and_validate(const String &path, const Variant &schema, const Ref<YAMLSecurity> security) {
+	Ref<YAMLResult> result = load_file_and_validate(path, schema, security);
 	if (result->has_error()) {
 		UtilityFunctions::push_error(result->get_error());
 		return Variant();

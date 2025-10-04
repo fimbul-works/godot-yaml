@@ -194,11 +194,10 @@ def build_config(env, variant_dir):
     sources += Glob(os.path.join(variant_dir, 'src', 'variant_converters', '*.cpp'))
     sources += Glob(os.path.join(variant_dir, 'src', 'emitter', '*.cpp'))
     sources += Glob(os.path.join(variant_dir, 'src', 'extension', '*.cpp'))
-    sources += Glob(os.path.join(variant_dir, 'src', 'io', '*.cpp'))
     sources += Glob(os.path.join(variant_dir, 'src', 'parser', '*.cpp'))
     sources += Glob(os.path.join(variant_dir, 'src', 'style', '*.cpp'))
     sources += Glob(os.path.join(variant_dir, 'src', 'util', '*.cpp'))
-    sources += Glob(os.path.join(variant_dir, 'src', 'validator', '*.cpp'))
+    sources += Glob(os.path.join(variant_dir, 'src', 'syntax_validator', '*.cpp'))
 
     # Add GDSchema sources
     sources += Glob(os.path.join('ext', 'gdschema', 'src', '*.cpp'))

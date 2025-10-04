@@ -17,19 +17,19 @@ func _init() -> void:
 	icon = "📝"
 
 func run_examples() -> void:
-	run_example("Validate YAML String", validate_yaml_string)
+	run_example("Validate YAML String Syntax", validate_yaml_string_syntax)
 	run_example("Parse YAML Text", parse_yaml_text)
 	run_example("Stringify Data", stringify_data)
-	run_example("Validate File", validate_file)
+	run_example("Validate File Syntax", validate_file_syntax)
 	run_example("Load File", load_file)
 	run_example("Save File", save_file)
 	run_example("Load Saved File", load_saved_file)
 
-func validate_yaml_string() -> void:
+func validate_yaml_string_syntax() -> void:
 	log_code_block(yaml_text)
 
 	log_info("Validating YAML string...")
-	var result := YAML.validate(yaml_text)
+	var result := YAML.validate_syntax(yaml_text)
 
 	if result.has_error():
 		log_error("Validation failed: " + result.get_error())
@@ -83,9 +83,9 @@ func stringify_data() -> void:
 			log_info("Original:\n" + original)
 			log_info("Output:\n" + yaml_output)
 
-func validate_file() -> void:
+func validate_file_syntax() -> void:
 	log_info("Validating YAML file: " + YAML_FILE)
-	var result := YAML.validate_file(YAML_FILE)
+	var result := YAML.validate_file_syntax(YAML_FILE)
 
 	if result.has_error():
 		log_error("File validation failed: " + result.get_error())

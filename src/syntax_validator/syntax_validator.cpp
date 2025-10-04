@@ -1,4 +1,4 @@
-#include "validator.hpp"
+#include "syntax_validator.hpp"
 
 #include <ryml.hpp>
 
@@ -6,14 +6,14 @@
 
 using namespace godot;
 
-YAML::Validator::Validator() {
+YAML::SyntaxValidator::SyntaxValidator() {
 	callbacks.m_error = error_callback;
 	callbacks.m_user_data = this;
 	evt_handler = std::make_unique<ryml::EventHandlerTree>(callbacks);
 	ryml_parser = std::make_unique<ryml::Parser>(evt_handler.get(), ryml::ParserOptions().locations(true));
 }
 
-Ref<YAMLResult> YAML::Validator::validate(const String &input) {
+Ref<YAMLResult> YAML::SyntaxValidator::validate(const String &input) {
 	try {
 		current_result = YAMLResult::success(Variant());
 
@@ -29,7 +29,7 @@ Ref<YAMLResult> YAML::Validator::validate(const String &input) {
 	}
 }
 
-void YAML::Validator::error_callback(const char *msg, size_t len, ryml::Location loc, void *user_data) {
+void YAML::SyntaxValidator::error_callback(const char *msg, size_t len, ryml::Location loc, void *user_data) {
 	ryml::csubstr error_msg(msg, len);
 
 	// Strip "ERROR: " prefix if present
@@ -49,7 +49,7 @@ void YAML::Validator::error_callback(const char *msg, size_t len, ryml::Location
 		error_msg = error_msg.sub(0, newline_pos);
 	}
 
-	auto *validator = static_cast<Validator *>(user_data);
+	auto *validator = static_cast<SyntaxValidator *>(user_data);
 	if (!validator) {
 		throw YAMLException(from_ryml_str(error_msg));
 	}

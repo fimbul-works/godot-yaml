@@ -54,10 +54,7 @@ public:
 	// Forward-declare inner classes
 	class Emitter;
 	class Parser;
-	class Validator;
-	class FileSaver;
-	class FileLoader;
-	class FileValidator;
+	class SyntaxValidator;
 
 	/**
 	 * @brief Returns the version string of the YAML module.
@@ -78,8 +75,18 @@ public:
 			const String &input, const Ref<YAMLSecurity> security = nullptr, const bool detect_style = false);
 
 	/**
+	 * @brief Parses and validates a YAML string into a Godot Variant.
+	 * @param input The YAML string to parse.
+	 * @param schema The schema to validate against (null, String (ID), or Ref<Schema>)
+	 * @param security Optional security settings for resource loading.
+	 * @param detect_style Whether to detect and store style information.
+	 * @return Ref<YAMLResult> Result object containing parsed data or error information.
+	 */
+	static Ref<YAMLResult> parse_and_validate(const String &input, const Variant &schema = Variant(),
+			const Ref<YAMLSecurity> security = nullptr, const bool detect_style = false);
+
+	/**
 	 * @brief Serializes a Godot Variant into a YAML string.
-	 *
 	 * @param input The Variant to convert to YAML.
 	 * @param format Optional style settings for formatting the output.
 	 * @return Ref<YAMLResult> Result object containing the YAML string or error information.
@@ -87,16 +94,7 @@ public:
 	static Ref<YAMLResult> stringify(const Variant &input, const Ref<YAMLStyle> &format = nullptr);
 
 	/**
-	 * @brief Validates a YAML string without fully parsing it.
-	 *
-	 * @param input The YAML string to validate.
-	 * @return Ref<YAMLResult> Result object indicating whether the YAML is valid.
-	 */
-	static Ref<YAMLResult> validate(const String &input);
-
-	/**
 	 * @brief Loads and parses a YAML file.
-	 *
 	 * @param path Path to the YAML file.
 	 * @param security Optional security settings for resource loading.
 	 * @param detect_style Whether to detect and store style information.
@@ -106,14 +104,27 @@ public:
 			const String &path, const Ref<YAMLSecurity> security = nullptr, const bool detect_style = false);
 
 	/**
+	 * @brief Loads, parses, and validates a YAML file.
+	 * @param path Path to the YAML file.
+	 * @param schema The schema to validate against (null, String (ID), or Ref<Schema>)
+	 * @param security Optional security settings for resource loading.
+	 * @param detect_style Whether to detect and store style information.
+	 * @return Ref<YAMLResult> Result object containing parsed data or error information.
+	 */
+	static Ref<YAMLResult> load_file_and_validate(const String &path, const Variant &schema = Variant(),
+			const Ref<YAMLSecurity> security = nullptr, const bool detect_style = false);
+
+	/**
 	 * @brief Loads and parses a YAML file inside an existing parser context.
 	 *
 	 * @param path Path to the YAML file.
 	 * @param security Optional security settings for resource loading.
+	 * @param loading_yaml_paths Set of currently loading YAML paths to detect circular references.
+	 * @param is_validating Whether this load is part of a validation operation.
 	 * @return Ref<YAMLResult> Result object containing parsed data or error information.
 	 */
 	static Ref<YAMLResult> parser_load_file(const String &path, const YAMLSecurity::View &security_view,
-			std::unordered_set<String, StringHasher, StringEqual> *loading_yaml_paths);
+			std::unordered_set<String, StringHasher, StringEqual> *loading_yaml_paths, const bool is_validating);
 
 	/**
 	 * @brief Serializes a Godot Variant and saves it to a YAML file.
@@ -126,12 +137,19 @@ public:
 	static Ref<YAMLResult> save_file(const Variant &data, const String &path, const Ref<YAMLStyle> &style = nullptr);
 
 	/**
+	 * @brief Validates a YAML string for syntax errors without fully parsing it.
+	 * @param input The YAML string to validate.
+	 * @return Ref<YAMLResult> Result object indicating whether the YAML is valid.
+	 */
+	static Ref<YAMLResult> validate_syntax(const String &input);
+
+	/**
 	 * @brief Validates a YAML file without fully parsing it.
 	 *
 	 * @param path Path to the YAML file.
 	 * @return Ref<YAMLResult> Result object indicating whether the YAML is valid.
 	 */
-	static Ref<YAMLResult> validate_file(const String &path);
+	static Ref<YAMLResult> validate_file_syntax(const String &path);
 
 	/**
 	 * @brief Parses a YAML string, pushing errors to Godot's error system.
@@ -144,6 +162,20 @@ public:
 	 * @return Variant The parsed data or null if parsing failed.
 	 */
 	static Variant try_parse(const String &input, const Ref<YAMLSecurity> security = nullptr);
+
+	/**
+	 * @brief Parses and validates a YAML string, pushing errors to Godot's error system.
+	 *
+	 * This is a simplified version of parse() that returns null on error and
+	 * automatically reports errors through Godot's error reporting system.
+	 *
+	 * @param input The YAML string to parse.
+	 * @param schema The schema to validate against (null, String (ID), or Ref<Schema>)
+	 * @param security Optional security settings for resource loading.
+	 * @return Variant The parsed data or null if parsing failed.
+	 */
+	static Variant try_parse_and_validate(
+			const String &input, const Variant &schema = Variant(), const Ref<YAMLSecurity> security = nullptr);
 
 	/**
 	 * @brief Serializes a Godot Variant to YAML, pushing errors to Godot's error system.
@@ -168,6 +200,20 @@ public:
 	 * @return Variant The parsed data or null if loading failed.
 	 */
 	static Variant try_load_file(const String &path, const Ref<YAMLSecurity> security = nullptr);
+
+	/**
+	 * @brief Loads, parses and validates a YAML file, pushing errors to Godot's error system.
+	 *
+	 * This is a simplified version of load_file() that returns null on error and
+	 * automatically reports errors through Godot's error reporting system.
+	 *
+	 * @param path Path to the YAML file.
+	 * @param schema The schema to validate against (null, String (ID), or Ref<Schema>)
+	 * @param security Optional security settings for resource loading.
+	 * @return Variant The parsed data or null if loading failed.
+	 */
+	static Variant try_load_file_and_validate(
+			const String &path, const Variant &schema = Variant(), const Ref<YAMLSecurity> security = nullptr);
 
 	/**
 	 * @brief Serializes and saves a Godot Variant to a YAML file, pushing errors to Godot's error system.

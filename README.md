@@ -114,7 +114,7 @@ scons platform=linux target=template_release
 ### **Code Formatting**
 ```bash
 # Format code (requires clang-format)
-clang-format -i src/*.cpp src/*.hpp src/variant_converters/*.cpp src/variant_converters/*.hpp src/validator/*.cpp src/validator/*.hpp src/util/*.hpp src/style/*.cpp src/style/*.hpp src/parser/*.cpp src/parser/*.hpp src/io/*.cpp src/io/*.hpp src/extension/*.cpp src/extension/*.hpp src/emitter/*.cpp src/emitter/*.hpp
+clang-format -i src/*.cpp src/*.hpp src/variant_converters/*.cpp src/variant_converters/*.hpp src/syntax_validator/*.cpp src/syntax_validator/*.hpp src/util/*.hpp src/style/*.cpp src/style/*.hpp src/parser/*.cpp src/parser/*.hpp src/extension/*.cpp src/extension/*.hpp src/emitter/*.cpp src/emitter/*.hpp
 ```
 
 ---

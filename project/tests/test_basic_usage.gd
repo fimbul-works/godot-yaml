@@ -19,7 +19,7 @@ func _init() -> void:
 	icon = "✅"
 
 func test_validate_string() -> void:
-	var result := YAML.validate(yaml_text)
+	var result := YAML.validate_syntax(yaml_text)
 	expect(not result.has_error(), result.get_error())
 
 	if result.has_error():
@@ -54,8 +54,8 @@ func test_stringify_data() -> void:
 	if LOG_VERBOSE:
 		print_rich("\n[b]Stringify Result:[/b]\n%s\n" % stringify_result.get_data())
 
-func test_validate_file() -> void:
-	var result := YAML.validate_file(YAML_FILE)
+func test_validate_file_syntax() -> void:
+	var result := YAML.validate_file_syntax(YAML_FILE)
 	expect(not result.has_error(), result.get_error())
 
 func test_load_file() -> void:

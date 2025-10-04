@@ -81,7 +81,7 @@ func validate_document(document: YAMLEditorDocument) -> void:
 
 func _validation_thread_function(document: YAMLEditorDocument) -> void:
 	# YAML validation is thread-safe
-	var result = YAML.validate(document.content)
+	var result = YAML.validate_syntax(document.content)
 
 	# Update document on main thread
 	call_deferred("_finish_validation", document, result)

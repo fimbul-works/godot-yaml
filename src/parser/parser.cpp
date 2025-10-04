@@ -1,9 +1,9 @@
 #include "parser.hpp"
 #include "../class_registry.hpp"
-#include "../io/file_loader.hpp"
 #include "../util/util_numeric.hpp"
 #include "../yaml.hpp"
 #include "security.hpp"
+#include <schema_registry.hpp>
 
 #include <godot_cpp/classes/resource.hpp>
 #include <godot_cpp/classes/resource_loader.hpp>
@@ -125,9 +125,62 @@ Ref<YAMLResult> YAML::Parser::parse(
 	}
 }
 
+Ref<YAMLResult> YAML::Parser::parse_and_validate(const String &input,
+		const Variant &schema_param, // null, String (ID), or Ref<Schema>
+		const YAMLSecurity::View &security_view, const bool detect_style) {
+	try {
+		current_result = YAMLResult::success(Variant());
+		this->security_view = security_view;
+		this->style = YAML::create_style();
+		this->detect_style = detect_style;
+
+		// Parse YAML text
+		ryml::parse_in_arena(ryml_parser.get(), input.utf8().get_data(), &tree);
+
+		if (tree.empty()) {
+			return YAMLResult::error("Empty YAML document");
+		}
+
+		tree.resolve();
+
+		// Resolve explicit schema
+		Ref<Schema> schema = resolve_schema_parameter(schema_param);
+
+		// Create context with validation enabled
+		context = std::make_unique<YAMLParserContext>(ryml_parser.get(), detect_style ? style : nullptr, schema);
+
+		// Process YAML tree with validation
+		Variant data = process_node(tree.rootref());
+
+		if (current_result->has_error()) {
+			return current_result;
+		}
+
+		// Build validation result
+		Ref<SchemaValidationResult> validation_result;
+		if (context->has_validation_errors()) {
+			validation_result = SchemaValidationResult::success();
+			for (const YAMLValidationError &error : context->get_validation_errors()) {
+				// Add errors to result (we'd need to add this method to SchemaValidationResult)
+				validation_result->add_error(error);
+			}
+		}
+
+		context.reset();
+
+		return YAMLResult::success(data, style, validation_result);
+
+	} catch (const YAMLException &e) {
+		return YAMLResult::error(e.what(), e.get_line(), e.get_column());
+	} catch (const std::exception &e) {
+		return YAMLResult::error(e.what());
+	}
+}
+
 Variant YAML::Parser::process_node(const ryml::ConstNodeRef &node) const {
 	// First check for tagged values
 	auto tagged = try_parse_tagged_value(node);
+
 	if (tagged) {
 		return *tagged;
 	}
@@ -136,27 +189,41 @@ Variant YAML::Parser::process_node(const ryml::ConstNodeRef &node) const {
 }
 
 Variant YAML::Parser::process_common(const ryml::ConstNodeRef &node) const {
+	Variant result;
+
+	// Parse structure first
 	if (node.is_keyval()) {
-		return process_value(node);
+		result = process_value(node);
 	} else if (node.is_map()) {
-		return process_map(node);
+		result = process_map(node);
 	} else if (node.is_seq()) {
-		return process_sequence(node);
+		result = process_sequence(node);
 	} else if (node.has_key()) {
 		String key = extract_key(node);
 		if (!key.is_empty()) {
-			return key;
+			result = key;
+		} else {
+			result = Variant();
 		}
-		return Variant();
 	} else if (node.has_val()) {
-		return process_value(node);
+		result = process_value(node);
+	} else {
+		result = Variant();
 	}
 
-	return Variant();
+	if (context->is_validating()) {
+		validate_current_node(result);
+	}
+
+	return result;
 }
 
 Variant YAML::Parser::process_map(const ryml::ConstNodeRef &node) const {
 	Dictionary dict;
+
+	if (context->needs_schema_discovery() && context->get_current_instance_path() == "/") {
+		discover_and_load_schema(node);
+	}
 
 	if (detect_style) {
 		Ref<YAMLStyle> map_style = context->current_style();
@@ -172,6 +239,12 @@ Variant YAML::Parser::process_map(const ryml::ConstNodeRef &node) const {
 			return Variant();
 		}
 
+		// Track paths
+		if (context->is_validating()) {
+			context->push_instance_path_segment(key);
+			context->push_schema_for_property(key);
+		}
+
 		if (detect_style) {
 			context->push_style(key);
 		}
@@ -182,11 +255,20 @@ Variant YAML::Parser::process_map(const ryml::ConstNodeRef &node) const {
 			context->pop_style();
 		}
 
+		if (context->is_validating()) {
+			context->pop_schema();
+			context->pop_instance_path_segment();
+		}
+
 		if (value.get_type() == Variant::NIL && current_result->has_error()) {
 			return Variant();
 		}
 
 		dict[key] = value;
+	}
+
+	if (context->is_validating()) {
+		apply_property_defaults(dict);
 	}
 
 	return dict;
@@ -205,6 +287,12 @@ Variant YAML::Parser::process_sequence(const ryml::ConstNodeRef &node) const {
 
 	size_t idx = 0;
 	for (const auto &child : node.children()) {
+		// Track paths
+		if (context->is_validating()) {
+			context->push_instance_path_segment(String::num_uint64(idx));
+			context->push_schema_for_array_item(idx);
+		}
+
 		if (detect_style) {
 			Ref<YAMLStyle> current_style = context->current_style();
 			Ref<YAMLStyle> child_style = context->push_style(String::num_uint64(idx));
@@ -219,6 +307,11 @@ Variant YAML::Parser::process_sequence(const ryml::ConstNodeRef &node) const {
 
 		if (detect_style) {
 			context->pop_style();
+		}
+
+		if (context->is_validating()) {
+			context->pop_schema();
+			context->pop_instance_path_segment();
 		}
 
 		if (item.get_type() == Variant::NIL && current_result->has_error()) {
@@ -536,6 +629,11 @@ std::optional<Variant> YAML::Parser::try_parse_numeric_value(const String &str_v
 
 std::optional<Variant> YAML::Parser::try_parse_tagged_value(const ryml::ConstNodeRef &node) const {
 	String tag = extract_tag(node);
+
+	if (context->is_validating()) {
+		check_yaml_tag_constraint(tag);
+	}
+
 	if (tag.is_empty()) {
 		// Return null to continue with normal processing in process_node
 		return std::nullopt;
@@ -640,7 +738,45 @@ Variant YAML::Parser::load_resource(const String &path, const ryml::ConstNodeRef
 		}
 
 		loading_yaml_paths->insert(path);
-		Ref<YAMLResult> result = YAML::parser_load_file(path, security_view, loading_yaml_paths);
+
+		// Track nested resource context
+		if (context->is_validating()) {
+			context->push_resource_context(path);
+		}
+
+		Ref<YAMLResult> result =
+				YAML::parser_load_file(path, security_view, loading_yaml_paths, context->is_validating());
+
+		if (context->is_validating()) {
+			// Collect nested validation errors with corrected paths
+			if (result->has_validation_errors()) {
+				Array nested_errors = result->get_validation_errors();
+				String resource_prefix = vformat("!Resource(%s)", path);
+
+				for (int i = 0; i < nested_errors.size(); i++) {
+					Dictionary error_dict = nested_errors[i];
+
+					// Build path string with resource context
+					String nested_path = error_dict["path"];
+					String full_path = resource_prefix + nested_path;
+
+					// Build clean path_array (only actual property/index segments)
+					Array nested_path_array = error_dict["path_array"];
+					Array full_path_array;
+					full_path_array.append_array(context->get_current_instance_path_array());
+					full_path_array.append_array(nested_path_array);
+
+					YAMLValidationError error(error_dict["message"], full_path, full_path_array,
+							error_dict["constraint"], error_dict.get("schema_path", ""),
+							error_dict.get("invalid_value", Variant()));
+
+					context->add_validation_error(error);
+				}
+			}
+
+			context->pop_resource_context();
+		}
+
 		loading_yaml_paths->erase(path);
 
 		if (result->has_error()) {
@@ -703,6 +839,162 @@ void YAML::Parser::populate_object_properties(Object *obj, const ryml::ConstNode
 		}
 
 		obj->set(key, value);
+	}
+}
+
+void YAML::Parser::validate_current_node(const Variant &value) const {
+	Ref<Schema> schema = context->current_schema();
+	if (!schema.is_valid()) {
+		return; // No schema for this node
+	}
+
+	// Perform validation
+	Ref<SchemaValidationResult> validation = schema->validate(value);
+
+	if (validation->has_errors()) {
+		// Collect all errors with full path context
+		String base_path = context->get_current_instance_path();
+		Array resource_stack = context->get_resource_path_stack();
+
+		for (int i = 0; i < validation->error_count(); i++) {
+			Dictionary error_dict = validation->get_error(i);
+
+			// Build full path including nested resources
+			String full_path;
+
+			// Add resource context if present
+			if (resource_stack.size() > 0) {
+				for (int j = 0; j < resource_stack.size(); j++) {
+					full_path += vformat("!Resource(%s)", resource_stack[j]);
+				}
+			}
+
+			// Add base path (avoid double slashes)
+			if (!base_path.is_empty() && base_path != "/") {
+				full_path += base_path;
+			}
+
+			// Add error-specific path
+			String error_path = error_dict["path"];
+			if (!error_path.is_empty() && error_path != "/") {
+				// If full_path is empty or just "/", start fresh
+				if (full_path.is_empty() || full_path == "/") {
+					full_path = error_path;
+				} else {
+					full_path += error_path;
+				}
+			} else if (full_path.is_empty()) {
+				full_path = "/";
+			}
+
+			YAMLValidationError error(error_dict["message"], full_path, error_dict["path_array"],
+					error_dict["constraint"], error_dict.get("schema_path", ""),
+					error_dict.get("invalid_value", Variant()));
+
+			context->add_validation_error(error);
+		}
+	}
+}
+
+Ref<Schema> YAML::Parser::resolve_schema_parameter(const Variant &schema_param) const {
+	if (schema_param.get_type() == Variant::NIL) {
+		return Ref<Schema>();
+	}
+
+	// Direct Schema object
+	if (schema_param.get_type() == Variant::OBJECT) {
+		Ref<Schema> schema = schema_param;
+		if (schema.is_valid()) {
+			return schema;
+		}
+	}
+
+	// Schema ID string
+	if (schema_param.get_type() == Variant::STRING) {
+		String schema_id = schema_param;
+		if (!schema_id.is_empty() && Schema::is_schema_registered(schema_id)) {
+			return SchemaRegistry::get_singleton().get_schema(schema_id);
+		}
+	}
+
+	return Ref<Schema>();
+}
+
+void YAML::Parser::discover_and_load_schema(const ryml::ConstNodeRef &node) const {
+	for (const auto &child : node.children()) {
+		String key = extract_key(child);
+		if (key == "$schema" && child.has_val()) {
+			String schema_id = from_ryml_str(child.val());
+			if (Schema::is_schema_registered(schema_id)) {
+				Ref<Schema> schema = SchemaRegistry::get_singleton().get_schema(schema_id);
+				context->set_root_schema(schema);
+			}
+			return;
+		}
+	}
+}
+
+void YAML::Parser::check_yaml_tag_constraint(const String &tag) const {
+	Ref<Schema> schema = context->current_schema();
+	if (!schema.is_valid()) {
+		return;
+	}
+
+	Variant required_tag = schema->get_custom_metadata("x-yaml-tag");
+	if (required_tag.get_type() != Variant::STRING) {
+		return; // No tag constraint
+	}
+
+	String expected_tag = required_tag;
+
+	if (!tag.is_empty() && tag != expected_tag) {
+		YAMLValidationError error(vformat("Expected YAML tag '!%s' but got '!%s'", expected_tag, tag),
+				context->get_current_instance_path(), context->get_current_instance_path_array(), "x-yaml-tag",
+				schema->get_schema_path(),
+				Variant() // No specific invalid value
+		);
+		context->add_validation_error(error);
+	} else if (tag.is_empty() && !expected_tag.is_empty()) {
+		YAMLValidationError error(vformat("Expected YAML tag '!%s' but value has no tag", expected_tag),
+				context->get_current_instance_path(), Array(), "x-yaml-tag", schema->get_schema_path(), Variant());
+		context->add_validation_error(error);
+	}
+}
+
+void YAML::Parser::apply_property_defaults(Dictionary &dict) const {
+	Ref<Schema> schema = context->current_schema();
+	if (!schema.is_valid() || !schema->is_object()) {
+		return;
+	}
+
+	// Iterate through all properties defined in the schema
+	Array property_keys = schema->get_child_keys();
+	for (int i = 0; i < property_keys.size(); i++) {
+		StringName key = property_keys[i];
+		String key_str = key;
+
+		// Only consider "properties/xxx" keys
+		if (!key_str.begins_with("properties/")) {
+			continue;
+		}
+
+		// Extract the actual property name (remove "properties/" prefix)
+		String property_name = key_str.substr(11);
+
+		// Skip if property already exists in the dictionary
+		if (dict.has(property_name)) {
+			continue;
+		}
+
+		// Get the schema for this property
+		Ref<Schema> prop_schema = schema->get_child(key);
+		if (!prop_schema.is_valid() || !prop_schema->has_default_value()) {
+			continue;
+		}
+
+		// Apply the default value
+		Variant default_value = prop_schema->get_default_value();
+		dict[property_name] = default_value;
 	}
 }
 

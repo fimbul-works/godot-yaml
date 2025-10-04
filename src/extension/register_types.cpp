@@ -45,10 +45,6 @@ void initialize_yaml_module(ModuleInitializationLevel p_level) {
 	if (!ClassDB::class_exists("SchemaValidationResult")) {
 		GDREGISTER_CLASS(SchemaValidationResult);
 	}
-
-	// #ifdef TESTS_ENABLED
-	// 	run_all_tests(); // Run tests after registration
-	// #endif
 }
 
 void uninitialize_yaml_module(ModuleInitializationLevel p_level) {

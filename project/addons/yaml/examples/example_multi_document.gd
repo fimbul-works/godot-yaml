@@ -51,7 +51,7 @@ func run_examples() -> void:
 
 func validate_multi_document() -> void:
 	log_info("Validating multi-document YAML string...")
-	var result := YAML.validate(multi_doc_yaml)
+	var result := YAML.validate_syntax(multi_doc_yaml)
 
 	if result.has_error():
 		log_error("Validation failed: " + result.get_error())

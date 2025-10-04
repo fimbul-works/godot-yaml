@@ -63,13 +63,24 @@ public:
 
 	/**
 	 * @brief Parses a YAML string into a Godot Variant.
-	 *
 	 * @param input The YAML string to parse
 	 * @param security_view Security settings for resource loading
 	 * @param detect_style Whether to detect and preserve YAML style information
 	 * @return Ref<YAMLResult> The parsed data or error information
 	 */
 	Ref<YAMLResult> parse(const String &input,
+			const YAMLSecurity::View &security_view = YAMLSecurity::get_default_view(),
+			const bool detect_style = false);
+
+	/**
+	 * @brief Parses and validates a YAML string into a Godot Variant.
+	 * @param input The YAML string to parse
+	 * @param schema_param The schema to validate against (null, String ID or Ref<Schema>)
+	 * @param security_view Security settings for resource loading
+	 * @param detect_style Whether to detect and preserve YAML style information
+	 * @return Ref<YAMLResult> The parsed data or error information
+	 */
+	Ref<YAMLResult> parse_and_validate(const String &input, const Variant &schema_param,
 			const YAMLSecurity::View &security_view = YAMLSecurity::get_default_view(),
 			const bool detect_style = false);
 
@@ -233,13 +244,40 @@ private:
 	void populate_object_properties(Object *obj, const ryml::ConstNodeRef &node) const;
 
 	/**
+	 * @brief Resolves a schema parameter to a Schema instance.
+	 * @param schema_param The schema parameter (string URL or inline schema)
+	 * @return Ref<Schema> The resolved Schema instance or null if not found
+	 */
+	Ref<Schema> resolve_schema_parameter(const Variant &schema_param) const;
+
+	/**
+	 * @brief Discovers and loads schema from $schema field in root dictionary
+	 * @param node The root dictionary node
+	 */
+	void discover_and_load_schema(const ryml::ConstNodeRef &node) const;
+
+	/**
+	 * @brief Validates the current node against the active schema.
+	 * @param value The value to validate
+	 */
+	void validate_current_node(const Variant &value) const;
+
+	/**
+	 * @brief Checks and enforces YAML tag constraints from the active schema.
+	 * @param tag The YAML tag to check
+	 */
+	void check_yaml_tag_constraint(const String &tag) const;
+
+	/**
+	 * @brief Applies default values for missing properties in a dictionary
+	 * @param dict The dictionary to apply defaults to
+	 */
+	void apply_property_defaults(Dictionary &dict) const;
+
+	/**
 	 * @brief Initializes the type converters.
 	 */
 	void init_converters();
-
-	/**
-	 * @brief Converter access helper methods.
-	 */
 
 	/**
 	 * @brief Gets a converter for a specific Variant type.
