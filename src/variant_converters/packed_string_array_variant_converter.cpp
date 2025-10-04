@@ -3,7 +3,8 @@
 
 using namespace godot;
 
-void YAMLPackedStringArrayVariantConverter::encode(ryml::NodeRef &node, const Variant &v, const YAMLStyle::View &style) const {
+void YAMLPackedStringArrayVariantConverter::encode(
+		ryml::NodeRef &node, const Variant &v, const YAMLStyle::View &style) const {
 	const PackedStringArray array = v.operator PackedStringArray();
 	node |= ryml::SEQ;
 
@@ -50,7 +51,8 @@ void YAMLPackedStringArrayVariantConverter::encode(ryml::NodeRef &node, const Va
 	}
 }
 
-Variant YAMLPackedStringArrayVariantConverter::decode(const ryml::ConstNodeRef &node, YAMLParserContext *context) const {
+Variant YAMLPackedStringArrayVariantConverter::decode(
+		const ryml::ConstNodeRef &node, YAMLParserContext *context) const {
 	if (!node.is_seq()) {
 		throw create_invalid_format_exception(node);
 	}
@@ -91,10 +93,14 @@ Variant YAMLPackedStringArrayVariantConverter::decode(const ryml::ConstNodeRef &
 			}
 		} catch (const YAMLException &e) {
 			// NOTE: Cast size_t to int64_t for ARM64 macOS Variant compatibility
-			throw YAMLException(vformat("Failed to decode PackedStringArray value at index %d: %s", static_cast<int64_t>(i), e.what()), e.get_location());
+			throw YAMLException(vformat("Failed to decode PackedStringArray value at index %d: %s",
+										static_cast<int64_t>(i), e.what()),
+					e.get_location());
 		} catch (const std::exception &e) {
 			// NOTE: Cast size_t to int64_t for ARM64 macOS Variant compatibility
-			throw YAMLException(vformat("Failed to decode PackedStringaArray value at index %d: %s", static_cast<int64_t>(i), e.what()), context->get_ryml_parser()->location(node[i]));
+			throw YAMLException(vformat("Failed to decode PackedStringaArray value at index %d: %s",
+										static_cast<int64_t>(i), e.what()),
+					node[i].location(*context->get_ryml_parser()));
 		}
 	}
 

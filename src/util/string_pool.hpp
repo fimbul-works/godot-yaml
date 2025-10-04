@@ -91,9 +91,7 @@ public:
 	 *
 	 * @return size_t Number of unique strings
 	 */
-	size_t size() const {
-		return char_storage.size();
-	}
+	size_t size() const { return char_storage.size(); }
 
 private:
 	/**

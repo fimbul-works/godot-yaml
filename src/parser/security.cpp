@@ -20,8 +20,7 @@ YAMLSecurity::YAMLSecurity() {
 	blocked_types.insert(StringName("GDExtension"));
 }
 
-YAMLSecurity::~YAMLSecurity() {
-}
+YAMLSecurity::~YAMLSecurity() {}
 
 void YAMLSecurity::cleanup_default_instance() {
 	if (default_instance) {
@@ -31,7 +30,8 @@ void YAMLSecurity::cleanup_default_instance() {
 }
 
 void YAMLSecurity::_bind_methods() {
-	ClassDB::bind_method(D_METHOD("allow_path", "path_prefix", "type_names"), &YAMLSecurity::allow_path, DEFVAL(Array()));
+	ClassDB::bind_method(
+			D_METHOD("allow_path", "path_prefix", "type_names"), &YAMLSecurity::allow_path, DEFVAL(Array()));
 	ClassDB::bind_method(D_METHOD("block_type", "type_name"), &YAMLSecurity::block_type);
 	ClassDB::bind_method(D_METHOD("clear_path_restrictions"), &YAMLSecurity::clear_path_restrictions);
 	ClassDB::bind_method(D_METHOD("clear_type_restrictions"), &YAMLSecurity::clear_type_restrictions);
@@ -81,8 +81,7 @@ YAMLSecurity::View YAMLSecurity::get_default_view() {
 	return get_default_instance()->get_view();
 }
 
-PathPattern::PathPattern(const String &p_path) :
-		path(p_path) {
+PathPattern::PathPattern(const String &p_path) : path(p_path) {
 	if (p_path.find("**") != -1) {
 		type = RECURSIVE_WILDCARD;
 	} else if (p_path.find("*") != -1) {
@@ -189,8 +188,8 @@ std::vector<String> PathPattern::split_path(const String &p_path) {
 	return result;
 }
 
-YAMLSecurity::View::View(
-		const std::unordered_map<PathPattern, std::vector<StringName>, std::hash<PathPattern>, std::equal_to<PathPattern>> &p_allowed_paths_with_types,
+YAMLSecurity::View::View(const std::unordered_map<PathPattern, std::vector<StringName>, std::hash<PathPattern>,
+								 std::equal_to<PathPattern>> &p_allowed_paths_with_types,
 		const std::unordered_set<StringName, StringNameHasher> &p_blocked_types) :
 		blocked_types(p_blocked_types) {
 	for (const auto &entry : p_allowed_paths_with_types) {

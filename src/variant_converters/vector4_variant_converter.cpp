@@ -32,10 +32,14 @@ void YAMLVector4VariantConverter::encode(ryml::NodeRef &node, const Variant &v, 
 		w_node = node.append_child();
 	}
 
-	x_node << float_to_string(vec.x, style.has_child("x") ? style.get_child("x").get_float_format() : style.get_float_format());
-	y_node << float_to_string(vec.y, style.has_child("y") ? style.get_child("y").get_float_format() : style.get_float_format());
-	z_node << float_to_string(vec.z, style.has_child("z") ? style.get_child("z").get_float_format() : style.get_float_format());
-	w_node << float_to_string(vec.w, style.has_child("w") ? style.get_child("w").get_float_format() : style.get_float_format());
+	x_node << float_to_string(
+			vec.x, style.has_child("x") ? style.get_child("x").get_float_format() : style.get_float_format());
+	y_node << float_to_string(
+			vec.y, style.has_child("y") ? style.get_child("y").get_float_format() : style.get_float_format());
+	z_node << float_to_string(
+			vec.z, style.has_child("z") ? style.get_child("z").get_float_format() : style.get_float_format());
+	w_node << float_to_string(
+			vec.w, style.has_child("w") ? style.get_child("w").get_float_format() : style.get_float_format());
 }
 
 Variant YAMLVector4VariantConverter::decode(const ryml::ConstNodeRef &node, YAMLParserContext *context) const {
@@ -110,7 +114,8 @@ Vector4 YAMLVector4VariantConverter::decode_from_map(const ryml::ConstNodeRef &n
 	return Vector4i(x, y, z, w);
 }
 
-Vector4 YAMLVector4VariantConverter::decode_from_sequence(const ryml::ConstNodeRef &node, YAMLParserContext *context) const {
+Vector4 YAMLVector4VariantConverter::decode_from_sequence(
+		const ryml::ConstNodeRef &node, YAMLParserContext *context) const {
 	if (node.num_children() != 4) {
 		throw create_invalid_sequence_length_exception(4, node);
 	}

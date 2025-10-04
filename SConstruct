@@ -10,7 +10,7 @@ if not os.path.exists(cache_dir):
     os.makedirs(cache_dir, exist_ok=True)
 os.environ['SCONS_CACHE'] = cache_dir
 
-base_env = SConscript('thirdparty/godot-cpp/SConstruct')
+base_env = SConscript('ext/godot-cpp/SConstruct')
 
 def get_library_name(env):
     platform = env.get('platform', 'unknown')
@@ -116,7 +116,7 @@ def build_rapidyaml(env, variant_dir):
 
     cmake_command = [
         'cmake',
-        '-S', 'thirdparty/rapidyaml',
+        '-S', 'ext/rapidyaml',
         '-B', rapidyaml_build_dir,
         f'-DCMAKE_INSTALL_PREFIX={rapidyaml_install_dir}',
         f'-DCMAKE_BUILD_TYPE={cmake_build_type}',

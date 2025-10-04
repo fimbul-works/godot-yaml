@@ -32,10 +32,14 @@ void YAMLVector4iVariantConverter::encode(ryml::NodeRef &node, const Variant &v,
 		w_node = node.append_child();
 	}
 
-	x_node << int_to_string(vec.x, style.has_child("x") ? style.get_child("x").get_integer_format() : style.get_integer_format());
-	y_node << int_to_string(vec.y, style.has_child("y") ? style.get_child("y").get_integer_format() : style.get_integer_format());
-	z_node << int_to_string(vec.z, style.has_child("z") ? style.get_child("z").get_integer_format() : style.get_integer_format());
-	w_node << int_to_string(vec.w, style.has_child("w") ? style.get_child("w").get_integer_format() : style.get_integer_format());
+	x_node << int_to_string(
+			vec.x, style.has_child("x") ? style.get_child("x").get_integer_format() : style.get_integer_format());
+	y_node << int_to_string(
+			vec.y, style.has_child("y") ? style.get_child("y").get_integer_format() : style.get_integer_format());
+	z_node << int_to_string(
+			vec.z, style.has_child("z") ? style.get_child("z").get_integer_format() : style.get_integer_format());
+	w_node << int_to_string(
+			vec.w, style.has_child("w") ? style.get_child("w").get_integer_format() : style.get_integer_format());
 }
 
 Variant YAMLVector4iVariantConverter::decode(const ryml::ConstNodeRef &node, YAMLParserContext *context) const {
@@ -56,7 +60,8 @@ Variant YAMLVector4iVariantConverter::decode(const ryml::ConstNodeRef &node, YAM
 	}
 }
 
-Vector4i YAMLVector4iVariantConverter::decode_from_map(const ryml::ConstNodeRef &node, YAMLParserContext *context) const {
+Vector4i YAMLVector4iVariantConverter::decode_from_map(
+		const ryml::ConstNodeRef &node, YAMLParserContext *context) const {
 	check_required_fields(node, { "x", "y", "z", "w" });
 
 	const bool detect_style = context->detect_style;
@@ -110,7 +115,8 @@ Vector4i YAMLVector4iVariantConverter::decode_from_map(const ryml::ConstNodeRef 
 	return Vector4i(x, y, z, w);
 }
 
-Vector4i YAMLVector4iVariantConverter::decode_from_sequence(const ryml::ConstNodeRef &node, YAMLParserContext *context) const {
+Vector4i YAMLVector4iVariantConverter::decode_from_sequence(
+		const ryml::ConstNodeRef &node, YAMLParserContext *context) const {
 	if (node.num_children() != 4) {
 		throw create_invalid_sequence_length_exception(4, node);
 	}

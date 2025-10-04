@@ -24,7 +24,8 @@ Ref<YAMLResult> YAML::FileSaver::write_file_content(const String &yaml_content, 
 	// Open file for writing
 	Ref<FileAccess> file = FileAccess::open(path, FileAccess::WRITE);
 	if (!file.is_valid()) {
-		return YAMLResult::error("Failed to write '" + path + "': " + UtilityFunctions::error_string(ERR_FILE_BAD_PATH));
+		return YAMLResult::error(
+				"Failed to write '" + path + "': " + UtilityFunctions::error_string(ERR_FILE_BAD_PATH));
 	}
 
 	Error err = file->get_error();

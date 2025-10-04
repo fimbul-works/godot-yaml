@@ -26,8 +26,10 @@ void YAMLVector2iVariantConverter::encode(ryml::NodeRef &node, const Variant &v,
 		y_node = node.append_child();
 	}
 
-	x_node << int_to_string(vec.x, style.has_child("x") ? style.get_child("x").get_integer_format() : style.get_integer_format());
-	y_node << int_to_string(vec.y, style.has_child("y") ? style.get_child("y").get_integer_format() : style.get_integer_format());
+	x_node << int_to_string(
+			vec.x, style.has_child("x") ? style.get_child("x").get_integer_format() : style.get_integer_format());
+	y_node << int_to_string(
+			vec.y, style.has_child("y") ? style.get_child("y").get_integer_format() : style.get_integer_format());
 }
 
 Variant YAMLVector2iVariantConverter::decode(const ryml::ConstNodeRef &node, YAMLParserContext *context) const {
@@ -48,7 +50,8 @@ Variant YAMLVector2iVariantConverter::decode(const ryml::ConstNodeRef &node, YAM
 	}
 }
 
-Vector2i YAMLVector2iVariantConverter::decode_from_map(const ryml::ConstNodeRef &node, YAMLParserContext *context) const {
+Vector2i YAMLVector2iVariantConverter::decode_from_map(
+		const ryml::ConstNodeRef &node, YAMLParserContext *context) const {
 	check_required_fields(node, { "x", "y" });
 
 	const bool detect_style = context->detect_style;
@@ -82,7 +85,8 @@ Vector2i YAMLVector2iVariantConverter::decode_from_map(const ryml::ConstNodeRef 
 	return Vector2i(x, y);
 }
 
-Vector2i YAMLVector2iVariantConverter::decode_from_sequence(const ryml::ConstNodeRef &node, YAMLParserContext *context) const {
+Vector2i YAMLVector2iVariantConverter::decode_from_sequence(
+		const ryml::ConstNodeRef &node, YAMLParserContext *context) const {
 	if (node.num_children() != 2) {
 		throw create_invalid_sequence_length_exception(2, node);
 	}

@@ -31,11 +31,15 @@ void YAMLColorVariantConverter::encode(ryml::NodeRef &node, const Variant &v, co
 			}
 		}
 
-		r_node << float_to_string(color.r, style.has_child("r") ? style.get_child("r").get_float_format() : style.get_float_format());
-		g_node << float_to_string(color.g, style.has_child("g") ? style.get_child("g").get_float_format() : style.get_float_format());
-		b_node << float_to_string(color.b, style.has_child("b") ? style.get_child("b").get_float_format() : style.get_float_format());
+		r_node << float_to_string(
+				color.r, style.has_child("r") ? style.get_child("r").get_float_format() : style.get_float_format());
+		g_node << float_to_string(
+				color.g, style.has_child("g") ? style.get_child("g").get_float_format() : style.get_float_format());
+		b_node << float_to_string(
+				color.b, style.has_child("b") ? style.get_child("b").get_float_format() : style.get_float_format());
 		if (color.a < 1.0f) {
-			a_node << float_to_string(color.a, style.has_child("a") ? style.get_child("a").get_float_format() : style.get_float_format());
+			a_node << float_to_string(
+					color.a, style.has_child("a") ? style.get_child("a").get_float_format() : style.get_float_format());
 		}
 	} else {
 		node << store_string(color.to_html(color.a < 1.0f));
@@ -179,7 +183,8 @@ Variant YAMLColorVariantConverter::decode_string(const ryml::ConstNodeRef &node)
 	return Color::from_string(str, Color(1.0f, 1.0f, 1.0f, 1.0f));
 }
 
-void YAMLColorVariantConverter::check_negative(real_t r, real_t g, real_t b, real_t a, const ryml::ConstNodeRef &node) const {
+void YAMLColorVariantConverter::check_negative(
+		real_t r, real_t g, real_t b, real_t a, const ryml::ConstNodeRef &node) const {
 	if (r < 0.0f) {
 		throw create_exception("Negative Color component value (r)", node);
 	}

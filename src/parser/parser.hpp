@@ -69,7 +69,9 @@ public:
 	 * @param detect_style Whether to detect and preserve YAML style information
 	 * @return Ref<YAMLResult> The parsed data or error information
 	 */
-	Ref<YAMLResult> parse(const String &input, const YAMLSecurity::View &security_view = YAMLSecurity::get_default_view(), const bool detect_style = false);
+	Ref<YAMLResult> parse(const String &input,
+			const YAMLSecurity::View &security_view = YAMLSecurity::get_default_view(),
+			const bool detect_style = false);
 
 private:
 	/**

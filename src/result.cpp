@@ -47,7 +47,8 @@ Variant YAMLResult::get_data() const {
 	}
 
 	if (is_multi_document) {
-		UtilityFunctions::push_warning("YAMLResult.get_data() called on multi-document YAML. Use get_document() instead.");
+		UtilityFunctions::push_warning(
+				"YAMLResult.get_data() called on multi-document YAML. Use get_document() instead.");
 
 		Array documents = data.operator Array();
 		return documents.size() > 0 ? documents[0] : Variant();
@@ -145,8 +146,6 @@ String YAMLResult::_to_string() const {
 		return vformat("YAMLResult(Error: %s)", get_error_message());
 	}
 
-	return vformat("YAMLResult(%s, %d document%s)",
-			"Success",
-			get_document_count(),
-			get_document_count() == 1 ? "" : "s");
+	return vformat(
+			"YAMLResult(%s, %d document%s)", "Success", get_document_count(), get_document_count() == 1 ? "" : "s");
 }

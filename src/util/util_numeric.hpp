@@ -33,8 +33,7 @@ namespace godot {
  * @return T The converted integer value
  * @throws std::exception If the value is invalid or out of range
  */
-template <typename T>
-T string_to_int(const ryml::csubstr &value, YAMLStyle::IntegerFormat *format = nullptr) {
+template <typename T> T string_to_int(const ryml::csubstr &value, YAMLStyle::IntegerFormat *format = nullptr) {
 	static_assert(std::is_integral<T>::value, "Type must be integral");
 
 	T result;
@@ -100,8 +99,7 @@ T string_to_int(const ryml::csubstr &value, YAMLStyle::IntegerFormat *format = n
  * @param format Optional pointer to store the detected format
  * @return T The converted integer value
  */
-template <typename T>
-T string_to_int(const ryml::substr &value, YAMLStyle::IntegerFormat *format = nullptr) {
+template <typename T> T string_to_int(const ryml::substr &value, YAMLStyle::IntegerFormat *format = nullptr) {
 	return string_to_int<T>(ryml::to_csubstr(value), format);
 }
 
@@ -113,8 +111,7 @@ T string_to_int(const ryml::substr &value, YAMLStyle::IntegerFormat *format = nu
  * @param format Optional pointer to store the detected format
  * @return T The converted integer value
  */
-template <typename T>
-T string_to_int(const godot::String &value, YAMLStyle::IntegerFormat *format = nullptr) {
+template <typename T> T string_to_int(const godot::String &value, YAMLStyle::IntegerFormat *format = nullptr) {
 	return string_to_int<T>(ryml::to_csubstr(value.utf8().get_data()), format);
 }
 
@@ -176,8 +173,7 @@ ryml::csubstr int_to_string(const T value, YAMLStyle::IntegerFormat format = YAM
  * @return T The converted floating-point value
  * @throws std::exception If the value is invalid or out of range
  */
-template <typename T>
-T string_to_float(const ryml::csubstr &value, YAMLStyle::FloatFormat *format = nullptr) {
+template <typename T> T string_to_float(const ryml::csubstr &value, YAMLStyle::FloatFormat *format = nullptr) {
 	static_assert(std::is_floating_point<T>::value, "Type must be floating point");
 
 	if (value == ".nan") {
@@ -238,8 +234,7 @@ T string_to_float(const ryml::csubstr &value, YAMLStyle::FloatFormat *format = n
  * @param format Optional pointer to store the detected format
  * @return T The converted floating-point value
  */
-template <typename T>
-T string_to_float(const ryml::substr &value, YAMLStyle::FloatFormat *format = nullptr) {
+template <typename T> T string_to_float(const ryml::substr &value, YAMLStyle::FloatFormat *format = nullptr) {
 	return string_to_float<T>(ryml::to_csubstr(value), format);
 }
 
@@ -251,8 +246,7 @@ T string_to_float(const ryml::substr &value, YAMLStyle::FloatFormat *format = nu
  * @param format Optional pointer to store the detected format
  * @return T The converted floating-point value
  */
-template <typename T>
-T string_to_float(const godot::String &value, YAMLStyle::FloatFormat *format = nullptr) {
+template <typename T> T string_to_float(const godot::String &value, YAMLStyle::FloatFormat *format = nullptr) {
 	return string_to_float<T>(ryml::to_csubstr(value.utf8().get_data()), format);
 }
 

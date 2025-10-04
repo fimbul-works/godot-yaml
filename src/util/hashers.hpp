@@ -30,9 +30,7 @@ struct StringHasher {
 	 * @param str The String to hash
 	 * @return int64_t The hash value
 	 */
-	int64_t operator()(const String &str) const {
-		return str.hash();
-	}
+	int64_t operator()(const String &str) const { return str.hash(); }
 };
 
 /**
@@ -49,9 +47,7 @@ struct StringNameHasher {
 	 * @param str The StringName to hash
 	 * @return int64_t The hash value
 	 */
-	int64_t operator()(const StringName &str) const {
-		return str.hash();
-	}
+	int64_t operator()(const StringName &str) const { return str.hash(); }
 };
 
 /**
@@ -69,9 +65,7 @@ struct StringEqual {
 	 * @param rhs The right-hand side String
 	 * @return bool True if the strings are equal
 	 */
-	bool operator()(const String &lhs, const String &rhs) const {
-		return lhs == rhs;
-	}
+	bool operator()(const String &lhs, const String &rhs) const { return lhs == rhs; }
 };
 
 /**
@@ -89,9 +83,7 @@ struct StringNameEqual {
 	 * @param rhs The right-hand side StringName
 	 * @return bool True if the StringNames are equal
 	 */
-	bool operator()(const StringName &lhs, const StringName &rhs) const {
-		return lhs == rhs;
-	}
+	bool operator()(const StringName &lhs, const StringName &rhs) const { return lhs == rhs; }
 };
 
 } // namespace godot
@@ -104,30 +96,24 @@ struct StringNameEqual {
  */
 namespace std {
 
-template <>
-struct hash<godot::String> {
+template <> struct hash<godot::String> {
 	/**
 	 * @brief Calculates a hash value for a Godot String.
 	 *
 	 * @param str The String to hash
 	 * @return int64_t The hash value
 	 */
-	int64_t operator()(const godot::String &str) const {
-		return str.hash();
-	}
+	int64_t operator()(const godot::String &str) const { return str.hash(); }
 };
 
-template <>
-struct hash<godot::Variant> {
+template <> struct hash<godot::Variant> {
 	/**
 	 * @brief Calculates a hash value for a Godot Variant.
 	 *
 	 * @param str The Variant to hash
 	 * @return int64_t The hash value
 	 */
-	int64_t operator()(const godot::Variant &var) const {
-		return var.hash();
-	}
+	int64_t operator()(const godot::Variant &var) const { return var.hash(); }
 };
 
 } //namespace std

@@ -54,10 +54,7 @@ void YAML::Validator::error_callback(const char *msg, size_t len, ryml::Location
 		throw YAMLException(from_ryml_str(error_msg));
 	}
 
-	validator->current_result = YAMLResult::error(
-			from_ryml_str(error_msg),
-			loc.line,
-			loc.col);
+	validator->current_result = YAMLResult::error(from_ryml_str(error_msg), loc.line, loc.col);
 
 	throw YAMLException(validator->current_result->get_error_message(), loc);
 }

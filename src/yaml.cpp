@@ -18,27 +18,37 @@ using namespace godot;
 void YAML::_bind_methods() {
 	ClassDB::bind_static_method("YAML", D_METHOD("version"), &YAML::version);
 
-	ClassDB::bind_static_method("YAML", D_METHOD("parse", "yaml_text", "security", "detect_style"), &YAML::parse, DEFVAL(nullptr), DEFVAL(false));
+	ClassDB::bind_static_method("YAML", D_METHOD("parse", "yaml_text", "security", "detect_style"), &YAML::parse,
+			DEFVAL(nullptr), DEFVAL(false));
 	ClassDB::bind_static_method("YAML", D_METHOD("stringify", "data", "style"), &YAML::stringify, DEFVAL(Variant()));
 	ClassDB::bind_static_method("YAML", D_METHOD("validate", "yaml_text"), &YAML::validate);
 
-	ClassDB::bind_static_method("YAML", D_METHOD("load_file", "path", "security", "detect_style"), &YAML::load_file, DEFVAL(nullptr), DEFVAL(false));
-	ClassDB::bind_static_method("YAML", D_METHOD("save_file", "data", "path", "style"), &YAML::save_file, DEFVAL(nullptr));
+	ClassDB::bind_static_method("YAML", D_METHOD("load_file", "path", "security", "detect_style"), &YAML::load_file,
+			DEFVAL(nullptr), DEFVAL(false));
+	ClassDB::bind_static_method(
+			"YAML", D_METHOD("save_file", "data", "path", "style"), &YAML::save_file, DEFVAL(nullptr));
 	ClassDB::bind_static_method("YAML", D_METHOD("validate_file", "path"), &YAML::validate_file);
 
-	ClassDB::bind_static_method("YAML", D_METHOD("try_parse", "yaml_text", "security"), &YAML::try_parse, DEFVAL(nullptr));
-	ClassDB::bind_static_method("YAML", D_METHOD("try_stringify", "data", "style"), &YAML::try_stringify, DEFVAL(Variant()));
-	ClassDB::bind_static_method("YAML", D_METHOD("try_load_file", "path", "security"), &YAML::try_load_file, DEFVAL(nullptr));
-	ClassDB::bind_static_method("YAML", D_METHOD("try_save_file", "data", "path", "style"), &YAML::try_save_file, DEFVAL(nullptr));
+	ClassDB::bind_static_method(
+			"YAML", D_METHOD("try_parse", "yaml_text", "security"), &YAML::try_parse, DEFVAL(nullptr));
+	ClassDB::bind_static_method(
+			"YAML", D_METHOD("try_stringify", "data", "style"), &YAML::try_stringify, DEFVAL(Variant()));
+	ClassDB::bind_static_method(
+			"YAML", D_METHOD("try_load_file", "path", "security"), &YAML::try_load_file, DEFVAL(nullptr));
+	ClassDB::bind_static_method(
+			"YAML", D_METHOD("try_save_file", "data", "path", "style"), &YAML::try_save_file, DEFVAL(nullptr));
 
-	ClassDB::bind_static_method("YAML", D_METHOD("register_class", "script_class", "serialize_method", "deserialize_method"), &YAML::register_class, DEFVAL("serialize"), DEFVAL("deserialize"), DEFVAL(nullptr));
+	ClassDB::bind_static_method("YAML",
+			D_METHOD("register_class", "script_class", "serialize_method", "deserialize_method"), &YAML::register_class,
+			DEFVAL("serialize"), DEFVAL("deserialize"), DEFVAL(nullptr));
 	ClassDB::bind_static_method("YAML", D_METHOD("unregister_class", "script_class"), &YAML::unregister_class);
 	ClassDB::bind_static_method("YAML", D_METHOD("has_registered_class", "script_class"), &YAML::has_registered_class);
 
 	ClassDB::bind_static_method("YAML", D_METHOD("create_style"), &YAML::create_style);
 
 	ClassDB::bind_static_method("YAML", D_METHOD("create_security"), &YAML::create_security);
-	ClassDB::bind_static_method("YAML", D_METHOD("allow_resource_path", "path_prefix", "type_names"), &YAML::allow_resource_path, DEFVAL(Array()));
+	ClassDB::bind_static_method("YAML", D_METHOD("allow_resource_path", "path_prefix", "type_names"),
+			&YAML::allow_resource_path, DEFVAL(Array()));
 	ClassDB::bind_static_method("YAML", D_METHOD("block_resource_type", "type_name"), &YAML::block_resource_type);
 	ClassDB::bind_static_method("YAML", D_METHOD("reset_security"), &YAML::reset_security);
 
@@ -56,7 +66,8 @@ String YAML::version() {
 
 Ref<YAMLResult> YAML::parse(const String &input, const Ref<YAMLSecurity> security, const bool detect_style) {
 	Parser parser;
-	return parser.parse(input, security.is_valid() ? security->get_view() : YAMLSecurity::get_default_view(), detect_style);
+	return parser.parse(
+			input, security.is_valid() ? security->get_view() : YAMLSecurity::get_default_view(), detect_style);
 }
 
 Ref<YAMLResult> YAML::stringify(const Variant &input, const Ref<YAMLStyle> &style) {
@@ -74,7 +85,8 @@ Ref<YAMLResult> YAML::validate(const String &input) {
 
 Ref<YAMLResult> YAML::load_file(const String &path, const Ref<YAMLSecurity> security, const bool detect_style) {
 	if (!FileAccess::file_exists(path)) {
-		return YAMLResult::error("File not found '" + path + "': " + UtilityFunctions::error_string(ERR_FILE_NOT_FOUND));
+		return YAMLResult::error(
+				"File not found '" + path + "': " + UtilityFunctions::error_string(ERR_FILE_NOT_FOUND));
 	}
 
 	// Open file for reading
@@ -102,9 +114,11 @@ Ref<YAMLResult> YAML::load_file(const String &path, const Ref<YAMLSecurity> secu
 	return parse(content, security, detect_style);
 }
 
-Ref<YAMLResult> YAML::parser_load_file(const String &path, const YAMLSecurity::View &security_view, std::unordered_set<String, StringHasher, StringEqual> *loading_yaml_paths) {
+Ref<YAMLResult> YAML::parser_load_file(const String &path, const YAMLSecurity::View &security_view,
+		std::unordered_set<String, StringHasher, StringEqual> *loading_yaml_paths) {
 	if (!FileAccess::file_exists(path)) {
-		return YAMLResult::error("File not found '" + path + "': " + UtilityFunctions::error_string(ERR_FILE_NOT_FOUND));
+		return YAMLResult::error(
+				"File not found '" + path + "': " + UtilityFunctions::error_string(ERR_FILE_NOT_FOUND));
 	}
 
 	// Open file for reading
@@ -145,7 +159,8 @@ Ref<YAMLResult> YAML::save_file(const Variant &data, const String &path, const R
 	Ref<FileAccess> file = FileAccess::open(path, FileAccess::WRITE);
 
 	if (!file.is_valid()) {
-		return YAMLResult::error("Failed to write '" + path + "': " + UtilityFunctions::error_string(ERR_FILE_BAD_PATH));
+		return YAMLResult::error(
+				"Failed to write '" + path + "': " + UtilityFunctions::error_string(ERR_FILE_BAD_PATH));
 	}
 
 	Error err = file->get_error();
@@ -168,14 +183,16 @@ Ref<YAMLResult> YAML::save_file(const Variant &data, const String &path, const R
 
 Ref<YAMLResult> YAML::validate_file(const String &path) {
 	if (!FileAccess::file_exists(path)) {
-		return YAMLResult::error("File not found '" + path + "': " + UtilityFunctions::error_string(ERR_FILE_NOT_FOUND));
+		return YAMLResult::error(
+				"File not found '" + path + "': " + UtilityFunctions::error_string(ERR_FILE_NOT_FOUND));
 	}
 
 	// Open file for reading
 	Ref<FileAccess> file = FileAccess::open(path, FileAccess::READ);
 
 	if (!file.is_valid()) {
-		return YAMLResult::error("Failed to validate '" + path + "': " + UtilityFunctions::error_string(ERR_FILE_BAD_PATH));
+		return YAMLResult::error(
+				"Failed to validate '" + path + "': " + UtilityFunctions::error_string(ERR_FILE_BAD_PATH));
 	}
 
 	Error err = file->get_error();
@@ -236,7 +253,8 @@ Ref<YAMLStyle> YAML::create_style() {
 	return Ref<YAMLStyle>(memnew(YAMLStyle()));
 }
 
-void YAML::register_class(Ref<Script> p_class, const Variant &p_serialize, const Variant &p_deserialize, const Variant &p_tag) {
+void YAML::register_class(
+		Ref<Script> p_class, const Variant &p_serialize, const Variant &p_deserialize, const Variant &p_tag) {
 	YAMLClassRegistry::register_class(p_class, p_serialize, p_deserialize, p_tag);
 }
 

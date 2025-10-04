@@ -49,10 +49,7 @@ void YAML::Emitter::error_callback(const char *msg, size_t len, ryml::Location l
 		throw YAMLException(from_ryml_str(error_msg));
 	}
 
-	emitter->current_result = YAMLResult::error(
-			from_ryml_str(error_msg),
-			loc.line,
-			loc.col);
+	emitter->current_result = YAMLResult::error(from_ryml_str(error_msg), loc.line, loc.col);
 
 	// Error handler MUST throw!
 	throw YAMLException(emitter->current_result->get_error_message());

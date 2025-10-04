@@ -35,15 +35,24 @@ YAMLVariantConverterFactory::YAMLVariantConverterFactory() {
 	register_converter<YAMLBasisVariantConverter>(Variant::BASIS, YAMLBasisVariantConverter::TAG);
 	register_converter<YAMLColorVariantConverter>(Variant::COLOR, YAMLColorVariantConverter::TAG);
 	register_converter<YAMLNodePathVariantConverter>(Variant::NODE_PATH, YAMLNodePathVariantConverter::TAG);
-	register_converter<YAMLPackedByteArrayVariantConverter>(Variant::PACKED_BYTE_ARRAY, YAMLPackedByteArrayVariantConverter::TAG);
-	register_converter<YAMLPackedColorArrayVariantConverter>(Variant::PACKED_COLOR_ARRAY, YAMLPackedColorArrayVariantConverter::TAG);
-	register_converter<YAMLPackedFloat32ArrayVariantConverter>(Variant::PACKED_FLOAT32_ARRAY, YAMLPackedFloat32ArrayVariantConverter::TAG);
-	register_converter<YAMLPackedFloat64ArrayVariantConverter>(Variant::PACKED_FLOAT64_ARRAY, YAMLPackedFloat64ArrayVariantConverter::TAG);
-	register_converter<YAMLPackedInt32ArrayVariantConverter>(Variant::PACKED_INT32_ARRAY, YAMLPackedInt32ArrayVariantConverter::TAG);
-	register_converter<YAMLPackedInt64ArrayVariantConverter>(Variant::PACKED_INT64_ARRAY, YAMLPackedInt64ArrayVariantConverter::TAG);
-	register_converter<YAMLPackedStringArrayVariantConverter>(Variant::PACKED_STRING_ARRAY, YAMLPackedStringArrayVariantConverter::TAG);
-	register_converter<YAMLPackedVector2ArrayVariantConverter>(Variant::PACKED_VECTOR2_ARRAY, YAMLPackedVector2ArrayVariantConverter::TAG);
-	register_converter<YAMLPackedVector3ArrayVariantConverter>(Variant::PACKED_VECTOR3_ARRAY, YAMLPackedVector3ArrayVariantConverter::TAG);
+	register_converter<YAMLPackedByteArrayVariantConverter>(
+			Variant::PACKED_BYTE_ARRAY, YAMLPackedByteArrayVariantConverter::TAG);
+	register_converter<YAMLPackedColorArrayVariantConverter>(
+			Variant::PACKED_COLOR_ARRAY, YAMLPackedColorArrayVariantConverter::TAG);
+	register_converter<YAMLPackedFloat32ArrayVariantConverter>(
+			Variant::PACKED_FLOAT32_ARRAY, YAMLPackedFloat32ArrayVariantConverter::TAG);
+	register_converter<YAMLPackedFloat64ArrayVariantConverter>(
+			Variant::PACKED_FLOAT64_ARRAY, YAMLPackedFloat64ArrayVariantConverter::TAG);
+	register_converter<YAMLPackedInt32ArrayVariantConverter>(
+			Variant::PACKED_INT32_ARRAY, YAMLPackedInt32ArrayVariantConverter::TAG);
+	register_converter<YAMLPackedInt64ArrayVariantConverter>(
+			Variant::PACKED_INT64_ARRAY, YAMLPackedInt64ArrayVariantConverter::TAG);
+	register_converter<YAMLPackedStringArrayVariantConverter>(
+			Variant::PACKED_STRING_ARRAY, YAMLPackedStringArrayVariantConverter::TAG);
+	register_converter<YAMLPackedVector2ArrayVariantConverter>(
+			Variant::PACKED_VECTOR2_ARRAY, YAMLPackedVector2ArrayVariantConverter::TAG);
+	register_converter<YAMLPackedVector3ArrayVariantConverter>(
+			Variant::PACKED_VECTOR3_ARRAY, YAMLPackedVector3ArrayVariantConverter::TAG);
 	register_converter<YAMLPlaneVariantConverter>(Variant::PLANE, YAMLPlaneVariantConverter::TAG);
 	register_converter<YAMLProjectionVariantConverter>(Variant::PROJECTION, YAMLProjectionVariantConverter::TAG);
 	register_converter<YAMLQuaternionVariantConverter>(Variant::QUATERNION, YAMLQuaternionVariantConverter::TAG);
@@ -73,7 +82,8 @@ std::unique_ptr<YAMLVariantConverter> YAMLVariantConverterFactory::create_conver
 	return create_converter(get_type_for_tag(tag));
 }
 
-std::unordered_map<Variant::Type, std::unique_ptr<YAMLVariantConverter>> YAMLVariantConverterFactory::create_converter_set() {
+std::unordered_map<Variant::Type, std::unique_ptr<YAMLVariantConverter>>
+YAMLVariantConverterFactory::create_converter_set() {
 	std::unordered_map<Variant::Type, std::unique_ptr<YAMLVariantConverter>> converters;
 
 	for (const auto &[type, info] : type_map) {

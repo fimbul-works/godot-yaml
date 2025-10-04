@@ -1,4 +1,4 @@
-extends BaseTest
+extends TestSuite
 
 func _init() -> void:
 	icon = "🧩"

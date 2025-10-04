@@ -4,7 +4,8 @@
 
 using namespace godot;
 
-void YAMLPackedInt32ArrayVariantConverter::encode(ryml::NodeRef &node, const Variant &v, const YAMLStyle::View &style) const {
+void YAMLPackedInt32ArrayVariantConverter::encode(
+		ryml::NodeRef &node, const Variant &v, const YAMLStyle::View &style) const {
 	const PackedInt32Array array = v.operator PackedInt32Array();
 	node |= ryml::SEQ;
 
@@ -69,7 +70,10 @@ Variant YAMLPackedInt32ArrayVariantConverter::decode(const ryml::ConstNodeRef &n
 
 			if (value < INT32_MIN || value > INT32_MAX) {
 				// NOTE: Cast size_t to int64_t for ARM64 macOS Variant compatibility
-				throw YAMLException(vformat("Failed to decode PackedInt32Array value at index %d: Integer value out of range", static_cast<int64_t>(i)), context->get_ryml_parser()->location(node[i]));
+				throw YAMLException(
+						vformat("Failed to decode PackedInt32Array value at index %d: Integer value out of range",
+								static_cast<int64_t>(i)),
+						node[i].location(*context->get_ryml_parser()));
 			}
 
 			array.set(i, static_cast<int32_t>(value));
@@ -86,10 +90,14 @@ Variant YAMLPackedInt32ArrayVariantConverter::decode(const ryml::ConstNodeRef &n
 			}
 		} catch (const YAMLException &e) {
 			// NOTE: Cast size_t to int64_t for ARM64 macOS Variant compatibility
-			throw YAMLException(vformat("Failed to decode PackedInt32Array value at index %d: %s", static_cast<int64_t>(i), e.what()), e.get_location());
+			throw YAMLException(vformat("Failed to decode PackedInt32Array value at index %d: %s",
+										static_cast<int64_t>(i), e.what()),
+					e.get_location());
 		} catch (const std::exception &e) {
 			// NOTE: Cast size_t to int64_t for ARM64 macOS Variant compatibility
-			throw YAMLException(vformat("Failed to decode PackedInt32Array value at index %d: %s", static_cast<int64_t>(i), e.what()), context->get_ryml_parser()->location(node[i]));
+			throw YAMLException(vformat("Failed to decode PackedInt32Array value at index %d: %s",
+										static_cast<int64_t>(i), e.what()),
+					node[i].location(*context->get_ryml_parser()));
 		}
 	}
 

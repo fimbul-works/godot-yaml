@@ -2,7 +2,8 @@
 
 using namespace godot;
 
-Ref<YAMLResult> YAML::FileLoader::load_file(const String &path, const Ref<YAMLSecurity> security, const bool detect_style) {
+Ref<YAMLResult> YAML::FileLoader::load_file(
+		const String &path, const Ref<YAMLSecurity> security, const bool detect_style) {
 	YAMLSecurity::View security_view = security.is_valid() ? security->get_view() : YAMLSecurity::get_default_view();
 
 	String content;
@@ -19,7 +20,8 @@ Ref<YAMLResult> YAML::FileLoader::load_file(const String &path, const Ref<YAMLSe
 	return parser.parse(content, security_view, detect_style);
 }
 
-Ref<YAMLResult> YAML::FileLoader::parser_load_file(const String &path, const YAMLSecurity::View &security_view, std::unordered_set<String, StringHasher, StringEqual> *loading_yaml_paths) {
+Ref<YAMLResult> YAML::FileLoader::parser_load_file(const String &path, const YAMLSecurity::View &security_view,
+		std::unordered_set<String, StringHasher, StringEqual> *loading_yaml_paths) {
 	String content;
 	Ref<YAMLResult> read_result = read_file_content(path, content);
 	if (read_result->has_error()) {
@@ -40,7 +42,8 @@ Ref<YAMLResult> YAML::FileLoader::parser_load_file(const String &path, const YAM
 
 Ref<YAMLResult> YAML::FileLoader::read_file_content(const String &path, String &content) {
 	if (!FileAccess::file_exists(path)) {
-		return YAMLResult::error("File not found '" + path + "': " + UtilityFunctions::error_string(ERR_FILE_NOT_FOUND));
+		return YAMLResult::error(
+				"File not found '" + path + "': " + UtilityFunctions::error_string(ERR_FILE_NOT_FOUND));
 	}
 
 	// Open file for reading

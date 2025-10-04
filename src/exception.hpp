@@ -42,9 +42,7 @@ public:
 	 * @param loc Optional location information
 	 */
 	explicit YAMLException(const char *msg, ryml::Location loc = {}) :
-			std::runtime_error(msg),
-			godot_message(msg),
-			m_location(loc) {}
+			std::runtime_error(msg), godot_message(msg), m_location(loc) {}
 
 	/**
 	 * @brief Constructs a YAMLException with a Godot String message.
@@ -53,9 +51,7 @@ public:
 	 * @param loc Optional location information
 	 */
 	explicit YAMLException(String msg, ryml::Location loc = {}) :
-			std::runtime_error(msg.utf8().get_data()),
-			godot_message(std::move(msg)),
-			m_location(loc) {}
+			std::runtime_error(msg.utf8().get_data()), godot_message(std::move(msg)), m_location(loc) {}
 
 	/**
 	 * @brief Gets the error message as a Godot String.
@@ -69,27 +65,21 @@ public:
 	 *
 	 * @return const ryml::Location& The location in the source document
 	 */
-	const ryml::Location &get_location() const {
-		return m_location;
-	}
+	const ryml::Location &get_location() const { return m_location; }
 
 	/**
 	 * @brief Gets the line number of the error.
 	 *
 	 * @return const int64_t The line number (0-based) or undefined if not available
 	 */
-	const int64_t get_line() const {
-		return m_location.line;
-	}
+	const int64_t get_line() const { return m_location.line; }
 
 	/**
 	 * @brief Gets the column number of the error.
 	 *
 	 * @return const int64_t The column number (0-based) or undefined if not available
 	 */
-	const int64_t get_column() const {
-		return m_location.col;
-	}
+	const int64_t get_column() const { return m_location.col; }
 
 private:
 	/**

@@ -1,4 +1,4 @@
-extends BaseTest
+extends TestSuite
 
 const YAML_FILE = "res://addons/yaml/examples/data/supported_syntax.yaml"
 const USER_FILE = "user://test.yaml"

@@ -31,17 +31,17 @@
  * @param TAG_VALUE The tag name string
  * @param VARIANT_TYPE The corresponding Godot Variant::Type
  */
-#define DEFINE_YAML_TAG(TAG_VALUE, VARIANT_TYPE)           \
-	static constexpr const char *TAG = TAG_VALUE;          \
-	static constexpr const char *FULL_TAG = "!" TAG_VALUE; \
-	const char *get_tag() const override {                 \
-		return TAG;                                        \
-	}                                                      \
-	const char *get_full_tag() const override {            \
-		return FULL_TAG;                                   \
-	}                                                      \
-	const Variant::Type get_type() const override {        \
-		return VARIANT_TYPE;                               \
+#define DEFINE_YAML_TAG(TAG_VALUE, VARIANT_TYPE)                                                                       \
+	static constexpr const char *TAG = TAG_VALUE;                                                                      \
+	static constexpr const char *FULL_TAG = "!" TAG_VALUE;                                                             \
+	const char *get_tag() const override {                                                                             \
+		return TAG;                                                                                                    \
+	}                                                                                                                  \
+	const char *get_full_tag() const override {                                                                        \
+		return FULL_TAG;                                                                                               \
+	}                                                                                                                  \
+	const Variant::Type get_type() const override {                                                                    \
+		return VARIANT_TYPE;                                                                                           \
 	}
 
 namespace godot {
@@ -143,9 +143,7 @@ protected:
 	 * @param str The string to store
 	 * @return ryml::csubstr View of the stored string
 	 */
-	ryml::csubstr store_string(const String &str) const {
-		return string_pool.store(str);
-	}
+	ryml::csubstr store_string(const String &str) const { return string_pool.store(str); }
 
 	/**
 	 * @brief Helper methods for exception creation.
@@ -161,7 +159,7 @@ protected:
 	inline YAMLException create_exception(const String &message, const ryml::ConstNodeRef &node) const {
 		if (m_parser && !node.invalid()) {
 			try {
-				ryml::Location loc = m_parser->location(node);
+				ryml::Location loc = node.location(*m_parser);
 				return YAMLException(message, loc);
 			} catch (...) {
 				// If location can't be determined, fall back to basic message
@@ -188,7 +186,8 @@ protected:
 	 * @param node The YAML node for location context
 	 * @return YAMLException The created exception
 	 */
-	inline YAMLException create_invalid_sequence_length_exception(int expected_length, const ryml::ConstNodeRef &node) const {
+	inline YAMLException create_invalid_sequence_length_exception(
+			int expected_length, const ryml::ConstNodeRef &node) const {
 		return create_exception(vformat("%s array must have %d elements", get_tag(), expected_length), node);
 	}
 
@@ -210,7 +209,8 @@ protected:
 	 * @param required_fields List of required field names
 	 * @throws YAMLException If any required field is missing
 	 */
-	inline void check_required_fields(const ryml::ConstNodeRef &node, const std::vector<const char *> &required_fields) const {
+	inline void check_required_fields(
+			const ryml::ConstNodeRef &node, const std::vector<const char *> &required_fields) const {
 		std::vector<String> missing_fields;
 
 		for (const char *field : required_fields) {
@@ -228,7 +228,9 @@ protected:
 				}
 			}
 
-			throw create_exception(String(get_tag()) + " missing required field" + (missing_fields.size() > 1 ? "s: " : ": ") + ": '" + missing_list + "'", node);
+			throw create_exception(String(get_tag()) + " missing required field" +
+							(missing_fields.size() > 1 ? "s: " : ": ") + ": '" + missing_list + "'",
+					node);
 		}
 	}
 
@@ -248,9 +250,7 @@ protected:
 	 * @param c The character to check
 	 * @return bool True if the character is whitespace
 	 */
-	inline const bool is_whitespace_char(char c) const {
-		return c == ' ' || c == '\t' || c == '\n' || c == '\r';
-	}
+	inline const bool is_whitespace_char(char c) const { return c == ' ' || c == '\t' || c == '\n' || c == '\r'; }
 };
 
 } // namespace godot

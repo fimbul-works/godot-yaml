@@ -59,7 +59,8 @@ Variant YAMLProjectionVariantConverter::decode(const ryml::ConstNodeRef &node, Y
 	}
 }
 
-Variant YAMLProjectionVariantConverter::decode_from_map(const ryml::ConstNodeRef &node, YAMLParserContext *context) const {
+Variant YAMLProjectionVariantConverter::decode_from_map(
+		const ryml::ConstNodeRef &node, YAMLParserContext *context) const {
 	check_required_fields(node, { "x", "y", "z", "w" });
 
 	Projection proj;
@@ -104,7 +105,8 @@ Variant YAMLProjectionVariantConverter::decode_from_map(const ryml::ConstNodeRef
 	return proj;
 }
 
-Variant YAMLProjectionVariantConverter::decode_from_sequence(const ryml::ConstNodeRef &node, YAMLParserContext *context) const {
+Variant YAMLProjectionVariantConverter::decode_from_sequence(
+		const ryml::ConstNodeRef &node, YAMLParserContext *context) const {
 	if (node.num_children() != 4) {
 		throw create_invalid_sequence_length_exception(4, node);
 	}

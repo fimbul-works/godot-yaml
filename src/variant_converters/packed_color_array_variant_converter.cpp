@@ -9,7 +9,8 @@ YAMLPackedColorArrayVariantConverter::YAMLPackedColorArrayVariantConverter(YAMLV
 	ERR_FAIL_NULL(color_converter);
 }
 
-void YAMLPackedColorArrayVariantConverter::encode(ryml::NodeRef &node, const Variant &v, const YAMLStyle::View &style) const {
+void YAMLPackedColorArrayVariantConverter::encode(
+		ryml::NodeRef &node, const Variant &v, const YAMLStyle::View &style) const {
 	const PackedColorArray array = v.operator PackedColorArray();
 	node |= ryml::SEQ;
 
@@ -82,10 +83,14 @@ Variant YAMLPackedColorArrayVariantConverter::decode(const ryml::ConstNodeRef &n
 			}
 		} catch (const YAMLException &e) {
 			// NOTE: Cast size_t to int64_t for ARM64 macOS Variant compatibility
-			throw YAMLException(vformat("Failed to decode PackedColorArray value at index %d: %s", static_cast<int64_t>(i), e.what()), e.get_location());
+			throw YAMLException(vformat("Failed to decode PackedColorArray value at index %d: %s",
+										static_cast<int64_t>(i), e.what()),
+					e.get_location());
 		} catch (const std::exception &e) {
 			// NOTE: Cast size_t to int64_t for ARM64 macOS Variant compatibility
-			throw YAMLException(vformat("Failed to decode PackedColorArray value at index %d: %s", static_cast<int64_t>(i), e.what()), context->get_ryml_parser()->location(node[i]));
+			throw YAMLException(vformat("Failed to decode PackedColorArray value at index %d: %s",
+										static_cast<int64_t>(i), e.what()),
+					node[i].location(*context->get_ryml_parser()));
 		}
 	}
 

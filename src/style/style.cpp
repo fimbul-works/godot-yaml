@@ -15,8 +15,7 @@ YAMLStyle::YAMLStyle() :
 		flow_style(FLOW_ANY),
 		string_style(STRING_ANY),
 		integer_format(INT_ANY),
-		float_format(FLOAT_ANY) {
-}
+		float_format(FLOAT_ANY) {}
 
 void YAMLStyle::_bind_methods() {
 	// Bind enums
@@ -70,7 +69,8 @@ void YAMLStyle::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_child", "key"), &YAMLStyle::get_child);
 	ClassDB::bind_method(D_METHOD("set_child", "key", "style"), &YAMLStyle::set_child);
 	ClassDB::bind_method(D_METHOD("has_child", "key"), &YAMLStyle::has_child);
-	ClassDB::bind_method(D_METHOD("create_child", "key", "propagate_scalar_styles"), &YAMLStyle::create_child, DEFVAL(true));
+	ClassDB::bind_method(
+			D_METHOD("create_child", "key", "propagate_scalar_styles"), &YAMLStyle::create_child, DEFVAL(true));
 	ClassDB::bind_method(D_METHOD("get_at_path", "path", "create_if_missing"), &YAMLStyle::get_at_path, DEFVAL(false));
 	ClassDB::bind_method(D_METHOD("clear_child", "key"), &YAMLStyle::clear_child);
 	ClassDB::bind_method(D_METHOD("clear_children"), &YAMLStyle::clear_children);
@@ -82,27 +82,41 @@ void YAMLStyle::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("uses_quotes"), &YAMLStyle::uses_quotes);
 	ClassDB::bind_method(D_METHOD("uses_flow"), &YAMLStyle::uses_flow);
 
-	ClassDB::bind_static_method("YAMLStyle", D_METHOD("container_form_string", "form"), &YAMLStyle::container_form_string);
+	ClassDB::bind_static_method(
+			"YAMLStyle", D_METHOD("container_form_string", "form"), &YAMLStyle::container_form_string);
 	ClassDB::bind_static_method("YAMLStyle", D_METHOD("flow_style_string", "style"), &YAMLStyle::flow_style_string);
 	ClassDB::bind_static_method("YAMLStyle", D_METHOD("string_style_string", "style"), &YAMLStyle::string_style_string);
-	ClassDB::bind_static_method("YAMLStyle", D_METHOD("integer_format_string", "format"), &YAMLStyle::integer_format_string);
-	ClassDB::bind_static_method("YAMLStyle", D_METHOD("float_format_string", "format"), &YAMLStyle::float_format_string);
+	ClassDB::bind_static_method(
+			"YAMLStyle", D_METHOD("integer_format_string", "format"), &YAMLStyle::integer_format_string);
+	ClassDB::bind_static_method(
+			"YAMLStyle", D_METHOD("float_format_string", "format"), &YAMLStyle::float_format_string);
 
-	ClassDB::bind_static_method("YAMLStyle", D_METHOD("container_form_from_string", "string"), &YAMLStyle::container_form_from_string);
-	ClassDB::bind_static_method("YAMLStyle", D_METHOD("flow_style_from_string", "string"), &YAMLStyle::flow_style_from_string);
-	ClassDB::bind_static_method("YAMLStyle", D_METHOD("string_style_from_string", "string"), &YAMLStyle::string_style_from_string);
-	ClassDB::bind_static_method("YAMLStyle", D_METHOD("integer_format_from_string", "string"), &YAMLStyle::integer_format_from_string);
-	ClassDB::bind_static_method("YAMLStyle", D_METHOD("float_format_from_string", "string"), &YAMLStyle::float_format_from_string);
+	ClassDB::bind_static_method(
+			"YAMLStyle", D_METHOD("container_form_from_string", "string"), &YAMLStyle::container_form_from_string);
+	ClassDB::bind_static_method(
+			"YAMLStyle", D_METHOD("flow_style_from_string", "string"), &YAMLStyle::flow_style_from_string);
+	ClassDB::bind_static_method(
+			"YAMLStyle", D_METHOD("string_style_from_string", "string"), &YAMLStyle::string_style_from_string);
+	ClassDB::bind_static_method(
+			"YAMLStyle", D_METHOD("integer_format_from_string", "string"), &YAMLStyle::integer_format_from_string);
+	ClassDB::bind_static_method(
+			"YAMLStyle", D_METHOD("float_format_from_string", "string"), &YAMLStyle::float_format_from_string);
 
 	ClassDB::bind_method(D_METHOD("get_debug_string"), &YAMLStyle::get_debug_string);
 
 	BIND_VIRTUAL_METHOD(YAMLStyle, _to_string);
 
-	ADD_PROPERTY(PropertyInfo(Variant::INT, "container_form", PROPERTY_HINT_ENUM, "Any,Array,Dictionary"), "set_container_form", "get_container_form");
-	ADD_PROPERTY(PropertyInfo(Variant::INT, "flow_style", PROPERTY_HINT_ENUM, "Any,None,Single"), "set_flow_style", "get_flow_style");
-	ADD_PROPERTY(PropertyInfo(Variant::INT, "string_style", PROPERTY_HINT_ENUM, "Any,Plain,Single Quoted,Double Quoted,Literal,Folded"), "set_string_style", "get_string_style");
-	ADD_PROPERTY(PropertyInfo(Variant::INT, "integer_format", PROPERTY_HINT_ENUM, "Any,Decimal,Hex,Octal,Binary"), "set_integer_format", "get_integer_format");
-	ADD_PROPERTY(PropertyInfo(Variant::INT, "float_format", PROPERTY_HINT_ENUM, "Any,Decimal,Scientific"), "set_float_format", "get_float_format");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "container_form", PROPERTY_HINT_ENUM, "Any,Array,Dictionary"),
+			"set_container_form", "get_container_form");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "flow_style", PROPERTY_HINT_ENUM, "Any,None,Single"), "set_flow_style",
+			"get_flow_style");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "string_style", PROPERTY_HINT_ENUM,
+						 "Any,Plain,Single Quoted,Double Quoted,Literal,Folded"),
+			"set_string_style", "get_string_style");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "integer_format", PROPERTY_HINT_ENUM, "Any,Decimal,Hex,Octal,Binary"),
+			"set_integer_format", "get_integer_format");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "float_format", PROPERTY_HINT_ENUM, "Any,Decimal,Scientific"),
+			"set_float_format", "get_float_format");
 	ADD_PROPERTY(PropertyInfo(Variant::DICTIONARY, "custom_settings"), "set_custom_settings", "get_custom_settings");
 }
 

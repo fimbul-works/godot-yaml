@@ -7,7 +7,8 @@
 
 using namespace godot;
 
-void YAMLPackedByteArrayVariantConverter::encode(ryml::NodeRef &node, const Variant &v, const YAMLStyle::View &style) const {
+void YAMLPackedByteArrayVariantConverter::encode(
+		ryml::NodeRef &node, const Variant &v, const YAMLStyle::View &style) const {
 	const PackedByteArray array = v.operator PackedByteArray();
 
 	if (array.size() == 0) {
@@ -39,7 +40,8 @@ Variant YAMLPackedByteArrayVariantConverter::decode(const ryml::ConstNodeRef &no
 	}
 }
 
-String YAMLPackedByteArrayVariantConverter::cleanup(const ryml::csubstr &input, const ryml::ConstNodeRef &node, YAMLParserContext *context) const {
+String YAMLPackedByteArrayVariantConverter::cleanup(
+		const ryml::csubstr &input, const ryml::ConstNodeRef &node, YAMLParserContext *context) const {
 	String raw = from_ryml_str(input);
 	String cleaned;
 

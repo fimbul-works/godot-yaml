@@ -9,7 +9,8 @@ YAMLTransform2DVariantConverter::YAMLTransform2DVariantConverter(YAMLVariantConv
 	ERR_FAIL_NULL(vec2_converter);
 }
 
-void YAMLTransform2DVariantConverter::encode(ryml::NodeRef &node, const Variant &v, const YAMLStyle::View &style) const {
+void YAMLTransform2DVariantConverter::encode(
+		ryml::NodeRef &node, const Variant &v, const YAMLStyle::View &style) const {
 	const Transform2D transform = v.operator Transform2D();
 
 	style.apply_flow_style(node);
@@ -33,7 +34,8 @@ void YAMLTransform2DVariantConverter::encode(ryml::NodeRef &node, const Variant 
 	auto scalar_style = style.get_scalar_view();
 	vec2_converter->encode(x_node, transform.columns[0], style.has_child("x") ? style.get_child("x") : scalar_style);
 	vec2_converter->encode(y_node, transform.columns[1], style.has_child("y") ? style.get_child("y") : scalar_style);
-	vec2_converter->encode(origin_node, transform.columns[2], style.has_child("origin") ? style.get_child("origin") : scalar_style);
+	vec2_converter->encode(
+			origin_node, transform.columns[2], style.has_child("origin") ? style.get_child("origin") : scalar_style);
 }
 
 Variant YAMLTransform2DVariantConverter::decode(const ryml::ConstNodeRef &node, YAMLParserContext *context) const {
@@ -54,7 +56,8 @@ Variant YAMLTransform2DVariantConverter::decode(const ryml::ConstNodeRef &node, 
 	}
 }
 
-Transform2D YAMLTransform2DVariantConverter::decode_from_map(const ryml::ConstNodeRef &node, YAMLParserContext *context) const {
+Transform2D YAMLTransform2DVariantConverter::decode_from_map(
+		const ryml::ConstNodeRef &node, YAMLParserContext *context) const {
 	check_required_fields(node, { "x", "y", "origin" });
 
 	const bool detect_style = context->detect_style;
@@ -90,7 +93,8 @@ Transform2D YAMLTransform2DVariantConverter::decode_from_map(const ryml::ConstNo
 	return Transform2D(x, y, origin);
 }
 
-Transform2D YAMLTransform2DVariantConverter::decode_from_sequence(const ryml::ConstNodeRef &node, YAMLParserContext *context) const {
+Transform2D YAMLTransform2DVariantConverter::decode_from_sequence(
+		const ryml::ConstNodeRef &node, YAMLParserContext *context) const {
 	if (node.num_children() != 3) {
 		throw create_invalid_sequence_length_exception(3, node);
 	}

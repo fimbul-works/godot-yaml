@@ -39,7 +39,8 @@ public:
 	 * @param detect_style Whether to detect and store style information
 	 * @return Ref<YAMLResult> Result containing parsed data or error information
 	 */
-	static Ref<YAMLResult> load_file(const String &path, const Ref<YAMLSecurity> security = nullptr, const bool detect_style = false);
+	static Ref<YAMLResult> load_file(
+			const String &path, const Ref<YAMLSecurity> security = nullptr, const bool detect_style = false);
 
 	/**
 	 * @brief Internal method for loading files within existing parser contexts.
@@ -51,7 +52,8 @@ public:
 	 * @param loading_yaml_paths Set for tracking cyclical references
 	 * @return Ref<YAMLResult> Result containing parsed data or error information
 	 */
-	static Ref<YAMLResult> parser_load_file(const String &path, const YAMLSecurity::View &security_view, std::unordered_set<String, StringHasher, StringEqual> *loading_yaml_paths);
+	static Ref<YAMLResult> parser_load_file(const String &path, const YAMLSecurity::View &security_view,
+			std::unordered_set<String, StringHasher, StringEqual> *loading_yaml_paths);
 
 private:
 	/**

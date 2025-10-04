@@ -122,7 +122,8 @@ private:
 	 * @return bool True if the character is a valid base64 character
 	 */
 	inline const bool is_base64_char(char c) const {
-		return (c >= '0' && c <= '9') || (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c == '+') || (c == '/') || (c == '=');
+		return (c >= '0' && c <= '9') || (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c == '+') || (c == '/') ||
+				(c == '=');
 	}
 };
 

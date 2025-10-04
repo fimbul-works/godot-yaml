@@ -1,4 +1,4 @@
-extends BaseTest
+extends TestSuite
 
 @export var local_texture: Texture2D
 
@@ -32,7 +32,7 @@ func test_stringifying_resources() -> void:
 
 func test_cyclical_references() -> void:
 	var yaml_text := """
-YAML: !Resource 'res://testing/data/cyclical_a.yaml'
+YAML: !Resource 'res://tests/data/cyclical_a.yaml'
 """
 	var parse_result := YAML.parse(yaml_text)
 	expect(parse_result.has_error(), "Parser should detect cyclical references")

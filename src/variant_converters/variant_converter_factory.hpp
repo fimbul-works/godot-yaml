@@ -75,8 +75,7 @@ public:
 	 * @param type The Variant type
 	 * @return std::unique_ptr<T> The created and cast converter or nullptr if invalid
 	 */
-	template <typename T>
-	std::unique_ptr<T> create_converter_as(Variant::Type type) {
+	template <typename T> std::unique_ptr<T> create_converter_as(Variant::Type type) {
 		auto base = create_converter(type);
 		if (!base) {
 			return nullptr;
@@ -122,7 +121,8 @@ private:
 	struct ConverterInfo {
 		Variant::Type type; ///< The Variant type
 		String tag; ///< The YAML tag
-		std::function<std::unique_ptr<YAMLVariantConverter>(YAMLVariantConverterFactory *)> factory_func; ///< Factory function
+		std::function<std::unique_ptr<YAMLVariantConverter>(YAMLVariantConverterFactory *)>
+				factory_func; ///< Factory function
 	};
 
 	/**
@@ -146,19 +146,15 @@ private:
 	 * @param type The Variant type
 	 * @param tag The YAML tag
 	 */
-	template <typename T>
-	void register_converter(Variant::Type type, const String &tag) {
-		ConverterInfo info{
-			type,
-			tag,
+	template <typename T> void register_converter(Variant::Type type, const String &tag) {
+		ConverterInfo info{ type, tag,
 			[](YAMLVariantConverterFactory *factory) -> std::unique_ptr<YAMLVariantConverter> {
 				if constexpr (std::is_constructible_v<T, YAMLVariantConverterFactory *>) {
 					return std::make_unique<T>(factory);
 				} else {
 					return std::make_unique<T>();
 				}
-			}
-		};
+			} };
 
 		type_map[type] = info;
 		tag_map[tag] = type;

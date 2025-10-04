@@ -46,8 +46,7 @@ public:
 	/**
 	 * @brief Default constructor that creates an empty successful result.
 	 */
-	YAMLResult() :
-			data(Variant()), is_multi_document(false), error_message(""), error_line(-1), error_column(-1) {}
+	YAMLResult() : data(Variant()), is_multi_document(false), error_message(""), error_line(-1), error_column(-1) {}
 
 	/**
 	 * @brief Static factory methods to create result objects.
@@ -217,14 +216,14 @@ private:
 	 * @param line Optional error line number
 	 * @param col Optional error column number
 	 */
-	YAMLResult(
-			const Variant &data_,
-			bool is_multi_document_,
-			const Ref<YAMLStyle> &style_ = nullptr,
-			const String &error_ = "",
-			int line = -1,
-			int col = -1) :
-			data(data_), is_multi_document(is_multi_document_), style(style_), error_message(error_), error_line(line), error_column(col) {}
+	YAMLResult(const Variant &data_, bool is_multi_document_, const Ref<YAMLStyle> &style_ = nullptr,
+			const String &error_ = "", int line = -1, int col = -1) :
+			data(data_),
+			is_multi_document(is_multi_document_),
+			style(style_),
+			error_message(error_),
+			error_line(line),
+			error_column(col) {}
 
 	/**
 	 * @brief Immutable state members.

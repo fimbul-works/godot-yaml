@@ -7,9 +7,7 @@
 
 using namespace godot;
 
-YAMLStyle::View::View(std::shared_ptr<const ViewData> p_data) :
-		data(std::move(p_data)) {
-}
+YAMLStyle::View::View(std::shared_ptr<const ViewData> p_data) : data(std::move(p_data)) {}
 
 YAMLStyle::View YAMLStyle::View::create_view(const Ref<YAMLStyle> &style) {
 	if (!style.is_valid()) {
