@@ -10,12 +10,12 @@
 #pragma once
 
 #include "../style/style.hpp"
-#include "../util/hashers.hpp"
 #include "../yaml.hpp"
 #include "parser_context.hpp"
 #include "result.hpp"
 #include "security.hpp"
 #include "variant_converters/variant_converter_factory.hpp"
+#include <hashers.hpp>
 
 #include <ryml.hpp>
 

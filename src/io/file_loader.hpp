@@ -11,8 +11,8 @@
 #include "../parser/parser.hpp"
 #include "../parser/security.hpp"
 #include "../result.hpp"
-#include "../util/hashers.hpp"
 #include "../yaml.hpp"
+#include <hashers.hpp>
 
 #include <godot_cpp/classes/file_access.hpp>
 #include <godot_cpp/variant/utility_functions.hpp>

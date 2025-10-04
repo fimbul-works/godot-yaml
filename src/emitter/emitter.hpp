@@ -9,11 +9,11 @@
 #pragma once
 
 #include "../style/style_view.hpp"
-#include "../util/hashers.hpp"
 #include "../util/string_pool.hpp"
 #include "../variant_converters/variant_converter_factory.hpp"
 #include "../yaml.hpp"
 #include "result.hpp"
+#include <hashers.hpp>
 
 #include <godot_cpp/classes/resource.hpp>
 #include <ryml.hpp>

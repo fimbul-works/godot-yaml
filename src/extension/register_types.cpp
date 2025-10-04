@@ -3,15 +3,17 @@
 #include "../parser/security.hpp"
 #include "../result.hpp"
 #include "../style/style.hpp"
-#include "yaml.hpp"
+#include "../yaml.hpp"
+#include <schema.hpp>
+#include <validation_result.hpp>
 
 #include <gdextension_interface.h>
 #include <godot_cpp/core/defs.hpp>
 #include <godot_cpp/godot.hpp>
 
-#ifdef TESTS_ENABLED
-#include "../tests/test_runner.hpp" // Inlcude test runner headers
-#endif
+// #ifdef TESTS_ENABLED
+// #include "../tests/test_runner.hpp" // Inlcude test runner headers
+// #endif
 
 namespace godot {
 
@@ -36,9 +38,17 @@ void initialize_yaml_module(ModuleInitializationLevel p_level) {
 		GDREGISTER_CLASS(YAML);
 	}
 
-#ifdef TESTS_ENABLED
-	YAMLTests::run_all_tests(); // Run tests after registration
-#endif
+	if (!ClassDB::class_exists("Schema")) {
+		GDREGISTER_CLASS(Schema);
+	}
+
+	if (!ClassDB::class_exists("SchemaValidationResult")) {
+		GDREGISTER_CLASS(SchemaValidationResult);
+	}
+
+	// #ifdef TESTS_ENABLED
+	// 	run_all_tests(); // Run tests after registration
+	// #endif
 }
 
 void uninitialize_yaml_module(ModuleInitializationLevel p_level) {

@@ -24,7 +24,7 @@ def get_library_name(env):
     elif platform in ['linux', 'android']:
         return f'libgdyaml.{platform}.{debug_or_release}.{arch}.so'
     elif platform == 'macos':
-        return f"libgdyaml.{platform}.{debug_or_release}.framework/gdyaml.{platform}.{debug_or_release}"
+        return f'libgdyaml.{platform}.{debug_or_release}.dylib'
     elif platform == 'ios':
         return f'libgdyaml.ios.{debug_or_release}.xcframework'
     else:
@@ -38,52 +38,63 @@ def setup_build_env(base_env):
     is_debug = env.get('target', '') != 'template_release'
     arch = env.get('arch', 'x86_64')  # Default to 64-bit
 
-    # Configuration: Which platforms use C++20 vs C++17
-    cpp20_platforms = ['windows'] # Add "linux" and "macos
+    print(f"Building for {platform}, {'Debug' if is_debug else 'Release'}, {arch}")
 
-    # Determine C++ standard based on platform
-    use_cpp20 = platform in cpp20_platforms
-    cpp_std_version = '20' if use_cpp20 else '17'
-
-    # Store the C++20 flag in the environment for later reference
-    env['USE_CPP20'] = use_cpp20
-
-    print(f"Building for {platform} with C++{cpp_std_version}")
-
-    # Platform and release/debug flags
+    # ========== WINDOWS ==========
     if platform == 'windows':
-        env.Append(CCFLAGS=[f'/std:c++{cpp_std_version}', '/EHsc'])
-        if use_cpp20:
-            env.Append(CCFLAGS=['/Zc:preprocessor'])  # Better preprocessor for C++20
+        # C++ standard and exception handling
+        env.Append(CCFLAGS=['/EHsc'])
 
+        # Debug vs Release
         if is_debug:
-            env.Append(CCFLAGS=['/Z7'])
+            env.Append(CCFLAGS=['/Z7'])    # Debug info
+        else:
+            env.Append(CCFLAGS=[
+                '/O2',    # Optimize for speed
+                '/Oi',    # Intrinsic functions
+            ])
+            env.Append(CPPDEFINES=['NDEBUG'])
 
-        # Add architecture-specific flags for Windows
+        # Architecture
         if arch == 'x86_32':
             env.Append(LINKFLAGS=['/MACHINE:X86'])
-        else:  # x86_64
+        else:
             env.Append(LINKFLAGS=['/MACHINE:X64'])
 
-        # Ensure import library is generated with proper naming
         env.Append(LINKFLAGS=['/IMPLIB:${TARGET.base}.lib'])
-    else:
-        env.Append(CCFLAGS=[f'-std=c++{cpp_std_version}', '-fexceptions'])
 
-        # Add architecture-specific flags for other platforms
+    # ========== UNIX-LIKE ==========
+    else:
+        env.Append(CCFLAGS=['-fexceptions'])
+
+        if platform == 'macos':
+            env.Append(CCFLAGS=['-mmacosx-version-min=10.15'])
+            env.Append(LINKFLAGS=[
+                '-mmacosx-version-min=10.15',
+                '-Wl,-undefined,dynamic_lookup'
+            ])
+
+        if platform == 'linux':
+          env.Append(CCFLAGS=['-fPIC'])
+          env.Append(LINKFLAGS=["-Wl,-R,'$$ORIGIN'"])
+
+        if is_debug:
+            env.Append(CCFLAGS=['-O0', '-g'])
+        else:
+            env.Append(CCFLAGS=['-O3', '-ffast-math'])
+            env.Append(CPPDEFINES=['NDEBUG'])
+
+        # Architecture
         if arch == 'x86_32':
             env.Append(CCFLAGS=['-m32'])
             env.Append(LINKFLAGS=['-m32'])
-        else:  # x86_64
+        elif arch == 'x86_64':
             env.Append(CCFLAGS=['-m64'])
             env.Append(LINKFLAGS=['-m64'])
 
-    # Set debug flag
+    # ========== COMMON ==========
     if is_debug:
         env.Append(CPPDEFINES=['GODOT_YAML_DEBUG'])
-        # Only enable SFT tests on platforms with C++20 support
-        if use_cpp20:
-            env.Append(CPPDEFINES=['TESTS_ENABLED'])
 
     env.Append(CPPPATH=['src'])
     return env
@@ -189,11 +200,11 @@ def build_config(env, variant_dir):
     sources += Glob(os.path.join(variant_dir, 'src', 'util', '*.cpp'))
     sources += Glob(os.path.join(variant_dir, 'src', 'validator', '*.cpp'))
 
-    # Add test sources only for debug builds with C++20 support
-    # This prevents compilation errors on C++17 platforms
-    if env["target"] == "template_debug" and env.get('USE_CPP20', False):
-        sources += Glob(os.path.join(variant_dir, 'src', 'tests', '*.cpp'))
-        print(f"Including {len(Glob(os.path.join(variant_dir, 'src', 'tests', '*.cpp')))} test files")
+    # Add GDSchema sources
+    sources += Glob(os.path.join('ext', 'gdschema', 'src', '*.cpp'))
+    sources += Glob(os.path.join('ext', 'gdschema', 'src', 'selector', '*.cpp'))
+    sources += Glob(os.path.join('ext', 'gdschema', 'src', 'rule', '*.cpp'))
+    env.Append(CPPPATH=["ext/gdschema/src"])
 
     # Embed documentation
     if env["target"] in ["editor", "template_debug"]:
@@ -233,8 +244,8 @@ def build_config(env, variant_dir):
 
         # Create a custom install action that uses glob at build time
         def install_windows_files(target, source, env):
-            # Convert SCons File objects to strings and use glob to find all related files
-            lib_pattern_str = os.path.join(output_lib_dir, f"{lib_base_name}.*")
+            # Convert SCons File objects to strings and grab DLL
+            lib_pattern_str = os.path.join(output_lib_dir, f"{lib_base_name}.dll")
             generated_files = glob.glob(lib_pattern_str)
 
             installed_files = []

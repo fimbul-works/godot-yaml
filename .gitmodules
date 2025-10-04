@@ -5,3 +5,6 @@
 [submodule "ext/rapidyaml"]
 	path = ext/rapidyaml
 	url = https://github.com/biojppm/rapidyaml.git
+[submodule "ext/gdschema"]
+	path = ext/gdschema
+	url = https://github.com/fimbul-works/gdschema

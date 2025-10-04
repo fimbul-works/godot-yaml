@@ -8,7 +8,7 @@
  */
 #pragma once
 
-#include "../util/hashers.hpp"
+#include <hashers.hpp>
 
 #include <godot_cpp/classes/ref_counted.hpp>
 #include <godot_cpp/core/class_db.hpp>

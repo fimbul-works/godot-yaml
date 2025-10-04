@@ -8,8 +8,8 @@
  */
 #pragma once
 
-#include "../util/hashers.hpp"
 #include "style.hpp"
+#include <hashers.hpp>
 
 #include <godot_cpp/variant/dictionary.hpp>
 #include <ryml.hpp>

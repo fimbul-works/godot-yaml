@@ -9,8 +9,8 @@
  */
 #pragma once
 
-#include "../util/hashers.hpp"
 #include "variant_converter.hpp"
+#include <hashers.hpp>
 
 #include <godot_cpp/variant/utility_functions.hpp>
 #include <godot_cpp/variant/variant.hpp>

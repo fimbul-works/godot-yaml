@@ -124,7 +124,6 @@ func test_get_at_path() -> void:
 
 	# Try to get non-existent path without creating
 	var missing_style = style.get_at_path("non/existent/path", false)
-	print(missing_style)
 	expect_equal(missing_style, null, "Should return null for non-existent path")
 
 func test_propagate_scalar_styles() -> void:

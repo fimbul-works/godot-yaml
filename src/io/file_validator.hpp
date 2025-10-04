@@ -9,9 +9,9 @@
 #pragma once
 
 #include "../result.hpp"
-#include "../util/hashers.hpp"
 #include "../validator/validator.hpp"
 #include "../yaml.hpp"
+#include <hashers.hpp>
 
 #include <godot_cpp/classes/file_access.hpp>
 #include <godot_cpp/variant/utility_functions.hpp>

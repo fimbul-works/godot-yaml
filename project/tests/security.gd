@@ -50,7 +50,6 @@ texture: !Resource 'res://addons/yaml/icon.svg'
 """
 	var result := YAML.parse(single_wildcard_yaml, security)
 	expect(not result.has_error(), result.get_error())
-	print("done")
 
 	# Test recursive wildcard (**)
 	security.clear_path_restrictions()

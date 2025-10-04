@@ -14,7 +14,6 @@ var previous_textfile_extensions: String
 var engine_version_info := Engine.get_version_info()
 
 func _enter_tree() -> void:
-
 	# Modify editor settings to remove YAML from text files
 	_modify_file_extensions()
 
@@ -25,7 +24,7 @@ func _enter_tree() -> void:
 	ResourceLoader.add_resource_format_loader(resource_loader, true)
 	ResourceSaver.add_resource_format_saver(resource_saver, true)
 
-	# Enable YAMLResource in Godot 4.4 and above
+	# YAMLResource for Godot 4.4 and above
 	if engine_version_info.major == 4 and engine_version_info.minor >= 4:
 		add_custom_type(
 			"YAMLResource", "Resource",
@@ -60,12 +59,10 @@ func _exit_tree() -> void:
 	# Restore original editor settings
 	_restore_file_extensions()
 
-	# Unregister resource format handlers
-	if resource_loader:
-		ResourceLoader.remove_resource_format_loader(resource_loader)
-	if resource_saver:
-		ResourceSaver.remove_resource_format_saver(resource_saver)
+	ResourceLoader.remove_resource_format_loader(resource_loader)
+	ResourceSaver.remove_resource_format_saver(resource_saver)
 
+	# YAMLResource for Godot 4.4 and above
 	if engine_version_info.major == 4 and engine_version_info.minor >= 4:
 		remove_custom_type("YAMLResource")
 
