@@ -38,11 +38,6 @@ void YAML::SyntaxValidator::error_callback(const char *msg, size_t len, ryml::Lo
 		error_msg = error_msg.sub(strip_error_prefix.len);
 	}
 
-	// RapidYAML does not like complex keys
-	if (error_msg.begins_with("ryml trees cannot handle containers as keys")) {
-		error_msg = ryml::to_csubstr("unsupported complex key");
-	}
-
 	// Only return the first line, which has the relevent error message
 	size_t newline_pos = error_msg.find('\n');
 	if (newline_pos != ryml::substr::npos) {
