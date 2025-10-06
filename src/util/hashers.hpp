@@ -96,7 +96,8 @@ struct StringNameEqual {
  */
 namespace std {
 
-template <> struct hash<godot::String> {
+template <>
+struct hash<godot::String> {
 	/**
 	 * @brief Calculates a hash value for a Godot String.
 	 *
@@ -106,7 +107,8 @@ template <> struct hash<godot::String> {
 	int64_t operator()(const godot::String &str) const { return str.hash(); }
 };
 
-template <> struct hash<godot::Variant> {
+template <>
+struct hash<godot::Variant> {
 	/**
 	 * @brief Calculates a hash value for a Godot Variant.
 	 *

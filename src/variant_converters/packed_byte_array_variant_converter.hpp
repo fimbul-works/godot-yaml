@@ -84,14 +84,6 @@ private:
 	};
 
 	/**
-	 * @brief Encoding helper methods.
-	 */
-
-	/**
-	 * @brief String processing helper methods.
-	 */
-
-	/**
 	 * @brief Cleans up and detects the encoding format of binary data.
 	 *
 	 * Detects format based on prefix and cleans up the string by removing whitespace.

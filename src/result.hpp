@@ -47,11 +47,8 @@ public:
 	/**
 	 * @brief Default constructor that creates an empty successful result.
 	 */
-	YAMLResult() : data(Variant()), is_multi_document(false), error_message(""), error_line(-1), error_column(-1) {}
-
-	/**
-	 * @brief Static factory methods to create result objects.
-	 */
+	YAMLResult() :
+			data(Variant()), is_multi_document(false), error_message(""), error_line(-1), error_column(-1) {}
 
 	/**
 	 * @brief Creates a successful result with single document data.
@@ -60,8 +57,7 @@ public:
 	 * @param style Optional style information
 	 * @return Ref<YAMLResult> A successful single-document result object
 	 */
-	static Ref<YAMLResult> success(const Variant &data, const Ref<YAMLStyle> &style = nullptr,
-			const Ref<SchemaValidationResult> &validation = nullptr);
+	static Ref<YAMLResult> success(const Variant &data, const Ref<YAMLStyle> &style = nullptr, const Ref<SchemaValidationResult> &validation = nullptr);
 
 	/**
 	 * @brief Creates a successful result with multiple documents.
@@ -234,9 +230,7 @@ private:
 	 * @param line Optional error line number
 	 * @param col Optional error column number
 	 */
-	YAMLResult(const Variant &data_, bool is_multi_document_, const Ref<YAMLStyle> &style_ = nullptr,
-			const String &error_ = "", int line = -1, int col = -1,
-			const Ref<SchemaValidationResult> &validation_ = nullptr) :
+	YAMLResult(const Variant &data_, bool is_multi_document_, const Ref<YAMLStyle> &style_ = nullptr, const String &error_ = "", int line = -1, int col = -1, const Ref<SchemaValidationResult> &validation_ = nullptr) :
 			data(data_),
 			is_multi_document(is_multi_document_),
 			style(style_),

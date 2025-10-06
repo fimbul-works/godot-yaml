@@ -38,8 +38,7 @@ public:
 	 * @param root_style Optional root style object for style detection
 	 * @param root_schema Optional root schema for validation
 	 */
-	YAMLParserContext(const ryml::Parser *p_ryml_parser, const Ref<YAMLStyle> &root_style = nullptr,
-			const Ref<Schema> &root_schema = nullptr);
+	YAMLParserContext(const ryml::Parser *p_ryml_parser, const Ref<YAMLStyle> &root_style = nullptr, const Ref<Schema> &root_schema = nullptr);
 
 	/**
 	 * @brief Default destructor.
@@ -96,7 +95,7 @@ public:
 	void set_root_schema(const Ref<Schema> &schema) {
 		if (schema.is_valid() && schema_stack.empty()) {
 			schema_stack.push(schema);
-			has_root_schema = false;
+			has_root_schema = true;
 		}
 	}
 

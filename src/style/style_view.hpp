@@ -195,9 +195,7 @@ private:
 		StringStyle string_style;
 		IntegerFormat integer_format;
 		FloatFormat float_format;
-
 		Dictionary custom_settings;
-
 		std::unordered_map<String, std::shared_ptr<const ViewData>, StringHasher, StringEqual> children;
 	};
 

@@ -29,8 +29,7 @@ void YAMLRect2VariantConverter::encode(ryml::NodeRef &node, const Variant &v, co
 	}
 
 	auto scalar_style = style.get_scalar_view();
-	vec2_converter->encode(
-			position_node, rect.position, style.has_child("position") ? style.get_child("position") : scalar_style);
+	vec2_converter->encode(position_node, rect.position, style.has_child("position") ? style.get_child("position") : scalar_style);
 	vec2_converter->encode(size_node, rect.size, style.has_child("size") ? style.get_child("size") : scalar_style);
 }
 
@@ -81,8 +80,7 @@ Rect2 YAMLRect2VariantConverter::decode_from_map(const ryml::ConstNodeRef &node,
 	return Rect2(position, size);
 }
 
-Rect2 YAMLRect2VariantConverter::decode_from_sequence(
-		const ryml::ConstNodeRef &node, YAMLParserContext *context) const {
+Rect2 YAMLRect2VariantConverter::decode_from_sequence(const ryml::ConstNodeRef &node, YAMLParserContext *context) const {
 	if (node.num_children() != 2) {
 		throw create_invalid_sequence_length_exception(2, node);
 	}

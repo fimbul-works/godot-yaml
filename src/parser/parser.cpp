@@ -75,8 +75,7 @@ void YAML::Parser::error_callback(const char *msg, size_t len, ryml::Location lo
 	throw YAMLException(parser->current_result->get_error_message(), loc);
 }
 
-Ref<YAMLResult> YAML::Parser::parse(
-		const String &input, const YAMLSecurity::View &p_security_view, const bool p_detect_style) {
+Ref<YAMLResult> YAML::Parser::parse(const String &input, const YAMLSecurity::View &p_security_view, const bool p_detect_style) {
 	try {
 		current_result = YAMLResult::success(Variant());
 		security_view = p_security_view;
@@ -125,14 +124,12 @@ Ref<YAMLResult> YAML::Parser::parse(
 	}
 }
 
-Ref<YAMLResult> YAML::Parser::parse_and_validate(const String &input,
-		const Variant &schema_param, // null, String (ID), or Ref<Schema>
-		const YAMLSecurity::View &security_view, const bool detect_style) {
+Ref<YAMLResult> YAML::Parser::parse_and_validate(const String &input, const Variant &schema_param, const YAMLSecurity::View &p_security_view, const bool p_detect_style) {
 	try {
 		current_result = YAMLResult::success(Variant());
-		this->security_view = security_view;
-		this->style = YAML::create_style();
-		this->detect_style = detect_style;
+		security_view = p_security_view;
+		style = YAML::create_style();
+		detect_style = p_detect_style;
 
 		// Parse YAML text
 		ryml::parse_in_arena(ryml_parser.get(), input.utf8().get_data(), &tree);
@@ -697,14 +694,12 @@ Variant YAML::Parser::parse_object_or_resource(const ryml::ConstNodeRef &node, c
 			return load_resource(path, node);
 		}
 
-		throw YAMLException(
-				vformat("Invalid resource path '%s' for class %s", path, class_name), node.location(*ryml_parser));
+		throw YAMLException(vformat("Invalid resource path '%s' for class %s", path, class_name), node.location(*ryml_parser));
 	}
 
 	// Otherwise, treat it as an inline object/resource definition
 	if (!node.is_map()) {
-		throw YAMLException(vformat("Invalid node format for class %s - expected dictionary", class_name),
-				node.location(*ryml_parser));
+		throw YAMLException(vformat("Invalid node format for class %s - expected dictionary", class_name), node.location(*ryml_parser));
 	}
 
 	// Instantiate the object
@@ -813,8 +808,7 @@ Variant YAML::Parser::load_resource(const String &path, const ryml::ConstNodeRef
 	}
 
 	if (!security_view.is_resource_allowed(path, class_name)) {
-		throw YAMLException(
-				vformat("Resource type %s not allowed from path %s", class_name, path), node.location(*ryml_parser));
+		throw YAMLException(vformat("Resource type %s not allowed from path %s", class_name, path), node.location(*ryml_parser));
 	}
 
 	return resource;

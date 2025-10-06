@@ -32,14 +32,10 @@ void YAMLQuaternionVariantConverter::encode(ryml::NodeRef &node, const Variant &
 		w_node = node.append_child();
 	}
 
-	x_node << float_to_string(
-			quat.x, style.has_child("x") ? style.get_child("x").get_float_format() : style.get_float_format());
-	y_node << float_to_string(
-			quat.y, style.has_child("y") ? style.get_child("y").get_float_format() : style.get_float_format());
-	z_node << float_to_string(
-			quat.z, style.has_child("z") ? style.get_child("z").get_float_format() : style.get_float_format());
-	w_node << float_to_string(
-			quat.w, style.has_child("w") ? style.get_child("w").get_float_format() : style.get_float_format());
+	x_node << float_to_string(quat.x, style.has_child("x") ? style.get_child("x").get_float_format() : style.get_float_format());
+	y_node << float_to_string(quat.y, style.has_child("y") ? style.get_child("y").get_float_format() : style.get_float_format());
+	z_node << float_to_string(quat.z, style.has_child("z") ? style.get_child("z").get_float_format() : style.get_float_format());
+	w_node << float_to_string(quat.w, style.has_child("w") ? style.get_child("w").get_float_format() : style.get_float_format());
 }
 
 Variant YAMLQuaternionVariantConverter::decode(const ryml::ConstNodeRef &node, YAMLParserContext *context) const {
@@ -60,8 +56,7 @@ Variant YAMLQuaternionVariantConverter::decode(const ryml::ConstNodeRef &node, Y
 	}
 }
 
-Quaternion YAMLQuaternionVariantConverter::decode_from_map(
-		const ryml::ConstNodeRef &node, YAMLParserContext *context) const {
+Quaternion YAMLQuaternionVariantConverter::decode_from_map(const ryml::ConstNodeRef &node, YAMLParserContext *context) const {
 	check_required_fields(node, { "x", "y", "z", "w" });
 
 	const bool detect_style = context->detect_style;
@@ -115,8 +110,7 @@ Quaternion YAMLQuaternionVariantConverter::decode_from_map(
 	return Quaternion(x, y, z, w);
 }
 
-Quaternion YAMLQuaternionVariantConverter::decode_from_sequence(
-		const ryml::ConstNodeRef &node, YAMLParserContext *context) const {
+Quaternion YAMLQuaternionVariantConverter::decode_from_sequence(const ryml::ConstNodeRef &node, YAMLParserContext *context) const {
 	if (node.num_children() != 4) {
 		throw create_invalid_sequence_length_exception(4, node);
 	}

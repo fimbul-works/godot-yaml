@@ -71,8 +71,7 @@ public:
 	 * @param detect_style Whether to detect and store style information.
 	 * @return Ref<YAMLResult> Result object containing parsed data or error information.
 	 */
-	static Ref<YAMLResult> parse(
-			const String &input, const Ref<YAMLSecurity> security = nullptr, const bool detect_style = false);
+	static Ref<YAMLResult> parse(const String &input, const Ref<YAMLSecurity> security = nullptr, const bool detect_style = false);
 
 	/**
 	 * @brief Parses and validates a YAML string into a Godot Variant.
@@ -82,8 +81,7 @@ public:
 	 * @param detect_style Whether to detect and store style information.
 	 * @return Ref<YAMLResult> Result object containing parsed data or error information.
 	 */
-	static Ref<YAMLResult> parse_and_validate(const String &input, const Variant &schema = Variant(),
-			const Ref<YAMLSecurity> security = nullptr, const bool detect_style = false);
+	static Ref<YAMLResult> parse_and_validate(const String &input, const Variant &schema = Variant(), const Ref<YAMLSecurity> security = nullptr, const bool detect_style = false);
 
 	/**
 	 * @brief Serializes a Godot Variant into a YAML string.
@@ -100,8 +98,7 @@ public:
 	 * @param detect_style Whether to detect and store style information.
 	 * @return Ref<YAMLResult> Result object containing parsed data or error information.
 	 */
-	static Ref<YAMLResult> load_file(
-			const String &path, const Ref<YAMLSecurity> security = nullptr, const bool detect_style = false);
+	static Ref<YAMLResult> load_file(const String &path, const Ref<YAMLSecurity> security = nullptr, const bool detect_style = false);
 
 	/**
 	 * @brief Loads, parses, and validates a YAML file.
@@ -111,8 +108,7 @@ public:
 	 * @param detect_style Whether to detect and store style information.
 	 * @return Ref<YAMLResult> Result object containing parsed data or error information.
 	 */
-	static Ref<YAMLResult> load_file_and_validate(const String &path, const Variant &schema = Variant(),
-			const Ref<YAMLSecurity> security = nullptr, const bool detect_style = false);
+	static Ref<YAMLResult> load_file_and_validate(const String &path, const Variant &schema = Variant(), const Ref<YAMLSecurity> security = nullptr, const bool detect_style = false);
 
 	/**
 	 * @brief Loads and parses a YAML file inside an existing parser context.
@@ -123,8 +119,7 @@ public:
 	 * @param is_validating Whether this load is part of a validation operation.
 	 * @return Ref<YAMLResult> Result object containing parsed data or error information.
 	 */
-	static Ref<YAMLResult> parser_load_file(const String &path, const YAMLSecurity::View &security_view,
-			std::unordered_set<String, StringHasher, StringEqual> *loading_yaml_paths, const bool is_validating);
+	static Ref<YAMLResult> parser_load_file(const String &path, const YAMLSecurity::View &security_view, std::unordered_set<String, StringHasher, StringEqual> *loading_yaml_paths, const bool is_validating);
 
 	/**
 	 * @brief Serializes a Godot Variant and saves it to a YAML file.
@@ -174,8 +169,7 @@ public:
 	 * @param security Optional security settings for resource loading.
 	 * @return Variant The parsed data or null if parsing failed.
 	 */
-	static Variant try_parse_and_validate(
-			const String &input, const Variant &schema = Variant(), const Ref<YAMLSecurity> security = nullptr);
+	static Variant try_parse_and_validate(const String &input, const Variant &schema = Variant(), const Ref<YAMLSecurity> security = nullptr);
 
 	/**
 	 * @brief Serializes a Godot Variant to YAML, pushing errors to Godot's error system.
@@ -212,8 +206,7 @@ public:
 	 * @param security Optional security settings for resource loading.
 	 * @return Variant The parsed data or null if loading failed.
 	 */
-	static Variant try_load_file_and_validate(
-			const String &path, const Variant &schema = Variant(), const Ref<YAMLSecurity> security = nullptr);
+	static Variant try_load_file_and_validate(const String &path, const Variant &schema = Variant(), const Ref<YAMLSecurity> security = nullptr);
 
 	/**
 	 * @brief Serializes and saves a Godot Variant to a YAML file, pushing errors to Godot's error system.
@@ -239,8 +232,7 @@ public:
 	 * @param p_deserialize_method The name of the static method used for deserialization.
 	 * @param p_tag An alternate custom tag
 	 */
-	static void register_class(Ref<Script> p_class, const Variant &p_serialize_method,
-			const Variant &p_deserialize_method, const Variant &tag);
+	static void register_class(Ref<Script> p_class, const Variant &p_serialize_method, const Variant &p_deserialize_method, const Variant &tag);
 
 	/**
 	 * @brief Unregisters a custom class from YAML serialization.

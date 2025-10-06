@@ -10,8 +10,7 @@ using namespace godot;
 std::mutex YAMLClassRegistry::registry_mutex;
 std::unordered_map<String, YAMLClassRegistry::ClassInfo, StringHasher, StringEqual> YAMLClassRegistry::class_registry;
 
-void YAMLClassRegistry::register_class(
-		Ref<Script> p_class, const Variant &p_serialize, const Variant &p_deserialize, const Variant &p_tag) {
+void YAMLClassRegistry::register_class(Ref<Script> p_class, const Variant &p_serialize, const Variant &p_deserialize, const Variant &p_tag) {
 	const StringName class_name = get_script_class(p_class);
 	if (class_name.is_empty()) {
 		return;
@@ -39,9 +38,7 @@ void YAMLClassRegistry::register_class(
 	}
 
 	// Check instance method
-	const StringName serialize =
-			p_serialize.get_type() == Variant::STRING || p_serialize.get_type() == Variant::STRING_NAME ? p_serialize
-																										: "serialize";
+	const StringName serialize = p_serialize.get_type() == Variant::STRING || p_serialize.get_type() == Variant::STRING_NAME ? p_serialize : "serialize";
 
 	// Create an instance
 	StringName base_type = p_class->get_instance_base_type();
@@ -79,9 +76,7 @@ void YAMLClassRegistry::register_class(
 	}
 
 	// Create the class info
-	const StringName tag = p_tag.get_type() == Variant::STRING || p_tag.get_type() == Variant::STRING_NAME
-			? StringName(p_tag)
-			: class_name;
+	const StringName tag = p_tag.get_type() == Variant::STRING || p_tag.get_type() == Variant::STRING_NAME ? StringName(p_tag) : class_name;
 	ClassInfo info;
 	info.script_class = p_class;
 	info.tag = tag.length() ? tag : class_name;

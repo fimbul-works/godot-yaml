@@ -32,8 +32,7 @@ void YAMLResult::_bind_methods() {
 	BIND_VIRTUAL_METHOD(YAMLResult, _to_string);
 }
 
-Ref<YAMLResult> YAMLResult::success(
-		const Variant &data, const Ref<YAMLStyle> &style, const Ref<SchemaValidationResult> &validation) {
+Ref<YAMLResult> YAMLResult::success(const Variant &data, const Ref<YAMLStyle> &style, const Ref<SchemaValidationResult> &validation) {
 	return Ref<YAMLResult>(memnew(YAMLResult(data, false, style, "", -1, -1, validation)));
 }
 
@@ -55,8 +54,7 @@ Variant YAMLResult::get_data() const {
 	}
 
 	if (is_multi_document) {
-		UtilityFunctions::push_warning(
-				"YAMLResult.get_data() called on multi-document YAML. Use get_document() instead.");
+		UtilityFunctions::push_warning("YAMLResult.get_data() called on multi-document YAML. Use get_document() instead.");
 
 		Array documents = data.operator Array();
 		return documents.size() > 0 ? documents[0] : Variant();
@@ -178,6 +176,5 @@ String YAMLResult::_to_string() const {
 		return vformat("YAMLResult(Error: %s)", get_error_message());
 	}
 
-	return vformat(
-			"YAMLResult(%s, %d document%s)", "Success", get_document_count(), get_document_count() == 1 ? "" : "s");
+	return vformat("YAMLResult(%s, %d document%s)", "Success", get_document_count(), get_document_count() == 1 ? "" : "s");
 }

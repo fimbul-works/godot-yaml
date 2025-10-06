@@ -29,12 +29,9 @@ void YAMLVector3VariantConverter::encode(ryml::NodeRef &node, const Variant &v, 
 		z_node = node.append_child();
 	}
 
-	x_node << float_to_string(
-			vec.x, style.has_child("x") ? style.get_child("x").get_float_format() : style.get_float_format());
-	y_node << float_to_string(
-			vec.y, style.has_child("y") ? style.get_child("y").get_float_format() : style.get_float_format());
-	z_node << float_to_string(
-			vec.z, style.has_child("z") ? style.get_child("z").get_float_format() : style.get_float_format());
+	x_node << float_to_string(vec.x, style.has_child("x") ? style.get_child("x").get_float_format() : style.get_float_format());
+	y_node << float_to_string(vec.y, style.has_child("y") ? style.get_child("y").get_float_format() : style.get_float_format());
+	z_node << float_to_string(vec.z, style.has_child("z") ? style.get_child("z").get_float_format() : style.get_float_format());
 }
 
 Variant YAMLVector3VariantConverter::decode(const ryml::ConstNodeRef &node, YAMLParserContext *context) const {
@@ -99,8 +96,7 @@ Vector3 YAMLVector3VariantConverter::decode_from_map(const ryml::ConstNodeRef &n
 	return Vector3(x, y, z);
 }
 
-Vector3 YAMLVector3VariantConverter::decode_from_sequence(
-		const ryml::ConstNodeRef &node, YAMLParserContext *context) const {
+Vector3 YAMLVector3VariantConverter::decode_from_sequence(const ryml::ConstNodeRef &node, YAMLParserContext *context) const {
 	if (node.num_children() != 3) {
 		throw create_invalid_sequence_length_exception(3, node);
 	}

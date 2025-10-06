@@ -30,8 +30,7 @@ void YAMLAABBVariantConverter::encode(ryml::NodeRef &node, const Variant &v, con
 	}
 
 	auto scalar_style = style.get_scalar_view();
-	vec3_converter->encode(
-			position_node, aabb.position, style.has_child("position") ? style.get_child("position") : scalar_style);
+	vec3_converter->encode(position_node, aabb.position, style.has_child("position") ? style.get_child("position") : scalar_style);
 	vec3_converter->encode(size_node, aabb.size, style.has_child("size") ? style.get_child("size") : scalar_style);
 }
 
@@ -82,8 +81,7 @@ Variant YAMLAABBVariantConverter::decode_from_map(const ryml::ConstNodeRef &node
 	return AABB(position, size);
 }
 
-Variant YAMLAABBVariantConverter::decode_from_sequence(
-		const ryml::ConstNodeRef &node, YAMLParserContext *context) const {
+Variant YAMLAABBVariantConverter::decode_from_sequence(const ryml::ConstNodeRef &node, YAMLParserContext *context) const {
 	if (node.num_children() != 2) {
 		throw create_invalid_sequence_length_exception(2, node);
 	}

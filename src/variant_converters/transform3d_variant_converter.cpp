@@ -11,8 +11,7 @@ YAMLTransform3DVariantConverter::YAMLTransform3DVariantConverter(YAMLVariantConv
 	ERR_FAIL_NULL(vec3_converter);
 }
 
-void YAMLTransform3DVariantConverter::encode(
-		ryml::NodeRef &node, const Variant &v, const YAMLStyle::View &style) const {
+void YAMLTransform3DVariantConverter::encode(ryml::NodeRef &node, const Variant &v, const YAMLStyle::View &style) const {
 	const Transform3D transform = v.operator Transform3D();
 
 	style.apply_flow_style(node);
@@ -31,10 +30,8 @@ void YAMLTransform3DVariantConverter::encode(
 	}
 
 	auto scalar_style = style.get_scalar_view();
-	basis_converter->encode(
-			basis_node, transform.basis, style.has_child("basis") ? style.get_child("basis") : scalar_style);
-	vec3_converter->encode(
-			origin_node, transform.origin, style.has_child("origin") ? style.get_child("origin") : scalar_style);
+	basis_converter->encode(basis_node, transform.basis, style.has_child("basis") ? style.get_child("basis") : scalar_style);
+	vec3_converter->encode(origin_node, transform.origin, style.has_child("origin") ? style.get_child("origin") : scalar_style);
 }
 
 Variant YAMLTransform3DVariantConverter::decode(const ryml::ConstNodeRef &node, YAMLParserContext *context) const {
@@ -55,8 +52,7 @@ Variant YAMLTransform3DVariantConverter::decode(const ryml::ConstNodeRef &node, 
 	}
 }
 
-Transform3D YAMLTransform3DVariantConverter::decode_from_map(
-		const ryml::ConstNodeRef &node, YAMLParserContext *context) const {
+Transform3D YAMLTransform3DVariantConverter::decode_from_map(const ryml::ConstNodeRef &node, YAMLParserContext *context) const {
 	check_required_fields(node, { "basis", "origin" });
 
 	const bool detect_style = context->detect_style;
@@ -85,8 +81,7 @@ Transform3D YAMLTransform3DVariantConverter::decode_from_map(
 	return Transform3D(basis, origin);
 }
 
-Transform3D YAMLTransform3DVariantConverter::decode_from_sequence(
-		const ryml::ConstNodeRef &node, YAMLParserContext *context) const {
+Transform3D YAMLTransform3DVariantConverter::decode_from_sequence(const ryml::ConstNodeRef &node, YAMLParserContext *context) const {
 	if (node.num_children() != 4) {
 		throw create_invalid_sequence_length_exception(4, node);
 	}

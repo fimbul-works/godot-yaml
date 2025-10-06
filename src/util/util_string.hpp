@@ -53,8 +53,7 @@ inline String from_ryml_str(const ryml::csubstr &str) {
  * @return bool True if the string should use block style
  */
 inline bool needs_block_style(const String &str) {
-	return str.contains("\n") || str.contains("\"") || str.begins_with(" ") || str.ends_with(" ") ||
-			str.begins_with("#");
+	return str.contains("\n") || str.contains("\"") || str.begins_with(" ") || str.ends_with(" ") || str.begins_with("#");
 }
 
 /**

@@ -6,8 +6,7 @@
 
 using namespace godot;
 
-YAMLParserContext::YAMLParserContext(
-		const ryml::Parser *p_ryml_parser, const Ref<YAMLStyle> &root_style, const Ref<Schema> &root_schema) :
+YAMLParserContext::YAMLParserContext(const ryml::Parser *p_ryml_parser, const Ref<YAMLStyle> &root_style, const Ref<Schema> &root_schema) :
 		ryml_parser(p_ryml_parser), detect_style(root_style.is_valid()), has_root_schema(true) {
 	if (detect_style) {
 		style_stack.push(root_style);

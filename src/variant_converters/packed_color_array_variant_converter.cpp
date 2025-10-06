@@ -9,8 +9,7 @@ YAMLPackedColorArrayVariantConverter::YAMLPackedColorArrayVariantConverter(YAMLV
 	ERR_FAIL_NULL(color_converter);
 }
 
-void YAMLPackedColorArrayVariantConverter::encode(
-		ryml::NodeRef &node, const Variant &v, const YAMLStyle::View &style) const {
+void YAMLPackedColorArrayVariantConverter::encode(ryml::NodeRef &node, const Variant &v, const YAMLStyle::View &style) const {
 	const PackedColorArray array = v.operator PackedColorArray();
 	node |= ryml::SEQ;
 

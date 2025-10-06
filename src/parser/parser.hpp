@@ -68,9 +68,7 @@ public:
 	 * @param detect_style Whether to detect and preserve YAML style information
 	 * @return Ref<YAMLResult> The parsed data or error information
 	 */
-	Ref<YAMLResult> parse(const String &input,
-			const YAMLSecurity::View &security_view = YAMLSecurity::get_default_view(),
-			const bool detect_style = false);
+	Ref<YAMLResult> parse(const String &input, const YAMLSecurity::View &security_view = YAMLSecurity::get_default_view(), const bool detect_style = false);
 
 	/**
 	 * @brief Parses and validates a YAML string into a Godot Variant.
@@ -80,9 +78,7 @@ public:
 	 * @param detect_style Whether to detect and preserve YAML style information
 	 * @return Ref<YAMLResult> The parsed data or error information
 	 */
-	Ref<YAMLResult> parse_and_validate(const String &input, const Variant &schema_param,
-			const YAMLSecurity::View &security_view = YAMLSecurity::get_default_view(),
-			const bool detect_style = false);
+	Ref<YAMLResult> parse_and_validate(const String &input, const Variant &schema_param, const YAMLSecurity::View &security_view = YAMLSecurity::get_default_view(), const bool detect_style = false);
 
 private:
 	/**
@@ -125,10 +121,6 @@ private:
 	static void error_callback(const char *msg, size_t len, ryml::Location loc, void *user_data);
 
 	/**
-	 * @brief Node processing methods.
-	 */
-
-	/**
 	 * @brief Processes a YAML node and converts it to a Godot Variant.
 	 *
 	 * @param node The YAML node to process
@@ -167,10 +159,6 @@ private:
 	 * @return Variant The converted value (String, int, float, bool, etc.)
 	 */
 	Variant process_value(const ryml::ConstNodeRef &node) const;
-
-	/**
-	 * @brief Value parsing helper methods.
-	 */
 
 	/**
 	 * @brief Attempts to parse a node with a YAML tag.

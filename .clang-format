@@ -87,7 +87,7 @@ AllowShortFunctionsOnASingleLine: Inline
 BreakConstructorInitializers: AfterColon
 # BreakInheritanceList: BeforeColon
 # BreakStringLiterals: true
-ColumnLimit: 120
+ColumnLimit: 0
 # CommentPragmas: "^ IWYU pragma:"
 # CompactNamespaces: false
 ConstructorInitializerIndentWidth: 8

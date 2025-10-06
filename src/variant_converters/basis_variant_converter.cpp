@@ -91,8 +91,7 @@ Variant YAMLBasisVariantConverter::decode_from_map(const ryml::ConstNodeRef &nod
 	return Basis(x, y, z);
 }
 
-Variant YAMLBasisVariantConverter::decode_from_sequence(
-		const ryml::ConstNodeRef &node, YAMLParserContext *context) const {
+Variant YAMLBasisVariantConverter::decode_from_sequence(const ryml::ConstNodeRef &node, YAMLParserContext *context) const {
 	if (node.num_children() != 3) {
 		throw create_invalid_sequence_length_exception(3, node);
 	}

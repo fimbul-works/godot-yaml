@@ -28,10 +28,8 @@ void YAMLPlaneVariantConverter::encode(ryml::NodeRef &node, const Variant &v, co
 		d_node = node.append_child();
 	}
 
-	vec3_converter->encode(
-			normal_node, plane.normal, style.has_child("normal") ? style.get_child("normal") : style.get_scalar_view());
-	d_node << float_to_string(
-			plane.d, style.has_child("d") ? style.get_child("d").get_float_format() : YAMLStyle::FLOAT_ANY);
+	vec3_converter->encode(normal_node, plane.normal, style.has_child("normal") ? style.get_child("normal") : style.get_scalar_view());
+	d_node << float_to_string(plane.d, style.has_child("d") ? style.get_child("d").get_float_format() : YAMLStyle::FLOAT_ANY);
 }
 
 Variant YAMLPlaneVariantConverter::decode(const ryml::ConstNodeRef &node, YAMLParserContext *context) const {
@@ -83,8 +81,7 @@ Variant YAMLPlaneVariantConverter::decode_from_map(const ryml::ConstNodeRef &nod
 	return Plane(normal, d);
 }
 
-Variant YAMLPlaneVariantConverter::decode_from_sequence(
-		const ryml::ConstNodeRef &node, YAMLParserContext *context) const {
+Variant YAMLPlaneVariantConverter::decode_from_sequence(const ryml::ConstNodeRef &node, YAMLParserContext *context) const {
 	if (node.num_children() != 2) {
 		throw create_invalid_sequence_length_exception(2, node);
 	}

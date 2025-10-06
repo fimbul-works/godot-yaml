@@ -76,28 +76,6 @@ public:
 
 private:
 	/**
-	 * @brief Emission helper methods.
-	 */
-
-	/**
-	 * @brief Emits a Basis as a map.
-	 *
-	 * @param node The target YAML node
-	 * @param basis The Basis to emit
-	 * @param style The style settings to apply
-	 */
-	void emit_as_map(ryml::NodeRef &node, const Basis &basis, const YAMLStyle::View &style) const;
-
-	/**
-	 * @brief Emits a Basis as a sequence.
-	 *
-	 * @param node The target YAML node
-	 * @param basis The Basis to emit
-	 * @param style The style settings to apply
-	 */
-	void emit_as_sequence(ryml::NodeRef &node, const Basis &basis, const YAMLStyle::View &style) const;
-
-	/**
 	 * @brief Decodes a Basis from a map-formatted YAML node.
 	 *
 	 * Processes a YAML map with "x", "y", and "z" fields into a Basis.

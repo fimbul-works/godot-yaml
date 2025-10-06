@@ -48,7 +48,8 @@ public:
 	/**
 	 * @brief Default constructor.
 	 */
-	PathPattern() : type(REGULAR), path("") {}
+	PathPattern() :
+			type(REGULAR), path("") {}
 
 	/**
 	 * @brief Constructor with path string.
@@ -123,11 +124,13 @@ private:
 namespace std {
 
 // Hash and equality specializations for PathPattern
-template <> struct hash<PathPattern> {
+template <>
+struct hash<PathPattern> {
 	size_t operator()(const PathPattern &p) const { return std::hash<std::string>()(p.get_path().utf8().get_data()); }
 };
 
-template <> struct equal_to<PathPattern> {
+template <>
+struct equal_to<PathPattern> {
 	bool operator()(const PathPattern &a, const PathPattern &b) const { return a.get_path() == b.get_path(); }
 };
 
@@ -255,9 +258,7 @@ public:
 		 * @param p_allowed_paths_with_types Map of path patterns with type restrictions
 		 * @param p_blocked_types Set of globally blocked types
 		 */
-		View(const std::unordered_map<PathPattern, std::vector<StringName>, std::hash<PathPattern>,
-					 std::equal_to<PathPattern>> &p_allowed_paths_with_types,
-				const std::unordered_set<StringName, StringNameHasher> &p_blocked_types);
+		View(const std::unordered_map<PathPattern, std::vector<StringName>, std::hash<PathPattern>, std::equal_to<PathPattern>> &p_allowed_paths_with_types, const std::unordered_set<StringName, StringNameHasher> &p_blocked_types);
 
 		/**
 		 * @brief Checks if a path is allowed (first step validation).
@@ -314,8 +315,7 @@ private:
 	 * Maps path patterns to allowed type lists.
 	 * An empty vector means all non-blocked types are allowed.
 	 */
-	std::unordered_map<PathPattern, std::vector<StringName>, std::hash<PathPattern>, std::equal_to<PathPattern>>
-			allowed_paths_with_types;
+	std::unordered_map<PathPattern, std::vector<StringName>, std::hash<PathPattern>, std::equal_to<PathPattern>> allowed_paths_with_types;
 
 	/**
 	 * @brief Blocked types (globally blocked regardless of path).

@@ -9,8 +9,7 @@ YAMLPackedVector2ArrayVariantConverter::YAMLPackedVector2ArrayVariantConverter(Y
 	ERR_FAIL_NULL(vec2_converter);
 }
 
-void YAMLPackedVector2ArrayVariantConverter::encode(
-		ryml::NodeRef &node, const Variant &v, const YAMLStyle::View &style) const {
+void YAMLPackedVector2ArrayVariantConverter::encode(ryml::NodeRef &node, const Variant &v, const YAMLStyle::View &style) const {
 	const PackedVector2Array array = v.operator PackedVector2Array();
 	node |= ryml::SEQ;
 
@@ -45,8 +44,7 @@ void YAMLPackedVector2ArrayVariantConverter::encode(
 	}
 }
 
-Variant YAMLPackedVector2ArrayVariantConverter::decode(
-		const ryml::ConstNodeRef &node, YAMLParserContext *context) const {
+Variant YAMLPackedVector2ArrayVariantConverter::decode(const ryml::ConstNodeRef &node, YAMLParserContext *context) const {
 	if (!node.is_seq()) {
 		throw create_invalid_format_exception(node);
 	}
@@ -85,14 +83,10 @@ Variant YAMLPackedVector2ArrayVariantConverter::decode(
 				}
 			} catch (const YAMLException &e) {
 				// NOTE: Cast size_t to int64_t for ARM64 macOS Variant compatibility
-				throw YAMLException(vformat("Failed to decode PackedVector2Array value at index %d: %s",
-											static_cast<int64_t>(i), e.what()),
-						e.get_location());
+				throw YAMLException(vformat("Failed to decode PackedVector2Array value at index %d: %s", static_cast<int64_t>(i), e.what()), e.get_location());
 			} catch (const std::exception &e) {
 				// NOTE: Cast size_t to int64_t for ARM64 macOS Variant compatibility
-				throw YAMLException(vformat("Failed to decode PackedVector2Array value at index %d: %s",
-											static_cast<int64_t>(i), e.what()),
-						node[i].location(*context->get_ryml_parser()));
+				throw YAMLException(vformat("Failed to decode PackedVector2Array value at index %d: %s", static_cast<int64_t>(i), e.what()), node[i].location(*context->get_ryml_parser()));
 			}
 		}
 	}
