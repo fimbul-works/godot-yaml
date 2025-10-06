@@ -165,7 +165,7 @@ Ref<Schema> YAMLParserContext::current_schema() const {
 	return schema_stack.top();
 }
 
-void YAMLParserContext::add_validation_error(const YAMLValidationError &error) {
+void YAMLParserContext::add_validation_error(const ValidationError &error) {
 	validation_errors.push_back(error);
 }
 

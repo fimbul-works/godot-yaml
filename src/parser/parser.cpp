@@ -152,8 +152,7 @@ Ref<YAMLResult> YAML::Parser::parse_and_validate(const String &input, const Vari
 		Ref<SchemaValidationResult> validation_result;
 		if (context->has_validation_errors()) {
 			validation_result = SchemaValidationResult::success();
-			for (const YAMLValidationError &error : context->get_validation_errors()) {
-				// Add errors to result (we'd need to add this method to SchemaValidationResult)
+			for (const auto &error : context->get_validation_errors()) {
 				validation_result->add_error(error);
 			}
 		}
@@ -734,8 +733,7 @@ Variant YAML::Parser::load_resource(const String &path, const ryml::ConstNodeRef
 			context->push_resource_context(path);
 		}
 
-		Ref<YAMLResult> result =
-				YAML::parser_load_file(path, security_view, loading_yaml_paths, context->is_validating());
+		Ref<YAMLResult> result = YAML::parser_load_file(path, security_view, loading_yaml_paths, context->is_validating());
 
 		if (context->is_validating()) {
 			// Collect nested validation errors with corrected paths
@@ -746,20 +744,12 @@ Variant YAML::Parser::load_resource(const String &path, const ryml::ConstNodeRef
 				for (int i = 0; i < nested_errors.size(); i++) {
 					Dictionary error_dict = nested_errors[i];
 
-					// Build path string with resource context
-					String nested_path = error_dict["path"];
-					String full_path = resource_prefix + nested_path;
+					// Build path segments with resource context
+					PackedStringArray instance_path_parts;
+					instance_path_parts.append(resource_prefix);
+					instance_path_parts.append_array(error_dict["instance_path_array"]);
 
-					// Build clean path_array (only actual property/index segments)
-					Array nested_path_array = error_dict["path_array"];
-					Array full_path_array;
-					full_path_array.append_array(context->get_current_instance_path_array());
-					full_path_array.append_array(nested_path_array);
-
-					YAMLValidationError error(error_dict["message"], full_path, full_path_array,
-							error_dict["constraint"], error_dict.get("schema_path", ""),
-							error_dict.get("invalid_value", Variant()));
-
+					ValidationError error(error_dict["message"], instance_path_parts, error_dict["schema_path_array"], error_dict.get("keyword", ""), error_dict.get("invalid_value", Variant()));
 					context->add_validation_error(error);
 				}
 			}
@@ -876,10 +866,7 @@ void YAML::Parser::validate_current_node(const Variant &value) const {
 				full_path = "/";
 			}
 
-			YAMLValidationError error(error_dict["message"], full_path, error_dict["path_array"],
-					error_dict["constraint"], error_dict.get("schema_path", ""),
-					error_dict.get("invalid_value", Variant()));
-
+			ValidationError error(error_dict["message"], error_dict["instance_path_array"], error_dict["schema_path_array"], error_dict.get("keyword", ""), error_dict.get("invalid_value", Variant()));
 			context->add_validation_error(error);
 		}
 	}
@@ -936,16 +923,17 @@ void YAML::Parser::check_yaml_tag_constraint(const String &tag) const {
 
 	String expected_tag = required_tag;
 
+	String schema_path = schema->get_schema_path();
+	PackedStringArray schema_path_parts;
+	if (!schema_path.is_empty()) {
+		schema_path_parts = schema_path.substr(1).split("/");
+	}
+
 	if (!tag.is_empty() && tag != expected_tag) {
-		YAMLValidationError error(vformat("Expected YAML tag '!%s' but got '!%s'", expected_tag, tag),
-				context->get_current_instance_path(), context->get_current_instance_path_array(), "x-yaml-tag",
-				schema->get_schema_path(),
-				Variant() // No specific invalid value
-		);
+		ValidationError error(vformat("Expected YAML tag '!%s' but got '!%s'", expected_tag, tag), context->get_current_instance_path_array(), schema_path_parts, "x-yaml-tag", Variant());
 		context->add_validation_error(error);
 	} else if (tag.is_empty() && !expected_tag.is_empty()) {
-		YAMLValidationError error(vformat("Expected YAML tag '!%s' but value has no tag", expected_tag),
-				context->get_current_instance_path(), Array(), "x-yaml-tag", schema->get_schema_path(), Variant());
+		ValidationError error(vformat("Expected YAML tag '!%s' but value has no tag", expected_tag), context->get_current_instance_path_array(), schema_path_parts, "x-yaml-tag", Variant());
 		context->add_validation_error(error);
 	}
 }

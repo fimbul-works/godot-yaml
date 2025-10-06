@@ -11,6 +11,7 @@
 #include "../style/style.hpp"
 #include "exception.hpp"
 #include <schema.hpp>
+#include <validation_error.hpp>
 #include <validation_result.hpp>
 
 #include <ryml.hpp>
@@ -140,13 +141,13 @@ public:
 	 * @brief Adds a validation error to the context.
 	 * @param error The YAMLValidationError to add
 	 */
-	void add_validation_error(const YAMLValidationError &error);
+	void add_validation_error(const ValidationError &error);
 
 	/**
 	 * @brief Retrieves the list of validation errors.
 	 * @return const std::vector<YAMLValidationError>& Reference to the list of errors
 	 */
-	const std::vector<YAMLValidationError> &get_validation_errors() const { return validation_errors; }
+	const std::vector<ValidationError> &get_validation_errors() const { return validation_errors; }
 
 	/**
 	 * @brief Checks if there are any validation errors.
@@ -247,7 +248,7 @@ private:
 	/**
 	 * @brief List of validation errors encountered during parsing.
 	 */
-	std::vector<YAMLValidationError> validation_errors;
+	std::vector<ValidationError> validation_errors;
 
 	/**
 	 * @brief Stack of path segments representing the current instance path.
