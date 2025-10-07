@@ -15,6 +15,7 @@
 #include "parser/security.hpp"
 #include "result.hpp"
 #include "style/style.hpp"
+#include <schema.hpp>
 
 #include <godot_cpp/classes/ref.hpp>
 #include <godot_cpp/classes/ref_counted.hpp>
@@ -282,6 +283,22 @@ public:
 	 * @brief Resets security settings to default values.
 	 */
 	static void reset_security();
+
+	/**
+	 * @brief Loads a Schema from a YAML file
+	 * @param path Path to the YAML Schema file
+	 * @param validate_against_meta If true, validate against meta-schema
+	 * @return New schema instance or null on error
+	 */
+	static Ref<Schema> load_schema_from_file(const String &path, bool validate_against_meta = false);
+
+	/**
+	 * @brief Loads a Schema from a YAML string
+	 * @param yaml_string Schema as YAML string
+	 * @param validate_against_meta If true, validate against meta-schema
+	 * @return New schema instance or null on error
+	 */
+	static Ref<Schema> load_schema_from_string(const String &yaml_string, bool validate_against_meta = false);
 
 	/**
 	 * @brief Converts the YAML object to a string representation.

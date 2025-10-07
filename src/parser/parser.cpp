@@ -969,8 +969,20 @@ void YAML::Parser::apply_property_defaults(Dictionary &dict) const {
 			continue;
 		}
 
-		// Apply the default value
+		// Get the default value
 		Variant default_value = prop_schema->get_default_value();
+		if (default_value.get_type() == Variant::DICTIONARY) {
+			Dictionary def_dict = default_value.operator Dictionary();
+			// Resolve $ref in default value if present
+			if (def_dict.has("$ref")) {
+				String ref = def_dict["$ref"];
+				Ref<Schema> ref_schema = schema->resolve_reference(ref);
+				if (ref_schema.is_valid() && ref_schema->has_default_value()) {
+					default_value = ref_schema->get_default_value();
+				}
+			}
+		}
+		// Apply the default value
 		dict[property_name] = default_value;
 	}
 }

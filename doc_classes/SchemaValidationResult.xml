@@ -1,0 +1,331 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="SchemaValidationResult" inherits="RefCounted" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+		Contains validation results or errors from schema validation.
+	</brief_description>
+	<description>
+		Contains the results from schema validation operations, providing detailed error information including JSON Pointer paths, constraint names, and invalid values. This class is returned by [method Schema.validate] and provides a unified interface for both successful and failed validations.
+		All validation errors are collected during validation rather than stopping at the first failure, allowing you to see all issues at once. Each error includes the path to the invalid data using JSON Pointer notation (e.g., [code]"/user/age"[/code]), the schema constraint that failed (e.g., [code]"minimum"[/code]), and the actual invalid value.
+		[SchemaValidationResult] objects are immutable and thread-safe.
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="error_count" qualifiers="const">
+			<return type="int" />
+			<description>
+				Returns the number of validation errors. Returns [code]0[/code] for successful validation.
+				[codeblock]
+				var schema = Schema.build_schema({
+				    "type": "object",
+				    "properties": {
+				        "a": {"type": "string"},
+				        "b": {"type": "number"}
+				    },
+				    "required": ["a", "b"]
+				})
+
+				var result = schema.validate({"a": 123})  # Wrong type + missing property
+				print(result.error_count())  # 2
+				[/codeblock]
+			</description>
+		</method>
+		<method name="get_all_error_paths" qualifiers="const">
+			<return type="PackedStringArray" />
+			<description>
+				Returns an array of JSON Pointer paths for all validation errors.
+				[codeblock]
+				var schema = Schema.build_schema({
+				    "type": "object",
+				    "properties": {
+				        "user": {
+				            "type": "object",
+				            "properties": {
+				                "name": {"type": "string", "minLength": 1},
+				                "age": {"type": "integer", "minimum": 0}
+				            }
+				        }
+				    }
+				})
+
+				var result = schema.validate({
+				    "user": {
+				        "name": "",
+				        "age": -5
+				    }
+				})
+
+				for path in result.get_all_error_paths():
+				    print(path)
+				# /user/name
+				# /user/age
+				[/codeblock]
+			</description>
+		</method>
+		<method name="get_brief_summary" qualifiers="const">
+			<return type="String" />
+			<description>
+				Returns a brief one-line summary of the validation result.
+				[codeblock]
+				var schema = Schema.build_schema({"type": "string"})
+
+				var result = schema.validate("valid")
+				print(result.get_brief_summary())  # "Validation passed"
+
+				result = schema.validate(123)
+				print(result.get_brief_summary())  # "Validation failed: 1 error(s)"
+				[/codeblock]
+			</description>
+		</method>
+		<method name="get_error" qualifiers="const">
+			<return type="Dictionary" />
+			<param index="0" name="index" type="int" />
+			<description>
+				Returns a dictionary containing all information about the error at the specified index. Returns an empty dictionary if the index is out of range.
+				The dictionary contains the following keys:
+				[code]message[/code]: Human-readable error description
+				[code]path[/code]: JSON Pointer to the invalid data (e.g., [code]"/user/age"[/code])
+				[code]path_array[/code]: Path as an array (e.g., [code]["user", "age"][/code])
+				[code]constraint[/code]: Schema constraint that failed (e.g., [code]"minimum"[/code])
+				[code]schema_path[/code]: Path to the schema rule (e.g., [code]"/properties/user/properties/age/minimum"[/code])
+				[code]invalid_value[/code]: The actual value that failed validation
+				[codeblock]
+				var schema = Schema.build_schema({
+				    "type": "integer",
+				    "minimum": 10
+				})
+
+				var result = schema.validate(5)
+				if result.has_errors():
+				    var error = result.get_error(0)
+				    print("Error: %s" % error.message)
+				    print("Value: %s" % error.invalid_value)
+				    print("Constraint: %s" % error.constraint)
+				[/codeblock]
+			</description>
+		</method>
+		<method name="get_error_constraint" qualifiers="const">
+			<return type="String" />
+			<param index="0" name="index" type="int" />
+			<description>
+				Returns the name of the constraint that was violated at the specified error index. Returns an empty string if the index is out of range.
+				Common constraint names include: [code]type[/code], [code]minimum[/code], [code]maximum[/code], [code]minLength[/code], [code]maxLength[/code], [code]pattern[/code], [code]required[/code], [code]enum[/code], [code]format[/code], etc.
+				[codeblock]
+				var schema = Schema.build_schema({
+				    "type": "string",
+				    "pattern": "^[a-z]+$"
+				})
+
+				var result = schema.validate("ABC123")
+				if result.has_errors():
+				    print(result.get_error_constraint(0))  # "pattern"
+				[/codeblock]
+			</description>
+		</method>
+		<method name="get_error_message" qualifiers="const">
+			<return type="String" />
+			<param index="0" name="index" type="int" />
+			<description>
+				Returns the human-readable error message at the specified index. Returns an empty string if the index is out of range.
+				[codeblock]
+				var schema = Schema.build_schema({
+				    "type": "integer",
+				    "minimum": 0,
+				    "maximum": 100
+				})
+
+				var result = schema.validate(150)
+				if result.has_errors():
+				    print(result.get_error_message(0))
+				    # "Value 150 exceeds maximum 100"
+				[/codeblock]
+			</description>
+		</method>
+		<method name="get_error_path" qualifiers="const">
+			<return type="String" />
+			<param index="0" name="index" type="int" />
+			<description>
+				Returns the JSON Pointer path to the invalid data at the specified error index. Returns an empty string if the index is out of range.
+				Paths use JSON Pointer notation with forward slashes, such as [code]"/user/address/zipcode"[/code].
+				[codeblock]
+				var schema = Schema.build_schema({
+				    "type": "object",
+				    "properties": {
+				        "user": {
+				            "type": "object",
+				            "properties": {
+				                "age": {"type": "integer", "minimum": 0}
+				            }
+				        }
+				    }
+				})
+
+				var result = schema.validate({
+				    "user": {"age": -5}
+				})
+
+				if result.has_errors():
+				    print(result.get_error_path(0))  # "/user/age"
+				[/codeblock]
+			</description>
+		</method>
+		<method name="get_error_path_array" qualifiers="const">
+			<return type="PackedStringArray" />
+			<param index="0" name="index" type="int" />
+			<description>
+				Returns the path to the invalid data as an array of segments. Returns an empty array if the index is out of range.
+				This is useful for programmatic navigation or building custom error displays.
+				[codeblock]
+				var schema = Schema.build_schema({
+				    "type": "array",
+				    "items": {
+				        "type": "object",
+				        "properties": {
+				            "name": {"type": "string"}
+				        }
+				    }
+				})
+
+				var result = schema.validate([
+				    {"name": "valid"},
+				    {"name": 123}  # Invalid
+				])
+
+				if result.has_errors():
+				    var path_array = result.get_error_path_array(0)
+				    print(path_array)  # ["1", "name"]
+				[/codeblock]
+			</description>
+		</method>
+		<method name="get_error_value" qualifiers="const">
+			<return type="Variant" />
+			<param index="0" name="index" type="int" />
+			<description>
+				Returns the actual invalid value that caused the validation error at the specified index. Returns [code]null[/code] if the index is out of range.
+				[codeblock]
+				var schema = Schema.build_schema({
+				    "type": "string",
+				    "enum": ["red", "green", "blue"]
+				})
+
+				var result = schema.validate("yellow")
+				if result.has_errors():
+				    var invalid_value = result.get_error_value(0)
+				    print("Invalid value: %s" % invalid_value)  # "yellow"
+				[/codeblock]
+			</description>
+		</method>
+		<method name="get_errors" qualifiers="const">
+			<return type="Array" />
+			<description>
+				Returns an array of all error dictionaries. Each dictionary contains the same keys as described in [method get_error].
+				[codeblock]
+				var schema = Schema.build_schema({
+				    "type": "object",
+				    "properties": {
+				        "a": {"type": "string"},
+				        "b": {"type": "number"}
+				    }
+				})
+
+				var result = schema.validate({"a": 123, "b": "not a number"})
+
+				for error in result.get_errors():
+				    print("%s at %s: %s" % [error.constraint, error.path, error.message])
+				[/codeblock]
+			</description>
+		</method>
+		<method name="get_summary" qualifiers="const">
+			<return type="String" />
+			<description>
+				Returns a formatted multi-line summary of all validation errors. Returns a success message if validation passed.
+				[codeblock]
+				var schema = Schema.build_schema({
+				    "type": "object",
+				    "properties": {
+				        "name": {"type": "string", "minLength": 1},
+				        "age": {"type": "integer", "minimum": 0}
+				    },
+				    "required": ["name"]
+				})
+
+				var result = schema.validate({
+				    "name": "",
+				    "age": -5
+				})
+
+				print(result.get_summary())
+				# Schema validation failed with 2 error(s):
+				#   [1] At '/name': String length 0 is less than minimum 1 (minLength)
+				#   [2] At '/age': Value -5 is less than minimum 0 (minimum)
+				[/codeblock]
+			</description>
+		</method>
+		<method name="get_violated_constraints" qualifiers="const">
+			<return type="PackedStringArray" />
+			<description>
+				Returns an array of unique constraint names that were violated during validation. Useful for categorizing errors or filtering by constraint type.
+				[codeblock]
+				var schema = Schema.build_schema({
+				    "type": "object",
+				    "properties": {
+				        "a": {"type": "string", "minLength": 5},
+				        "b": {"type": "string", "minLength": 5},
+				        "c": {"type": "integer", "minimum": 0}
+				    }
+				})
+
+				var result = schema.validate({
+				    "a": "ab",
+				    "b": "cd",
+				    "c": -1
+				})
+
+				print(result.get_violated_constraints())  # ["minLength", "minimum"]
+				[/codeblock]
+			</description>
+		</method>
+		<method name="has_errors" qualifiers="const">
+			<return type="bool" />
+			<description>
+				Returns [code]true[/code] if validation failed with one or more errors.
+				[codeblock]
+				var schema = Schema.build_schema({"type": "string"})
+
+				var result = schema.validate("valid string")
+				print(result.has_errors())  # false
+
+				result = schema.validate(123)
+				print(result.has_errors())  # true
+				[/codeblock]
+			</description>
+		</method>
+		<method name="is_valid" qualifiers="const">
+			<return type="bool" />
+			<description>
+				Returns [code]true[/code] if validation succeeded without errors.
+				[codeblock]
+				var schema = Schema.build_schema({
+				    "type": "integer",
+				    "minimum": 0,
+				    "maximum": 100
+				})
+
+				print(schema.validate(50).is_valid())   # true
+				print(schema.validate(150).is_valid())  # false
+				[/codeblock]
+			</description>
+		</method>
+		<method name="success" qualifiers="static">
+			<return type="SchemaValidationResult" />
+			<description>
+				Creates a successful validation result with no errors. Primarily used internally or for testing.
+				[codeblock]
+				var result = SchemaValidationResult.success()
+				print(result.is_valid())      # true
+				print(result.error_count())   # 0
+				[/codeblock]
+			</description>
+		</method>
+	</methods>
+</class>

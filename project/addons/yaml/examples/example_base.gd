@@ -39,15 +39,15 @@ func log_error(text: String) -> void:
 func log_warning(text: String) -> void:
 	print_rich("[color=yellow]⚠️ %s[/color]" % text)
 
-func log_info(text: String) -> void:
-	print_rich("%s" % text)
+func log_info(text: Variant) -> void:
+	print_rich("%s" % str(text))
 
 func log_code_block(code: String) -> void:
 	print_rich("\n[b]Code:[/b]")
 	print_rich("[color=#aaaaff]%s" % code)
 
-func log_result(text: String) -> void:
-	print_rich("\n[b]Result:[/b]\n%s" % text)
+func log_result(text: Variant) -> void:
+	print_rich("\n[b]Result:[/b]\n%s" % str(text))
 
 # Run a single example with timing
 func run_example(title: String, method: Callable) -> void:

@@ -8,6 +8,7 @@
 #include "style/style_view.hpp"
 #include "syntax_validator/syntax_validator.hpp"
 #include "version.hpp"
+#include <schema.hpp>
 #include <validation_result.hpp>
 
 #include <godot_cpp/classes/file_access.hpp>
@@ -52,6 +53,9 @@ void YAML::_bind_methods() {
 	ClassDB::bind_static_method("YAML", D_METHOD("allow_resource_path", "path_prefix", "type_names"), &YAML::allow_resource_path, DEFVAL(Array()));
 	ClassDB::bind_static_method("YAML", D_METHOD("block_resource_type", "type_name"), &YAML::block_resource_type);
 	ClassDB::bind_static_method("YAML", D_METHOD("reset_security"), &YAML::reset_security);
+
+	ClassDB::bind_static_method("YAML", D_METHOD("load_schema_from_string", "yaml_string", "validate_against_meta"), &YAML::load_schema_from_string, DEFVAL(false));
+	ClassDB::bind_static_method("YAML", D_METHOD("load_schema_from_file", "path", "validate_against_meta"), &YAML::load_schema_from_file, DEFVAL(false));
 
 	BIND_VIRTUAL_METHOD(YAML, _to_string);
 }
@@ -328,6 +332,38 @@ void YAML::block_resource_type(const StringName &type_name) {
 
 void YAML::reset_security() {
 	YAMLSecurity::get_default_instance()->reset();
+}
+
+Ref<Schema> YAML::load_schema_from_file(const String &path, bool validate_against_meta) {
+	const Ref<YAMLResult> load_result = load_file(path);
+	if (load_result->has_error()) {
+		UtilityFunctions::push_error(load_result->get_error());
+		return Ref<Schema>();
+	}
+
+	Variant data = load_result->get_data();
+	if (data.get_type() != Variant::DICTIONARY) {
+		UtilityFunctions::push_error(vformat("Schema file '%s' does not contain a valid Schema dictionary, got %s", path, type_str(data)));
+		return Ref<Schema>();
+	}
+
+	return Schema::build_schema(data.operator Dictionary(), validate_against_meta);
+}
+
+Ref<Schema> YAML::load_schema_from_string(const String &yaml_string, bool validate_against_meta) {
+	const Ref<YAMLResult> parse_result = parse(yaml_string);
+	if (parse_result->has_error()) {
+		UtilityFunctions::push_error(parse_result->get_error());
+		return Ref<Schema>();
+	}
+
+	Variant data = parse_result->get_data();
+	if (data.get_type() != Variant::DICTIONARY) {
+		UtilityFunctions::push_error(vformat("Schema expects dictionary, got %s", type_str(data)));
+		return Ref<Schema>();
+	}
+
+	return Schema::build_schema(data.operator Dictionary(), validate_against_meta);
 }
 
 String YAML::_to_string() const {

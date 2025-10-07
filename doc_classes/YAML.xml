@@ -80,6 +80,207 @@
 				[/codeblock]
 			</description>
 		</method>
+		<method name="load_schema_from_string" qualifiers="static">
+			<return type="Schema" />
+			<param index="0" name="yaml_string" type="String" />
+			<param index="1" name="validate_against_meta" type="bool" default="false" />
+			<description>
+				Parses a YAML string and builds a [Schema] object for validation. Returns a [Schema] ready for validation, or [code]null[/code] if the YAML is malformed.
+				This method combines YAML parsing with [method Schema.build_schema] from the [url=https://github.com/fimbul-works/gdschema]GDSchema[/url] extension. Schemas support the full [url=https://json-schema.org/specification-links.html#draft-7]JSON Schema Draft-7[/url] specification, including [code]$ref[/code] references, schema composition ([code]allOf[/code], [code]anyOf[/code], [code]oneOf[/code]), and conditional validation ([code]if[/code]/[code]then[/code]/[code]else[/code]).
+				Schemas with a [code]$id[/code] field are automatically registered globally and can be referenced by ID in other schemas or during validation.
+				If [param validate_against_meta] is [code]true[/code], the schema itself is validated against the JSON Schema Draft-7 meta-schema before building.
+				[b]YAML Extension Keywords:[/b]
+				In addition to standard JSON Schema keywords, two YAML-specific extensions are available:
+				 • [code]default[/code] - Provides a default value when a property is [i]missing[/i] (not when explicitly [code]null[/code])
+				 • [code]x-yaml-tag[/code] - Validates that a YAML value has a specific tag (e.g., [code]!Resource[/code], [code]!CustomType[/code])
+				[codeblock]
+				# Load a schema with definitions, defaults, and tag validation
+				var yaml_schema = '''
+$id: "http://example.com/user.yaml"
+
+# Reusable definitions
+$defs:
+  settings:
+    type: object
+    properties:
+      theme:
+        type: string
+        enum: [light, dark, auto]
+        default: dark
+      volume:
+        type: number
+        minimum: 0
+        maximum: 1
+        default: 0.5
+
+type: object
+properties:
+  username:
+    type: string
+    minLength: 3
+    maxLength: 20
+  email:
+    type: string
+    format: email
+  role:
+    type: string
+    enum: [user, admin, moderator]
+    default: user
+    x-yaml-tag: UserRole
+  avatar:
+    type: string
+    x-yaml-tag: Resource
+  settings:
+    $ref: "#/$defs/settings"
+required:
+- username
+- email
+'''
+
+				var schema = YAML.load_schema_from_string(yaml_schema)
+				if not schema:
+				    push_error("Failed to parse schema")
+				    return
+
+				# Validate data using the schema
+				var valid_data = {
+				    "username": "alice",
+				    "email": "alice@example.com"
+				}
+				var result = schema.validate(valid_data)
+				print(result.is_valid()) # true
+				print(result.get_data().role) # "user" (default applied)
+				print(result.get_data().settings.theme) # "dark" (nested default)
+
+				# Invalid data shows detailed errors
+				var invalid_data = {
+				    "username": "ab",  # Too short
+				    "email": "not-an-email"  # Invalid format
+				}
+				result = schema.validate(invalid_data)
+				if result.has_errors():
+				    print(result.get_summary())
+				    # Schema validation failed with 2 error(s):
+				    #   [1] At '/username': String length 2 is less than minimum 3 (minLength)
+				    #   [2] At '/email': String "not-an-email" does not match format email (format)
+				[/codeblock]
+				[b]See also:[/b] [method load_schema_from_file], [method parse_and_validate]
+				[b]Note:[/b] For complete JSON Schema documentation, see [url=https://github.com/fimbul-works/gdschema]GDSchema README[/url].
+			</description>
+		</method>
+		<method name="load_schema_from_file" qualifiers="static">
+			<return type="Schema" />
+			<param index="0" name="path" type="String" />
+ 			<param index="1" name="validate_against_meta" type="bool" default="false" />
+			<description>
+				Loads and parses a YAML schema file, returning a [Schema] object ready for validation. Returns [code]null[/code] if the file cannot be read or contains malformed YAML.
+				This method combines YAML file loading with [method Schema.build_schema] from the [url=https://github.com/fimbul-works/gdschema]GDSchema[/url] extension. Schemas support the full [url=https://json-schema.org/specification-links.html#draft-7]JSON Schema Draft-7[/url] specification.
+				Schemas with a [code]$id[/code] field are automatically registered globally, making them referenceable by ID. This is ideal for loading reusable schema definitions that can be referenced across your project.
+				If [param validate_against_meta] is [code]true[/code], the schema itself is validated against the JSON Schema Draft-7 meta-schema before building.
+				[b]YAML Extension Keywords:[/b]
+				 • [code]default[/code] - Provides default values for missing properties
+				 • [code]x-yaml-tag[/code] - Validates YAML tags (e.g., [code]!Resource[/code])
+				[codeblock]
+				# user_schema.yaml
+				# $id: "http://example.com/user.yaml"
+				# type: object
+				# properties:
+				#   username:
+				#     type: string
+				#     minLength: 3
+				#   email:
+				#     type: string
+				#     format: email
+				#   role:
+				#     type: string
+				#     default: user
+				#     x-yaml-tag: UserRole
+				#   avatar:
+				#     type: string
+				#     x-yaml-tag: Resource
+				# required:
+				# - username
+				# - email
+
+				# Load the schema
+				var user_schema = YAML.load_schema_from_file("res://schemas/user_schema.yaml")
+				if not user_schema:
+				    push_error("Failed to load user schema")
+				    return
+
+				# Method 1: Validate using the Schema object directly
+				var result = user_schema.validate({
+				    "username": "alice",
+				    "email": "alice@example.com"
+				})
+				if result.has_errors():
+				    print(result.get_summary())
+				else:
+				    print("Valid user data")
+
+				# Method 2: Parse and validate YAML using the schema ID
+				var user_yaml = '''
+username: bob
+email: bob@example.com
+role: !UserRole admin
+avatar: !Resource "res://avatars/bob.png"
+'''
+				result = YAML.parse_and_validate(user_yaml, "http://example.com/user.yaml")
+				if result.has_validation_errors():
+				    print(result.get_validation_summary())
+				else:
+				    var data = result.get_data()
+				    print(data.username)  # "bob"
+				    print(data.role)      # "admin"
+				    print(data.avatar)    # Texture2D resource
+
+				# Method 3: Auto-discovery using $schema field in YAML
+				var user_yaml_with_schema = '''
+$schema: "http://example.com/user.yaml"
+username: carol
+email: carol@example.com
+'''
+				result = YAML.parse_and_validate(user_yaml_with_schema)
+				if not result.has_validation_errors():
+				    var data = result.get_data()
+				    print(data.role)  # "user" (default applied)
+				[/codeblock]
+				[b]Advanced Features:[/b]
+				Schemas support [code]$ref[/code] references, definitions ([code]$defs[/code]), logical composition ([code]allOf[/code], [code]anyOf[/code], [code]oneOf[/code], [code]not[/code]), and conditional schemas ([code]if[/code]/[code]then[/code]/[code]else[/code]).
+				[codeblock]
+				# config_schema.yaml with references
+				# $id: "http://example.com/config.yaml"
+				# type: object
+				# properties:
+				#   user:
+				#     $ref: "http://example.com/user.yaml"
+				#   settings:
+				#     type: object
+				#     properties:
+				#       theme:
+				#         type: string
+				#         default: dark
+
+				var config_schema = YAML.load_schema_from_file("res://schemas/config_schema.yaml")
+
+				# The schema can reference other registered schemas
+				var config_yaml = '''
+$schema: "http://example.com/config.yaml"
+user:
+  username: dave
+  email: dave@example.com
+settings: {}
+'''
+				var result = YAML.parse_and_validate(config_yaml)
+				if not result.has_validation_errors():
+				    var data = result.get_data()
+				    print(data.user.role)          # "user" (default from user schema)
+				    print(data.settings.theme)     # "dark" (default from config schema)
+				[/codeblock]
+				[b]See also:[/b] [method load_schema_from_string], [method parse_and_validate]
+				[b]Note:[/b] For complete JSON Schema documentation and advanced features, see [url=https://github.com/fimbul-works/gdschema]GDSchema README[/url].
+			</description>
+		</method>
 		<method name="register_class" qualifiers="static">
 			<return type="void" />
 			<param index="0" name="script_class" type="Script" />

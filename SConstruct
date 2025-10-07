@@ -174,6 +174,36 @@ def clean_rapidyaml(env, variant_dir):
 
     print(f"Cleaned RapidYAML build directories for {variant_dir}")
 
+def copy_gdschema_files():
+    """Copy GDSchema documentation and icons to the project"""
+    import shutil
+    import glob
+
+    # Copy documentation XML files
+    doc_source = 'ext/gdschema/doc_classes'
+    doc_dest = 'doc_classes'
+
+    if os.path.exists(doc_source):
+        if not os.path.exists(doc_dest):
+            os.makedirs(doc_dest)
+
+        xml_files = glob.glob(os.path.join(doc_source, '*.xml'))
+        for xml_file in xml_files:
+            dest_file = os.path.join(doc_dest, os.path.basename(xml_file))
+            shutil.copy2(xml_file, dest_file)
+            print(f"Copied documentation: {os.path.basename(xml_file)}")
+
+    # Copy schema icon
+    icon_source = 'ext/gdschema/project/addons/GDSchema/icon.svg'
+    icon_dest = 'project/addons/yaml/icon-schema.svg'
+
+    if os.path.exists(icon_source):
+        dest_dir = os.path.dirname(icon_dest)
+        if not os.path.exists(dest_dir):
+            os.makedirs(dest_dir)
+        shutil.copy2(icon_source, icon_dest)
+        print(f"Copied icon: icon-schema.svg")
+
 def build_config(env, variant_dir):
     # Set up variant dir for our sources
     env.VariantDir(os.path.join(variant_dir, 'src'), 'src', duplicate=0)
@@ -270,6 +300,10 @@ def build_config(env, variant_dir):
 
 # Setup the build environment
 env = setup_build_env(base_env)
+
+# Copy GDSchema files before building
+if not env.GetOption('clean'):
+    copy_gdschema_files()
 
 # Establish the variant directory based on platform, target, and architecture
 variant_dir = get_build_path(env)

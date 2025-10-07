@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3 uid="uid://dogc1x0c3re7o"]
+[gd_scene load_steps=12 format=3 uid="uid://dogc1x0c3re7o"]
 
 [ext_resource type="Script" path="res://addons/yaml/examples/example_basic_usage.gd" id="1_iyu1q"]
 [ext_resource type="Script" path="res://addons/yaml/examples/example_variants.gd" id="4_4pc1t"]
@@ -6,6 +6,7 @@
 [ext_resource type="Script" path="res://addons/yaml/examples/example_multi_document.gd" id="7_wcdgp"]
 [ext_resource type="Script" path="res://addons/yaml/examples/example_speed_benchmark.gd" id="9_eedai"]
 [ext_resource type="Script" path="res://addons/yaml/examples/example_security.gd" id="9_pih52"]
+[ext_resource type="Script" path="res://addons/yaml/examples/example_validation.gd" id="10_kxy66"]
 [ext_resource type="Script" path="res://addons/yaml/examples/example_custom_class.gd" id="33_2d3w6"]
 [ext_resource type="Script" path="res://addons/yaml/examples/example_error_handling.gd" id="34_84xsb"]
 [ext_resource type="Script" path="res://addons/yaml/examples/example_resource_referencing.gd" id="35_jnbc0"]
@@ -15,29 +16,41 @@
 [node name="Examples" type="Node2D"]
 
 [node name="Basic Usage" type="Node2D" parent="."]
+visible = false
 script = ExtResource("1_iyu1q")
 
 [node name="Variants" type="Node2D" parent="."]
+visible = false
 script = ExtResource("4_4pc1t")
 
 [node name="Error Handling" type="Node2D" parent="."]
+visible = false
 script = ExtResource("34_84xsb")
 
 [node name="Custom Class" type="Node2D" parent="."]
+visible = false
 script = ExtResource("33_2d3w6")
 
 [node name="Style System" type="Node2D" parent="."]
+visible = false
 script = ExtResource("5_61ckj")
 
 [node name="Resource Referencing" type="Node2D" parent="."]
+visible = false
 script = ExtResource("35_jnbc0")
 local_texture = SubResource("PlaceholderTexture2D_grb45")
 
 [node name="Security" type="Node2D" parent="."]
+visible = false
 script = ExtResource("9_pih52")
 
 [node name="Multiple Documents" type="Node2D" parent="."]
+visible = false
 script = ExtResource("7_wcdgp")
 
 [node name="Speech Benchmark" type="Node2D" parent="."]
+visible = false
 script = ExtResource("9_eedai")
+
+[node name="Schema Validation" type="Node2D" parent="."]
+script = ExtResource("10_kxy66")

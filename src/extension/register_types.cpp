@@ -11,10 +11,6 @@
 #include <godot_cpp/core/defs.hpp>
 #include <godot_cpp/godot.hpp>
 
-// #ifdef TESTS_ENABLED
-// #include "../tests/test_runner.hpp" // Inlcude test runner headers
-// #endif
-
 namespace godot {
 
 void initialize_yaml_module(ModuleInitializationLevel p_level) {
