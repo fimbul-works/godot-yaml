@@ -84,10 +84,11 @@
 				Returns a dictionary containing all information about the error at the specified index. Returns an empty dictionary if the index is out of range.
 				The dictionary contains the following keys:
 				[code]message[/code]: Human-readable error description
-				[code]path[/code]: JSON Pointer to the invalid data (e.g., [code]"/user/age"[/code])
-				[code]path_array[/code]: Path as an array (e.g., [code]["user", "age"][/code])
-				[code]constraint[/code]: Schema constraint that failed (e.g., [code]"minimum"[/code])
+				[code]instance_path[/code]: JSON Pointer to the invalid data (e.g., [code]"/user/age"[/code])
+				[code]instance_path_array[/code]: Path as an array (e.g., [code]["user", "age"][/code])
 				[code]schema_path[/code]: Path to the schema rule (e.g., [code]"/properties/user/properties/age/minimum"[/code])
+				[code]schema_path_array[/code]: Schema path as an array (e.g., [code]["properties", "user", "properties", "age", "minimum"][/code])
+				[code]keyword[/code]: Schema constraint keyword that failed (e.g., [code]"minimum"[/code])
 				[code]invalid_value[/code]: The actual value that failed validation
 				[codeblock]
 				var schema = Schema.build_schema({
@@ -100,7 +101,7 @@
 				    var error = result.get_error(0)
 				    print("Error: %s" % error.message)
 				    print("Value: %s" % error.invalid_value)
-				    print("Constraint: %s" % error.constraint)
+				    print("Constraint: %s" % error.keyword)
 				[/codeblock]
 			</description>
 		</method>
@@ -231,7 +232,7 @@
 				var result = schema.validate({"a": 123, "b": "not a number"})
 
 				for error in result.get_errors():
-				    print("%s at %s: %s" % [error.constraint, error.path, error.message])
+				    print("%s at %s: %s" % [error.keyword, error.path, error.message])
 				[/codeblock]
 			</description>
 		</method>

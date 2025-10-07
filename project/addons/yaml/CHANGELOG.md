@@ -2,24 +2,116 @@
 
 ## Version 2.0.0
 
-The second major version of Godot YAML includes new methods for multi-document result handling, several bug fixes, and a breaking API change. See the [migration guide](#migration-guide-from-version-1*-to-200) for details.
+The second major version of Godot YAML brings powerful schema validation capabilities through the integration of [GDSchema](https://github.com/fimbul-works/gdschema), enabling [JSON Schema Draft-7](https://json-schema.org/) validation for your YAML data. This release also includes improved multi-document handling, custom tag support, and several important bug fixes. See the [migration guide](#migration-guide-from-version-1-to-200) for breaking changes.
 
-### Changes
+### Major Features
 
-- **Breaking:** Removed the `YAMLResult.get_data(index)` parameter. Use `YAMLResult.get_document(index)` instead.
-- Added `YAMLResult.get_documents()` and `YAMLResult.has_multiple_documents()` methods to help working with multi-document YAML files
-- Added support for custom tags when registering classes with `YAML.register_class()`
-- Added `YAMLCodeEdit` class to enable embedding the YAML editor into projects
+#### Schema Validation (New!)
+
+Version 2.0.0 introduces comprehensive schema validation powered by [GDSchema](https://github.com/fimbul-works/gdschema), bringing the full power of [JSON Schema Draft-7](https://json-schema.org/) to your YAML workflows. This flagship feature enables you to:
+
+- **Validate YAML data** against industry-standard JSON Schema specifications
+- **Define schemas in YAML** with native YAML syntax for better readability
+- **Auto-apply defaults** when properties are missing using the `default` keyword
+- **Validate YAML tags** with the custom `x-yaml-tag` keyword for type safety
+- **Reference schemas** using `$ref` for modular, reusable validation rules
+- **Register schemas globally** with `$id` for cross-file validation
+- **Get detailed error reports** with JSON Pointer paths and constraint information
+
+New classes:
+- `Schema` - Validates data against JSON Schema Draft-7 specifications
+- `SchemaValidationResult` - Contains detailed validation results and errors
+
+New YAML methods:
+- `YAML.load_schema_from_string()` - Parse YAML schema definitions
+- `YAML.load_schema_from_file()` - Load schema files with auto-registration
+- `YAML.parse_and_validate()` - Parse and validate YAML in one step
+
+Schema features include:
+- Full JSON Schema Draft-7 support (type checking, numeric constraints, string patterns, array/object validation)
+- Logical composition (`allOf`, `anyOf`, `oneOf`, `not`)
+- Conditional validation (`if`/`then`/`else`)
+- Schema definitions and references (`$defs`, `$ref`)
+- Custom format validators
+- Thread-safe lazy compilation with caching
+- YAML-specific extensions:
+  - `default` - Provides default values for missing properties
+  - `x-yaml-tag` - Validates YAML type tags (e.g., `!Resource`, `!CustomType`)
+
+Example:
+```gdscript
+# Define a schema in YAML
+var schema_yaml = """
+$id: "http://example.com/user.yaml"
+type: object
+properties:
+  username:
+    type: string
+    minLength: 3
+  email:
+    type: string
+    format: email
+  role:
+    type: string
+    default: user
+    x-yaml-tag: UserRole
+required:
+- username
+- email
+"""
+
+# Build the schema (auto-registered with $id)
+var schema = YAML.load_schema_from_string(schema_yaml)
+
+# Validate data
+var data_yaml = """
+username: Alice
+email: alice@exampe.com
+"""
+
+var result = YAML.parse_and_validate(data_yaml, schema)
+
+if result.is_valid():
+    print(result.get_data().role)  # "user" (default applied)
+else:
+    print(result.get_summary())  # Detailed error report
+```
+
+### Other Changes
+
+- **Breaking:** Removed the `YAMLResult.get_data(index)` parameter. Use `YAMLResult.get_document(index)` instead for multi-document access.
+- Added `YAMLResult.get_documents()` and `YAMLResult.has_multiple_documents()` methods for easier multi-document YAML handling
+- Added support for custom tags when registering classes with `YAML.register_class()` - now you can specify custom YAML tags like `!Item` or `!ruby:object/Item`
+- Added `YAMLCodeEdit` class to enable embedding the YAML editor directly into your projects
 - Added missing example for handling multi-document YAML files
-- Fixes:
-    - Fixed `YAMLResult.get_data()` only returning the first element of a document that only contains an array
-    - Fixed invalid numeric value parsing
-    - Fixed empty strings being parsed and emitted as null value
-    - Fixed YAML files not opening correctly in Godot 4.3
+
+### Bug Fixes
+
+- Fixed `YAMLResult.get_data()` only returning the first element of a document that only contains an array
+- Fixed invalid numeric value parsing that could cause crashes or incorrect values
+- Fixed empty strings being parsed and emitted as null values instead of empty strings
+- Fixed YAML files not opening correctly in Godot 4.3 editor
 
 ### Migration Guide From Version 1.* to 2.0.0
 
-Replace `YAMLResult.get_data(index)` calls with `YAMLResult.get_document(index)`.
+Replace `YAMLResult.get_data(index)` calls with `YAMLResult.get_document(index)`:
+
+**Old version:**
+```gdscript
+var result = YAML.parse(multi_doc_yaml)
+var first_doc = result.get_data(0)
+var second_doc = result.get_data(1)
+```
+
+**New version:**
+```gdscript
+var result = YAML.parse(multi_doc_yaml)
+var first_doc = result.get_document(0)
+var second_doc = result.get_document(1)
+
+# Or get all documents at once
+var all_docs = result.get_documents()
+```
 
 ## Version 1.1.0
 

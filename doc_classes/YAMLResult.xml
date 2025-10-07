@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<class name="YAMLResult" inherits="RefCounted" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+<class name="YAMLResult" inherits="RefCounted" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
 	<brief_description>
 		Contains the results or errors from YAML operations.
 	</brief_description>
 	<description>
-		Contains the results from YAML parsing or stringifying operations, providing a unified interface for both successful data and error cases. This class serves as a return type for API methods, containing either the parsed/stringified data or error information.
+		Contains the results from YAML parsing, stringifying, or validation operations, providing a unified interface for both successful data and error cases. This class serves as a return type for API methods, containing either the parsed/stringified data, validation results, or error information.
 		[YAMLResult] objects are immutable and can contain either successful data or error information, but not both. When an operation succeeds, the result contains the data and no error. When an operation fails, the result contains error information and empty data.
 		Multi-document YAML is fully supported, allowing you to access each document individually through [method get_document], and [method get_documents] for all documents.
+		When using [method YAML.parse_and_validate], the result also contains schema validation information accessible through validation-specific methods.
 	</description>
 	<tutorials>
 	</tutorials>
@@ -22,6 +23,7 @@
 			<return type="Variant" />
 			<description>
 				Returns the result data. For multi-document results, returns the first document and logs a warning (use [method get_document] or [method get_documents] instead). Returns [code]null[/code] for error results.
+				If the result contains validation errors, the data may still be returned but should be considered invalid. Check [method has_validation_errors] before using the data.
 			</description>
 		</method>
 		<method name="get_document" qualifiers="const">
@@ -75,32 +77,27 @@
 				if !result.has_error():
 				    var documents = result.get_documents()
 
-				    print("Player: %s (Health: %d)" % [documents[0].name, documents[1].difficulty])
+				    print("Player: %s (Health: %d)" % [documents[0].name, documents[0].health])
+				    print("Difficulty: %s" % documents[1].difficulty)
 				[/codeblock]
-			</description>
-		</method>
-		<method name="has_multiple_documents" qualifiers="const">
-			<return type="bool" />
-			<description>
-				Returns [code]true[/code] if the result contains multiple documents, [code]false[/code] otherwise.
 			</description>
 		</method>
 		<method name="get_error" qualifiers="const">
 			<return type="String" />
 			<description>
-				Returns a formatted error string including message, line number, and column number.
+				Returns a formatted error string including message, line number, and column number for parse errors. Returns an empty string if there is no error.
 			</description>
 		</method>
 		<method name="get_error_column" qualifiers="const">
 			<return type="int" />
 			<description>
-				Returns the column number where the error occurred. Returns [code]-1[/code] if not applicable.
+				Returns the column number where the parse error occurred. Returns [code]-1[/code] if not applicable.
 			</description>
 		</method>
 		<method name="get_error_line" qualifiers="const">
 			<return type="int" />
 			<description>
-				Returns the line number where the error occurred. Returns [code]-1[/code] if not applicable.
+				Returns the line number where the parse error occurred. Returns [code]-1[/code] if not applicable.
 			</description>
 		</method>
 		<method name="get_error_message" qualifiers="const">
@@ -115,16 +112,174 @@
 				Returns the style information if any. Only available if style detection was enabled during parsing (see [method YAML.parse] and [method YAML.load_file]).
 			</description>
 		</method>
+		<method name="get_validation_error_count" qualifiers="const">
+			<return type="int" />
+			<description>
+				Returns the number of schema validation errors. Returns [code]0[/code] if validation passed or if no validation was performed.
+				This is a convenience method equivalent to calling [code]get_validation_result().error_count()[/code].
+				[codeblock lang=gdscript]
+				var result = YAML.parse_and_validate(yaml_text, schema)
+
+				if result.has_validation_errors():
+				    print("Found %d validation errors" % result.get_validation_error_count())
+
+				    # Display each error
+				    for i in result.get_validation_error_count():
+				        var error = result.get_validation_result().get_error(i)
+				        print("- %s" % error.message)
+				[/codeblock]
+			</description>
+		</method>
+		<method name="get_validation_errors" qualifiers="const">
+			<return type="Array" />
+			<description>
+				Returns an array of validation error dictionaries. Each dictionary contains detailed information about a validation failure, including [code]path[/code], [code]message[/code], [code]constraint[/code], and [code]invalid_value[/code] keys.
+				Returns an empty array if validation passed or if no validation was performed.
+				This is a convenience method equivalent to calling [code]get_validation_result().get_errors()[/code].
+				[codeblock lang=gdscript]
+				var schema = YAML.load_schema_from_string('''
+				type: object
+				properties:
+				  username:
+				    type: string
+				    minLength: 3
+				  age:
+				    type: integer
+				    minimum: 0
+				required: [username]
+				''')
+
+				var result = YAML.parse_and_validate('''
+				username: "ab"
+				age: -5
+				''', schema)
+
+				if result.has_validation_errors():
+				    for error in result.get_validation_errors():
+				        print("Path: %s" % error.path)
+				        print("Constraint: %s" % error.constraint)
+				        print("Message: %s" % error.message)
+				        print("Invalid value: %s" % error.invalid_value)
+				        print("---")
+				[/codeblock]
+			</description>
+		</method>
+		<method name="get_validation_result" qualifiers="const">
+			<return type="SchemaValidationResult" />
+			<description>
+				Returns the full [SchemaValidationResult] object containing detailed validation information. Returns [code]null[/code] if no validation was performed.
+				Use this method when you need access to the complete validation result API, including methods like [method SchemaValidationResult.get_all_error_paths], [method SchemaValidationResult.get_violated_constraints], and individual error inspection.
+				[codeblock lang=gdscript]
+				var result = YAML.parse_and_validate(yaml_text, schema)
+
+				if result.has_validation_result():
+				    var validation = result.get_validation_result()
+
+				    if validation.is_valid():
+				        # Data is valid - safe to use
+				        var validated_data = result.get_data()
+				        process_config(validated_data)
+				    else:
+				        # Get detailed error information
+				        print("Validation failed at these paths:")
+				        for path in validation.get_all_error_paths():
+				            print("  - %s" % path)
+
+				        print("\nViolated constraints:")
+				        for constraint in validation.get_violated_constraints():
+				            print("  - %s" % constraint)
+
+				        print("\nFull report:")
+				        print(validation.get_summary())
+				[/codeblock]
+			</description>
+		</method>
+		<method name="get_validation_summary" qualifiers="const">
+			<return type="String" />
+			<description>
+				Returns a formatted multi-line summary of all validation errors, or a success message if validation passed. Returns an empty string if no validation was performed.
+				This is a convenience method equivalent to calling [code]get_validation_result().get_summary()[/code].
+				[codeblock lang=gdscript]
+				var schema = YAML.load_schema_from_file("res://schemas/config.yaml")
+				var result = YAML.parse_and_validate(user_config_text, schema)
+
+				if result.has_validation_errors():
+				    # Display user-friendly error report
+				    show_error_dialog(result.get_validation_summary())
+				    # Example output:
+				    # Schema validation failed with 2 error(s):
+				    #   [1] At '/graphics/resolution': String "invalid" does not match pattern ^[0-9]+x[0-9]+$ (pattern)
+				    #   [2] At '/audio/volume': Value 1.5 exceeds maximum 1 (maximum)
+				else:
+				    var config = result.get_data()
+				    apply_config(config)
+				[/codeblock]
+			</description>
+		</method>
 		<method name="has_error" qualifiers="const">
 			<return type="bool" />
 			<description>
-				Returns [code]true[/code] if the result contains an error, [code]false[/code] otherwise.
+				Returns [code]true[/code] if the result contains a parse or file error, [code]false[/code] otherwise.
+				[b]Note:[/b] This only checks for YAML parsing errors, not validation errors. Use [method has_validation_errors] to check for schema validation failures.
+			</description>
+		</method>
+		<method name="has_multiple_documents" qualifiers="const">
+			<return type="bool" />
+			<description>
+				Returns [code]true[/code] if the result contains multiple documents, [code]false[/code] otherwise.
 			</description>
 		</method>
 		<method name="has_style" qualifiers="const">
 			<return type="bool" />
 			<description>
 				Returns [code]true[/code] if the result contains style information, [code]false[/code] otherwise.
+			</description>
+		</method>
+		<method name="has_validation_errors" qualifiers="const">
+			<return type="bool" />
+			<description>
+				Returns [code]true[/code] if schema validation was performed and failed with one or more errors, [code]false[/code] if validation passed or no validation was performed.
+				This is a convenience method equivalent to calling [code]has_validation_result() and get_validation_result().has_errors()[/code].
+				[codeblock lang=gdscript]
+				var result = YAML.parse_and_validate(yaml_text, schema)
+
+				# Check both parse errors and validation errors
+				if result.has_error():
+				    push_error("Failed to parse YAML: %s" % result.get_error())
+				    return
+
+				if result.has_validation_errors():
+				    push_error("Validation failed:\n%s" % result.get_validation_summary())
+				    return
+
+				# Both parsing and validation succeeded
+				var validated_data = result.get_data()
+				use_config(validated_data)
+				[/codeblock]
+			</description>
+		</method>
+		<method name="has_validation_result" qualifiers="const">
+			<return type="bool" />
+			<description>
+				Returns [code]true[/code] if this result contains a [SchemaValidationResult], [code]false[/code] otherwise.
+				A validation result is present when using [method YAML.parse_and_validate] or when the parsed YAML includes a [code]$schema[/code] field that references a registered schema.
+				[codeblock lang=gdscript]
+				# Standard parsing - no validation result
+				var result1 = YAML.parse(yaml_text)
+				print(result1.has_validation_result())  # false
+
+				# Parse with validation - has validation result
+				var result2 = YAML.parse_and_validate(yaml_text, schema)
+				print(result2.has_validation_result())  # true
+
+				# Auto-validation with $schema field
+				var yaml_with_schema = '''
+				$schema: "http://example.com/config.yaml"
+				setting: value
+				'''
+				var result3 = YAML.parse_and_validate(yaml_with_schema)
+				print(result3.has_validation_result())  # true (if schema is registered)
+				[/codeblock]
 			</description>
 		</method>
 	</methods>
