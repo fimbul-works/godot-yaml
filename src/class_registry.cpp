@@ -79,7 +79,7 @@ void YAMLClassRegistry::register_class(Ref<Script> p_class, const Variant &p_ser
 	const String tag = p_tag.get_type() == Variant::STRING || p_tag.get_type() == Variant::STRING_NAME ? String(p_tag) : String(class_name);
 	ClassInfo info;
 	info.script_class = p_class;
-	info.tag = tag.length() ? tag : class_name;
+	info.tag = tag.length() ? tag : String(class_name);
 	info.serialize_method = serialize;
 	info.deserialize_method = deserialize;
 
