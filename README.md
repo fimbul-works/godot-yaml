@@ -39,12 +39,12 @@ print(yaml_text)
 
 - ⚡ **High Performance**: Built on the lightweight and efficient [RapidYAML](https://github.com/biojppm/rapidyaml) library
 - 🧩 **Comprehensive Variant Support**: Handles all Godot built-in Variant types (except Callable and RID)
+- ✅ **Schema Validation**: Full JSON Schema Draft-7 validation powered by [GDSchema](https://github.com/fimbul-works/gdschema) with YAML-specific extensions
 - 🧪 **Custom Class Serialization**: Register your GDScript classes for seamless serialization and deserialization
-- 🔄 **Multi-Document Support**: Parse YAML files with multiple `---` separated documents
+- 📄 **Multi-Document Support**: Parse YAML files with multiple `---` separated documents
 - 🎨 **Style Customization**: Control how YAML is formatted with customizable style options
-- 🔍 **Comprehensive Error Handling**: Detailed error reporting with line and column information
+- 📝 **Comprehensive Error Handling**: Detailed error reporting with line and column information
 - 🔀 **Thread-Safe**: Fully supports multi-threaded parsing and emission
-- ✅ **Validation**: Separate validation step for checking YAML syntax without full parsing
 - 🗂️ **Resource References**: Use `!Resource` tags to reference and load external resources
 - 🛡️ **Security Controls**: Manage resource loading security during YAML parsing
 
