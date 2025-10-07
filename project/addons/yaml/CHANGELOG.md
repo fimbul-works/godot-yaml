@@ -1,5 +1,9 @@
 # Godot YAML Changelog
 
+## Version 2.1.0
+
+When passing the custom tag to `YAML.schema_register(class, serialize_method, deserialize_static, custom_tag)` use the custom tag when emitting, resolving [Issue #13](https://github.com/fimbul-works/godot-yaml/issues/13).
+
 ## Version 2.0.0
 
 The second major version of Godot YAML brings powerful schema validation capabilities through the integration of [GDSchema](https://github.com/fimbul-works/gdschema), enabling [JSON Schema Draft-7](https://json-schema.org/) validation for your YAML data. This release also includes improved multi-document handling, custom tag support, and several important bug fixes. See the [migration guide](#migration-guide-from-version-1-to-200) for breaking changes.

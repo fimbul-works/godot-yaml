@@ -13,3 +13,6 @@ static func deserialize(data: Variant):
 
 func serialize() -> String:
 	return value
+
+func _to_string() -> String:
+	return "MyStringClass(%s)" % value

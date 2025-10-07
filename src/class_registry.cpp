@@ -87,7 +87,7 @@ void YAMLClassRegistry::register_class(Ref<Script> p_class, const Variant &p_ser
 	{
 		std::lock_guard<std::mutex> lock(registry_mutex);
 		class_registry[class_name] = info;
-		// Add alt tag
+		// Add the tag also
 		if (class_name != tag && tag.length()) {
 			class_registry[tag] = info;
 		}
@@ -117,7 +117,7 @@ void YAMLClassRegistry::unregister_class(Ref<Script> p_class) {
 		std::lock_guard<std::mutex> lock(registry_mutex);
 		auto class_info = get_class_info(class_name);
 		class_registry.erase(class_name);
-		// Erase alt tag
+		// Erase tag also
 		if (class_info.tag != class_name && class_info.tag.length()) {
 			class_registry.erase(class_info.tag);
 		}

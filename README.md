@@ -4,7 +4,8 @@ This is the **C++ GDExtension implementation** of the Godot YAML plugin. It prov
 
 ## 🔄 Version History
 
-- **2.0.0** (Current) - Major release with schema validation powered by [GDSchema](https://github.com/fimbul-works/gdschema), improved multi-document handling, and bug fixes. See [the full changelog](./project/addons/yaml/CHANGELOG.md#version-200) for details
+- **2.1.0** (Current) - When passing custom tag to `YAML.schema_register(class, serialize_method, deserialize_static, custom_tag)` use the custom tag when emitting
+- **2.0.0** - Major release with schema validation powered by [GDSchema](https://github.com/fimbul-works/gdschema), improved multi-document handling, and bug fixes. See [the full changelog](./project/addons/yaml/CHANGELOG.md#version-200) for details
 - **1.1.0** - Nested YAML files can now be loaded with the `!Resource` tag, and some fixes
 - **1.0.0** - First major release with custom YAML editor, streamlined API, and several fixes. See [the plugin changelog](project/addons/yaml/CHANGELOG.md#version-100) for details
 - **0.12.1** - Build support for Linux (x86 64-bit)

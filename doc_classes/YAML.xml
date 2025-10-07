@@ -405,9 +405,10 @@
 			<param index="0" name="script_class" type="Script" />
 			<param index="1" name="serialize_method" type="Variant" default="&quot;serialize&quot;" />
 			<param index="2" name="deserialize_method" type="Variant" default="&quot;deserialize&quot;" />
-			<param index="3" name="_unnamed_arg3" type="Variant" default="null" />
+			<param index="3" name="tag" type="Variant" default="null" />
 			<description>
 				Registers a custom script class for YAML serialization and deserialization. It is recommended to do this in an autoloading singleton or a script that runs at the start of your game.
+				Passing the [code]tag[/code] parameter allows you to specify a custom YAML tag for the class instead of using the script class name. This can be useful to avoid conflicts or to use more descriptive tags.
 				[codeblock lang=gdscript]
 				# Define a custom Item resource class
 				class_name Item extends Resource

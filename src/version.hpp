@@ -4,4 +4,4 @@
  */
 #pragma once
 
-#define GODOT_YAML_VERSION "2.0.0"
+#define GODOT_YAML_VERSION "2.1.0"

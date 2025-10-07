@@ -48,3 +48,6 @@ func serialize() -> Dictionary:
 		"float_val": float_val,
 		"color_val": color_val,
 	}
+
+func _to_string() -> String:
+	return "MyCustomResource(%s)" % string_val

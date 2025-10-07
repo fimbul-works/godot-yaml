@@ -50,8 +50,9 @@ public:
 	 * @param p_class The script resource representing the class
 	 * @param p_serialize The name of the instance method for serialization
 	 * @param p_deserialize The name of the static method for deserialization
+	 * @param p_tag The YAML tag to use for this class (optional)
 	 */
-	static void register_class(Ref<Script> p_class, const Variant &p_serialize, const Variant &p_deserialize, const Variant &p_tag = "");
+	static void register_class(Ref<Script> p_class, const Variant &p_serialize, const Variant &p_deserialize, const Variant &p_tag = Variant());
 
 	/**
 	 * @brief Unregisters a previously registered class.

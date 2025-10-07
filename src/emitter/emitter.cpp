@@ -274,10 +274,11 @@ void YAML::Emitter::emit_object(ryml::NodeRef &node, Object *obj, const YAMLStyl
 			YAMLClassRegistry::ClassInfo class_info = YAMLClassRegistry::get_class_info(class_name);
 
 			if (class_info.script_class.is_valid()) {
+				const String tag = class_info.tag.is_empty() ? class_name : class_info.tag;
 				const StringName serialize = class_info.serialize_method;
 				Variant data = obj->call(serialize);
 				if (data) {
-					node.set_val_tag(store_string("!" + class_name));
+					node.set_val_tag(store_string("!" + tag));
 					emit_value(node, data, style);
 					return;
 				}

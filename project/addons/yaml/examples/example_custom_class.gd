@@ -2,6 +2,7 @@ extends ExampleBase
 
 func _init() -> void:
 	icon = "🧩"
+	LOG_VERBOSE = true
 
 func _enter_tree() -> void:
 	# Register our custom classes when the node enters the tree
@@ -38,7 +39,7 @@ func custom_node_class() -> void:
 	log_success("Custom class stringified successfully")
 
 	if LOG_VERBOSE:
-		log_result("MyCustomClass as YAML:\n" + yaml_text)
+		log_info("MyCustomClass as YAML:\n" + yaml_text)
 
 	log_info("Parsing YAML back into MyCustomClass...")
 	var parse_result := YAML.parse(yaml_text)
