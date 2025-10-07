@@ -156,9 +156,11 @@ Schema validation ensures your YAML data meets specific requirements before your
 
 ### Quick Start
 
+The `YAML.parse_and_validate()` method combines parsing and validation in one step, returning a `YAMLResult` that may contain both parse errors and validation errors:
+
 ```gdscript
 # Define a schema in YAML (more readable than JSON!)
-var schema_yaml = '''
+var schema_yaml = """
 type: object
 properties:
   username:
@@ -175,16 +177,19 @@ properties:
 required:
 - username
 - email
-'''
+"""
 
 # Build the schema
 var schema = YAML.load_schema_from_string(schema_yaml)
+if not schema:
+    push_error("Failed to parse schema")
+    return
 
 # Parse and validate YAML data
-var player_yaml = '''
+var player_yaml = """
 username: hero
 email: hero@example.com
-'''
+"""
 
 var result = YAML.parse_and_validate(player_yaml, schema)
 
@@ -212,7 +217,7 @@ Godot YAML includes two powerful extensions to standard JSON Schema:
 Automatically apply default values when properties are missing:
 
 ```gdscript
-var schema = YAML.load_schema_from_string('''
+var schema = YAML.load_schema_from_string("""
 type: object
 properties:
   difficulty:
@@ -227,7 +232,7 @@ properties:
   show_tutorial:
     type: boolean
     default: true
-''')
+""")
 
 # Parse empty YAML - defaults are applied during validation!
 var result = YAML.parse_and_validate('{}', schema)
@@ -244,7 +249,7 @@ if !result.has_validation_errors():
 Validate that values have the correct YAML type tag:
 
 ```gdscript
-var schema = YAML.load_schema_from_string('''
+var schema = YAML.load_schema_from_string("""
 type: object
 properties:
   player_sprite:
@@ -253,15 +258,15 @@ properties:
   custom_item:
     type: object
     x-yaml-tag: Item          # Must be tagged with !Item
-''')
+""")
 
 # This YAML will validate successfully
-var valid_yaml = '''
+var valid_yaml = """
 player_sprite: !Resource "res://player.png"
 custom_item: !Item
   name: Sword
   damage: 10
-'''
+"""
 
 var result = YAML.parse_and_validate(valid_yaml, schema)
 if !result.has_validation_errors():
@@ -275,7 +280,7 @@ Schemas with an `$id` field are automatically registered globally, enabling modu
 
 ```gdscript
 # Define a reusable schema (saved as user_schema.yaml)
-var user_schema_yaml = '''
+var user_schema_yaml = """
 $id: "http://mygame.com/schemas/user.yaml"
 type: object
 properties:
@@ -291,13 +296,13 @@ properties:
 required:
 - username
 - email
-'''
+"""
 
 # Load and auto-register the schema
 var user_schema = YAML.load_schema_from_string(user_schema_yaml)
 
 # Now reference it from other schemas!
-var game_data_schema = YAML.load_schema_from_string('''
+var game_data_schema = YAML.load_schema_from_string("""
 type: object
 properties:
   player:
@@ -305,15 +310,15 @@ properties:
   high_score:
     type: integer
     minimum: 0
-''')
+""")
 
 # Parse and validate nested YAML data
-var game_yaml = '''
+var game_yaml = """
 player:
   username: alice
   email: alice@example.com
 high_score: 1000
-'''
+"""
 
 var result = YAML.parse_and_validate(game_yaml, game_data_schema)
 
@@ -335,13 +340,13 @@ For the most streamlined workflow, use `YAML.parse_and_validate()` which returns
 var config_schema = YAML.load_schema_from_file("res://schemas/config_schema.yaml")
 
 # Later, parse and validate user config in one call
-var user_config = '''
+var user_config = """
 graphics:
   resolution: 1920x1080
   vsync: true
 audio:
   master_volume: 0.8
-'''
+"""
 
 var result = YAML.parse_and_validate(user_config, config_schema)
 
@@ -358,7 +363,7 @@ if result.has_validation_errors():
 
     # Or iterate through individual errors
     for error in result.get_validation_errors():
-        print("  - %s at %s" % [error.message, error.path])
+        print("  - %s at %s" % [error.message, error.instance_path])
     return
 
 # Both parsing and validation succeeded
@@ -376,13 +381,13 @@ YAML.load_schema_from_file("res://schemas/save_game.yaml")
 # This schema has: $id: "http://mygame.com/schemas/save_game.yaml"
 
 # YAML files can reference the schema directly
-var save_data = '''
+var save_data = """
 $schema: "http://mygame.com/schemas/save_game.yaml"
 player:
   name: Hero
   level: 10
 checkpoint: forest_entrance
-'''
+"""
 
 # Parse and validate - no need to specify schema!
 var result = YAML.parse_and_validate(save_data)
@@ -402,7 +407,7 @@ else:
 JSON Schema Draft-7 offers powerful composition and validation features:
 
 ```gdscript
-var advanced_schema = YAML.load_schema_from_string('''
+var advanced_schema = YAML.load_schema_from_string("""
 $defs:
   # Reusable definitions
   positive_integer:
@@ -450,7 +455,7 @@ properties:
           type: integer
           minimum: 1
       required: [defense]
-''')
+""")
 ```
 
 ### Detailed Validation Error Reports
@@ -458,7 +463,7 @@ properties:
 When validation fails, `YAMLResult` provides comprehensive error information through dedicated methods:
 
 ```gdscript
-var schema = YAML.load_schema_from_string('''
+var schema = YAML.load_schema_from_string("""
 type: object
 properties:
   player:
@@ -474,14 +479,14 @@ properties:
         type: string
         format: email
     required: [name, email]
-''')
+""")
 
-var invalid_yaml = '''
+var invalid_yaml = """
 player:
   name: ab
   age: -5
   email: not-email
-'''
+"""
 
 var result = YAML.parse_and_validate(invalid_yaml, schema)
 
@@ -505,8 +510,8 @@ if result.has_validation_errors():
     # Iterate through individual errors
     for error in result.get_validation_errors():
         print("\nError details:")
-        print("  Path: %s" % error.path)
-        print("  Constraint: %s" % error.constraint)
+        print("  Path: %s" % error.instance_path)
+        print("  Constraint: %s" % error.keyword)
         print("  Message: %s" % error.message)
         print("  Invalid value: %s" % error.invalid_value)
 

@@ -20,7 +20,7 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     permissions:
-      contents: write  # Needed to create releases
+      contents: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -110,17 +110,7 @@ jobs:
             godot-yaml-${{ steps.tag_name.outputs.tag }}.zip
             godot-yaml-${{ steps.tag_name.outputs.tag }}.zip.sha256
           body: |
-            ## Godot YAML ${{ steps.tag_name.outputs.tag }}
-
-            A high-performance YAML parser and serializer for Godot 4.3+ that speaks fluent Variant.
-
-            ### Installation
-            1. Download `godot-yaml-${{ steps.tag_name.outputs.tag }}.zip`
-            2. Extract the contents into your project's `addons/` directory
-            3. The folder structure should be: `res://addons/yaml/`
-            4. Enable the plugin in Project Settings → Plugins
-
-            ### What's Included
+            ## What's Included
             - Windows (x86_64): Debug & Release
             - Linux (x86_64): Debug & Release
             - macOS (Universal): Debug & Release
@@ -131,9 +121,9 @@ jobs:
             - Consider building from source as an alternative
             - Check Apple's documentation on Gatekeeper and code signing requirements
 
-            This is not specific to Godot YAML, but affects GDExtensions generally on certain macOS setups.
+            This is not specific to Godot YAML and affects GDExtensions generally on certain macOS setups.
 
-            ### Verify Download
+            ## Verify Download
             ```bash
             sha256sum -c godot-yaml-${{ steps.tag_name.outputs.tag }}.zip.sha256
             ```

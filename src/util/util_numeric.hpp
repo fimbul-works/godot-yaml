@@ -133,10 +133,10 @@ ryml::csubstr int_to_string(const T value, YAMLStyle::IntegerFormat format = YAM
 
 	switch (format) {
 		case YAMLStyle::INT_HEX:
-			snprintf(buf, sizeof(buf), "0x%lx", static_cast<uint64_t>(value));
+			snprintf(buf, sizeof(buf), "0x%lx", static_cast<unsigned long>(value));
 			break;
 		case YAMLStyle::INT_OCTAL:
-			snprintf(buf, sizeof(buf), "0o%lo", static_cast<uint64_t>(value));
+			snprintf(buf, sizeof(buf), "0o%lo", static_cast<unsigned long>(value));
 			break;
 		case YAMLStyle::INT_BINARY: {
 			// Handle binary format manually since snprintf doesn't support it
@@ -158,7 +158,7 @@ ryml::csubstr int_to_string(const T value, YAMLStyle::IntegerFormat format = YAM
 			break;
 		}
 		default:
-			snprintf(buf, sizeof(buf), "%ld", static_cast<int64_t>(value));
+			snprintf(buf, sizeof(buf), "%ld", static_cast<unsigned long>(value));
 			break;
 	}
 

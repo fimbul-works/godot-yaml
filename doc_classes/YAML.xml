@@ -53,125 +53,64 @@
 				Loads and parses a YAML file from the given [param path]. Returns a [YAMLResult] with data or error information.
 			</description>
 		</method>
-		<method name="parse" qualifiers="static">
+		<method name="load_file_and_validate" qualifiers="static">
 			<return type="YAMLResult" />
-			<param index="0" name="yaml_text" type="String" />
-			<param index="1" name="security" type="YAMLSecurity" default="null" />
-			<param index="2" name="detect_style" type="bool" default="false" />
-			<description>
-				Parses a YAML string into Godot data structures. Returns a [YAMLResult] containing either the parsed data or error information.
-				If [param security] is provided, it will be used to restrict resource loading during parsing.
-				If [param detect_style] is [code]true[/code], the [YAMLResult] instance will contain a [YAMLStyle] object. See [method YAMLResult.get_style] for details.
-				[codeblock lang=gdscript]
-				var quest_text = """
-				title: Defeat the Dragon
-				level: 5
-				rewards:
-				  gold: 1000
-				  items: [Dragon Scale, Fire Gem]
-				"""
+			<param index="0" name="path" type="String" />
+			<param index="1" name="schema" type="Variant" default="null" />
+			<param index="2" name="security" type="YAMLSecurity" default="null" />
+			<param index="3" name="detect_style" type="bool" default="false" />
+				<description>
+				Loads a YAML file and validates it against a schema in one operation. Returns a [YAMLResult] containing either the parsed data with validation information or error details.
 
-				var result = YAML.parse(quest_text)
-				if !result.has_error():
-				    var quest = result.get_data()
-				    print("Quest: %s (Level %d)" % [quest.title, quest.level])
-				else:
-				    print("Parse error: %s" % result.get_error())
-				[/codeblock]
-			</description>
-		</method>
-		<method name="load_schema_from_string" qualifiers="static">
-			<return type="Schema" />
-			<param index="0" name="yaml_string" type="String" />
-			<param index="1" name="validate_against_meta" type="bool" default="false" />
-			<description>
-				Parses a YAML string and builds a [Schema] object for validation. Returns a [Schema] ready for validation, or [code]null[/code] if the YAML is malformed.
-				This method combines YAML parsing with [method Schema.build_schema] from the [url=https://github.com/fimbul-works/gdschema]GDSchema[/url] extension. Schemas support the full [url=https://json-schema.org/specification-links.html#draft-7]JSON Schema Draft-7[/url] specification, including [code]$ref[/code] references, schema composition ([code]allOf[/code], [code]anyOf[/code], [code]oneOf[/code]), and conditional validation ([code]if[/code]/[code]then[/code]/[code]else[/code]).
-				Schemas with a [code]$id[/code] field are automatically registered globally and can be referenced by ID in other schemas or during validation.
-				If [param validate_against_meta] is [code]true[/code], the schema itself is validated against the JSON Schema Draft-7 meta-schema before building.
-				[b]YAML Extension Keywords:[/b]
-				In addition to standard JSON Schema keywords, two YAML-specific extensions are available:
-				 • [code]default[/code] - Provides a default value when a property is [i]missing[/i] (not when explicitly [code]null[/code])
-				 • [code]x-yaml-tag[/code] - Validates that a YAML value has a specific tag (e.g., [code]!Resource[/code], [code]!CustomType[/code])
+				This is equivalent to [method load_file] followed by validation, but more efficient as it performs both operations together.
+
+				The [param schema] parameter can be:
+				 - [code]null[/code] or omitted - Auto-discovers schema from [code]$schema[/code] field in YAML
+				 - [String] - ID of a registered schema (e.g., [code]"http://example.com/config.yaml"[/code])
+				 - [class Schema] - Direct schema object
+
+				If [param security] is provided, it controls resource loading during parsing. If [param detect_style] is [code]true[/code], formatting information is preserved in the result.
+
 				[codeblock]
-				# Load a schema with definitions, defaults, and tag validation
-				var yaml_schema = '''
-$id: "http://example.com/user.yaml"
+				# Load game configuration schema
+				var config_schema = YAML.load_schema_from_file("res://schemas/game_config.yaml")
 
-# Reusable definitions
-$defs:
-  settings:
-    type: object
-    properties:
-      theme:
-        type: string
-        enum: [light, dark, auto]
-        default: dark
-      volume:
-        type: number
-        minimum: 0
-        maximum: 1
-        default: 0.5
+				# Load and validate user config file
+				var result = YAML.load_file_and_validate("user://settings.yaml", config_schema)
 
-type: object
-properties:
-  username:
-    type: string
-    minLength: 3
-    maxLength: 20
-  email:
-    type: string
-    format: email
-  role:
-    type: string
-    enum: [user, admin, moderator]
-    default: user
-    x-yaml-tag: UserRole
-  avatar:
-    type: string
-    x-yaml-tag: Resource
-  settings:
-    $ref: "#/$defs/settings"
-required:
-- username
-- email
-'''
-
-				var schema = YAML.load_schema_from_string(yaml_schema)
-				if not schema:
-				    push_error("Failed to parse schema")
+				# Check for file/parse errors
+				if result.has_error():
+				    push_error("Failed to load config: %s" % result.get_error())
+				    create_default_config()
 				    return
 
-				# Validate data using the schema
-				var valid_data = {
-				    "username": "alice",
-				    "email": "alice@example.com"
-				}
-				var result = schema.validate(valid_data)
-				print(result.is_valid()) # true
-				print(result.get_data().role) # "user" (default applied)
-				print(result.get_data().settings.theme) # "dark" (nested default)
+				# Check for validation errors
+				if result.has_validation_errors():
+				    push_warning("Invalid config detected:")
+				    print(result.get_validation_summary())
 
-				# Invalid data shows detailed errors
-				var invalid_data = {
-				    "username": "ab",  # Too short
-				    "email": "not-an-email"  # Invalid format
-				}
-				result = schema.validate(invalid_data)
-				if result.has_errors():
-				    print(result.get_summary())
-				    # Schema validation failed with 2 error(s):
-				    #   [1] At '/username': String length 2 is less than minimum 3 (minLength)
-				    #   [2] At '/email': String "not-an-email" does not match format email (format)
+				    # Use validated data with defaults applied, or fall back
+				    var config = result.get_data()
+				    if not is_critical_config_valid(config):
+				        create_default_config()
+				        return
+
+				# Config is valid - apply settings
+				apply_game_settings(result.get_data())
+
+				# Using auto-discovery with $schema in file
+				result = YAML.load_file_and_validate("user://player_profile.yaml")
+				if not result.has_error() and not result.has_validation_errors():
+				    load_player_profile(result.get_data())
 				[/codeblock]
-				[b]See also:[/b] [method load_schema_from_file], [method parse_and_validate]
-				[b]Note:[/b] For complete JSON Schema documentation, see [url=https://github.com/fimbul-works/gdschema]GDSchema README[/url].
-			</description>
+
+				[b]See also:[/b] [method load_file], [method parse_and_validate], [method load_schema_from_file]
+				</description>
 		</method>
 		<method name="load_schema_from_file" qualifiers="static">
 			<return type="Schema" />
 			<param index="0" name="path" type="String" />
- 			<param index="1" name="validate_against_meta" type="bool" default="false" />
+			<param index="1" name="validate_against_meta" type="bool" default="false" />
 			<description>
 				Loads and parses a YAML schema file, returning a [Schema] object ready for validation. Returns [code]null[/code] if the file cannot be read or contains malformed YAML.
 				This method combines YAML file loading with [method Schema.build_schema] from the [url=https://github.com/fimbul-works/gdschema]GDSchema[/url] extension. Schemas support the full [url=https://json-schema.org/specification-links.html#draft-7]JSON Schema Draft-7[/url] specification.
@@ -219,12 +158,12 @@ required:
 				    print("Valid user data")
 
 				# Method 2: Parse and validate YAML using the schema ID
-				var user_yaml = '''
-username: bob
-email: bob@example.com
-role: !UserRole admin
-avatar: !Resource "res://avatars/bob.png"
-'''
+				var user_yaml = """
+				username: bob
+				email: bob@example.com
+				role: !UserRole admin
+				avatar: !Resource "res://avatars/bob.png"
+				"""
 				result = YAML.parse_and_validate(user_yaml, "http://example.com/user.yaml")
 				if result.has_validation_errors():
 				    print(result.get_validation_summary())
@@ -235,11 +174,11 @@ avatar: !Resource "res://avatars/bob.png"
 				    print(data.avatar)    # Texture2D resource
 
 				# Method 3: Auto-discovery using $schema field in YAML
-				var user_yaml_with_schema = '''
-$schema: "http://example.com/user.yaml"
-username: carol
-email: carol@example.com
-'''
+				var user_yaml_with_schema = """
+				$schema: "http://example.com/user.yaml"
+				username: carol
+				email: carol@example.com
+				"""
 				result = YAML.parse_and_validate(user_yaml_with_schema)
 				if not result.has_validation_errors():
 				    var data = result.get_data()
@@ -264,13 +203,13 @@ email: carol@example.com
 				var config_schema = YAML.load_schema_from_file("res://schemas/config_schema.yaml")
 
 				# The schema can reference other registered schemas
-				var config_yaml = '''
-$schema: "http://example.com/config.yaml"
-user:
-  username: dave
-  email: dave@example.com
-settings: {}
-'''
+				var config_yaml = """
+				$schema: "http://example.com/config.yaml"
+				user:
+				  username: dave
+				  email: dave@example.com
+				settings: {}
+				"""
 				var result = YAML.parse_and_validate(config_yaml)
 				if not result.has_validation_errors():
 				    var data = result.get_data()
@@ -281,12 +220,192 @@ settings: {}
 				[b]Note:[/b] For complete JSON Schema documentation and advanced features, see [url=https://github.com/fimbul-works/gdschema]GDSchema README[/url].
 			</description>
 		</method>
+		<method name="load_schema_from_string" qualifiers="static">
+			<return type="Schema" />
+			<param index="0" name="yaml_string" type="String" />
+			<param index="1" name="validate_against_meta" type="bool" default="false" />
+			<description>
+				Parses a YAML string and builds a [Schema] object for validation. Returns a [Schema] ready for validation, or [code]null[/code] if the YAML is malformed.
+				This method combines YAML parsing with [method Schema.build_schema] from the [url=https://github.com/fimbul-works/gdschema]GDSchema[/url] extension. Schemas support the full [url=https://json-schema.org/specification-links.html#draft-7]JSON Schema Draft-7[/url] specification, including [code]$ref[/code] references, schema composition ([code]allOf[/code], [code]anyOf[/code], [code]oneOf[/code]), and conditional validation ([code]if[/code]/[code]then[/code]/[code]else[/code]).
+				Schemas with a [code]$id[/code] field are automatically registered globally and can be referenced by ID in other schemas or during validation.
+				If [param validate_against_meta] is [code]true[/code], the schema itself is validated against the JSON Schema Draft-7 meta-schema before building.
+				[b]YAML Extension Keywords:[/b]
+				In addition to standard JSON Schema keywords, two YAML-specific extensions are available:
+				 • [code]default[/code] - Provides a default value when a property is [i]missing[/i] (not when explicitly [code]null[/code])
+				 • [code]x-yaml-tag[/code] - Validates that a YAML value has a specific tag (e.g., [code]!Resource[/code], [code]!CustomType[/code])
+				[codeblock]
+				# Load a schema with definitions, defaults, and tag validation
+				var yaml_schema = """
+				$id: "http://example.com/user.yaml"
+
+				# Reusable definitions
+				$defs:
+				  settings:
+				    type: object
+				    properties:
+				      theme:
+				        type: string
+				        enum: [light, dark, auto]
+				        default: dark
+				      volume:
+				        type: number
+				        minimum: 0
+				        maximum: 1
+				        default: 0.5
+
+				type: object
+				properties:
+				  username:
+				    type: string
+				    minLength: 3
+				    maxLength: 20
+				  email:
+				    type: string
+				    format: email
+				  role:
+				    type: string
+				    enum: [user, admin, moderator]
+				    default: user
+				    x-yaml-tag: UserRole
+				  avatar:
+				    type: string
+				    x-yaml-tag: Resource
+				  settings:
+				    $ref: "#/$defs/settings"
+				required:
+				- username
+				- email
+				"""
+
+				var schema = YAML.load_schema_from_string(yaml_schema)
+				if not schema:
+				    push_error("Failed to parse schema")
+				    return
+
+				# Validate data using the schema
+				var valid_data = {
+				    "username": "alice",
+				    "email": "alice@example.com"
+				}
+				var result = schema.validate(valid_data)
+				print(result.is_valid()) # true
+				print(result.get_data().role) # "user" (default applied)
+				print(result.get_data().settings.theme) # "dark" (nested default)
+
+				# Invalid data shows detailed errors
+				var invalid_data = {
+				    "username": "ab",  # Too short
+				    "email": "not-an-email"  # Invalid format
+				}
+				result = schema.validate(invalid_data)
+				if result.has_errors():
+				    print(result.get_summary())
+				    # Schema validation failed with 2 error(s):
+				    #   [1] At '/username': String length 2 is less than minimum 3 (minLength)
+				    #   [2] At '/email': String "not-an-email" does not match format email (format)
+				[/codeblock]
+				[b]See also:[/b] [method load_schema_from_file], [method parse_and_validate]
+				[b]Note:[/b] For complete JSON Schema documentation, see [url=https://github.com/fimbul-works/gdschema]GDSchema README[/url].
+			</description>
+		</method>
+		<method name="parse" qualifiers="static">
+			<return type="YAMLResult" />
+			<param index="0" name="yaml_text" type="String" />
+			<param index="1" name="security" type="YAMLSecurity" default="null" />
+			<param index="2" name="detect_style" type="bool" default="false" />
+			<description>
+				Parses a YAML string into Godot data structures. Returns a [YAMLResult] containing either the parsed data or error information.
+				If [param security] is provided, it will be used to restrict resource loading during parsing.
+				If [param detect_style] is [code]true[/code], the [YAMLResult] instance will contain a [YAMLStyle] object. See [method YAMLResult.get_style] for details.
+				[codeblock lang=gdscript]
+				var quest_text = """
+				title: Defeat the Dragon
+				level: 5
+				rewards:
+				  gold: 1000
+				  items: [Dragon Scale, Fire Gem]
+				"""
+
+				var result = YAML.parse(quest_text)
+				if !result.has_error():
+				    var quest = result.get_data()
+				    print("Quest: %s (Level %d)" % [quest.title, quest.level])
+				else:
+				    print("Parse error: %s" % result.get_error())
+				[/codeblock]
+			</description>
+		</method>
+		<method name="parse_and_validate" qualifiers="static">
+			<return type="YAMLResult" />
+			<param index="0" name="yaml_text" type="String" />
+			<param index="1" name="schema" type="Variant" default="null" />
+			<param index="2" name="security" type="YAMLSecurity" default="null" />
+			<param index="3" name="detect_style" type="bool" default="false" />
+			<description>
+				Parses a YAML string and validates it against a schema in one operation. Returns a [YAMLResult] containing either the parsed data with validation information or error details.
+
+				The [param schema] parameter can be:
+				 - [code]null[/code] or omitted - Auto-discovers schema from [code]$schema[/code] field in YAML
+				 - [String] - ID of a registered schema (e.g., [code]"http://example.com/config.yaml"[/code])
+				 - [Ref<Schema>] - Direct schema object
+
+				If [param security] is provided, it controls resource loading during parsing. If [param detect_style] is [code]true[/code], formatting information is preserved in the result.
+
+				[b]Important:[/b] Always check both [method YAMLResult.has_error] for parse errors and [method YAMLResult.has_validation_errors] for schema validation failures.
+
+				[codeblock]
+				# Register a schema with $id
+				var user_schema = YAML.load_schema_from_string("""
+				$id: "http://example.com/user.yaml"
+				type: object
+				properties:
+				  username:
+				    type: string
+				    minLength: 3
+				  email:
+				    type: string
+				    format: email
+				required: [username, email]
+				""")
+
+				# Parse and validate using schema ID
+				var result = YAML.parse_and_validate("""
+				username: alice
+				email: alice@example.com
+				""", "http://example.com/user.yaml")
+
+				# Check for parse errors first
+				if result.has_error():
+				    push_error("Parse error: %s" % result.get_error())
+				    return
+
+				# Then check for validation errors
+				if result.has_validation_errors():
+				    print(result.get_validation_summary())
+				    return
+
+				# Both parsing and validation succeeded
+				var user_data = result.get_data()
+				process_user(user_data)
+
+				# Auto-discovery using $schema field
+				var yaml_with_schema = """
+				$schema: "http://example.com/user.yaml"
+				username: bob
+				email: bob@example.com
+				"""
+				result = YAML.parse_and_validate(yaml_with_schema)  # No explicit schema needed
+				[/codeblock]
+
+				[b]See also:[/b] [method parse], [method load_schema_from_string], [method YAMLResult.get_validation_result]
+			</description>
+		</method>
 		<method name="register_class" qualifiers="static">
 			<return type="void" />
 			<param index="0" name="script_class" type="Script" />
 			<param index="1" name="serialize_method" type="Variant" default="&quot;serialize&quot;" />
 			<param index="2" name="deserialize_method" type="Variant" default="&quot;deserialize&quot;" />
-			<param index="3" name="tag" type="Variant" default="null" />
+			<param index="3" name="_unnamed_arg3" type="Variant" default="null" />
 			<description>
 				Registers a custom script class for YAML serialization and deserialization. It is recommended to do this in an autoloading singleton or a script that runs at the start of your game.
 				[codeblock lang=gdscript]
@@ -397,6 +516,43 @@ settings: {}
 				[/codeblock]
 			</description>
 		</method>
+		<method name="try_load_file_and_validate" qualifiers="static">
+			<return type="Variant" />
+			<param index="0" name="path" type="String" />
+			<param index="1" name="schema" type="Variant" default="null" />
+			<param index="2" name="security" type="YAMLSecurity" default="null" />
+			<description>
+				Simplified version of [method load_file_and_validate] that returns the parsed data directly or [code]null[/code] on error. Automatically reports errors through Godot's error reporting system.
+
+				The [param schema] parameter can be:
+				 - [code]null[/code] or omitted - Auto-discovers schema from [code]$schema[/code] field in YAML
+				 - [String] - ID of a registered schema
+				 - [Ref<Schema>] - Direct schema object
+
+				[b]Note:[/b] This method returns [code]null[/code] for file errors, parse errors, and validation errors. Use [method load_file_and_validate] if you need to distinguish between error types or access detailed validation information.
+
+				[codeblock]
+				# Quick file load with validation
+				var game_config = YAML.try_load_file_and_validate(
+				    "user://game_config.yaml",
+				    "http://example.com/config.yaml"
+				)
+
+				if game_config:
+				    apply_configuration(game_config)
+				else:
+				    # Error was already logged
+				    apply_default_configuration()
+
+				# With auto-discovery (schema ID in file)
+				var player_profile = YAML.try_load_file_and_validate("user://profile.yaml")
+				if player_profile:
+				    setup_player(player_profile)
+				[/codeblock]
+
+				[b]See also:[/b] [method load_file_and_validate], [method try_load_file]
+			</description>
+		</method>
 		<method name="try_parse" qualifiers="static">
 			<return type="Variant" />
 			<param index="0" name="yaml_text" type="String" />
@@ -414,6 +570,57 @@ settings: {}
 				else:
 				    print("Failed to parse weapon data")
 				[/codeblock]
+			</description>
+		</method>
+		<method name="try_parse_and_validate" qualifiers="static">
+			<return type="Variant" />
+			<param index="0" name="yaml_text" type="String" />
+			<param index="1" name="schema" type="Variant" default="null" />
+			<param index="2" name="security" type="YAMLSecurity" default="null" />
+			<description>
+				Simplified version of [method parse_and_validate] that returns the parsed data directly or [code]null[/code] on error. Automatically reports errors through Godot's error reporting system.
+
+				The [param schema] parameter can be:
+				 - [code]null[/code] or omitted - Auto-discovers schema from [code]$schema[/code] field in YAML
+				 - [String] - ID of a registered schema
+				 - [Ref<Schema>] - Direct schema object
+
+				[b]Note:[/b] This method returns [code]null[/code] for both parse errors and validation errors. Use [method parse_and_validate] if you need to distinguish between error types or access detailed validation information.
+
+				[codeblock]
+				# Quick validation with error logging
+				var config_schema = YAML.load_schema_from_string("""
+				type: object
+				properties:
+				  volume:
+				    type: number
+				    minimum: 0
+				    maximum: 1
+				    default: 0.5
+				""")
+
+				var config = YAML.try_parse_and_validate("""
+				volume: 0.8
+				""", config_schema)
+
+				if config:
+				    apply_audio_settings(config)
+				else:
+				    # Errors were already logged
+				    use_default_audio_settings()
+
+				# With auto-discovery
+				var user_data = YAML.try_parse_and_validate("""
+				$schema: "http://example.com/user.yaml"
+				username: alice
+				email: alice@example.com
+				""")
+
+				if user_data:
+				    create_user_account(user_data)
+				[/codeblock]
+
+				[b]See also:[/b] [method parse_and_validate], [method try_parse]
 			</description>
 		</method>
 		<method name="try_save_file" qualifiers="static">
@@ -463,6 +670,22 @@ settings: {}
 				Unregisters a previously registered custom script class from YAML serialization.
 			</description>
 		</method>
+		<method name="validate_file_syntax" qualifiers="static">
+			<return type="YAMLResult" />
+			<param index="0" name="path" type="String" />
+			<description>
+				Validates YAML syntax in a file without performing a full parse. Returns a [YAMLResult] containing error information.
+				Useful for quickly checking file format validity.
+				[codeblock lang=gdscript]
+				var result = YAML.validate_file_syntax("user://mod_config.yaml")
+				if result.has_error():
+				    print("Mod configuration has syntax errors: " + result.get_error())
+				    print("Please fix your mod configuration file.")
+				else:
+				    print("Mod configuration syntax is valid.")
+				[/codeblock]
+			</description>
+		</method>
 		<method name="validate_syntax" qualifiers="static">
 			<return type="YAMLResult" />
 			<param index="0" name="yaml_text" type="String" />
@@ -477,22 +700,6 @@ settings: {}
 				    return push_error(result.get_error())
 
 				# YAML has valid syntax, proceed with parsing
-				[/codeblock]
-			</description>
-		</method>
-		<method name="validate_file_syntax" qualifiers="static">
-			<return type="YAMLResult" />
-			<param index="0" name="path" type="String" />
-			<description>
-				Validates YAML syntax in a file without performing a full parse. Returns a [YAMLResult] containing error information.
-				Useful for quickly checking file format validity.
-				[codeblock lang=gdscript]
-				var result = YAML.validate_file_syntax("user://mod_config.yaml")
-				if result.has_error():
-				    print("Mod configuration has syntax errors: " + result.get_error())
-				    print("Please fix your mod configuration file.")
-				else:
-				    print("Mod configuration syntax is valid.")
 				[/codeblock]
 			</description>
 		</method>

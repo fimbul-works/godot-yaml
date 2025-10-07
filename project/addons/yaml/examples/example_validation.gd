@@ -48,22 +48,30 @@ required:
 	schema = YAML.load_schema_from_string(yaml_schema_text)
 	if !schema:
 		log_error("Schema failed to load!")
+	else:
+		log_success("Schema '%s' loaded" % schema.get_schema_definition().get("$id"))
 
 func validate_using_schema() -> void:
 	# Validate using the Schema object
+	log_subheader("Successful validation")
 	var result := schema.validate({
 		"username": "alice",
 		"email": "alice@example.com"
 	})
-	log_subheader("Successful validation")
-	log_result(result.get_summary())
+	if result.is_valid():
+		log_success(result.get_summary())
+	else:
+		log_error(result.get_summary())
 
+	log_subheader("Failed validation")
 	result = schema.validate({
 		"username": "alice",
 		"email": "invalid email"
 	})
-	log_subheader("Failed validation")
-	log_result(result.get_summary())
+	if !result.is_valid():
+		log_success(result.get_summary())
+	else:
+		log_error(result.get_summary())
 
 func validate_while_parsing() -> void:
 	# YAML tag validation
@@ -80,7 +88,7 @@ settings:
 		log_error(result.get_validation_summary())
 		return
 
-	log_result(result.get_data())
+	log_success(result.get_data())
 
 func validate_with_defaults() -> void:
 	# Default values
@@ -96,4 +104,4 @@ settings: {} # Empty dictionary is required to set default values
 		log_error(result.get_validation_summary())
 		return
 
-	log_result(result.get_data())
+	log_success(result.get_data())

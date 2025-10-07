@@ -30,14 +30,14 @@ func log_header(text: String) -> void:
 func log_subheader(text: String) -> void:
 	print_rich("\n[b][font_size=14]%s[/font_size][/b]" % text)
 
-func log_success(text: String) -> void:
-	print_rich("[color=green]✅ %s[/color]" % text)
+func log_success(text: Variant) -> void:
+	print_rich("[color=green]✅ %s[/color]" % str(text))
 
-func log_error(text: String) -> void:
-	print_rich("[color=red]❌ %s[/color]" % text)
+func log_error(text: Variant) -> void:
+	print_rich("[color=red]❌ %s[/color]" % str(text))
 
-func log_warning(text: String) -> void:
-	print_rich("[color=yellow]⚠️ %s[/color]" % text)
+func log_warning(text: Variant) -> void:
+	print_rich("[color=yellow]⚠️ %s[/color]" % str(text))
 
 func log_info(text: Variant) -> void:
 	print_rich("%s" % str(text))

@@ -426,7 +426,7 @@
 				This is a convenience method that combines JSON parsing with [method build_schema]. If [param validate_against_meta] is [code]true[/code], the schema will be validated against the JSON Schema Draft-7 meta-schema.
 				Schemas with a [code]$id[/code] field are automatically registered globally.
 				[codeblock]
-				var json_text = '''
+				var json_text = """
 				{
 				    "type": "object",
 				    "properties": {
@@ -442,7 +442,7 @@
 				    },
 				    "required": ["username", "email"]
 				}
-				'''
+				"""
 
 				var schema = Schema.load_from_json(json_text)
 				if schema:

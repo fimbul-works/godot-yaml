@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<class name="YAMLResult" inherits="RefCounted" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+<class name="YAMLResult" inherits="RefCounted" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
 		Contains the results or errors from YAML operations.
 	</brief_description>
@@ -133,11 +133,23 @@
 		<method name="get_validation_errors" qualifiers="const">
 			<return type="Array" />
 			<description>
-				Returns an array of validation error dictionaries. Each dictionary contains detailed information about a validation failure, including [code]path[/code], [code]message[/code], [code]constraint[/code], and [code]invalid_value[/code] keys.
+				Returns an array of validation error dictionaries. Each dictionary contains detailed information about a validation failure, including [code]instance_path[/code], [code]message[/code], [code]keyword[/code], and [code]invalid_value[/code] keys.
+
 				Returns an empty array if validation passed or if no validation was performed.
+
 				This is a convenience method equivalent to calling [code]get_validation_result().get_errors()[/code].
-				[codeblock lang=gdscript]
-				var schema = YAML.load_schema_from_string('''
+
+				Each error dictionary contains:
+				 - [code]message[/code] - Human-readable error description
+				 - [code]instance_path[/code] - JSON Pointer to invalid data (e.g., [code]"/user/age"[/code])
+				 - [code]instance_path_array[/code] - Path as array (e.g., [code]["user", "age"][/code])
+				 - [code]schema_path[/code] - Path to schema rule (e.g., [code]"/properties/user/properties/age/minimum"[/code])
+				 - [code]schema_path_array[/code] - Schema path as array
+				 - [code]keyword[/code] - Schema constraint that failed (e.g., [code]"minimum"[/code], [code]"type"[/code])
+				 - [code]invalid_value[/code] - The actual value that failed validation
+
+				[codeblock]
+				var schema = YAML.load_schema_from_string("""
 				type: object
 				properties:
 				  username:
@@ -147,17 +159,17 @@
 				    type: integer
 				    minimum: 0
 				required: [username]
-				''')
+				""")
 
-				var result = YAML.parse_and_validate('''
+				var result = YAML.parse_and_validate("""
 				username: "ab"
 				age: -5
-				''', schema)
+				""", schema)
 
 				if result.has_validation_errors():
 				    for error in result.get_validation_errors():
-				        print("Path: %s" % error.path)
-				        print("Constraint: %s" % error.constraint)
+				        print("Path: %s" % error.instance_path)
+				        print("Constraint: %s" % error.keyword)
 				        print("Message: %s" % error.message)
 				        print("Invalid value: %s" % error.invalid_value)
 				        print("---")
@@ -273,10 +285,10 @@
 				print(result2.has_validation_result())  # true
 
 				# Auto-validation with $schema field
-				var yaml_with_schema = '''
+				var yaml_with_schema = """
 				$schema: "http://example.com/config.yaml"
 				setting: value
-				'''
+				"""
 				var result3 = YAML.parse_and_validate(yaml_with_schema)
 				print(result3.has_validation_result())  # true (if schema is registered)
 				[/codeblock]

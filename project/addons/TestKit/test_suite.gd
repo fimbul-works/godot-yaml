@@ -71,7 +71,7 @@ func expect_equal(actual, expected, message := "") -> bool:
 		return false
 
 	# Perform equality check
-	var condition = actual == expected if typeof(expected) != TYPE_NIL else typeof(actual) == TYPE_NIL
+	var condition = actual == expected if expected != null else actual == null
 
 	if _current_method in _test_results:
 		var result = _test_results[_current_method]
