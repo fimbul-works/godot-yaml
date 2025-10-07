@@ -1,0 +1,120 @@
+name: 🔨 Build GDExtension
+on:
+  workflow_call:  # Allow this to be called from other workflows
+    outputs:
+      artifact-name:
+        description: "Name of the build artifact"
+        value: gdyaml-builds
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  # Only build the addon, not the whole project
+  ADDON_PATH: project/addons/yaml
+  BIN_PATH: project/addons/yaml/bin
+
+jobs:
+  build:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Windows builds
+          - name: 🪟 Windows Debug (x86_64)
+            os: windows-latest
+            platform: windows
+            target: template_debug
+            arch: x86_64
+
+          - name: 🪟 Windows Release (x86_64)
+            os: windows-latest
+            platform: windows
+            target: template_release
+            arch: x86_64
+
+          # Linux builds
+          - name: 🐧 Linux Debug (x86_64)
+            os: ubuntu-22.04
+            platform: linux
+            target: template_debug
+            arch: x86_64
+
+          - name: 🐧 Linux Release (x86_64)
+            os: ubuntu-22.04
+            platform: linux
+            target: template_release
+            arch: x86_64
+
+          # macOS builds
+          - name: 🍎 macOS Debug (universal)
+            os: macos-14
+            platform: macos
+            target: template_debug
+            arch: universal
+
+          - name: 🍎 macOS Release (universal)
+            os: macos-14
+            platform: macos
+            target: template_release
+            arch: universal
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Set up SCons
+        shell: bash
+        run: |
+          python -m pip install --upgrade pip
+          pip install scons
+
+      - name: Setup MSVC (Windows only)
+        if: matrix.platform == 'windows'
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+
+      - name: Setup Linux dependencies
+        if: matrix.platform == 'linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential pkg-config python3 python3-pip git
+
+      - name: Cache SCons build
+        uses: actions/cache@v4
+        with:
+          path: |
+            build/scons_cache
+            .scons_cache
+          key: ${{ matrix.os }}-${{ matrix.platform }}-${{ matrix.target }}-${{ matrix.arch }}-${{ hashFiles('**/*.cpp', '**/*.hpp') }}
+          restore-keys: |
+            ${{ matrix.os }}-${{ matrix.platform }}-${{ matrix.target }}-${{ matrix.arch }}-
+            ${{ matrix.os }}-${{ matrix.platform }}-
+
+      - name: Setup CMake
+        uses: jwlawson/actions-setup-cmake@v2
+        with:
+          cmake-version: '3.16.x'
+
+      - name: Compile GDExtension
+        shell: bash
+        run: |
+          scons platform=${{ matrix.platform }} target=${{ matrix.target }} arch=${{ matrix.arch }} -j$(nproc || sysctl -n hw.ncpu || echo 2)
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: gdyaml-${{ matrix.platform }}-${{ matrix.target }}-${{ matrix.arch }}
+          path: ${{ env.BIN_PATH }}/*
+          retention-days: 7

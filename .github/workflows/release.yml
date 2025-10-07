@@ -1,0 +1,141 @@
+name: 🚀 Release
+on:
+  push:
+    tags:
+      - 'v*.*.*'        # Matches v1.0.0, v1.0.0-rc1, v2.1.3-beta, etc.
+      - '*.*.*'         # Matches 1.0.0, 1.0.0-rc1, etc. (without v prefix)
+
+env:
+  ADDON_PATH: project/addons/yaml
+
+jobs:
+  # Build for all platforms
+  build:
+    name: Build All Platforms
+    uses: ./.github/workflows/build.yml
+
+  # Package and create release
+  release:
+    name: Create Release
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write  # Needed to create releases
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Get version from tag
+        id: tag_name
+        run: |
+          # Remove 'refs/tags/' prefix and store the tag
+          TAG=${GITHUB_REF#refs/tags/}
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          echo "Building release for tag: $TAG"
+
+      - name: Create bin directory
+        run: mkdir -p ${{ env.ADDON_PATH }}/bin
+
+      # Download all build artifacts
+      - name: Download Windows Debug artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: gdyaml-windows-template_debug-x86_64
+          path: ${{ env.ADDON_PATH }}/bin/
+
+      - name: Download Windows Release artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: gdyaml-windows-template_release-x86_64
+          path: ${{ env.ADDON_PATH }}/bin/
+
+      - name: Download Linux Debug artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: gdyaml-linux-template_debug-x86_64
+          path: ${{ env.ADDON_PATH }}/bin/
+
+      - name: Download Linux Release artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: gdyaml-linux-template_release-x86_64
+          path: ${{ env.ADDON_PATH }}/bin/
+
+      - name: Download macOS Debug artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: gdyaml-macos-template_debug-universal
+          path: ${{ env.ADDON_PATH }}/bin/
+
+      - name: Download macOS Release artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: gdyaml-macos-template_release-universal
+          path: ${{ env.ADDON_PATH }}/bin/
+
+      - name: List downloaded files
+        run: |
+          echo "Contents of bin directory:"
+          ls -lah ${{ env.ADDON_PATH }}/bin/
+
+      - name: Package addon
+        run: |
+          cd project
+          zip -r ../yaml-${{ steps.tag_name.outputs.tag }}.zip addons/yaml/ \
+            -x 'addons/yaml/*.gitignore' \
+            -x 'addons/yaml/*.import' \
+            -x 'addons/yaml/.DS_Store' \
+            -x 'addons/yaml/__pycache__/*' \
+            -x 'addons/yaml/*.pyc' \
+            -x 'addons/yaml/*.md~' \
+            -x 'addons/yaml/.git/*' \
+            -x 'addons/yaml/bin/*.lib' \
+            -x 'addons/yaml/bin/*.exp'
+
+      - name: Create SHA256 checksum
+        run: |
+          sha256sum yaml-${{ steps.tag_name.outputs.tag }}.zip > yaml-${{ steps.tag_name.outputs.tag }}.zip.sha256
+
+      - name: Create Release
+        id: create_release
+        uses: softprops/action-gh-release@v1
+        with:
+          name: Godot YAML ${{ steps.tag_name.outputs.tag }}
+          draft: false
+          prerelease: ${{ contains(steps.tag_name.outputs.tag, 'rc') || contains(steps.tag_name.outputs.tag, 'beta') || contains(steps.tag_name.outputs.tag, 'alpha') }}
+          generate_release_notes: true
+          files: |
+            godot-yaml-${{ steps.tag_name.outputs.tag }}.zip
+            godot-yaml-${{ steps.tag_name.outputs.tag }}.zip.sha256
+          body: |
+            ## Godot YAML ${{ steps.tag_name.outputs.tag }}
+
+            A high-performance YAML parser and serializer for Godot 4.3+ that speaks fluent Variant.
+
+            ### Installation
+            1. Download `godot-yaml-${{ steps.tag_name.outputs.tag }}.zip`
+            2. Extract the contents into your project's `addons/` directory
+            3. The folder structure should be: `res://addons/yaml/`
+            4. Enable the plugin in Project Settings → Plugins
+
+            ### What's Included
+            - Windows (x86_64): Debug & Release
+            - Linux (x86_64): Debug & Release
+            - macOS (Universal): Debug & Release
+
+            ### ⚠️ macOS Users
+            Prebuilt binaries are provided for macOS, but some macOS configurations (particularly on Apple Silicon with recent OS versions) may have security policies that prevent loading *any* unsigned GDExtensions. If you encounter loading errors:
+            - Test with other GDExtensions (FMOD, LimboAI, etc.) to determine if this is system-wide
+            - Consider building from source as an alternative
+            - Check Apple's documentation on Gatekeeper and code signing requirements
+
+            This is not specific to Godot YAML, but affects GDExtensions generally on certain macOS setups.
+
+            ### Verify Download
+            ```bash
+            sha256sum -c godot-yaml-${{ steps.tag_name.outputs.tag }}.zip.sha256
+            ```
+
+            [Documentation](https://github.com/${{ github.repository }}/blob/main/project/addons/yaml/README.md) | [Examples](https://github.com/${{ github.repository }}/tree/main/project/addons/yaml/examples)
