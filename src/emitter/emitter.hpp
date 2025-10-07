@@ -52,8 +52,8 @@ public:
 	/**
 	 * @brief Non-copyable class.
 	 */
-	YAML::Emitter(const Emitter &) = delete;
-	YAML::Emitter &operator=(const Emitter &) = delete;
+	Emitter(const Emitter &) = delete;
+	Emitter &operator=(const Emitter &) = delete;
 
 	/**
 	 * @brief Emits a Godot Variant as YAML.
