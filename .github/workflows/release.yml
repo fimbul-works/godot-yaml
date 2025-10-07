@@ -83,7 +83,7 @@ jobs:
       - name: Package addon
         run: |
           cd project
-          zip -r ../yaml-${{ steps.tag_name.outputs.tag }}.zip addons/yaml/ \
+          zip -r ../godot-yaml-${{ steps.tag_name.outputs.tag }}.zip addons/yaml/ \
             -x 'addons/yaml/*.gitignore' \
             -x 'addons/yaml/*.import' \
             -x 'addons/yaml/.DS_Store' \
@@ -96,7 +96,7 @@ jobs:
 
       - name: Create SHA256 checksum
         run: |
-          sha256sum yaml-${{ steps.tag_name.outputs.tag }}.zip > yaml-${{ steps.tag_name.outputs.tag }}.zip.sha256
+          sha256sum godot-yaml-${{ steps.tag_name.outputs.tag }}.zip > godot-yaml-${{ steps.tag_name.outputs.tag }}.zip.sha256
 
       - name: Create Release
         id: create_release
