@@ -32,10 +32,11 @@ A high-performance YAML parsing and serialization plugin for Godot 4.3, powered 
 ## Compatibility
 
 - Requires **Godot 4.3** or higher
-- Currently supported platforms:
-  - Windows
+- Supported platforms:
+  - Windows (x86 64-bit)
   - Linux (x86 64-bit)
-  - macOS, Android, and iOS support coming soon
+  - macOS: (Universal)
+    -  **Note**: Some macOS configurations (particularly newer versions with stricter Gatekeeper policies) may prevent loading of GDExtensions generally, not just this plugin. If the extension fails to load, try building from source or test with other GDExtensions to determine if this is a system-wide issue.
 
 ## Basic Usage
 

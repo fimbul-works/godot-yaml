@@ -94,11 +94,10 @@ scons platform=linux target=template_release
 
 ## ✅ Supported Platforms
 
-- **Windows**: ✅ Prebuilt binaries available.
+- **Windows**: ✅ Prebuilt binaries available for **x86 64-bit** architecture.
 - **Linux**: ✅ Prebuilt binaries available for **x86 64-bit** architecture.
-- **macOS**: 🚧 Not yet prebuilt, but **should compile without issues**.
-
-📌 **Contributions welcome!** If you can help with Linux/macOS, open a PR.
+- **macOS**: ⚠️ Prebuilt binaries available for **universal** architecture.
+  - **Note**: Some macOS configurations (particularly newer versions with stricter Gatekeeper policies) may prevent loading of GDExtensions generally, not just this plugin. If the extension fails to load, try building from source or test with other GDExtensions to determine if this is a system-wide issue.
 
 ---
 
@@ -111,12 +110,6 @@ scons platform=linux target=template_release
 4. **Thread safety**: No global state; ensure **safe multithreading**.
 5. **Write tests**: Every new feature should have **test coverage**.
 6. **Document your changes**: All public APIs **must be documented**.
-
-### **Code Formatting**
-```bash
-# Format code (requires clang-format)
-clang-format -i src/*.cpp src/*.hpp src/variant_converters/*.cpp src/variant_converters/*.hpp src/syntax_validator/*.cpp src/syntax_validator/*.hpp src/util/*.hpp src/style/*.cpp src/style/*.hpp src/parser/*.cpp src/parser/*.hpp src/extension/*.cpp src/extension/*.hpp src/emitter/*.cpp src/emitter/*.hpp
-```
 
 ---
 
