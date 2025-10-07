@@ -39,7 +39,7 @@ public:
 	 */
 	struct ClassInfo {
 		Ref<Script> script_class; ///< Reference to the script class
-		StringName tag; ///< YAML tag
+		String tag; ///< Custom YAML tag
 		StringName serialize_method; ///< Instance method for serialization
 		StringName deserialize_method; ///< Static method for deserialization
 	};

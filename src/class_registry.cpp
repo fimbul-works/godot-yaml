@@ -76,7 +76,7 @@ void YAMLClassRegistry::register_class(Ref<Script> p_class, const Variant &p_ser
 	}
 
 	// Create the class info
-	const StringName tag = p_tag.get_type() == Variant::STRING || p_tag.get_type() == Variant::STRING_NAME ? StringName(p_tag) : class_name;
+	const String tag = p_tag.get_type() == Variant::STRING || p_tag.get_type() == Variant::STRING_NAME ? String(p_tag) : String(class_name);
 	ClassInfo info;
 	info.script_class = p_class;
 	info.tag = tag.length() ? tag : class_name;
