@@ -69,15 +69,15 @@ inline bool needs_block_style(const ryml::csubstr &str) {
 /**
  * @brief Determines if a string needs quotes in YAML.
  *
- * Quotes are needed for strings beginning/ending with spaces,
- * beginning with '#', or containing special characters like colons
+ * Quotes are needed for empty strings, strings beginning/ending with spaces,
+ * beginning with '#', containing special characters like colons
  * or brackets that might be interpreted as YAML syntax.
  *
  * @param value The string to check
  * @return bool True if the string should be quoted
  */
 inline bool needs_quotes(const String &value) {
-	if (value.begins_with(" ") || value.ends_with(" ") || value.begins_with("#")) {
+	if (value.is_empty() || value.begins_with(" ") || value.ends_with(" ") || value.begins_with("#")) {
 		return true;
 	}
 	Ref<RegEx> special_reg_ex = RegEx::create_from_string("[{}\\[\\],&:\\*?|\\-<>=!%@\\/]");

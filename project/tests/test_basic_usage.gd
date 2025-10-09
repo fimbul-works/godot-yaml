@@ -54,6 +54,13 @@ func test_stringify_data() -> void:
 	if LOG_VERBOSE:
 		print_rich("\n[b]Stringify Result:[/b]\n%s\n" % stringify_result.get_data())
 
+	var empty_stringify_result = YAML.stringify("")
+	expect(not empty_stringify_result.has_error(), empty_stringify_result.get_error())
+
+	var empty_parsed_result = YAML.parse(empty_stringify_result.get_data())
+	expect(not empty_parsed_result.has_error(), empty_parsed_result.get_error())
+	expect_equal(empty_parsed_result.get_data(), "", "Empty string should be parsed correctly")
+
 func test_validate_file_syntax() -> void:
 	var result := YAML.validate_file_syntax(YAML_FILE)
 	expect(not result.has_error(), result.get_error())

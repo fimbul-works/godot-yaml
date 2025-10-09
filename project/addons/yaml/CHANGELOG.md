@@ -1,5 +1,9 @@
 # Godot YAML Changelog
 
+## Version 2.1.1
+
+Empty strings are stringified with quotes.
+
 ## Version 2.1.0
 
 When passing the custom tag to `YAML.schema_register(class, serialize_method, deserialize_static, custom_tag)` use the custom tag when emitting, resolving [Issue #13](https://github.com/fimbul-works/godot-yaml/issues/13).
