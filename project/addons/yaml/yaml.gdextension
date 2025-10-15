@@ -15,6 +15,9 @@ linux.release.x86_64 = "res://addons/yaml/bin/libgdyaml.linux.release.x86_64.so"
 macos.debug = "res://addons/yaml/bin/libgdyaml.macos.debug"
 macos.release = "res://addons/yaml/bin/libgdyaml.macos.release"
 
+android.debug.arm64 = "res://addons/yaml/bin/libgdyaml.android.debug.arm64.so"
+android.release.arm64 = "res://addons/yaml/bin/libgdyaml.android.release.arm64.so"
+
 [icons]
 
 YAML = "res://addons/yaml/icon.svg"

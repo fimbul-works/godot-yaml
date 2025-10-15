@@ -145,6 +145,36 @@ def build_rapidyaml(env, variant_dir):
             cmake_command.append('-A Win32')
         else:
             cmake_command.append('-A x64')
+    
+    # Android NDK configuration
+    elif platform == 'android':
+        # Use Ninja generator for Android to avoid MSBuild issues on Windows
+        cmake_command.insert(1, 'Ninja')
+        cmake_command.insert(1, '-G')
+        
+        # Get Android NDK path from environment
+        android_ndk = env.get('ANDROID_NDK_ROOT', os.environ.get('ANDROID_NDK_ROOT', ''))
+        if not android_ndk:
+            raise ValueError("ANDROID_NDK_ROOT must be set for Android builds")
+        
+        # Map Godot arch to Android ABI
+        android_abi_map = {
+            'arm32': 'armeabi-v7a',
+            'arm64': 'arm64-v8a',
+            'x86_32': 'x86',
+            'x86_64': 'x86_64'
+        }
+        android_abi = android_abi_map.get(arch, 'arm64-v8a')
+        
+        # Android NDK CMake toolchain
+        toolchain_file = os.path.join(android_ndk, 'build', 'cmake', 'android.toolchain.cmake')
+        cmake_command.extend([
+            f'-DCMAKE_TOOLCHAIN_FILE={toolchain_file}',
+            f'-DANDROID_ABI={android_abi}',
+            '-DANDROID_PLATFORM=android-21',  # Minimum API level
+            '-DANDROID_STL=c++_shared',
+            '-DCMAKE_SYSTEM_NAME=Android'
+        ])
 
     # Run CMake
     subprocess.run(cmake_command, check=True)
