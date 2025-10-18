@@ -6,10 +6,6 @@
 
 using namespace godot;
 
-// Initialize static members
-std::mutex YAMLClassRegistry::registry_mutex;
-std::unordered_map<String, YAMLClassRegistry::ClassInfo, StringHasher, StringEqual> YAMLClassRegistry::class_registry;
-
 void YAMLClassRegistry::register_class(Ref<Script> p_class, const Variant &p_serialize, const Variant &p_deserialize, const Variant &p_tag) {
 	const StringName class_name = get_script_class(p_class);
 	if (class_name.is_empty()) {
@@ -84,14 +80,13 @@ void YAMLClassRegistry::register_class(Ref<Script> p_class, const Variant &p_ser
 	info.deserialize_method = deserialize;
 
 	// Add to registry with thread safety
-	{
-		std::lock_guard<std::mutex> lock(registry_mutex);
-		class_registry[class_name] = info;
-		// Add the tag also
-		if (class_name != tag && tag.length()) {
-			class_registry[tag] = info;
-		}
+	registry_mutex->lock();
+	class_registry[class_name] = info;
+	// Add the tag also
+	if (class_name != tag && tag.length()) {
+		class_registry[tag] = info;
 	}
+	registry_mutex->unlock();
 
 #ifdef GODOT_YAML_DEBUG
 	UtilityFunctions::print(vformat("Registered class %s with YAML", class_name));
@@ -113,15 +108,14 @@ void YAMLClassRegistry::unregister_class(Ref<Script> p_class) {
 	}
 
 	// Remove from registry with thread safety
-	{
-		std::lock_guard<std::mutex> lock(registry_mutex);
-		auto class_info = get_class_info(class_name);
-		class_registry.erase(class_name);
-		// Erase tag also
-		if (class_info.tag != class_name && class_info.tag.length()) {
-			class_registry.erase(class_info.tag);
-		}
+	registry_mutex->lock();
+	auto class_info = get_class_info(class_name);
+	class_registry.erase(class_name);
+	// Erase tag also
+	if (class_info.tag != class_name && class_info.tag.length()) {
+		class_registry.erase(class_info.tag);
 	}
+	registry_mutex->unlock();
 
 #ifdef GODOT_YAML_DEBUG
 	UtilityFunctions::print(vformat("Unregistered class %s from YAML", class_name));
@@ -129,16 +123,21 @@ void YAMLClassRegistry::unregister_class(Ref<Script> p_class) {
 }
 
 bool YAMLClassRegistry::has_class(const String &tag_name) {
-	std::lock_guard<std::mutex> lock(registry_mutex);
-	return class_registry.find(tag_name) != class_registry.end();
+	registry_mutex->lock();
+	bool result = class_registry.find(tag_name) != class_registry.end();
+	registry_mutex->unlock();
+	return result;
 }
 
 YAMLClassRegistry::ClassInfo YAMLClassRegistry::get_class_info(const String &tag_name) {
-	std::lock_guard<std::mutex> lock(registry_mutex);
+	registry_mutex->lock();
 	auto it = class_registry.find(tag_name);
 	if (it != class_registry.end()) {
-		return it->second;
+		auto info = it->second;
+		registry_mutex->unlock();
+		return info;
 	}
+	registry_mutex->unlock();
 	return ClassInfo(); // Return empty info if not found
 }
 

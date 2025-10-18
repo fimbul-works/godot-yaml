@@ -640,8 +640,8 @@ std::optional<Variant> YAML::Parser::try_parse_tagged_value(const ryml::ConstNod
 		return converter->decode(node, context.get());
 	}
 
-	if (YAMLClassRegistry::has_class(tag)) {
-		YAMLClassRegistry::ClassInfo class_info = YAMLClassRegistry::get_class_info(tag);
+	if (YAMLClassRegistry::get_singleton().has_class(tag)) {
+		YAMLClassRegistry::ClassInfo class_info = YAMLClassRegistry::get_singleton().get_class_info(tag);
 
 		if (class_info.script_class.is_valid()) {
 			Variant data = process_common(node);

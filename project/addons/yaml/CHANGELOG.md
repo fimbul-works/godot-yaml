@@ -1,5 +1,9 @@
 # Godot YAML Changelog
 
+## Version 2.1.2
+
+- Implemented singleton pattern to YAML class registry to prevent app hanging when closing.
+
 ## Version 2.1.1
 
 Empty strings are stringified with quotes.
@@ -92,6 +96,7 @@ else:
 - Added support for custom tags when registering classes with `YAML.register_class()` - now you can specify custom YAML tags like `!Item` or `!ruby:object/Item`
 - Added `YAMLCodeEdit` class to enable embedding the YAML editor directly into your projects
 - Added missing example for handling multi-document YAML files
+- Upgraded [RapidYAML](https://github.com/biojppm/rapidyaml) to version 0.10.0
 
 ### Bug Fixes
 

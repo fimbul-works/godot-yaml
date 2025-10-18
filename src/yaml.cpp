@@ -307,15 +307,15 @@ Ref<YAMLStyle> YAML::create_style() {
 }
 
 void YAML::register_class(Ref<Script> p_class, const Variant &p_serialize, const Variant &p_deserialize, const Variant &p_tag) {
-	YAMLClassRegistry::register_class(p_class, p_serialize, p_deserialize, p_tag);
+	YAMLClassRegistry::get_singleton().register_class(p_class, p_serialize, p_deserialize, p_tag);
 }
 
 void YAML::unregister_class(Ref<Script> p_class) {
-	YAMLClassRegistry::unregister_class(p_class);
+	YAMLClassRegistry::get_singleton().unregister_class(p_class);
 }
 
 bool YAML::has_registered_class(const String &class_name) {
-	return YAMLClassRegistry::has_class(class_name);
+	return YAMLClassRegistry::get_singleton().has_class(class_name);
 }
 
 Ref<YAMLSecurity> YAML::create_security() {

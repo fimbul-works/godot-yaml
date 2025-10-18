@@ -270,8 +270,8 @@ void YAML::Emitter::emit_object(ryml::NodeRef &node, Object *obj, const YAMLStyl
 	if (script.is_valid() && !script->get_global_name().is_empty()) {
 		class_name = script->get_global_name();
 
-		if (YAMLClassRegistry::has_class(class_name)) {
-			YAMLClassRegistry::ClassInfo class_info = YAMLClassRegistry::get_class_info(class_name);
+		if (YAMLClassRegistry::get_singleton().has_class(class_name)) {
+			YAMLClassRegistry::ClassInfo class_info = YAMLClassRegistry::get_singleton().get_class_info(class_name);
 
 			if (class_info.script_class.is_valid()) {
 				const String tag = class_info.tag.is_empty() ? class_name : class_info.tag;
