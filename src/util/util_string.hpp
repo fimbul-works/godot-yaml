@@ -10,6 +10,7 @@
 
 #include <godot_cpp/classes/reg_ex.hpp>
 #include <godot_cpp/classes/reg_ex_match.hpp>
+#include <godot_cpp/templates/hash_set.hpp>
 #include <godot_cpp/variant/string.hpp>
 #include <ryml.hpp>
 #include <ryml_std.hpp>
@@ -53,7 +54,7 @@ inline String from_ryml_str(const ryml::csubstr &str) {
  * @return bool True if the string should use block style
  */
 inline bool needs_block_style(const String &str) {
-	return str.contains("\n") || str.contains("\"") || str.begins_with(" ") || str.ends_with(" ") || str.begins_with("#");
+	return !str.strip_edges().is_empty() && (str.contains("\n") || str.contains("\"") || str.begins_with(" ") || str.ends_with(" ") || str.begins_with("#"));
 }
 
 /**
@@ -77,10 +78,58 @@ inline bool needs_block_style(const ryml::csubstr &str) {
  * @return bool True if the string should be quoted
  */
 inline bool needs_quotes(const String &value) {
-	if (value.is_empty() || value.begins_with(" ") || value.ends_with(" ") || value.begins_with("#")) {
+	static Ref<RegEx> special_reg_ex = [] {
+		Ref<RegEx> r;
+		r.instantiate();
+		r->compile("[{}\\[\\],&:\\*?|\\-<>=!%@\\/]");
+		return r;
+	}();
+
+	if (value.is_empty()) {
 		return true;
 	}
-	Ref<RegEx> special_reg_ex = RegEx::create_from_string("[{}\\[\\],&:\\*?|\\-<>=!%@\\/]");
+
+	if (value.begins_with(" ") || value.ends_with(" ") || value.begins_with("#")) {
+		return true;
+	}
+
+	String lower = value.to_lower();
+
+	// YAML reserved plain scalars
+	static const HashSet<String> &reserved = []() -> const HashSet<String> & {
+		static HashSet<String> set;
+		set.insert("null");
+		set.insert("~");
+		set.insert("true");
+		set.insert("false");
+		set.insert("y");
+		set.insert("n");
+		set.insert("yes");
+		set.insert("no");
+		set.insert(".inf");
+		set.insert("-.inf");
+		set.insert("+.inf");
+		set.insert(".nan");
+		return set;
+	}();
+
+	if (reserved.has(lower)) {
+		return true;
+	}
+
+	// Looks numeric? Then quote it.
+	// Matches integers, floats, scientific, hex, octal, binary, or leading zeros.
+	static Ref<RegEx> numeric_re = [] {
+		Ref<RegEx> r;
+		r.instantiate();
+		r->compile("^(?:[-+]?\\d+(?:\\.\\d+)?(?:e[-+]?\\d+)?|0x[0-9a-f]+|0o[0-7]+|0b[01]+|0\\d+)$");
+		return r;
+	}();
+	if (numeric_re->search(lower).is_valid()) {
+		return true;
+	}
+
+	// YAML special syntax characters
 	return special_reg_ex->search(value).is_valid();
 }
 

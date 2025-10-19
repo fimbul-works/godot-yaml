@@ -192,11 +192,35 @@ void YAML::Emitter::emit_number(ryml::NodeRef &node, const Variant &value, const
 }
 
 void YAML::Emitter::emit_string(ryml::NodeRef &node, const String &value, const YAMLStyle::View &style) {
-	// First handle explicit style settings if provided
 	if (style.is_valid()) {
-		style.apply_string_style(node);
+		YAMLStyle::StringStyle string_style = style.get_string_style();
+
+		// Override plain style if the string requires special handling
+		if (string_style == YAMLStyle::STRING_PLAIN || string_style == YAMLStyle::STRING_ANY) {
+			if (needs_block_style(value)) {
+				// Must use block style
+				node |= ryml::BLOCK;
+				if (value.ends_with("\n") || value.contains("  ")) {
+					node |= ryml::VAL_LITERAL;
+				} else {
+					node |= ryml::VAL_FOLDED;
+				}
+			} else if (needs_quotes(value)) {
+				if (string_style == YAMLStyle::STRING_QUOTE_SINGLE) {
+					node |= ryml::VAL_SQUO;
+				} else {
+					node |= ryml::VAL_DQUO;
+				}
+			} else {
+				// Safe to use plain style
+				style.apply_string_style(node);
+			}
+		} else {
+			// User explicitly requested quotes or block style, honor it
+			style.apply_string_style(node);
+		}
 	} else {
-		// Auto-detect appropriate string style
+		// No style specified, auto-detect
 		if (needs_block_style(value)) {
 			node |= ryml::BLOCK;
 			if (value.ends_with("\n") || value.contains("  ")) {
@@ -204,13 +228,9 @@ void YAML::Emitter::emit_string(ryml::NodeRef &node, const String &value, const 
 			} else {
 				node |= ryml::VAL_FOLDED;
 			}
-		}
-
-		// Auto-detect quotes for non-block strings
-		if (!node.is_block()) {
-			if (needs_quotes(value)) {
-				node |= ryml::VAL_DQUO;
-			}
+		} else if (needs_quotes(value)) {
+			// Must quote, default to double quotes
+			node |= ryml::VAL_DQUO;
 		}
 	}
 

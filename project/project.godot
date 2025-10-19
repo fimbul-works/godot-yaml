@@ -27,7 +27,7 @@ movie_writer/movie_file="C:/Users/Claus/Code/Godot/godot-yaml/project/video.avi"
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/yaml/plugin.cfg")
+enabled=PackedStringArray("res://addons/TestKit/plugin.cfg", "res://addons/script-tabs/plugin.cfg", "res://addons/yaml/plugin.cfg")
 
 [input]
 
