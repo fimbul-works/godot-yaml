@@ -17,7 +17,13 @@ src/gen/doc_data.gen.cpp
 
 # Release files
 *.zip
+*.apk
+*.apk.idsig
+*.exe
+
+# Build configs
+project/android/
+project/export_presets.cfg
 
 # DevToolss
 .flatten
-

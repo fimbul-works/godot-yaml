@@ -2,7 +2,9 @@
 
 ## Version 2.1.2
 
-- Implemented singleton pattern to YAML class registry to prevent app hanging when closing.
+- Added support for Android (arm64, x86_64) platforms thanks to @Nemo1166
+- Rewrote `String` variant strigification rules, resolving [Issue #15](https://github.com/fimbul-works/godot-yaml/issues/15)
+- Fixed application hanging when closed due to an issue with the YAML class registry
 
 ## Version 2.1.1
 

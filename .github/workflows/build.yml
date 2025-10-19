@@ -62,6 +62,31 @@ jobs:
             target: template_release
             arch: universal
 
+          # Android builds
+          - name: 🤖 Android Debug (arm64)
+            os: ubuntu-22.04
+            platform: android
+            target: template_debug
+            arch: arm64
+
+          - name: 🤖 Android Release (arm64)
+            os: ubuntu-22.04
+            platform: android
+            target: template_release
+            arch: arm64
+
+          - name: 🤖 Android Debug (x86_64)
+            os: ubuntu-22.04
+            platform: android
+            target: template_debug
+            arch: x86_64
+
+          - name: 🤖 Android Release (x86_64)
+            os: ubuntu-22.04
+            platform: android
+            target: template_release
+            arch: x86_64
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -90,6 +115,37 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y build-essential pkg-config python3 python3-pip git
+
+      - name: Setup Android dependencies
+        if: matrix.platform == 'android'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential pkg-config python3 python3-pip git ninja-build
+
+      - name: Set up JDK 20 (Android only)
+        if: matrix.platform == 'android'
+        uses: actions/setup-java@v4
+        with:
+          java-version: '20'
+          distribution: 'temurin'
+
+      - name: Setup Android NDK (Android only)
+        if: matrix.platform == 'android'
+        run: |
+          # Install Android SDK command line tools
+          wget -q https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip -O cmdline-tools.zip
+          mkdir -p $ANDROID_HOME/cmdline-tools
+          unzip -q cmdline-tools.zip -d $ANDROID_HOME/cmdline-tools
+          mv $ANDROID_HOME/cmdline-tools/cmdline-tools $ANDROID_HOME/cmdline-tools/latest
+
+          # Accept licenses and install specific NDK version
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses
+          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "ndk;23.2.8568313"
+
+          # Set environment variable
+          echo "ANDROID_NDK_ROOT=$ANDROID_HOME/ndk/23.2.8568313" >> $GITHUB_ENV
+        env:
+          ANDROID_HOME: /usr/local/lib/android/sdk
 
       - name: Cache SCons build
         uses: actions/cache@v4

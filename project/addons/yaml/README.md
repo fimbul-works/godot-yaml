@@ -6,17 +6,12 @@ A high-performance YAML parsing and serialization plugin for Godot 4.3, powered 
 
 ## Version History
 
-- **2.1.1** (Current) - Empty strings are stringified with quotes
+- **2.1.2** (Current) - Added support for Android (arm64, x86_64) platforms thanks to @Nemo1166, and fixed some bugs
+- **2.1.1** - Empty strings are stringified with quotes
 - **2.1.0** - When passing custom tag to `YAML.schema_register(class, serialize_method, deserialize_static, custom_tag)` use the custom tag when stringifying
-- **2.0.0** - Major release with schema validation powered by [GDSchema](https://github.com/fimbul-works/gdschema), improved multi-document handling, and bug fixes. See [the full changelog](./CHANGELOG.md#version-200) for details
-- **1.1.0** - YAML files can now be loaded with the `!Resource` tag, and some fixes
-- **1.0.0** - First major release with custom YAML editor, streamlined API, and several fixes. See [the full changelog and a migration guide](./CHANGELOG.md#version-100) for details
-- **0.12.1** - Build support for Linux (x86 64-bit)
-- **0.12.0** - Performance optimizations, bug fixes, and comprehensive tests for all variant types
-- **0.11.0** - Added support for parsing multiple documents, and error handling for custom class deserialization
-- **0.10.1** - Fixed issue with custom Resources not being serializable
-- **0.10.0** - Added custom class serialization support, upgraded to Godot 4.3
-- **0.9.0** - Initial public release
+- **2.0.0** - Major release with schema validation powered by [GDSchema](https://github.com/fimbul-works/gdschema), improved multi-document handling, and bug fixes.
+
+See [the full changelog](./CHANGELOG.md) for more details.
 
 ## Features
 
@@ -39,6 +34,7 @@ A high-performance YAML parsing and serialization plugin for Godot 4.3, powered 
   - Linux (x86 64-bit)
   - macOS: (Universal)
     -  **Note**: Some macOS configurations (particularly newer versions with stricter Gatekeeper policies) may prevent loading of GDExtensions generally, not just this plugin. If the extension fails to load, try building from source or test with other GDExtensions to determine if this is a system-wide issue.
+  - Android (x86 64-bit, ARM 64-bit)
 
 ## Basic Usage
 

@@ -38,7 +38,7 @@ jobs:
       - name: Create bin directory
         run: mkdir -p ${{ env.ADDON_PATH }}/bin
 
-      # Download all build artifacts
+      # Windows artifacts
       - name: Download Windows Debug artifact
         uses: actions/download-artifact@v4
         with:
@@ -51,6 +51,7 @@ jobs:
           name: gdyaml-windows-template_release-x86_64
           path: ${{ env.ADDON_PATH }}/bin/
 
+      # Linux artifacts
       - name: Download Linux Debug artifact
         uses: actions/download-artifact@v4
         with:
@@ -63,6 +64,7 @@ jobs:
           name: gdyaml-linux-template_release-x86_64
           path: ${{ env.ADDON_PATH }}/bin/
 
+      # macOS artifacts
       - name: Download macOS Debug artifact
         uses: actions/download-artifact@v4
         with:
@@ -73,6 +75,31 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: gdyaml-macos-template_release-universal
+          path: ${{ env.ADDON_PATH }}/bin/
+
+      # Android artifacts
+      - name: Download Android Debug (arm64) artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: gdyaml-android-template_debug-arm64
+          path: ${{ env.ADDON_PATH }}/bin/
+
+      - name: Download Android Release (arm64) artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: gdyaml-android-template_release-arm64
+          path: ${{ env.ADDON_PATH }}/bin/
+
+      - name: Download Android Debug (x86_64) artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: gdyaml-android-template_debug-x86_64
+          path: ${{ env.ADDON_PATH }}/bin/
+
+      - name: Download Android Release (x86_64) artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: gdyaml-android-template_release-x86_64
           path: ${{ env.ADDON_PATH }}/bin/
 
       - name: List downloaded files
@@ -114,6 +141,7 @@ jobs:
             - Windows (x86_64): Debug & Release
             - Linux (x86_64): Debug & Release
             - macOS (Universal): Debug & Release
+            - Android (arm64, x86_64): Debug & Release
 
             ### ⚠️ macOS Users
             Prebuilt binaries are provided for macOS, but some macOS configurations (particularly on Apple Silicon with recent OS versions) may have security policies that prevent loading *any* unsigned GDExtensions. If you encounter loading errors:
@@ -121,7 +149,7 @@ jobs:
             - Consider building from source as an alternative
             - Check Apple's documentation on Gatekeeper and code signing requirements
 
-            This is not specific to Godot YAML and affects GDExtensions generally on certain macOS setups.
+            **This issue is not specific to Godot YAML** and affects GDExtensions generally on certain macOS setups.
 
             ## Verify Download
             ```bash
