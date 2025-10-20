@@ -1,5 +1,9 @@
 # Godot YAML Changelog
 
+## Version 2.1.3
+
+- Changed the behavior of the `x-yaml-tag` Schema validattion rule to ignore tagless nodes
+
 ## Version 2.1.2
 
 - Added support for Android (arm64, x86_64) platforms thanks to @Nemo1166

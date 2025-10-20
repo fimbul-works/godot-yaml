@@ -621,7 +621,7 @@ std::optional<Variant> YAML::Parser::try_parse_numeric_value(const String &str_v
 std::optional<Variant> YAML::Parser::try_parse_tagged_value(const ryml::ConstNodeRef &node) const {
 	String tag = extract_tag(node);
 
-	if (context->is_validating()) {
+	if (context->is_validating() && !tag.is_empty()) {
 		check_yaml_tag_constraint(tag);
 	}
 
@@ -931,9 +931,6 @@ void YAML::Parser::check_yaml_tag_constraint(const String &tag) const {
 
 	if (!tag.is_empty() && tag != expected_tag) {
 		ValidationError error(vformat("Expected YAML tag '!%s' but got '!%s'", expected_tag, tag), context->get_current_instance_path_array(), schema_path_parts, "x-yaml-tag", Variant());
-		context->add_validation_error(error);
-	} else if (tag.is_empty() && !expected_tag.is_empty()) {
-		ValidationError error(vformat("Expected YAML tag '!%s' but value has no tag", expected_tag), context->get_current_instance_path_array(), schema_path_parts, "x-yaml-tag", Variant());
 		context->add_validation_error(error);
 	}
 }
