@@ -48,7 +48,7 @@ func prepare_test_suites(test_classes: Array[TestSuite]) -> Dictionary:
 		if !test_class.visible or (test_class.owner and !test_class.owner.visible):
 			continue
 
-		var test_methods = find_test_methods(test_class)
+		var test_methods := find_test_methods(test_class)
 		if test_methods.is_empty():
 			continue
 
@@ -94,14 +94,14 @@ func _run_suite_tests(test_class: TestSuite) -> void:
 
 	# Run each test method
 	for method_name in test_methods:
-		# print_rich("[b]Running %s - %s[/b]" % [test_class.name, method_name.substr(5).replace("_", " ")])
+		if test_class.LOG_VERBOSE: print_rich("[b]Running %s - %s[/b]" % [test_class.name, method_name.substr(5).replace("_", " ")])
 
 		# Emit method started
 		test_method_started.emit(test_class, method_name)
 
 		# Run the test
 		test_class._start_test(method_name)
-		test_class.call(method_name)
+		await test_class.call(method_name)
 		test_class._end_test()
 
 		var result = test_class._test_results[method_name]
@@ -121,9 +121,9 @@ func _run_suite_tests(test_class: TestSuite) -> void:
 		await Engine.get_main_loop().process_frame
 
 	# Calculate suite results
-	var passed_tests = test_class.get_passed_tests()
-	var total_tests = test_class.get_total_tests()
-	var test_results = test_class.get_test_results()
+	var passed_tests := test_class.get_passed_tests()
+	var total_tests := test_class.get_total_tests()
+	var test_results := test_class.get_test_results()
 
 	# Calculate total expectations
 	var total_expectations := 0
