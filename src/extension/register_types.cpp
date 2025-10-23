@@ -41,6 +41,9 @@ void initialize_yaml_module(ModuleInitializationLevel p_level) {
 	if (!ClassDB::class_exists("SchemaValidationResult")) {
 		GDREGISTER_CLASS(SchemaValidationResult);
 	}
+
+	// Preload and register the JSON Schema Draft 7 meta-schema
+	Schema::load_from_json_file("res://addons/yaml/schema/json_schema_draft_07.json", false);
 }
 
 void uninitialize_yaml_module(ModuleInitializationLevel p_level) {

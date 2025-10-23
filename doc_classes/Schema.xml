@@ -17,8 +17,8 @@
 			<param index="0" name="schema_dict" type="Dictionary" />
 			<param index="1" name="validate_against_meta" type="bool" default="false" />
 			<description>
-				Builds and compiles a schema from a dictionary representation. Returns a [Schema] object ready for validation.
-				If [param validate_against_meta] is [code]true[/code], the schema will be validated against the JSON Schema Draft-7 meta-schema before compilation. This catches schema definition errors but adds overhead.
+				Builds and compiles a Schema from a dictionary representation. Returns a [Schema] object ready for validation.
+				If [param validate_against_meta] is [code]true[/code], the Schema will be validated against the JSON Schema Draft-7 meta-schema before compilation. This catches schema definition errors but adds overhead.
 				Schemas with a [code]$id[/code] field are automatically registered globally, allowing other schemas to reference them via [code]$ref[/code].
 				[codeblock]
 				# Simple type validation
@@ -28,7 +28,7 @@
 				    "maxLength": 50
 				})
 
-				# Object schema with properties
+				# Object Schema with properties
 				var user_schema = Schema.build_schema({
 				    "type": "object",
 				    "properties": {
@@ -49,7 +49,7 @@
 				    }
 				})
 
-				# Reference the registered schema
+				# Reference the registered Schema
 				var person_schema = Schema.build_schema({
 				    "type": "object",
 				    "properties": {
@@ -64,7 +64,7 @@
 			<return type="Schema" />
 			<param index="0" name="path" type="StringName" />
 			<description>
-				Navigates to a child schema using a JSON Pointer path. Returns the child [Schema] at the specified path, or [code]null[/code] if not found.
+				Navigates to a child Schema using a JSON Pointer path. Returns the child [Schema] at the specified path, or [code]null[/code] if not found.
 				Paths use JSON Pointer notation with forward slashes, such as [code]"/properties/user/properties/name"[/code].
 				[codeblock]
 				var schema = Schema.build_schema({
@@ -90,7 +90,7 @@
 			<return type="Schema" />
 			<param index="0" name="key" type="StringName" />
 			<description>
-				Gets a direct child schema by key. For object schemas, keys are typically prefixed with [code]"properties/"[/code]. Returns [code]null[/code] if the child doesn't exist.
+				Gets a direct child Schema by key. For object schemas, keys are typically prefixed with [code]"properties/"[/code]. Returns [code]null[/code] if the child doesn't exist.
 				[codeblock]
 				var schema = Schema.build_schema({
 				    "type": "object",
@@ -128,7 +128,7 @@
 		<method name="get_child_keys" qualifiers="const">
 			<return type="Array" />
 			<description>
-				Returns an array of all direct child schema keys. Useful for iterating over object properties or discovering available sub-schemas.
+				Returns an array of all direct child Schema keys. Useful for iterating over object properties or discovering available sub-schemas.
 				[codeblock]
 				var schema = Schema.build_schema({
 				    "type": "object",
@@ -144,10 +144,24 @@
 				[/codeblock]
 			</description>
 		</method>
+		<method name="get_comment" qualifiers="const">
+			<return type="StringName" />
+			<description>
+				Returns the Schema's [code]$comment[/code] if defined, or an empty string otherwise.
+				[codeblock]
+				var schema = Schema.build_schema({
+				    "$comment": "This is a user Schema",
+				    "type": "object"
+				})
+
+				print(Schema.get_comment()) # "This is a user Schema"
+				[/codeblock]
+			</description>
+		</method>
 		<method name="get_compile_error_summary">
 			<return type="String" />
 			<description>
-				Returns a formatted summary of all compilation errors. Returns an empty string if the schema is valid.
+				Returns a formatted summary of all compilation errors. Returns an empty string if the Schema is valid.
 				[codeblock]
 				var schema = Schema.build_schema({
 				    "type": "object",
@@ -164,7 +178,7 @@
 		<method name="get_compile_errors">
 			<return type="Array" />
 			<description>
-				Returns an array of compilation error dictionaries. Each dictionary contains [code]"path"[/code] and [code]"message"[/code] keys. Returns an empty array if the schema is valid.
+				Returns an array of compilation error dictionaries. Each dictionary contains [code]"path"[/code] and [code]"message"[/code] keys. Returns an empty array if the Schema is valid.
 				[codeblock]
 				var schema = Schema.build_schema({
 				    "$ref": "http://example.com/nonexistent.json"  # Broken reference
@@ -194,11 +208,25 @@
 				[/codeblock]
 			</description>
 		</method>
+		<method name="get_id" qualifiers="const">
+			<return type="StringName" />
+			<description>
+				Returns the Schema's [code]$id[/code] if defined, or an empty string otherwise.
+				[codeblock]
+				var schema = Schema.build_schema({
+				    "$id": "http://example.com/user.json",
+				    "type": "object"
+				})
+
+				print(Schema.get_id()) # "http://example.com/user.json"
+				[/codeblock]
+			</description>
+		</method>
 		<method name="get_item_schema" qualifiers="const">
 			<return type="Schema" />
 			<param index="0" name="index" type="int" />
 			<description>
-				For array schemas with tuple validation, returns the item schema at the specified index. Returns [code]null[/code] if the index is out of range or the schema is not an array.
+				For array schemas with tuple validation, returns the item Schema at the specified index. Returns [code]null[/code] if the index is out of range or the Schema is not an array.
 				[codeblock]
 				var schema = Schema.build_schema({
 				    "type": "array",
@@ -234,7 +262,7 @@
 		<method name="get_root" qualifiers="const">
 			<return type="Schema" />
 			<description>
-				Returns the root schema of the schema tree. For root schemas, returns itself.
+				Returns the root Schema of the Schema tree. For root schemas, returns itself.
 				[codeblock]
 				var schema = Schema.build_schema({
 				    "type": "object",
@@ -257,7 +285,7 @@
 		<method name="get_schema_definition" qualifiers="const">
 			<return type="Dictionary" />
 			<description>
-				Returns the raw schema definition dictionary for this schema node.
+				Returns the raw Schema definition dictionary for this Schema node.
 				[codeblock]
 				var schema = Schema.build_schema({
 				    "type": "string",
@@ -270,10 +298,25 @@
 				[/codeblock]
 			</description>
 		</method>
+		<method name="get_schema_from_registry" qualifiers="static">
+			<return type="Schema" />
+			<param index="0" name="id" type="StringName" />
+			<description>
+				Returns the [Schema] if a Schema with the given ID is registered in the global Schema registry.
+				[codeblock]
+				var schema = Schema.build_schema({
+				    "$id": "http://example.com/user.json",
+				    "type": "object"
+				})
+
+				var schema = Schema.get_schema_from_registry("http://example.com/user.json")
+				[/codeblock]
+			</description>
+		</method>
 		<method name="get_schema_type" qualifiers="const">
 			<return type="int" enum="Schema.SchemaType" />
 			<description>
-				Returns the schema type as a [enum SchemaType] constant. Types are automatically detected based on the schema's keywords and structure.
+				Returns the Schema type as a [enum SchemaType] constant. Types are automatically detected based on the Schema's keywords and structure.
 				[codeblock]
 				var obj_schema = Schema.build_schema({"type": "object", "properties": {}})
 				print(obj_schema.get_schema_type() == Schema.SCHEMA_OBJECT)  # true
@@ -286,10 +329,38 @@
 		<method name="get_schema_type_name" qualifiers="const">
 			<return type="String" />
 			<description>
-				Returns the schema type as a human-readable string: [code]"Object"[/code], [code]"Array"[/code], [code]"Scalar"[/code], or [code]"Logical"[/code].
+				Returns the Schema type as a human-readable string: [code]"Object"[/code], [code]"Array"[/code], [code]"Scalar"[/code], or [code]"Logical"[/code].
 				[codeblock]
 				var schema = Schema.build_schema({"type": "string"})
 				print(schema.get_schema_type_name())  # "Scalar"
+				[/codeblock]
+			</description>
+		</method>
+		<method name="get_schema_url" qualifiers="const">
+			<return type="StringName" />
+			<description>
+				Returns the Schema's [code]$schema[/code] if defined, or an empty string otherwise.
+				[codeblock]
+				var schema = Schema.build_schema({
+				    "$schema": "http://example.com/user.json",
+				    "type": "object"
+				})
+
+				print(Schema.get_schema_url()) # "http://example.com/user.json"
+				[/codeblock]
+			</description>
+		</method>
+		<method name="get_title" qualifiers="const">
+			<return type="StringName" />
+			<description>
+				Returns the Schema's [code]title[/code] if defined, or an empty string otherwise.
+				[codeblock]
+				var schema = Schema.build_schema({
+				    "title": "My Schema",
+				    "type": "object"
+				})
+
+				print(Schema.get_title()) # "My Schema"
 				[/codeblock]
 			</description>
 		</method>
@@ -297,7 +368,7 @@
 			<return type="bool" />
 			<param index="0" name="key" type="StringName" />
 			<description>
-				Returns [code]true[/code] if a child schema exists with the given key.
+				Returns [code]true[/code] if a child Schema exists with the given key.
 				[codeblock]
 				var schema = Schema.build_schema({
 				    "type": "object",
@@ -314,7 +385,7 @@
 		<method name="has_children" qualifiers="const">
 			<return type="bool" />
 			<description>
-				Returns [code]true[/code] if this schema has any child schemas.
+				Returns [code]true[/code] if this Schema has any child schemas.
 				[codeblock]
 				var empty_schema = Schema.build_schema({"type": "string"})
 				print(empty_schema.has_children())  # false
@@ -330,7 +401,7 @@
 		<method name="is_array" qualifiers="const">
 			<return type="bool" />
 			<description>
-				Returns [code]true[/code] if this schema validates arrays (has [code]items[/code], [code]minItems[/code], or other array-specific keywords).
+				Returns [code]true[/code] if this Schema validates arrays (has [code]items[/code], [code]minItems[/code], or other array-specific keywords).
 				[codeblock]
 				var schema = Schema.build_schema({
 				    "type": "array",
@@ -343,7 +414,7 @@
 		<method name="is_object" qualifiers="const">
 			<return type="bool" />
 			<description>
-				Returns [code]true[/code] if this schema validates objects (has [code]properties[/code], [code]required[/code], or other object-specific keywords).
+				Returns [code]true[/code] if this Schema validates objects (has [code]properties[/code], [code]required[/code], or other object-specific keywords).
 				[codeblock]
 				var schema = Schema.build_schema({
 				    "type": "object",
@@ -358,7 +429,7 @@
 		<method name="is_root" qualifiers="const">
 			<return type="bool" />
 			<description>
-				Returns [code]true[/code] if this schema is the root of the schema tree.
+				Returns [code]true[/code] if this Schema is the root of the Schema tree.
 				[codeblock]
 				var schema = Schema.build_schema({
 				    "type": "object",
@@ -377,7 +448,7 @@
 		<method name="is_scalar" qualifiers="const">
 			<return type="bool" />
 			<description>
-				Returns [code]true[/code] if this schema validates scalar values (strings, numbers, booleans, null) rather than complex structures.
+				Returns [code]true[/code] if this Schema validates scalar values (strings, numbers, booleans, null) rather than complex structures.
 				[codeblock]
 				var schema = Schema.build_schema({
 				    "type": "string",
@@ -391,7 +462,7 @@
 			<return type="bool" />
 			<param index="0" name="id" type="StringName" />
 			<description>
-				Returns [code]true[/code] if a schema with the given ID is registered in the global schema registry.
+				Returns [code]true[/code] if a Schema with the given ID is registered in the global Schema registry.
 				[codeblock]
 				var schema = Schema.build_schema({
 				    "$id": "http://example.com/user.json",
@@ -405,7 +476,7 @@
 		<method name="is_valid" qualifiers="const">
 			<return type="bool" />
 			<description>
-				Returns [code]true[/code] if the schema compiled successfully without errors.
+				Returns [code]true[/code] if the Schema compiled successfully without errors.
 				[codeblock]
 				var good_schema = Schema.build_schema({"type": "string"})
 				print(good_schema.is_valid()) # true
@@ -422,8 +493,8 @@
 			<param index="0" name="json_string" type="String" />
 			<param index="1" name="validate_against_meta" type="bool" default="false" />
 			<description>
-				Parses a JSON string and builds a schema from it. Returns a [Schema] object ready for validation, or [code]null[/code] if the JSON is invalid.
-				This is a convenience method that combines JSON parsing with [method build_schema]. If [param validate_against_meta] is [code]true[/code], the schema will be validated against the JSON Schema Draft-7 meta-schema.
+				Parses a JSON string and builds a Schema from it. Returns a [Schema] object ready for validation, or [code]null[/code] if the JSON is invalid.
+				This is a convenience method that combines JSON parsing with [method build_schema]. If [param validate_against_meta] is [code]true[/code], the Schema will be validated against the JSON Schema Draft-7 meta-schema.
 				Schemas with a [code]$id[/code] field are automatically registered globally.
 				[codeblock]
 				var json_text = """
@@ -463,21 +534,21 @@
 			<param index="1" name="validate_against_meta" type="bool" default="false" />
 			<description>
 				Loads a JSON Schema from a file and builds it. Returns a [Schema] object ready for validation, or [code]null[/code] if the file cannot be read or the JSON is invalid.
-				This is a convenience method for loading external schema files. If [param validate_against_meta] is [code]true[/code], the schema will be validated against the JSON Schema Draft-7 meta-schema.
+				This is a convenience method for loading external schema files. If [param validate_against_meta] is [code]true[/code], the Schema will be validated against the JSON Schema Draft-7 meta-schema.
 				Schemas with a [code]$id[/code] field are automatically registered globally, making this useful for loading reusable schema definitions.
 				[codeblock]
-				# Load a user validation schema
+				# Load a user validation Schema
 				var user_schema = Schema.load_from_json_file("res://schemas/user.json")
 				if not user_schema:
-				    push_error("Failed to load user schema")
+				    push_error("Failed to load user Schema")
 				    return
 
-				# Load and automatically register an address schema with $id
+				# Load and automatically register an address Schema with $id
 				var address_schema = Schema.load_from_json_file("res://schemas/address.json")
 				# If address.json contains "$id": "http://example.com/address.json",
 				# it's now available for $ref
 
-				# Use the loaded schema
+				# Use the loaded Schema
 				var validation_result = user_schema.validate({
 				    "username": "alice",
 				    "email": "alice@example.com"
@@ -486,7 +557,7 @@
 				if not validation_result.is_valid():
 				    print(validation_result.get_summary())
 				[/codeblock]
-				[b]Example schema file[/b] ([code]res://schemas/user.json[/code]):
+				[b]Example Schema file[/b] ([code]res://schemas/user.json[/code]):
 				[codeblock]
 				{
 				    "$id": "http://example.com/user.json",
@@ -519,8 +590,8 @@
 			<param index="0" name="schema" type="Schema" />
 			<param index="1" name="id" type="StringName" default="&quot;&quot;" />
 			<description>
-				Registers a schema in the global registry, allowing it to be referenced by other schemas via [code]$ref[/code]. Returns [code]true[/code] on success, [code]false[/code] if already registered.
-				If [param id] is not provided, attempts to use the schema's [code]$id[/code] field. Schemas with [code]$id[/code] are automatically registered when built with [method build_schema].
+				Registers a Schema in the global registry, allowing it to be referenced by other schemas via [code]$ref[/code]. Returns [code]true[/code] on success, [code]false[/code] if already registered.
+				If [param id] is not provided, attempts to use the Schema's [code]$id[/code] field. Schemas with [code]$id[/code] are automatically registered when built with [method build_schema].
 				[codeblock]
 				# Manual registration without $id
 				var schema = Schema.build_schema({
@@ -545,7 +616,7 @@
 			<return type="bool" />
 			<param index="0" name="id" type="StringName" />
 			<description>
-				Unregisters a schema from the global registry. Returns [code]true[/code] if the schema was found and removed, [code]false[/code] otherwise.
+				Unregisters a Schema from the global registry. Returns [code]true[/code] if the Schema was found and removed, [code]false[/code] otherwise.
 				[codeblock]
 				Schema.build_schema({
 				    "$id": "http://example.com/temp.json",
@@ -561,7 +632,7 @@
 			<return type="SchemaValidationResult" />
 			<param index="0" name="data" type="Variant" />
 			<description>
-				Validates data against this schema. Returns a [SchemaValidationResult] containing either success or detailed error information.
+				Validates data against this Schema. Returns a [SchemaValidationResult] containing either success or detailed error information.
 				[codeblock]
 				var schema = Schema.build_schema({
 				    "type": "object",
