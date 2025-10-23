@@ -181,10 +181,7 @@ layout_mode = 2
 size_flags_vertical = 3
 allow_rmb_select = true
 auto_height = true
-item_count = 3
-item_0/text = "simple.yaml"
-item_1/text = "supported_syntax.yaml"
-item_2/text = "multi_document.yaml"
+item_count = 0
 
 [node name="EditorPanel" type="VBoxContainer" parent="MainMargin/MainVBox/ResizableContainer"]
 layout_mode = 2
@@ -194,14 +191,7 @@ size_flags_horizontal = 3
 layout_mode = 2
 size_flags_vertical = 3
 theme_override_font_sizes/font_size = 14
-text = "title: Godot YAML
-author: FimbulWorks
-year: 2025
-features:
-- blazingly fast
-- speaks fluent Variant and can be taught custom classes
-- strong document formatting capabilities
-"
+text = ""
 deselect_on_focus_loss_enabled = false
 scroll_smooth = true
 minimap_draw = true
