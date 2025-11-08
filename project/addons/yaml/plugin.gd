@@ -4,7 +4,7 @@ extends EditorPlugin
 const YAMLEditorPanel = preload("res://addons/yaml/editor/yaml_editor.tscn")
 const ShortcutsClass = preload("res://addons/yaml/editor/editor_shortcuts.gd")
 
-var yaml_editor_instance
+var yaml_editor_instance: YAMLEditor
 var resource_loader: YAMLResourceFormat.Loader
 var resource_saver: YAMLResourceFormat.Saver
 
@@ -32,18 +32,14 @@ func _enter_tree() -> void:
 			_get_plugin_icon()
 		)
 
-	# Initialize YAMLFileSystem singleton and pass editor interface
+	# Initialize YAMLFileSystem singleton
 	var file_system = YAMLFileSystem.get_singleton()
-	file_system.set_editor_interface(get_editor_interface())
 
 	# Create the instance
 	yaml_editor_instance = YAMLEditorPanel.instantiate()
 
-	# Pass the editor interface reference to the editor
-	yaml_editor_instance.editor = get_editor_interface()
-
 	# Add to the main screen
-	get_editor_interface().get_editor_main_screen().add_child(yaml_editor_instance)
+	EditorInterface.get_editor_main_screen().add_child(yaml_editor_instance)
 
 	# Register keyboard shortcuts
 	ShortcutsClass.register_shortcuts(self, yaml_editor_instance)
@@ -52,8 +48,8 @@ func _enter_tree() -> void:
 	_make_visible(false)
 
 	# Connect file system signals to detect file moves/renames
-	get_editor_interface().get_resource_filesystem().resources_reimported.connect(_on_resources_reimported)
-	get_editor_interface().get_resource_filesystem().filesystem_changed.connect(_on_filesystem_changed)
+	EditorInterface.get_resource_filesystem().resources_reimported.connect(_on_resources_reimported)
+	EditorInterface.get_resource_filesystem().filesystem_changed.connect(_on_filesystem_changed)
 
 func _exit_tree() -> void:
 	# Restore original editor settings
@@ -77,11 +73,11 @@ func _exit_tree() -> void:
 		yaml_editor_instance.queue_free()
 
 	# Clean up other resources
-	get_editor_interface().get_resource_filesystem().resources_reimported.disconnect(_on_resources_reimported)
-	get_editor_interface().get_resource_filesystem().filesystem_changed.disconnect(_on_filesystem_changed)
+	EditorInterface.get_resource_filesystem().resources_reimported.disconnect(_on_resources_reimported)
+	EditorInterface.get_resource_filesystem().filesystem_changed.disconnect(_on_filesystem_changed)
 
 func _modify_file_extensions() -> void:
-	var editor_settings: EditorSettings = get_editor_interface().get_editor_settings()
+	var editor_settings: EditorSettings = EditorInterface.get_editor_settings()
 
 	# Store original settings
 	previous_textfile_extensions = editor_settings.get_setting("docks/filesystem/textfile_extensions")
@@ -94,7 +90,7 @@ func _restore_file_extensions() -> void:
 	if previous_textfile_extensions.is_empty():
 		return
 
-	var editor_settings: EditorSettings = get_editor_interface().get_editor_settings()
+	var editor_settings: EditorSettings = EditorInterface.get_editor_settings()
 	editor_settings.set_setting("docks/filesystem/textfile_extensions", previous_textfile_extensions)
 
 func _on_filesystem_changed() -> void:

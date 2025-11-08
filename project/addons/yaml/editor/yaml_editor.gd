@@ -9,9 +9,6 @@ var session_manager: YAMLEditorSessionManager
 # File system singleton
 var file_system: YAMLFileSystem
 
-# Editor reference
-var editor: EditorInterface
-
 # UI references
 @export var menu_bar: YAMLEditorMenuBar
 @export var file_list: YAMLEditorFileList
@@ -80,10 +77,6 @@ func _ready() -> void:
 
 	# Set initial zoom text
 	_on_zoom_changed(code_edit.zoom_level)
-
-	# Share editor interface with components via tree metadata
-	if editor:
-		get_tree().set_meta("editor_interface", editor)
 
 	# Setup the find and replace panels
 	find_replace_panel.replace_performed.connect(_on_replace_performed)
