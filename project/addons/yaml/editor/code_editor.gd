@@ -191,6 +191,11 @@ func _gui_input(event: InputEvent) -> void:
 				zoom_out()
 			KEY_MASK_CTRL | KEY_0, KEY_MASK_CTRL | KEY_KP_0:
 				zoom_reset()
+	if event is InputEventMouseButton and event.pressed and event.is_command_or_control_pressed():
+		if event.button_index == MOUSE_BUTTON_WHEEL_UP:
+			zoom_in()
+		elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
+			zoom_out()
 
 func set_text_and_preserve_state(new_text: String, preserve_state: bool = true) -> void:
 	if preserve_state:
