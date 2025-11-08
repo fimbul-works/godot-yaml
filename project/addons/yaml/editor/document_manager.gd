@@ -13,6 +13,7 @@ var current_document: YAMLEditorDocument = null
 var file_list: YAMLEditorFileList
 var code_editor: YAMLCodeEditor
 var file_popup_menu: PopupMenu
+var editor_node: Control
 
 # Reference to the singleton
 var file_system: YAMLFileSystem
@@ -20,6 +21,9 @@ var file_system: YAMLFileSystem
 # Track recently saved files to avoid external update conflicts
 var recently_saved_files: Dictionary = {}
 var ignore_update_timer: Timer
+
+func _init(_editor: Control) -> void:
+	editor_node = _editor
 
 func _ready() -> void:
 	# Get singleton reference
@@ -50,6 +54,9 @@ func _ready() -> void:
 	ignore_update_timer.one_shot = true
 	ignore_update_timer.wait_time = 0.5  # 500ms
 	ignore_update_timer.timeout.connect(_on_ignore_update_timer_timeout)
+
+	# Update UI
+	update_ui()
 
 func setup(p_file_list: YAMLEditorFileList, p_code_editor: YAMLCodeEditor) -> void:
 	file_list = p_file_list
@@ -346,6 +353,9 @@ func _on_document_modified_changed(document: YAMLEditorDocument) -> void:
 		update_ui()
 
 func update_ui() -> void:
+	# Toggle editor visibility
+	editor_node.visible = documents.size() > 0
+
 	if not is_instance_valid(file_list):
 		return
 

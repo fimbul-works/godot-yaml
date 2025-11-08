@@ -25,7 +25,7 @@ func _ready() -> void:
 	file_system = YAMLFileSystem.get_singleton()
 
 	# Initialize components
-	file_manager = YAMLEditorDocumentManager.new()
+	file_manager = YAMLEditorDocumentManager.new(resizable_container)
 	add_child(file_manager)
 
 	validator = YAMLEditorValidator.new()
