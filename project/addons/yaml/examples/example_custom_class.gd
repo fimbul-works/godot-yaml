@@ -55,6 +55,7 @@ func custom_node_class() -> void:
 		log_info("string_val: " + obj.string_val)
 		log_info("int_val: " + str(obj.int_val))
 		log_info("float_val: " + str(obj.float_val))
+		log_info("color_val: " + str(obj.color_val))
 	else:
 		log_error("Failed to parse back into MyCustomClass")
 
@@ -156,6 +157,7 @@ func custom_resource() -> void:
 		log_info("string_val: " + obj.string_val)
 		log_info("int_val: " + str(obj.int_val))
 		log_info("float_val: " + str(obj.float_val))
+		log_info("color_val: " + str(obj.color_val))
 	else:
 		log_error("Failed to parse back into MyCustomResource")
 

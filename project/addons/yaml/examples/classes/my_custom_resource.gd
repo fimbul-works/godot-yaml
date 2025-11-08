@@ -1,4 +1,4 @@
-class_name MyCustomResource extends Resource
+class_name MyCustomResource extends YAMLResource
 
 @export var string_val: String
 @export var int_val: int

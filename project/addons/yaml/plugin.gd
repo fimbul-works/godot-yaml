@@ -24,13 +24,11 @@ func _enter_tree() -> void:
 	ResourceLoader.add_resource_format_loader(resource_loader, true)
 	ResourceSaver.add_resource_format_saver(resource_saver, true)
 
-	# YAMLResource for Godot 4.4 and above
-	if engine_version_info.major == 4 and engine_version_info.minor >= 4:
-		add_custom_type(
-			"YAMLResource", "Resource",
-			load("res://addons/yaml/yaml_resource.gd"),
-			_get_plugin_icon()
-		)
+	add_custom_type(
+		"YAMLResource", "Resource",
+		load("res://addons/yaml/yaml_resource.gd"),
+		_get_plugin_icon()
+	)
 
 	# Initialize YAMLFileSystem singleton
 	var file_system = YAMLFileSystem.get_singleton()
@@ -58,9 +56,7 @@ func _exit_tree() -> void:
 	ResourceLoader.remove_resource_format_loader(resource_loader)
 	ResourceSaver.remove_resource_format_saver(resource_saver)
 
-	# YAMLResource for Godot 4.4 and above
-	if engine_version_info.major == 4 and engine_version_info.minor >= 4:
-		remove_custom_type("YAMLResource")
+	remove_custom_type("YAMLResource")
 
 	# Unregister shortcuts
 	ShortcutsClass.unregister_shortcuts()
@@ -118,7 +114,7 @@ func _make_visible(visible: bool) -> void:
 		if visible and is_instance_valid(yaml_editor_instance.code_edit):
 			yaml_editor_instance.code_edit.grab_focus()
 
-func _handles(object) -> bool:
+func _handles(object: Object) -> bool:
 	# Handle YAMLResource (from our resource loader)
 	if object is YAMLResource:
 		return true
@@ -127,36 +123,27 @@ func _handles(object) -> bool:
 	if object is Resource and YAMLFileSystem.get_singleton().is_yaml_file(object.resource_path):
 		return true
 
-	# Also check for file paths directly
-	if object is String and YAMLFileSystem.get_singleton().is_yaml_file(object):
-		return true
-
 	return false
 
-func _edit(object) -> void:
-	if object and yaml_editor_instance:
-		var file_path: String
+func _edit(object: Object) -> void:
+	if !object or !is_instance_valid(yaml_editor_instance):
+		return
 
-		# Handle different object types
-		if object is YAMLResource:
-			file_path = object.resource_path
-		elif object is Resource:
-			file_path = object.resource_path
-		elif object is String:
-			file_path = object
-		else:
-			return
+	if not _handles(object):
+		return
 
-		# Check if file is already open before trying to open it
-		if yaml_editor_instance.file_manager.has_document(file_path):
-			# File is already open, just switch to it
-			var document = yaml_editor_instance.file_manager.get_document(file_path)
-			yaml_editor_instance.file_manager.set_current_document(document)
-		else:
-			# File is not open, open it normally
-			yaml_editor_instance.file_manager.open_file(file_path)
+	var file_path = object.resource_path
 
-		_make_visible(true)
+	# Check if file is already open before trying to open it
+	if yaml_editor_instance.file_manager.has_document(file_path):
+		# File is already open, just switch to it
+		var document = yaml_editor_instance.file_manager.get_document(file_path)
+		yaml_editor_instance.file_manager.set_current_document(document)
+	else:
+		# File is not open, open it normally
+		yaml_editor_instance.file_manager.open_file(file_path)
+
+	_make_visible(true)
 
 func _get_plugin_name() -> String:
 	return "YAML"
