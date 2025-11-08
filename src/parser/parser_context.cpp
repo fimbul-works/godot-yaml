@@ -1,5 +1,6 @@
 #include "parser_context.hpp"
 
+#include <godot_cpp/classes/reg_ex.hpp>
 #include <godot_cpp/classes/resource.hpp>
 #include <godot_cpp/classes/resource_loader.hpp>
 #include <godot_cpp/variant/utility_functions.hpp>
@@ -96,16 +97,43 @@ void YAMLParserContext::push_schema_for_property(const String &property_name) {
 		// Resolve $ref if present so we can access defaults
 		child = resolve_schema_reference(child);
 		schema_stack.push(child);
-	} else {
-		// Try additionalProperties
-		Ref<Schema> additional = current->get_child("additionalProperties");
-		if (additional.is_valid()) {
-			additional = resolve_schema_reference(additional);
-			schema_stack.push(additional);
-		} else {
-			// No schema for this property - push null to maintain stack depth
-			schema_stack.push(Ref<Schema>());
+		return;
+	}
+
+	// Try patternProperties
+	Dictionary schema_def = current->get_schema_definition();
+	if (schema_def.has("patternProperties") && schema_def["patternProperties"].get_type() == Variant::DICTIONARY) {
+		Dictionary pattern_props = schema_def["patternProperties"].operator Dictionary();
+		Array patterns = pattern_props.keys();
+
+		for (int i = 0; i < patterns.size(); i++) {
+			String pattern = patterns[i].operator String();
+			Ref<RegEx> regex = RegEx::create_from_string(pattern);
+
+			if (regex.is_valid()) {
+				Ref<RegExMatch> match = regex->search(property_name);
+				if (match.is_valid()) {
+					// This property matches a pattern property
+					StringName pattern_key = vformat("patternProperties/%s", pattern);
+					Ref<Schema> pattern_child = current->get_child(pattern_key);
+					if (pattern_child.is_valid()) {
+						pattern_child = resolve_schema_reference(pattern_child);
+						schema_stack.push(pattern_child);
+						return;
+					}
+				}
+			}
 		}
+	}
+
+	// Try additionalProperties
+	Ref<Schema> additional = current->get_child("additionalProperties");
+	if (additional.is_valid()) {
+		additional = resolve_schema_reference(additional);
+		schema_stack.push(additional);
+	} else {
+		// No schema for this property - push null to maintain stack depth
+		schema_stack.push(Ref<Schema>());
 	}
 }
 
