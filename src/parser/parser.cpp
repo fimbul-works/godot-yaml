@@ -168,6 +168,15 @@ Ref<YAMLResult> YAML::Parser::parse_and_validate(const String &input, const Vari
 	}
 }
 
+Array YAML::Parser::parse_locations_for_editor(const String &input) {
+	Array locations;
+
+	ryml::parse_in_arena(ryml_parser.get(), input.utf8().get_data(), &tree);
+	collect_node_locations(tree.rootref(), PackedStringArray(), locations);
+
+	return locations;
+}
+
 Variant YAML::Parser::process_node(const ryml::ConstNodeRef &node) const {
 	// First check for tagged values
 	auto tagged = try_parse_tagged_value(node);
@@ -981,6 +990,68 @@ void YAML::Parser::apply_property_defaults(Dictionary &dict) const {
 		}
 		// Apply the default value
 		dict[property_name] = default_value;
+	}
+}
+
+void YAML::Parser::collect_node_locations(ryml::NodeRef &node, PackedStringArray &path, Array &locations) const {
+	if (node.is_map()) {
+		for (auto child : node.children()) {
+			String key = from_ryml_str(child.key());
+			PackedStringArray child_path = path;
+			child_path.append(key);
+
+			auto child_loc = child.location(*ryml_parser);
+
+			// Store key location
+			Dictionary key_loc;
+			key_loc["path_parts"] = child_path;
+			key_loc["line_start"] = child_loc.line;
+			key_loc["col_start"] = child_loc.col;
+			key_loc["is_key"] = true;
+			locations.append(key_loc);
+
+			// Store value location if it's a scalar
+			if (child.is_val()) {
+				Dictionary val_loc;
+				val_loc["path_parts"] = child_path;
+				val_loc["line_start"] = child_loc.line;
+				val_loc["col_start"] = child_loc.col;
+				val_loc["is_key"] = false;
+				locations.append(val_loc);
+			}
+
+			// Recurse for nested structures
+			collect_node_locations(child, child_path, locations);
+		}
+	} else if (node.is_seq()) {
+		size_t idx = 0;
+		for (auto child : node.children()) {
+			String index_str = String::num_uint64(idx);
+			PackedStringArray child_path = path;
+			child_path.append(index_str);
+
+			auto child_loc = child.location(*ryml_parser);
+
+			// Store item location
+			Dictionary item_loc;
+			item_loc["path_parts"] = child_path;
+			item_loc["line_start"] = child_loc.line;
+			item_loc["col_start"] = child_loc.col;
+			item_loc["is_key"] = false;
+			locations.append(item_loc);
+
+			// Recurse for nested structures
+			collect_node_locations(child, child_path, locations);
+			idx++;
+		}
+	} else if (node.has_val()) {
+		auto node_loc = node.location(*ryml_parser);
+		Dictionary val_loc;
+		val_loc["path_parts"] = path;
+		val_loc["line_start"] = node_loc.line;
+		val_loc["col_start"] = node_loc.col;
+		val_loc["is_key"] = false;
+		locations.append(val_loc);
 	}
 }
 

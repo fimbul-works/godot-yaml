@@ -80,6 +80,13 @@ public:
 	 */
 	Ref<YAMLResult> parse_and_validate(const String &input, const Variant &schema_param, const YAMLSecurity::View &security_view = YAMLSecurity::get_default_view(), const bool detect_style = false);
 
+	/**
+	 * @brief Parses YAML content to collect node locations for editor support.
+	 * @param input The YAML string to parse
+	 * @return Vector<YAMLNodeLocation> Vector of node locations with paths and positions
+	 */
+	Array parse_locations_for_editor(const String &input);
+
 private:
 	/**
 	 * @brief YAMLParser components from ryml library.
@@ -261,6 +268,14 @@ private:
 	 * @param dict The dictionary to apply defaults to
 	 */
 	void apply_property_defaults(Dictionary &dict) const;
+
+	/**
+	 * @brief Collects node locations recursively for editor support.
+	 * @param node The current YAML node
+	 * @param path The current path in the YAML structure
+	 * @param locations The vector to store collected locations
+	 */
+	void collect_node_locations(ryml::NodeRef &node, PackedStringArray &path, Array &locations) const;
 
 	/**
 	 * @brief Initializes the type converters.
