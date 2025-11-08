@@ -8,7 +8,7 @@ var is_modified: bool = false
 var validation_result: YAMLResult
 
 # History management
-class HistoryState extends RefCounted:
+class YAMLEditorHistoryState extends RefCounted:
 	var text: String
 	var caret_line: int = 0
 	var caret_column: int = 0
@@ -19,12 +19,12 @@ class HistoryState extends RefCounted:
 		caret_column = p_column
 
 	func _to_string() -> String:
-		return "HistoryState(text_length=%d, line=%d, column=%d)" % [text.length(), caret_line, caret_column]
+		return "YAMLEditorHistoryState(text_length=%d, line=%d, column=%d)" % [text.length(), caret_line, caret_column]
 
 # Limit history size to prevent excessive memory use
 const MAX_HISTORY := 100
 
-var history_states: Array[HistoryState] = []
+var history_states: Array[YAMLEditorHistoryState] = []
 var current_history_index: int = -1
 var saved_history_index: int = -1
 
@@ -41,7 +41,7 @@ func _init(p_path: String, p_content: String = "") -> void:
 
 	# Take initial snapshot if content isn't empty
 	if not p_content.is_empty():
-		_add_history_state(HistoryState.new(p_content))
+		_add_history_state(YAMLEditorHistoryState.new(p_content))
 
 # File path utilities
 func get_file_name() -> String:
@@ -56,7 +56,7 @@ func set_content(new_content: String, caret_line: int = 0, caret_column: int = 0
 		return
 
 	content = new_content
-	_add_history_state(HistoryState.new(new_content, caret_line, caret_column))
+	_add_history_state(YAMLEditorHistoryState.new(new_content, caret_line, caret_column))
 	set_modified(true)
 	content_changed.emit(self)
 
@@ -83,7 +83,7 @@ func can_undo() -> bool:
 func can_redo() -> bool:
 	return current_history_index < history_states.size() - 1
 
-func undo() -> HistoryState:
+func undo() -> YAMLEditorHistoryState:
 	if not can_undo():
 		return null
 
@@ -97,7 +97,7 @@ func undo() -> HistoryState:
 
 	return state
 
-func redo() -> HistoryState:
+func redo() -> YAMLEditorHistoryState:
 	if not can_redo():
 		return null
 
@@ -115,7 +115,7 @@ func mark_saved() -> void:
 	saved_history_index = current_history_index
 	set_modified(false)
 
-func _add_history_state(state: HistoryState) -> void:
+func _add_history_state(state: YAMLEditorHistoryState) -> void:
 	# If we're not at the end of history, truncate future states
 	if current_history_index < history_states.size() - 1:
 		history_states = history_states.slice(0, current_history_index + 1)
