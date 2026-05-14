@@ -1,0 +1,50 @@
+$schema: "res://addons/yaml/examples/data/fimbul.generator.schema.yaml"
+params:
+  x: float
+  y: float
+  noiseScale: float
+  noise2D: Callable
+
+functions:
+  - name: continentShape
+    params: ["x", "y"]
+    returns: float
+    code: abs(cos(x * PI * 2 + PI * 0.5) * sin(y * PI))
+
+  - name: heightNoise
+    params: ["x", "y", "noiseScale", "noise2D"]
+    returns: float
+    code: noise2D(x * noiseScale, y * noiseScale) * 0.5 + 0.5
+
+  - name: height
+    dependencies: ["continentShape", "heightNoise"]
+    returns: float
+    code: continentShape * heightNoise
+
+  - name: temperature
+    params: ["y"]
+    dependencies: ["height"]
+    returns: float
+    code: y - (height - 0.4) * 2 if height > 0.4 else y
+
+  - name: precipitation
+    params: ["y"]
+    dependencies: ["temperature"]
+    returns: float
+    code: 1 - temperature
+
+  - name: biome
+    returns: String
+    dependencies: ["height", "temperature", "precipitation"]
+    code: |
+      if height < 0.2023:
+        return 'ocean'
+      if temperature >= 0.666:
+        return 'desert'
+      if temperature > 0.42 && precipitation > 0.42:
+        return 'rainforest'
+      if temperature > 0.3 && precipitation > 0.3:
+        return 'forest'
+      if temperature <= 0.21:
+        return 'tundra'
+      return 'meadows'

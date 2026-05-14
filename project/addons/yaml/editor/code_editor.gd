@@ -7,7 +7,7 @@ signal close_requested
 signal undo_requested
 signal redo_requested
 signal validation_requested
-signal zoom_changed(zoom_level)  # New signal for zoom changes
+signal zoom_changed(zoom_level)
 
 var error_indicators := {}
 var snapshot_debounce_timer: Timer

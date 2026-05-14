@@ -1,6 +1,6 @@
 [gd_scene load_steps=7 format=3 uid="uid://bkdh3qj8xqsnh"]
 
-[ext_resource type="Script" path="res://addons/TestKit/test_runner_ui.gd" id="1_mmc8f"]
+[ext_resource type="Script" uid="uid://b74huv0fr3u3k" path="res://addons/TestKit/test_runner_ui.gd" id="1_mmc8f"]
 
 [sub_resource type="FontVariation" id="FontVariation_2vkfn"]
 variation_embolden = 1.0

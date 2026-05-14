@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://ds4iq1ulxl4fi"]
 
-[ext_resource type="Script" path="res://addons/yaml/editor/code_edit.gd" id="1_23ytl"]
+[ext_resource type="Script" uid="uid://bex4rlxea675g" path="res://addons/yaml/editor/code_edit.gd" id="1_23ytl"]
 
 [node name="Editor" type="Control"]
 layout_mode = 3

@@ -1,0 +1,17 @@
+# The $id string is used as an identifier
+$id: "res://my_custom_class_schema.yaml"
+
+type: object
+x-yaml-tag: foobar
+properties:
+  string_val:
+    type: string
+    minLength: 1
+    maxLength: 5
+  int_val:
+    type: int
+    max: 10
+  float_val:
+    type: float
+    min: 0
+    max: 999

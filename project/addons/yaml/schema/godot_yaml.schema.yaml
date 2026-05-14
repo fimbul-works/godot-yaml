@@ -1,0 +1,308 @@
+$schema: "http://json-schema.org/draft-07/schema#"
+$id: "res://addons/yaml/schema/godot_yaml.schema.yaml"
+title: "Godot YAML schema definitions"
+
+definitions:
+  variantTypes:
+    description: "Godot Variant types"
+    enum:
+      - "bool"
+      - "float"
+      - "int"
+      - "null"
+      - "AABB"
+      - "Array"
+      - "Basis"
+      - "Callable"
+      - "Color"
+      - "Dictionary"
+      - "NodePath"
+      - "Object"
+      - "PackedByteArray"
+      - "PackedColorArray"
+      - "PackedFloat32Array"
+      - "PackedFloat64Array"
+      - "PackedInt32Array"
+      - "PackedInt64Array"
+      - "PackedStringArray"
+      - "PackedVector2Array"
+      - "PackedVector3Array"
+      - "Plane"
+      - "Projection"
+      - "Quaternion"
+      - "Rect2"
+      - "Rect2i"
+      - "RID"
+      - "String"
+      - "StringName"
+      - "Transform2D"
+      - "Transform3D"
+      - "Variant"
+      - "Vector2"
+      - "Vector2i"
+      - "Vector3"
+      - "Vector3i"
+      - "Vector4"
+      - "Vector4i"
+  AABB:
+    x-yaml-tag: AABB
+    oneOf:
+      - type: object
+        properties:
+          position: { $ref: "#/definitions/Vector3" }
+          size: { $ref: "#/definitions/Vector3" }
+        required: [position, size]
+        additionalProperties: false
+      - type: array
+        items: { $ref: "#/definitions/Vector3" }
+        minItems: 2
+        maxItems: 2
+  Basis:
+    x-yaml-tag: Basis
+    oneOf:
+      - type: object
+        properties:
+          x: { $ref: "#/definitions/Vector3" }
+          y: { $ref: "#/definitions/Vector3" }
+          z: { $ref: "#/definitions/Vector3" }
+        required: [x, y, z]
+        additionalProperties: false
+      - type: array
+        items: { $ref: "#/definitions/Vector3" }
+        minItems: 3
+        maxItems: 3
+  Color:
+    x-yaml-tag: Color
+    oneOf:
+      - type: string
+      - type: object
+        properties:
+          r: { type: number }
+          g: { type: number }
+          b: { type: number }
+          a: { type: number }
+        required: [r, g, b]
+        additionalProperties: false
+      - type: array
+        items: { type: number }
+        minItems: 3
+        maxItems: 4
+  NodePath:
+    x-yaml-tag: NodePath
+    type: string
+  PackedByteArray:
+    x-yaml-tag: PackedByteArray
+    type: string
+    contentEncoding: base64
+  PackedColorArray:
+    x-yaml-tag: PackedColorArray
+    type: array
+    items: { $ref: "#/definitions/Color" }
+  PackedFloat32Array:
+    x-yaml-tag: PackedFloat32Array
+    type: array
+    items: { type: number }
+  PackedFloat64Array:
+    x-yaml-tag: PackedFloat64Array
+    type: array
+    items: { type: number }
+  PackedInt32Array:
+    x-yaml-tag: PackedInt32Array
+    type: array
+    items:
+      type: integer
+      minimum: -2147483648
+      maximum: 2147483647
+  PackedInt64Array:
+    x-yaml-tag: PackedInt64Array
+    type: array
+    items: { type: integer }
+  PackedStringArray:
+    x-yaml-tag: PackedStringArray
+    type: array
+    items: { type: string }
+  Plane:
+    x-yaml-tag: Plane
+    oneOf:
+      - type: object
+        properties:
+          normal: { $ref: "#/definitions/Vector3" }
+          d: { type: number }
+        required: [normal, d]
+        additionalProperties: false
+      - type: array
+        items:
+          - { $ref: "#/definitions/Vector3" }
+          - { type: number }
+        additionalItems: false
+  Projection:
+    x-yaml-tag: Projection
+    oneOf:
+      - type: object
+        properties:
+          x: { $ref: "#/definitions/Vector4" }
+          y: { $ref: "#/definitions/Vector4" }
+          z: { $ref: "#/definitions/Vector4" }
+          w: { $ref: "#/definitions/Vector4" }
+        required: [x, y, z, w]
+        additionalProperties: false
+      - type: array
+        items: { $ref: "#/definitions/Vector4" }
+        minItems: 4
+        maxItems: 4
+  Quaternion:
+    x-yaml-tag: Quaternion
+    oneOf:
+      - type: object
+        properties:
+          x: { type: number }
+          y: { type: number }
+          z: { type: number }
+          w: { type: number }
+        required: [x, y, z, w]
+        additionalProperties: false
+      - type: array
+        items: { type: number }
+        minItems: 4
+        maxItems: 4
+  Rect2:
+    x-yaml-tag: Rect2
+    oneOf:
+      - type: object
+        properties:
+          position: { $ref: "#/definitions/Vector2" }
+          size: { $ref: "#/definitions/Vector2" }
+        required: [position, size]
+        additionalProperties: false
+      - type: array
+        items: { $ref: "#/definitions/Vector2" }
+        minItems: 2
+        maxItems: 2
+  Rect2i:
+    x-yaml-tag: Rect2i
+    oneOf:
+      - type: object
+        properties:
+          position: { $ref: "#/definitions/Vector2i" }
+          size: { $ref: "#/definitions/Vector2i" }
+        required: [position, size]
+        additionalProperties: false
+      - type: array
+        items: { $ref: "#/definitions/Vector2i" }
+        minItems: 2
+        maxItems: 2
+  StringName:
+    x-yaml-tag: StringName
+    type: string
+  Transform2D:
+    x-yaml-tag: Transform2D
+    oneOf:
+      - type: object
+        properties:
+          x: { $ref: "#/definitions/Vector2" }
+          y: { $ref: "#/definitions/Vector2" }
+          origin: { $ref: "#/definitions/Vector2" }
+        required: [x, y, origin]
+        additionalProperties: false
+      - type: array
+        items: { $ref: "#/definitions/Vector2" }
+        minItems: 2
+        maxItems: 2
+  Transform3D:
+    x-yaml-tag: Transform3D
+    oneOf:
+      - type: object
+        properties:
+          basis: { $ref: "#/definitions/Basis" }
+          origin: { $ref: "#/definitions/Vector3" }
+        required: [basis, origin]
+        additionalProperties: false
+      - type: array
+        items:
+          - { $ref: "#/definitions/Basis" }
+          - { $ref: "#/definitions/Vector3" }
+        additionalItems: false
+  Vector2:
+    x-yaml-tag: Vector2
+    oneOf:
+      - type: object
+        properties:
+          x: { type: number }
+          y: { type: number }
+        required: [x, y]
+        additionalProperties: false
+      - type: array
+        items: { type: number }
+        minItems: 2
+        maxItems: 2
+  Vector2i:
+    x-yaml-tag: Vector2i
+    oneOf:
+      - type: object
+        properties:
+          x: { type: integer }
+          y: { type: integer }
+        required: [x, y]
+        additionalProperties: false
+      - type: array
+        items: { type: integer }
+        minItems: 2
+        maxItems: 2
+  Vector3:
+    x-yaml-tag: Vector3
+    oneOf:
+      - type: object
+        properties:
+          x: { type: number }
+          y: { type: number }
+          z: { type: number }
+        required: [x, y, z]
+        additionalProperties: false
+      - type: array
+        items: { type: number }
+        minItems: 3
+        maxItems: 3
+  Vector3i:
+    x-yaml-tag: Vector3i
+    oneOf:
+      - type: object
+        properties:
+          x: { type: integer }
+          y: { type: integer }
+          z: { type: integer }
+        required: [x, y, z]
+        additionalProperties: false
+      - type: array
+        items: { type: integer }
+        minItems: 3
+        maxItems: 3
+  Vector4:
+    x-yaml-tag: Vector4
+    oneOf:
+      - type: object
+        properties:
+          x: { type: number }
+          y: { type: number }
+          z: { type: number }
+          w: { type: number }
+        required: [x, y, z, w]
+        additionalProperties: false
+      - type: array
+        items: { type: number }
+        minItems: 4
+        maxItems: 4
+  Vector4i:
+    x-yaml-tag: Vector4i
+    oneOf:
+      - type: object
+        properties:
+          x: { type: integer }
+          y: { type: integer }
+          z: { type: integer }
+          w: { type: integer }
+        required: [x, y, z, w]
+        additionalProperties: false
+      - type: array
+        items: { type: integer }
+        minItems: 4
+        maxItems: 4

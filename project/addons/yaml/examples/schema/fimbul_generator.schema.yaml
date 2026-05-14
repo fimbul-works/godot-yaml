@@ -1,0 +1,26 @@
+$schema: "http://json-schema.org/draft-07/schema#"
+$id: "res://addons/yaml/examples/data/fimbul.generator.schema.yaml"
+title: "Fimbul world generator schema definition"
+
+params:
+  type: object
+  properties:
+    x: float
+    y: float
+    noiseScale: float
+    noise2D: Callable
+
+functions:
+  type: array
+  items:
+    type: object
+    properties:
+      name:
+        type: string
+      params:
+        $ref: "http://json-schema.org/draft-07/schema#/definitions/stringArray"
+      dependencies:
+        $ref: "http://json-schema.org/draft-07/schema#/definitions/stringArray"
+      returns:
+        type: string
+    required: [name, code]

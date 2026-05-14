@@ -34,7 +34,9 @@ yaml: !Resource 'res://addons/yaml/examples/data/simple.yaml'
 	if data.scene is PackedScene:
 		log_success("PackedScene loaded successfully")
 		var scene = data.scene.instantiate()
-		scene.position = Vector2(640, 360)
+		var screen_width: int = ProjectSettings.get_setting("display/window/size/viewport_width")
+		var screen_height: int = ProjectSettings.get_setting("display/window/size/viewport_height")
+		scene.position = Vector2(screen_width / 2, screen_height / 2)
 		add_child(scene)
 	else:
 		log_warning("PackedScene not loaded (might be missing file or security restrictions)")

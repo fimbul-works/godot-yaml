@@ -201,7 +201,7 @@ func class_registration_management() -> void:
 
 	log_info("Checking if classes are registered...")
 
-	if YAML.has_registered_class("MyCustomClass"):
+	if YAML.has_registered_class("MyCustomClass2"):
 		log_success("MyCustomClass is registered")
 	else:
 		log_error("MyCustomClass is not registered properly")

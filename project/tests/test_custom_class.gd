@@ -26,7 +26,7 @@ func test_custom_node_class() -> void:
 
 	var yaml_text: String = str_result.get_data()
 	if LOG_VERBOSE:
-		print_rich("\n[b]MyCustomClass Stringify Result:[/b]\n%s" % yaml_text)
+		print_rich("\n[b]MyCustomClass2 Stringify Result:[/b]\n%s" % yaml_text)
 
 	# Parse YAML string
 	var parse_result := YAML.parse(yaml_text)

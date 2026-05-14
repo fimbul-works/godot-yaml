@@ -1,14 +1,14 @@
 [gd_scene load_steps=27 format=3 uid="uid://b7wsl0ss24hvb"]
 
-[ext_resource type="Script" path="res://addons/yaml/editor/yaml_editor.gd" id="1_jqpkv"]
-[ext_resource type="Script" path="res://addons/yaml/editor/syntax_highlighting/editor_syntax_highlighter.gd" id="2_0xmrl"]
-[ext_resource type="Script" path="res://addons/yaml/editor/code_editor.gd" id="2_lgcdy"]
-[ext_resource type="Script" path="res://addons/yaml/editor/file_list.gd" id="3_ufmqr"]
-[ext_resource type="Script" path="res://addons/yaml/editor/menu_bar.gd" id="5_bqqrn"]
-[ext_resource type="Script" path="res://addons/yaml/editor/status_bar.gd" id="6_rk03l"]
-[ext_resource type="Script" path="res://addons/yaml/editor/find_replace_bar.gd" id="7_vo7uj"]
+[ext_resource type="Script" uid="uid://bbbai2ba18l5f" path="res://addons/yaml/editor/yaml_editor.gd" id="1_jqpkv"]
+[ext_resource type="Script" uid="uid://c0q2685eddg35" path="res://addons/yaml/editor/syntax_highlighting/editor_syntax_highlighter.gd" id="2_0xmrl"]
+[ext_resource type="Script" uid="uid://drkui6da5o1ou" path="res://addons/yaml/editor/code_editor.gd" id="2_lgcdy"]
+[ext_resource type="Script" uid="uid://c15odacm31d03" path="res://addons/yaml/editor/file_list.gd" id="3_ufmqr"]
+[ext_resource type="Script" uid="uid://b35lyu1onhcoj" path="res://addons/yaml/editor/menu_bar.gd" id="5_bqqrn"]
+[ext_resource type="Script" uid="uid://bkanguis54ea3" path="res://addons/yaml/editor/status_bar.gd" id="6_rk03l"]
+[ext_resource type="Script" uid="uid://bep06otwjntx1" path="res://addons/yaml/editor/find_replace_bar.gd" id="7_vo7uj"]
 
-[sub_resource type="Image" id="Image_3sjrw"]
+[sub_resource type="Image" id="Image_cjchp"]
 data = {
 "data": PackedByteArray(255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 255, 255, 0, 255, 94, 94, 127, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 255, 255, 0, 255, 93, 93, 255, 255, 94, 94, 127, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 255, 255, 0, 255, 93, 93, 255, 255, 93, 93, 255, 255, 94, 94, 127, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 255, 255, 0, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 94, 94, 127, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 93, 93, 231, 255, 94, 94, 54, 255, 94, 94, 57, 255, 93, 93, 233, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 231, 255, 94, 94, 54, 255, 94, 94, 57, 255, 93, 93, 233, 255, 93, 93, 255, 255, 93, 93, 255, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 97, 97, 42, 255, 255, 255, 0, 255, 255, 255, 0, 255, 97, 97, 42, 255, 93, 93, 233, 255, 93, 93, 232, 255, 93, 93, 41, 255, 255, 255, 0, 255, 255, 255, 0, 255, 97, 97, 42, 255, 93, 93, 233, 255, 93, 93, 232, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 96, 96, 45, 255, 93, 93, 44, 255, 255, 255, 0, 255, 97, 97, 42, 255, 97, 97, 42, 255, 255, 255, 0, 255, 96, 96, 45, 255, 93, 93, 44, 255, 255, 255, 0, 255, 97, 97, 42, 255, 97, 97, 42, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 96, 96, 45, 255, 93, 93, 235, 255, 94, 94, 234, 255, 95, 95, 43, 255, 255, 255, 0, 255, 255, 255, 0, 255, 96, 96, 45, 255, 93, 93, 235, 255, 94, 94, 234, 255, 95, 95, 43, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 93, 93, 235, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 233, 255, 95, 95, 59, 255, 96, 96, 61, 255, 93, 93, 235, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 233, 255, 95, 95, 59, 255, 96, 96, 61, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0),
 "format": "RGBA8",
@@ -17,8 +17,8 @@ data = {
 "width": 16
 }
 
-[sub_resource type="ImageTexture" id="ImageTexture_0b50f"]
-image = SubResource("Image_3sjrw")
+[sub_resource type="ImageTexture" id="ImageTexture_1r41c"]
+image = SubResource("Image_cjchp")
 
 [sub_resource type="EditorSyntaxHighlighter" id="EditorSyntaxHighlighter_68y40"]
 script = ExtResource("2_0xmrl")
@@ -174,14 +174,18 @@ file_list = NodePath("ItemList")
 layout_mode = 2
 placeholder_text = "Filter Files"
 clear_button_enabled = true
-right_icon = SubResource("ImageTexture_0b50f")
+right_icon = SubResource("ImageTexture_1r41c")
 
 [node name="ItemList" type="ItemList" parent="MainMargin/MainVBox/ResizableContainer/FileList"]
 layout_mode = 2
 size_flags_vertical = 3
 allow_rmb_select = true
 auto_height = true
-item_count = 0
+item_count = 4
+item_0/text = "world_generator.yaml"
+item_1/text = "supported_syntax.yaml"
+item_2/text = "simple.yaml"
+item_3/text = "schema_test.yaml"
 
 [node name="EditorPanel" type="VBoxContainer" parent="MainMargin/MainVBox/ResizableContainer"]
 layout_mode = 2
@@ -211,6 +215,7 @@ gutters_draw_fold_gutter = true
 indent_size = 2
 indent_use_spaces = true
 indent_automatic = true
+indent_automatic_prefixes = Array[String]([":"])
 auto_brace_completion_enabled = true
 auto_brace_completion_highlight_matching = true
 script = ExtResource("2_lgcdy")
@@ -326,7 +331,7 @@ theme_override_styles/hover = SubResource("StyleBoxEmpty_33vym")
 theme_override_styles/pressed = SubResource("StyleBoxEmpty_jwbjn")
 theme_override_styles/normal = SubResource("StyleBoxEmpty_xhoyn")
 disabled = true
-icon = SubResource("ImageTexture_0b50f")
+icon = SubResource("ImageTexture_1r41c")
 flat = true
 
 [node name="NextButton" type="Button" parent="MainMargin/MainVBox/ResizableContainer/EditorPanel/BottomToolbar/FindReplaceBar/ButtonsContainer/MatchesContainer"]
@@ -339,7 +344,7 @@ theme_override_styles/hover = SubResource("StyleBoxEmpty_ki2vh")
 theme_override_styles/pressed = SubResource("StyleBoxEmpty_ke1f7")
 theme_override_styles/normal = SubResource("StyleBoxEmpty_v3fgn")
 disabled = true
-icon = SubResource("ImageTexture_0b50f")
+icon = SubResource("ImageTexture_1r41c")
 flat = true
 
 [node name="ReplaceButtonsContainer" type="HBoxContainer" parent="MainMargin/MainVBox/ResizableContainer/EditorPanel/BottomToolbar/FindReplaceBar/ButtonsContainer"]
@@ -393,5 +398,5 @@ text = "Selection Only
 [node name="HideButton" type="Button" parent="MainMargin/MainVBox/ResizableContainer/EditorPanel/BottomToolbar/FindReplaceBar"]
 layout_mode = 2
 tooltip_text = "Hide"
-icon = SubResource("ImageTexture_0b50f")
+icon = SubResource("ImageTexture_1r41c")
 flat = true

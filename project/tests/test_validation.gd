@@ -1,7 +1,51 @@
 extends TestSuite
 
+var child_schema: Schema
+var parent_schema: Schema
+
 func _init() -> void:
 	icon = "✓"
+	#FILTER_PATTERNS = ["nested_custom_class"]
+
+func _enter_tree() -> void:
+	YAML.register_class(ValidationTestParent)
+	YAML.register_class(ValidationTestChild)
+
+	child_schema = Schema.build_schema({
+		"$id": "http://example.com/child.json",
+		"type": "object",
+		"x-yaml-tag": "ValidationTestChild",
+		"properties": {
+			"name": {
+				"type": "string",
+				"minLength": 2
+			},
+			"age": {
+				"type": "integer",
+				"minimum": 0,
+				"maximum": 150
+			}
+		},
+		"required": ["name", "age"]
+	}, true)
+
+	parent_schema = Schema.build_schema({
+		"$id": "http://example.com/parent.json",
+		"type": "object",
+		"properties": {
+			"title": {
+				"type": "string",
+				"minLength": 3,
+				"x-yaml-tag": "ValidationTestParent"
+			},
+			"child": { "$ref": "http://example.com/child.json" }
+		},
+		"required": ["title", "child"]
+	}, true)
+
+func _exit_tree() -> void:
+	YAML.unregister_class(ValidationTestParent)
+	YAML.unregister_class(ValidationTestChild)
 
 func _ready() -> void:
 	# Register schemas for testing
@@ -353,3 +397,100 @@ minLength: not a number
 	expect(schema != null, "Invalid schema should still return Schema object")
 	expect(!schema.is_valid(), "Schema with meta-validation errors should be invalid")
 	expect(schema.get_compile_errors().size() > 0, "Should have compilation errors from meta-validation")
+
+func test_nested_custom_class_validation_valid() -> void:
+	var yaml = """
+!ValidationTestParent
+$schema: http://example.com/parent.json
+title: "Parent Title"
+child: !ValidationTestChild
+  name: Alice
+  age: 25
+"""
+
+	var result = YAML.parse_and_validate(yaml)
+
+	expect(!result.has_validation_errors(), "Valid nested structure should pass validation")
+
+	var parent = result.get_data()
+	expect(parent is ValidationTestParent, "Should be ValidationTestParent instance")
+	if parent != null:
+		expect_equal(parent.title, "Parent Title", "Parent title should match")
+		expect(parent.child is ValidationTestChild, "Child should be ValidationTestChild instance")
+		expect_equal(parent.child.name, "Alice", "Child name should match")
+		expect_equal(parent.child.age, 25, "Child age should match")
+
+func test_nested_custom_class_validation_invalid_child() -> void:
+	# Invalid: child age exceeds maximum
+	var yaml_invalid_age = """
+!ValidationTestParent
+$schema: http://example.com/parent.json
+title: "Parent Title"
+child: !ValidationTestChild
+  name: Bob
+  age: 200
+"""
+
+	var result = YAML.parse_and_validate(yaml_invalid_age)
+
+	expect(result.has_validation_errors(), "Should fail validation for invalid child age")
+
+	var errors = result.get_validation_errors()
+	var has_age_error = false
+	for error in errors:
+		if error.keyword == "maximum" and error.instance_path.contains("age"):
+			has_age_error = true
+			break
+
+	expect(has_age_error, "Should have maximum validation error for child age")
+
+func test_nested_custom_class_validation_missing_required() -> void:
+	# Missing required child.name field
+	var yaml = """
+!ValidationTestParent
+$schema: http://example.com/parent.json
+title: "Parent Title"
+child: !ValidationTestChild
+  age: 30
+"""
+
+	var result = YAML.parse_and_validate(yaml)
+
+	expect(result.has_validation_errors(), "Should fail validation for missing required field")
+
+	var errors = result.get_validation_errors()
+	print(result)
+	print("ERRORS: ", errors)
+
+	var has_required_error = false
+	for error in errors:
+		if error.keyword == "required" and error.instance_path.contains("child"):
+			has_required_error = true
+			break
+
+	expect(has_required_error, "Should have required field validation error for child")
+
+func test_reported_issue_20() -> void:
+	var file := FileAccess.open("res://tests/data/schema_test.yaml", FileAccess.READ)
+	var yaml_text := file.get_as_text()
+	var yaml_dict  = YAML.parse(yaml_text).get_data()
+	file.close()
+
+	print("DICT: ", yaml_dict)
+
+	var schema_str = FileAccess.get_file_as_string("res://tests/data/schemas/schema_test.json")
+	var schema_dict = JSON.parse_string(schema_str)
+	var schema = Schema.build_schema(schema_dict, true)
+
+	print("SCHEMA: ", schema.get_schema_definition())
+
+	var result  = schema.validate(yaml_dict)
+	print("Schema validation:")
+	print(result.get_errors())
+
+	var parse_and_validate_result = YAML.parse_and_validate(yaml_text, schema)
+	print("YAML parse_and_validate:")
+	print(parse_and_validate_result)
+	print("ERRORS:")
+	print(parse_and_validate_result.get_validation_errors())
+	pass
