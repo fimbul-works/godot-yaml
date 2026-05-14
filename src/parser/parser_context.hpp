@@ -119,7 +119,7 @@ public:
 	 * @brief Pushes the schema for an array item onto the schema stack.
 	 * @param index The index of the array item (for error reporting)
 	 */
-	void push_schema_for_array_item(int index);
+	void push_schema_for_array_item(int64_t index);
 
 	/**
 	 * @brief Pushes a uniform schema for all array items onto the schema stack.

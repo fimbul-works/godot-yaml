@@ -152,7 +152,7 @@ Ref<YAMLStyle> YAMLStyle::merge_with(const Ref<YAMLStyle> &other) {
 	custom_settings.merge(other->custom_settings, true);
 
 	Array other_keys = other->list_children();
-	for (int i = 0; i < other_keys.size(); i++) {
+	for (int64_t i = 0; i < other_keys.size(); i++) {
 		String key = other_keys[i];
 		Ref<YAMLStyle> other_child = other->get_child(key);
 
@@ -392,7 +392,7 @@ Ref<YAMLStyle> YAMLStyle::get_at_path(const String &path, bool create_if_missing
 	PackedStringArray segments = path.split("/");
 	Ref<YAMLStyle> current = Ref<YAMLStyle>(this);
 
-	for (int i = 0; i < segments.size(); i++) {
+	for (int64_t i = 0; i < segments.size(); i++) {
 		if (segments[i].is_empty()) {
 			continue; // Skip empty segments
 		}
@@ -654,7 +654,7 @@ void YAMLStyle::simplify() {
 		return;
 	}
 
-	for (int i = 0; i < child_keys.size(); i++) {
+	for (int64_t i = 0; i < child_keys.size(); i++) {
 		String key = child_keys[i];
 		if (key == "_template") {
 			continue;
@@ -736,7 +736,7 @@ String YAMLStyle::get_debug_string() const {
 	if (!custom_settings.is_empty()) {
 		debug += "\nsettings:\n";
 		Array keys = custom_settings.keys();
-		for (int i = 0; i < keys.size(); i++) {
+		for (int64_t i = 0; i < keys.size(); i++) {
 			debug += vformat("  %s: %s\n", String(keys[i]), String(custom_settings[keys[i]]));
 		}
 	}
@@ -747,7 +747,7 @@ String YAMLStyle::get_debug_string() const {
 			debug += vformat("  %s:\n", pair.first);
 			String child_debug = pair.second->get_debug_string();
 			PackedStringArray lines = child_debug.split("\n");
-			for (int i = 0; i < lines.size(); i++) {
+			for (int64_t i = 0; i < lines.size(); i++) {
 				if (!lines[i].is_empty()) {
 					debug += vformat("    %s\n", lines[i]);
 				}

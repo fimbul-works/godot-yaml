@@ -31,7 +31,7 @@ YAMLStyle::View YAMLStyle::View::create_view(const Ref<YAMLStyle> &style) {
 
 	// Create views for all children
 	Array keys = style->list_children();
-	for (int i = 0; i < keys.size(); i++) {
+	for (int64_t i = 0; i < keys.size(); i++) {
 		String key = keys[i];
 		if (key.is_empty()) {
 			continue;

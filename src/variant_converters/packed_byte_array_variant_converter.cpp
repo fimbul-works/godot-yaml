@@ -43,7 +43,7 @@ String YAMLPackedByteArrayVariantConverter::cleanup(const ryml::csubstr &input, 
 	String raw = from_ryml_str(input);
 	String cleaned;
 
-	for (int i = 0; i < raw.length(); i++) {
+	for (int64_t i = 0; i < raw.length(); i++) {
 		char c = raw[i];
 		if (!is_whitespace_char(c)) {
 			if (!is_base64_char(c)) {

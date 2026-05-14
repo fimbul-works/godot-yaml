@@ -75,7 +75,7 @@ public:
 	 * @param column Column number where the error occurred (-1 if unknown)
 	 * @return Ref<YAMLResult> An error result object
 	 */
-	static Ref<YAMLResult> error(const String &msg, int line = -1, int column = -1);
+	static Ref<YAMLResult> error(const String &msg, int64_t line = -1, int64_t column = -1);
 
 	/**
 	 * @brief Creates a user-defined error result.
@@ -146,15 +146,15 @@ public:
 
 	/**
 	 * @brief Gets the line number where the error occurred.
-	 * @return int Line number or -1 if not applicable
+	 * @return int64_t Line number or -1 if not applicable
 	 */
-	int get_error_line() const;
+	int64_t get_error_line() const;
 
 	/**
 	 * @brief Gets the column number where the error occurred.
-	 * @return int Column number or -1 if not applicable
+	 * @return int64_t Column number or -1 if not applicable
 	 */
-	int get_error_column() const;
+	int64_t get_error_column() const;
 
 	/**
 	 * @brief Gets a formatted error string with location information if applicable.
@@ -230,7 +230,7 @@ private:
 	 * @param line Optional error line number
 	 * @param col Optional error column number
 	 */
-	YAMLResult(const Variant &data_, bool is_multi_document_, const Ref<YAMLStyle> &style_ = nullptr, const String &error_ = "", int line = -1, int col = -1, const Ref<SchemaValidationResult> &validation_ = nullptr) :
+	YAMLResult(const Variant &data_, bool is_multi_document_, const Ref<YAMLStyle> &style_ = nullptr, const String &error_ = "", int64_t line = -1, int64_t col = -1, const Ref<SchemaValidationResult> &validation_ = nullptr) :
 			data(data_),
 			is_multi_document(is_multi_document_),
 			style(style_),
@@ -245,8 +245,8 @@ private:
 	const Variant data; ///< The result data (single document) or documents Array (multi-document)
 	const bool is_multi_document; ///< Whether this result contains multiple documents
 	const String error_message; ///< Error message if an error occurred
-	const int error_line; ///< Line number where the error occurred
-	const int error_column; ///< Column number where the error occurred
+	const int64_t error_line; ///< Line number where the error occurred
+	const int64_t error_column; ///< Column number where the error occurred
 	const Ref<YAMLStyle> style; ///< Style information if available
 	const Ref<SchemaValidationResult> validation_result; ///< Schema validation result if available
 };

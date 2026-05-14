@@ -16,7 +16,7 @@ void YAMLPackedStringArrayVariantConverter::encode(ryml::NodeRef &node, const Va
 	// Get template style if it exists (key "_template" is a convention for shared array item styling)
 	YAMLStyle::View template_style = style.get_template_style();
 
-	for (int i = 0; i < array.size(); ++i) {
+	for (int64_t i = 0; i < array.size(); ++i) {
 		const String &str = array[i];
 		ryml::NodeRef child = node.append_child();
 

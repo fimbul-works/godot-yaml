@@ -439,7 +439,7 @@ std::optional<Variant> YAML::Parser::try_parse_numeric_value(const String &str_v
 			return false;
 		}
 
-		for (int i = start + 2; i < s.length(); i++) {
+		for (int64_t i = start + 2; i < s.length(); i++) {
 			char c = s[i];
 			if (!((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F'))) {
 				return false;
@@ -466,7 +466,7 @@ std::optional<Variant> YAML::Parser::try_parse_numeric_value(const String &str_v
 			return false;
 		}
 
-		for (int i = start + 2; i < s.length(); i++) {
+		for (int64_t i = start + 2; i < s.length(); i++) {
 			char c = s[i];
 			if (c != '0' && c != '1') {
 				return false;
@@ -493,7 +493,7 @@ std::optional<Variant> YAML::Parser::try_parse_numeric_value(const String &str_v
 			return false;
 		}
 
-		for (int i = start + 2; i < s.length(); i++) {
+		for (int64_t i = start + 2; i < s.length(); i++) {
 			char c = s[i];
 			if (c < '0' || c > '7') {
 				return false;
@@ -516,7 +516,7 @@ std::optional<Variant> YAML::Parser::try_parse_numeric_value(const String &str_v
 			}
 		}
 
-		for (int i = start; i < s.length(); i++) {
+		for (int64_t i = start; i < s.length(); i++) {
 			char c = s[i];
 			if (c < '0' || c > '9') {
 				return false;
@@ -544,7 +544,7 @@ std::optional<Variant> YAML::Parser::try_parse_numeric_value(const String &str_v
 			}
 		}
 
-		for (int i = start; i < s.length(); i++) {
+		for (int64_t i = start; i < s.length(); i++) {
 			char c = s[i];
 
 			if (c >= '0' && c <= '9') {
@@ -750,7 +750,7 @@ Variant YAML::Parser::load_resource(const String &path, const ryml::ConstNodeRef
 				Array nested_errors = result->get_validation_errors();
 				String resource_prefix = vformat("!Resource(%s)", path);
 
-				for (int i = 0; i < nested_errors.size(); i++) {
+				for (int64_t i = 0; i < nested_errors.size(); i++) {
 					Dictionary error_dict = nested_errors[i];
 
 					// Build path segments with resource context
@@ -844,7 +844,7 @@ void YAML::Parser::validate_current_node(const Variant &value) const {
 		String base_path = context->get_current_instance_path();
 		Array resource_stack = context->get_resource_path_stack();
 
-		for (int i = 0; i < validation->error_count(); i++) {
+		for (int64_t i = 0; i < validation->error_count(); i++) {
 			Dictionary error_dict = validation->get_error(i);
 
 			// Build full path including nested resources
@@ -852,7 +852,7 @@ void YAML::Parser::validate_current_node(const Variant &value) const {
 
 			// Add resource context if present
 			if (resource_stack.size() > 0) {
-				for (int j = 0; j < resource_stack.size(); j++) {
+				for (int64_t j = 0; j < resource_stack.size(); j++) {
 					full_path += vformat("!Resource(%s)", resource_stack[j]);
 				}
 			}
@@ -952,7 +952,7 @@ void YAML::Parser::apply_property_defaults(Dictionary &dict) const {
 
 	// Iterate through all properties defined in the schema
 	Array property_keys = schema->get_child_keys();
-	for (int i = 0; i < property_keys.size(); i++) {
+	for (int64_t i = 0; i < property_keys.size(); i++) {
 		StringName key = property_keys[i];
 		String key_str = key;
 

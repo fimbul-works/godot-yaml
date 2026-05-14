@@ -186,7 +186,7 @@ protected:
 	 * @param node The YAML node for location context
 	 * @return YAMLException The created exception
 	 */
-	inline YAMLException create_invalid_sequence_length_exception(int expected_length, const ryml::ConstNodeRef &node) const {
+	inline YAMLException create_invalid_sequence_length_exception(int64_t expected_length, const ryml::ConstNodeRef &node) const {
 		return create_exception(vformat("%s array must have %d elements", get_tag(), expected_length), node);
 	}
 

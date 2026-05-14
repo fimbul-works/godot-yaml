@@ -106,7 +106,7 @@ void YAMLParserContext::push_schema_for_property(const String &property_name) {
 		Dictionary pattern_props = schema_def["patternProperties"].operator Dictionary();
 		Array patterns = pattern_props.keys();
 
-		for (int i = 0; i < patterns.size(); i++) {
+		for (int64_t i = 0; i < patterns.size(); i++) {
 			String pattern = patterns[i].operator String();
 			Ref<RegEx> regex = RegEx::create_from_string(pattern);
 
@@ -137,7 +137,7 @@ void YAMLParserContext::push_schema_for_property(const String &property_name) {
 	}
 }
 
-void YAMLParserContext::push_schema_for_array_item(int index) {
+void YAMLParserContext::push_schema_for_array_item(int64_t index) {
 	if (!is_validating()) {
 		return;
 	}

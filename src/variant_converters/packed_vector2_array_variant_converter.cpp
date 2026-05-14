@@ -22,7 +22,7 @@ void YAMLPackedVector2ArrayVariantConverter::encode(ryml::NodeRef &node, const V
 	// Get template style if it exists (key "_template" is a convention for shared array item styling)
 	YAMLStyle::View template_style = style.get_template_style();
 
-	for (int i = 0; i < array.size(); ++i) {
+	for (int64_t i = 0; i < array.size(); ++i) {
 		ryml::NodeRef vec_node = node.append_child();
 
 		YAMLStyle::View item_style;

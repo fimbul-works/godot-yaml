@@ -248,7 +248,7 @@ void YAML::Emitter::emit_array(ryml::NodeRef &node, const Array &array, const YA
 
 	YAMLStyle::View template_style = style.get_template_style();
 
-	for (int i = 0; i < array.size(); i++) {
+	for (int64_t i = 0; i < array.size(); i++) {
 		// Check for individual item style
 		YAMLStyle::View item_style;
 		if (style.is_valid()) {
@@ -272,7 +272,7 @@ void YAML::Emitter::emit_dictionary(ryml::NodeRef &node, const Dictionary &dict,
 
 	Array keys = dict.keys();
 
-	for (int i = 0; i < keys.size(); i++) {
+	for (int64_t i = 0; i < keys.size(); i++) {
 		ryml::NodeRef child = node.append_child();
 		ryml::csubstr key_str = store_string(keys[i]);
 		child << ryml::key(key_str);

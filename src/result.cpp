@@ -40,7 +40,7 @@ Ref<YAMLResult> YAMLResult::multi_document_success(const Array &documents) {
 	return Ref<YAMLResult>(memnew(YAMLResult(documents, true, nullptr)));
 }
 
-Ref<YAMLResult> YAMLResult::error(const String &msg, int line, int column) {
+Ref<YAMLResult> YAMLResult::error(const String &msg, int64_t line, int64_t column) {
 	return Ref<YAMLResult>(memnew(YAMLResult(Variant(), false, nullptr, msg, line, column)));
 }
 
@@ -124,11 +124,11 @@ String YAMLResult::get_error_message() const {
 	return error_message;
 }
 
-int YAMLResult::get_error_line() const {
+int64_t YAMLResult::get_error_line() const {
 	return error_line;
 }
 
-int YAMLResult::get_error_column() const {
+int64_t YAMLResult::get_error_column() const {
 	return error_column;
 }
 

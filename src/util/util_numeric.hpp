@@ -142,7 +142,7 @@ ryml::csubstr int_to_string(const T value, YAMLStyle::IntegerFormat format = YAM
 			// Handle binary format manually since snprintf doesn't support it
 			char binary[65]; // max 64 bits plus null terminator
 			T temp = value;
-			int i = 0;
+			int64_t i = 0;
 			do {
 				binary[i++] = '0' + (temp & 1);
 				temp >>= 1;
@@ -150,7 +150,7 @@ ryml::csubstr int_to_string(const T value, YAMLStyle::IntegerFormat format = YAM
 
 			// Reverse and add prefix
 			snprintf(buf, sizeof(buf), "0b");
-			for (int j = i - 1; j >= 0; j--) {
+			for (int64_t j = i - 1; j >= 0; j--) {
 				size_t len = strlen(buf);
 				buf[len] = binary[j];
 				buf[len + 1] = '\0';

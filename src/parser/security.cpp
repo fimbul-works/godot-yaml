@@ -43,7 +43,7 @@ void YAMLSecurity::allow_path(const String &path_prefix, const Array &type_names
 	PathPattern pattern(path_prefix);
 	std::vector<StringName> &allowed_types = allowed_paths_with_types[pattern];
 	allowed_types.clear();
-	for (int i = 0; i < type_names.size(); i++) {
+	for (int64_t i = 0; i < type_names.size(); i++) {
 		allowed_types.push_back(type_names[i]);
 	}
 }
@@ -171,7 +171,7 @@ bool PathPattern::match_recursive_wildcard(const String &p_path) const {
 std::vector<String> PathPattern::split_path(const String &p_path) {
 	std::vector<String> result;
 	String current;
-	for (int i = 0; i < p_path.length(); i++) {
+	for (int64_t i = 0; i < p_path.length(); i++) {
 		char32_t c = p_path[i];
 		if (c == '/') {
 			if (!current.is_empty()) {
