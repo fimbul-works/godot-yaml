@@ -141,22 +141,18 @@ def build_rapidyaml(env, variant_dir):
     if platform == 'windows':
         cmake_command.append('-DCMAKE_CXX_FLAGS_DEBUG=/MT')
         cmake_command.append('-DCMAKE_CXX_FLAGS_RELEASE=/MT')
-        if arch == 'x86_32':
-            cmake_command.append('-A Win32')
-        else:
-            cmake_command.append('-A x64')
-    
+
     # Android NDK configuration
     elif platform == 'android':
         # Use Ninja generator for Android to avoid MSBuild issues on Windows
         cmake_command.insert(1, 'Ninja')
         cmake_command.insert(1, '-G')
-        
+
         # Get Android NDK path from environment
         android_ndk = env.get('ANDROID_NDK_ROOT', os.environ.get('ANDROID_NDK_ROOT', ''))
         if not android_ndk:
             raise ValueError("ANDROID_NDK_ROOT must be set for Android builds")
-        
+
         # Map Godot arch to Android ABI
         android_abi_map = {
             'arm32': 'armeabi-v7a',
@@ -165,7 +161,7 @@ def build_rapidyaml(env, variant_dir):
             'x86_64': 'x86_64'
         }
         android_abi = android_abi_map.get(arch, 'arm64-v8a')
-        
+
         # Android NDK CMake toolchain
         toolchain_file = os.path.join(android_ndk, 'build', 'cmake', 'android.toolchain.cmake')
         cmake_command.extend([
@@ -176,10 +172,15 @@ def build_rapidyaml(env, variant_dir):
             '-DCMAKE_SYSTEM_NAME=Android'
         ])
 
+    # Prepare environment for subprocess to include SCons-detected paths/compilers
+    sub_env = os.environ.copy()
+    if 'ENV' in env:
+        sub_env.update(env['ENV'])
+
     # Run CMake
-    subprocess.run(cmake_command, check=True)
-    subprocess.run(['cmake', '--build', rapidyaml_build_dir, '--config', cmake_build_type], check=True)
-    subprocess.run(['cmake', '--install', rapidyaml_build_dir, '--config', cmake_build_type], check=True)
+    subprocess.run(cmake_command, check=True, env=sub_env)
+    subprocess.run(['cmake', '--build', rapidyaml_build_dir, '--config', cmake_build_type], check=True, env=sub_env)
+    subprocess.run(['cmake', '--install', rapidyaml_build_dir, '--config', cmake_build_type], check=True, env=sub_env)
 
     # Return the paths to the built library and include directory
     lib_name = 'ryml.lib' if platform == 'windows' else 'libryml.a'
@@ -257,12 +258,13 @@ def build_config(env, variant_dir):
     sources += Glob(os.path.join(variant_dir, 'src', 'parser', '*.cpp'))
     sources += Glob(os.path.join(variant_dir, 'src', 'style', '*.cpp'))
     sources += Glob(os.path.join(variant_dir, 'src', 'util', '*.cpp'))
-    sources += Glob(os.path.join(variant_dir, 'src', 'syntax_validator', '*.cpp'))
+    sources += Glob(os.path.join(variant_dir, 'src', 'validator', '*.cpp'))
 
     # Add GDSchema sources
     sources += Glob(os.path.join('ext', 'gdschema', 'src', '*.cpp'))
     sources += Glob(os.path.join('ext', 'gdschema', 'src', 'selector', '*.cpp'))
     sources += Glob(os.path.join('ext', 'gdschema', 'src', 'rule', '*.cpp'))
+    sources += Glob(os.path.join('ext', 'gdschema', 'src', 'rule_factory', '*.cpp'))
     env.Append(CPPPATH=["ext/gdschema/src"])
 
     # Embed documentation

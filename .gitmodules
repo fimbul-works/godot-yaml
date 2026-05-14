@@ -8,3 +8,4 @@
 [submodule "ext/gdschema"]
 	path = ext/gdschema
 	url = https://github.com/fimbul-works/gdschema
+	branch = develop

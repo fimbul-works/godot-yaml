@@ -6,7 +6,7 @@
 #include "result.hpp"
 #include "style/style.hpp"
 #include "style/style_view.hpp"
-#include "syntax_validator/syntax_validator.hpp"
+#include "validator/syntax_validator.hpp"
 #include "version.hpp"
 #include <schema.hpp>
 #include <validation_result.hpp>
