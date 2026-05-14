@@ -1005,8 +1005,8 @@ void YAML::Parser::collect_node_locations(ryml::NodeRef node, PackedStringArray 
 			// Store key location
 			Dictionary key_loc;
 			key_loc["path_parts"] = child_path;
-			key_loc["line_start"] = child_loc.line;
-			key_loc["col_start"] = child_loc.col;
+			key_loc["line_start"] = static_cast<int64_t>(child_loc.line);
+			key_loc["col_start"] = static_cast<int64_t>(child_loc.col);
 			key_loc["is_key"] = true;
 			locations.append(key_loc);
 
@@ -1014,8 +1014,8 @@ void YAML::Parser::collect_node_locations(ryml::NodeRef node, PackedStringArray 
 			if (child.is_val()) {
 				Dictionary val_loc;
 				val_loc["path_parts"] = child_path;
-				val_loc["line_start"] = child_loc.line;
-				val_loc["col_start"] = child_loc.col;
+				val_loc["line_start"] = static_cast<int64_t>(child_loc.line);
+				val_loc["col_start"] = static_cast<int64_t>(child_loc.col);
 				val_loc["is_key"] = false;
 				locations.append(val_loc);
 			}
@@ -1035,8 +1035,8 @@ void YAML::Parser::collect_node_locations(ryml::NodeRef node, PackedStringArray 
 			// Store item location
 			Dictionary item_loc;
 			item_loc["path_parts"] = child_path;
-			item_loc["line_start"] = child_loc.line;
-			item_loc["col_start"] = child_loc.col;
+			item_loc["line_start"] = static_cast<int64_t>(child_loc.line);
+			item_loc["col_start"] = static_cast<int64_t>(child_loc.col);
 			item_loc["is_key"] = false;
 			locations.append(item_loc);
 
@@ -1048,8 +1048,8 @@ void YAML::Parser::collect_node_locations(ryml::NodeRef node, PackedStringArray 
 		auto node_loc = node.location(*ryml_parser);
 		Dictionary val_loc;
 		val_loc["path_parts"] = path;
-		val_loc["line_start"] = node_loc.line;
-		val_loc["col_start"] = node_loc.col;
+		val_loc["line_start"] = static_cast<int64_t>(node_loc.line);
+		val_loc["col_start"] = static_cast<int64_t>(node_loc.col);
 		val_loc["is_key"] = false;
 		locations.append(val_loc);
 	}
