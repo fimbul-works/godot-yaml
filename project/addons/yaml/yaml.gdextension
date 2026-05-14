@@ -12,8 +12,8 @@ windows.release.x86_64 = "res://addons/yaml/bin/libgdyaml.windows.release.x86_64
 linux.debug.x86_64 = "res://addons/yaml/bin/libgdyaml.linux.debug.x86_64.so"
 linux.release.x86_64 = "res://addons/yaml/bin/libgdyaml.linux.release.x86_64.so"
 
-macos.debug = "res://addons/yaml/bin/libgdyaml.macos.debug"
-macos.release = "res://addons/yaml/bin/libgdyaml.macos.release"
+macos.debug = "res://addons/yaml/bin/libgdyaml.macos.debug.dylib"
+macos.release = "res://addons/yaml/bin/libgdyaml.macos.release.dylib"
 
 android.debug.arm64 = "res://addons/yaml/bin/libgdyaml.android.debug.arm64.so"
 android.release.arm64 = "res://addons/yaml/bin/libgdyaml.android.release.arm64.so"

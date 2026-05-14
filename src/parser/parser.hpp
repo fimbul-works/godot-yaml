@@ -275,7 +275,7 @@ private:
 	 * @param path The current path in the YAML structure
 	 * @param locations The vector to store collected locations
 	 */
-	void collect_node_locations(ryml::NodeRef &node, PackedStringArray &path, Array &locations) const;
+	void collect_node_locations(ryml::NodeRef node, PackedStringArray path, Array locations) const;
 
 	/**
 	 * @brief Initializes the type converters.

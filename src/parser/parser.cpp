@@ -993,7 +993,7 @@ void YAML::Parser::apply_property_defaults(Dictionary &dict) const {
 	}
 }
 
-void YAML::Parser::collect_node_locations(ryml::NodeRef &node, PackedStringArray &path, Array &locations) const {
+void YAML::Parser::collect_node_locations(ryml::NodeRef node, PackedStringArray path, Array locations) const {
 	if (node.is_map()) {
 		for (auto child : node.children()) {
 			String key = from_ryml_str(child.key());

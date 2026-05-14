@@ -119,7 +119,8 @@ jobs:
             -x 'addons/yaml/*.md~' \
             -x 'addons/yaml/.git/*' \
             -x 'addons/yaml/bin/*.lib' \
-            -x 'addons/yaml/bin/*.exp'
+            -x 'addons/yaml/bin/*.exp' \
+            YAML_LICENSE.txt
 
       - name: Create SHA256 checksum
         run: |

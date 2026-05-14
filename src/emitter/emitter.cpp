@@ -59,7 +59,7 @@ ryml::csubstr YAML::Emitter::store_string(const String &str) {
 	return string_pool.store(str);
 }
 
-YAMLVariantConverter *YAML::Emitter::get_converter_for_type(Variant::Type type) const {
+YAMLVariantConverter *YAML::Emitter::get_converter_for_type(const Variant::Type type) const {
 	auto it = type_converters.find(type);
 	return it != type_converters.end() ? it->second.get() : nullptr;
 }

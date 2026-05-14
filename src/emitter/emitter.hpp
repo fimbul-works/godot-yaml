@@ -109,7 +109,7 @@ private:
 	 * @param type The Variant type
 	 * @return YAMLVariantConverter* The converter or nullptr if not found
 	 */
-	YAMLVariantConverter *get_converter_for_type(Variant::Type type) const;
+	YAMLVariantConverter *get_converter_for_type(const Variant::Type type) const;
 
 	/**
 	 * @brief Gets a converter for a specific YAML tag.

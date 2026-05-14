@@ -1,8 +1,15 @@
 # Godot YAML Changelog
 
+## Version 2.2.0
+
+- Updated GDSchema to version 2.0.0, with JSON schema draft 2020-12 validation spec
+- Enable CTRL+mouse wheel to zoom in the YAML editor ([Issue #17](https://github.com/fimbul-works/godot-yaml/issues/17))
+- Renamed HistoryState class to YAMLEditorHistoryState, fixing [Issue #19](https://github.com/fimbul-works/godot-yaml/issues/19)
+- Various small fixes
+
 ## Version 2.1.3
 
-- Changed the behavior of the `x-yaml-tag` Schema validattion rule to ignore tagless nodes
+- Changed the behavior of the `x-yaml-tag` Schema validation rule to ignore tagless nodes
 
 ## Version 2.1.2
 
