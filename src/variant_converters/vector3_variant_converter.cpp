@@ -66,7 +66,7 @@ Vector3 YAMLVector3VariantConverter::decode_from_map(const ryml::ConstNodeRef &n
 	}
 
 	YAMLStyle::FloatFormat x_format;
-	real_t x = string_to_float<real_t>(node[0].val(), detect_style ? &x_format : nullptr);
+	real_t x = string_to_float<real_t>(node["x"].val(), detect_style ? &x_format : nullptr);
 
 	if (detect_style) {
 		context->current_style()->set_float_format(x_format);
