@@ -89,12 +89,12 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           submodules: recursive
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: '3.x'
 
@@ -124,7 +124,7 @@ jobs:
 
       - name: Set up JDK 20 (Android only)
         if: matrix.platform == 'android'
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           java-version: '20'
           distribution: 'temurin'
@@ -148,7 +148,7 @@ jobs:
           ANDROID_HOME: /usr/local/lib/android/sdk
 
       - name: Cache SCons build
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             build/scons_cache
@@ -169,7 +169,7 @@ jobs:
           scons platform=${{ matrix.platform }} target=${{ matrix.target }} arch=${{ matrix.arch }} -j$(nproc || sysctl -n hw.ncpu || echo 2)
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: gdyaml-${{ matrix.platform }}-${{ matrix.target }}-${{ matrix.arch }}
           path: ${{ env.BIN_PATH }}/*
