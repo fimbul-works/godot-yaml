@@ -841,41 +841,41 @@ void YAML::Parser::validate_current_node(const Variant &value) const {
 
 	if (validation->has_errors()) {
 		// Collect all errors with full path context
-		String base_path = context->get_current_instance_path();
+		Array context_path_array = context->get_current_instance_path_array();
 		Array resource_stack = context->get_resource_path_stack();
 
 		for (int64_t i = 0; i < validation->error_count(); i++) {
 			Dictionary error_dict = validation->get_error(i);
 
-			// Build full path including nested resources
-			String full_path;
+			PackedStringArray full_instance_path;
 
-			// Add resource context if present
+			// Prepend resource context if present
 			if (resource_stack.size() > 0) {
 				for (int64_t j = 0; j < resource_stack.size(); j++) {
-					full_path += vformat("!Resource(%s)", resource_stack[j]);
+					full_instance_path.append(vformat("!Resource(%s)", resource_stack[j]));
 				}
 			}
 
-			// Add base path (avoid double slashes)
-			if (!base_path.is_empty() && base_path != "/") {
-				full_path += base_path;
+			// Add current context path (from root YAML document)
+			for (int64_t j = 0; j < context_path_array.size(); j++) {
+				full_instance_path.append(context_path_array[j]);
 			}
 
-			// Add error-specific path
-			String error_path = error_dict["path"];
-			if (!error_path.is_empty() && error_path != "/") {
-				// If full_path is empty or just "/", start fresh
-				if (full_path.is_empty() || full_path == "/") {
-					full_path = error_path;
-				} else {
-					full_path += error_path;
+			// Add error-specific path (relative to the node being validated)
+			if (error_dict.has("instance_path_array")) {
+				Array error_path_array = error_dict["instance_path_array"];
+				for (int64_t j = 0; j < error_path_array.size(); j++) {
+					full_instance_path.append(error_path_array[j]);
 				}
-			} else if (full_path.is_empty()) {
-				full_path = "/";
 			}
 
-			ValidationError error(error_dict["message"], error_dict["instance_path_array"], error_dict["schema_path_array"], error_dict.get("keyword", ""), error_dict.get("invalid_value", Variant()));
+			ValidationError error(
+					error_dict["message"],
+					full_instance_path,
+					error_dict["schema_path_array"],
+					error_dict.get("keyword", ""),
+					error_dict.get("invalid_value", Variant()));
+
 			context->add_validation_error(error);
 		}
 	}
@@ -971,20 +971,20 @@ void YAML::Parser::apply_property_defaults(Dictionary &dict) const {
 
 		// Get the schema for this property
 		Ref<Schema> prop_schema = schema->get_child(key);
-		if (!prop_schema.is_valid() || !prop_schema->has_default_value()) {
+		if (!prop_schema.is_valid() || !prop_schema->has_custom_metadata("default")) {
 			continue;
 		}
 
 		// Get the default value
-		Variant default_value = prop_schema->get_default_value();
+		Variant default_value = prop_schema->get_custom_metadata("default");
 		if (default_value.get_type() == Variant::DICTIONARY) {
 			Dictionary def_dict = default_value.operator Dictionary();
 			// Resolve $ref in default value if present
 			if (def_dict.has("$ref")) {
 				String ref = def_dict["$ref"];
 				Ref<Schema> ref_schema = schema->resolve_reference(ref);
-				if (ref_schema.is_valid() && ref_schema->has_default_value()) {
-					default_value = ref_schema->get_default_value();
+				if (ref_schema.is_valid() && ref_schema->has_custom_metadata("default")) {
+					default_value = ref_schema->get_custom_metadata("default");
 				}
 			}
 		}

@@ -4,7 +4,8 @@ This is the **C++ GDExtension implementation** of the Godot YAML plugin. It prov
 
 ## Version History
 
-- **2.1.2** (Current) - Added support for Android (arm64, x86_64) platforms thanks to @Nemo1166, and fixed some bugs
+- **2.2.0** (Current) - Upgraded GDSchema to 2.0.0 for JSON validation draft 2020-12 spec, and various bug fixes
+- **2.1.2** - Added support for Android (arm64, x86_64) platforms thanks to @Nemo1166, and fixed some bugs
 - **2.1.1** - Empty strings are stringified with quotes
 - **2.1.0** - When passing custom tag to `YAML.schema_register(class, serialize_method, deserialize_static, custom_tag)` use the custom tag when stringifying
 - **2.0.0** - Major release with schema validation powered by [GDSchema](https://github.com/fimbul-works/gdschema), improved multi-document handling, and bug fixes.
@@ -36,7 +37,7 @@ print(yaml_text)
 
 - ⚡ **High Performance**: Built on the lightweight and efficient [RapidYAML](https://github.com/biojppm/rapidyaml) library
 - 🧩 **Comprehensive Variant Support**: Handles all Godot built-in Variant types (except Callable and RID)
-- ✅ **Schema Validation**: Full JSON Schema Draft-7 validation powered by [GDSchema](https://github.com/fimbul-works/gdschema) with YAML-specific extensions
+- ✅ **Schema Validation**: Full JSON Schema Draft 2020-12 validation powered by [GDSchema](https://github.com/fimbul-works/gdschema) with YAML-specific extensions
 - 🧪 **Custom Class Serialization**: Register your GDScript classes for seamless serialization and deserialization
 - 📄 **Multi-Document Support**: Parse YAML files with multiple `---` separated documents
 - 🎨 **Style Customization**: Control how YAML is formatted with customizable style options

@@ -94,7 +94,7 @@ def setup_build_env(base_env):
 
     # ========== COMMON ==========
     if is_debug:
-        env.Append(CPPDEFINES=['GODOT_YAML_DEBUG'])
+        env.Append(CPPDEFINES=['GODOT_YAML_DEBUG', 'GODOT_SCHEMA_DEBUG'])
 
     env.Append(CPPPATH=['src'])
     return env

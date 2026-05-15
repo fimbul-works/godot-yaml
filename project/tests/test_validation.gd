@@ -50,6 +50,7 @@ func _exit_tree() -> void:
 func _ready() -> void:
 	# Register schemas for testing
 	register_test_schemas()
+	print("Registered schemas")
 
 func register_test_schemas() -> void:
 	# Player schema with defaults and tags
@@ -96,11 +97,12 @@ func register_test_schemas() -> void:
 
 func test_explicit_schema_with_defaults() -> void:
 	var yaml = """
+$schema: http://example.com/player.json
 name: Hero
 class: !PlayerClass "Warrior"
 """
 
-	var result = YAML.parse_and_validate(yaml, "http://example.com/player.json")
+	var result = YAML.parse_and_validate(yaml)
 
 	expect(!result.has_validation_errors(), "Should validate successfully")
 
@@ -269,6 +271,7 @@ settings: {}
 	expect(!result.has_validation_errors(), "Should validate")
 
 	var data = result.get_data()
+	print("DATA: ", data)
 	expect_equal(data.player.health, 100, "Nested player defaults should apply")
 	expect_equal(data.settings.volume, 0.5, "Settings defaults should apply")
 	expect_equal(data.settings.fullscreen, false, "Nested settings defaults should apply")

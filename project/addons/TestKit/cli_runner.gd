@@ -8,15 +8,18 @@ var verbose := false
 func _init() -> void:
 	var args = _parse_arguments()
 
-	if not args.has("test"):
-		printerr("Usage: godot --headless --script res://addons/TestKit/cli_runner.gd -- --test <path> [--verbose]")
+	print("Args:")
+	print(args)
+
+	if not args.has("path"):
+		printerr("Usage: godot --headless --script res://addons/TestKit/cli_runner.gd -- --path <path> [--verbose]")
 		quit(1)
 		return
 
 	verbose = args.get("verbose", false)
 
 	# Load the test scene or find test suites
-	var test_path: String = args["test"]
+	var test_path: String = args["path"]
 	var test_suites: Array[TestSuite] = []
 
 	if test_path.ends_with(".tscn"):
@@ -50,10 +53,14 @@ func _parse_arguments() -> Dictionary:
 	var result := {}
 	var cmd_args := OS.get_cmdline_args()
 
+	printerr("ARGS:", cmd_args)
+
 	# Find the -- separator
-	var start_idx := cmd_args.find("--")
-	if start_idx == -1:
-		return result
+	var start_idx := 0
+	while !cmd_args[start_idx].ends_with("cli_runner.gd"):
+		start_idx += 1
+		if start_idx == cmd_args.size() - 1:
+			return result
 
 	# Parse arguments after --
 	var i := start_idx + 1

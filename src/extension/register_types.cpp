@@ -42,8 +42,9 @@ void initialize_yaml_module(ModuleInitializationLevel p_level) {
 		GDREGISTER_CLASS(SchemaValidationResult);
 	}
 
-	// Preload and register the JSON Schema Draft 7 meta-schema
+	// Preload and register the JSON Schema Draft-07 and 2020-12 meta-schemas
 	Schema::load_from_json_file("res://addons/yaml/schema/json_schema_draft_07.json", false);
+	Schema::load_from_json_file("res://addons/yaml/schema/json_schema_draft_2020-12.json", false);
 }
 
 void uninitialize_yaml_module(ModuleInitializationLevel p_level) {

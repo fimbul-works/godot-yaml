@@ -1,7 +1,10 @@
 extends ExampleBase
 
 ## Number of iterations for each benchmark
-const ITERATIONS: int = 5
+const ITERATIONS: int = 10
+
+## Thread counts for multithreaded benchmarks
+const THREAD_COUNTS: Array = [1, 2, 4, 8, 16, 32, 64, 100]
 
 ## Path to the YAML file to benchmark
 const YAML_PATH: String = "res://addons/yaml/examples/data/supported_syntax.yaml"
@@ -19,6 +22,8 @@ func run_examples() -> void:
 	run_example("Stringify (No Style) Benchmark", stringify_benchmark)
 	run_example("Stringify (With Style) Benchmark", stringify_with_style_benchmark)
 	run_example("Compare Results", compare_results)
+	run_example("Parse (Threaded) Bechmark", parse_threaded)
+	run_example("Stringify (Threaded) Benchmark", stringify_threaded)
 
 var yaml_input: String
 var parse_times := []
@@ -39,6 +44,9 @@ func load_yaml_file_benchmark() -> void:
 	yaml_input = file.get_as_text()
 	log_success("File loaded, size: " + str(yaml_input.length()) + " characters")
 
+	var result := YAML.parse(yaml_input)
+	data = result.get_data()
+
 	if LOG_VERBOSE:
 		log_result("First 200 characters:\n" + yaml_input.substr(0, 200) + "...")
 
@@ -58,7 +66,6 @@ func parse_benchmark() -> void:
 			log_error("Iteration " + str(i + 1) + " failed: " + result.get_error())
 			continue
 
-		data = result.get_data()
 		parse_times.append(elapsed)
 		log_info("Iteration " + str(i + 1) + ": " + str(elapsed) + " µs")
 
@@ -202,3 +209,75 @@ func compare_results() -> void:
 
 		var style_overhead = ((avg_style_stringify / avg_stringify) - 1.0) * 100.0
 		log_info("Using style adds approximately %.1f%% overhead to stringify" % style_overhead)
+
+func parse_threaded() -> void:
+	if yaml_input.is_empty():
+		log_error("No YAML input loaded")
+		return
+
+	log_subheader("Threaded Parse Benchmark")
+
+	for thread_count in THREAD_COUNTS:
+		var threads: Array[Thread] = []
+
+		var start := Time.get_ticks_usec()
+
+		for i in range(thread_count):
+			var thread := Thread.new()
+			thread.start(_parse_thread_func.bind(yaml_input))
+			threads.append(thread)
+
+		var total_parse_time := 0
+		for thread in threads:
+			total_parse_time += thread.wait_to_finish()
+
+		var wall_time := Time.get_ticks_usec() - start
+		var avg_thread_time := float(total_parse_time / thread_count)
+
+		log_info("%d thread(s): wall=%d µs | avg thread=%d µs | throughput=%.1f parses/ms" % [
+			thread_count,
+			wall_time,
+			avg_thread_time,
+			thread_count / (wall_time / 1000.0)
+		])
+
+func stringify_threaded() -> void:
+	if data == null:
+		log_error("No data available for stringify tests")
+		return
+
+	log_subheader("Threaded Stringify Benchmark")
+
+	for thread_count in THREAD_COUNTS:
+		var threads: Array[Thread] = []
+
+		var start := Time.get_ticks_usec()
+
+		for i in range(thread_count):
+			var thread := Thread.new()
+			thread.start(_stringify_thread_func.bind(data))
+			threads.append(thread)
+
+		var total_stringify_time := 0
+		for thread in threads:
+			total_stringify_time += thread.wait_to_finish()
+
+		var wall_time := Time.get_ticks_usec() - start
+		var avg_thread_time := float(total_stringify_time / thread_count)
+
+		log_info("%d thread(s): wall=%d µs | avg thread=%d µs | throughput=%.1f stringifies/ms" % [
+			thread_count,
+			wall_time,
+			avg_thread_time,
+			thread_count / (wall_time / 1000.0)
+		])
+
+static func _parse_thread_func(input: String) -> int:
+	var start := Time.get_ticks_usec()
+	YAML.parse(input)
+	return Time.get_ticks_usec() - start
+
+static func _stringify_thread_func(input_data: Variant) -> int:
+	var start := Time.get_ticks_usec()
+	YAML.stringify(input_data)
+	return Time.get_ticks_usec() - start

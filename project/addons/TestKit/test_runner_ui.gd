@@ -12,6 +12,7 @@ class_name TestRunnerUI extends Control
 var test_runner: TestRunner
 var test_suites := {}
 var current_suite_button: Button = null
+var is_headless := DisplayServer.get_name() == "headless"
 
 # Colors for different states
 const COLOR_PASS = Color.GREEN
@@ -28,7 +29,7 @@ func _ready() -> void:
 	run_button.pressed.connect(_on_run_tests_pressed)
 	_setup_ui()
 
-	if run_on_launch:
+	if run_on_launch or is_headless:
 		_on_run_tests_pressed()
 
 func _connect_test_runner_signals() -> void:
@@ -192,6 +193,18 @@ func _on_run_tests_pressed() -> void:
 
 	# Start test execution
 	await test_runner.run_tests(test_classes)
+
+	# Exit process in headless mode
+	if is_headless:
+		var exit_code := 0
+		for suite_name in test_suites:
+			var suite = test_suites[suite_name]
+			if not suite is TestSuite:
+				continue
+			var results = suite.get_test_results()
+			if !results.passed:
+				exit_code = 1
+		get_tree().quit(exit_code)
 
 func _reset_ui_state() -> void:
 	progress_bar.value = 0
