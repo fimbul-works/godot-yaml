@@ -21,6 +21,9 @@ android.release.arm64 = "res://addons/yaml/bin/libgdyaml.android.release.arm64.s
 android.debug.x86_64 = "res://addons/yaml/bin/libgdyaml.android.debug.x86_64.so"
 android.release.x86_64 = "res://addons/yaml/bin/libgdyaml.android.release.x86_64.so"
 
+web.debug.wasm32 = "res://addons/yaml/bin/libgdyaml.web.debug.wasm32.wasm"
+web.release.wasm32 = "res://addons/yaml/bin/libgdyaml.web.release.wasm32.wasm"
+
 [icons]
 
 YAML = "res://addons/yaml/icon.svg"

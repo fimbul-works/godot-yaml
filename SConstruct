@@ -27,6 +27,8 @@ def get_library_name(env):
         return f'libgdyaml.{platform}.{debug_or_release}.dylib'
     elif platform == 'ios':
         return f'libgdyaml.ios.{debug_or_release}.xcframework'
+    elif platform == 'web':
+        return f'libgdyaml.web.{debug_or_release}.wasm32.wasm'
     else:
         print(f'Unsupported platform: {platform}')
         return f'libgdyaml.{platform}.{debug_or_release}.{arch}'
@@ -65,7 +67,11 @@ def setup_build_env(base_env):
 
     # ========== UNIX-LIKE ==========
     else:
-        env.Append(CCFLAGS=['-fexceptions'])
+        if platform == 'web':
+            env.Append(CCFLAGS=['-fwasm-exceptions'])
+            env.Append(LINKFLAGS=['-fwasm-exceptions'])
+        else:
+            env.Append(CCFLAGS=['-fexceptions'])
 
         if platform == 'macos':
             env.Append(CCFLAGS=['-mmacosx-version-min=10.15'])
@@ -84,13 +90,14 @@ def setup_build_env(base_env):
             env.Append(CCFLAGS=['-O3', '-ffast-math'])
             env.Append(CPPDEFINES=['NDEBUG'])
 
-        # Architecture
-        if arch == 'x86_32':
-            env.Append(CCFLAGS=['-m32'])
-            env.Append(LINKFLAGS=['-m32'])
-        elif arch == 'x86_64':
-            env.Append(CCFLAGS=['-m64'])
-            env.Append(LINKFLAGS=['-m64'])
+        # Architecture (not applicable for web/wasm32)
+        if platform != 'web':
+            if arch == 'x86_32':
+                env.Append(CCFLAGS=['-m32'])
+                env.Append(LINKFLAGS=['-m32'])
+            elif arch == 'x86_64':
+                env.Append(CCFLAGS=['-m64'])
+                env.Append(LINKFLAGS=['-m64'])
 
     # ========== COMMON ==========
     if is_debug:
@@ -141,6 +148,13 @@ def build_rapidyaml(env, variant_dir):
     if platform == 'windows':
         cmake_command.append('-DCMAKE_CXX_FLAGS_DEBUG=/MT')
         cmake_command.append('-DCMAKE_CXX_FLAGS_RELEASE=/MT')
+
+    # Web (Emscripten) configuration
+    elif platform == 'web':
+        # emcmake wraps cmake to inject the Emscripten toolchain
+        cmake_command.insert(0, 'emcmake')
+        cmake_command.append('-DCMAKE_CXX_FLAGS=-fwasm-exceptions')
+        cmake_command.append('-DCMAKE_C_FLAGS=-fwasm-exceptions')
 
     # Android NDK configuration
     elif platform == 'android':
