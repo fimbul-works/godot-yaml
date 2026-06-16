@@ -87,6 +87,19 @@ jobs:
             target: template_release
             arch: x86_64
 
+          # Web builds
+          - name: 🌐 Web Debug (wasm32)
+            os: ubuntu-22.04
+            platform: web
+            target: template_debug
+            arch: wasm32
+
+          - name: 🌐 Web Release (wasm32)
+            os: ubuntu-22.04
+            platform: web
+            target: template_release
+            arch: wasm32
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
@@ -146,6 +159,13 @@ jobs:
           echo "ANDROID_NDK_ROOT=$ANDROID_HOME/ndk/23.2.8568313" >> $GITHUB_ENV
         env:
           ANDROID_HOME: /usr/local/lib/android/sdk
+
+      - name: Setup Emscripten (Web only)
+        if: matrix.platform == 'web'
+        uses: mymindstorm/setup-emsdk@v14
+        with:
+          version: 3.1.39
+          actions-cache-folder: 'emsdk-cache'
 
       - name: Cache SCons build
         uses: actions/cache@v5
