@@ -110,7 +110,7 @@ jobs:
       - name: Package addon
         run: |
           cd project
-          zip -r ../godot-yaml-${{ steps.tag_name.outputs.tag }}.zip addons/yaml/ \
+          zip -r ../godot-yaml-${{ steps.tag_name.outputs.tag }}.zip addons/yaml/ YAML_LICENSE.txt \
             -x 'addons/yaml/*.gitignore' \
             -x 'addons/yaml/*.import' \
             -x 'addons/yaml/.DS_Store' \
@@ -119,8 +119,7 @@ jobs:
             -x 'addons/yaml/*.md~' \
             -x 'addons/yaml/.git/*' \
             -x 'addons/yaml/bin/*.lib' \
-            -x 'addons/yaml/bin/*.exp' \
-            YAML_LICENSE.txt
+            -x 'addons/yaml/bin/*.exp'
 
       - name: Create SHA256 checksum
         run: |
