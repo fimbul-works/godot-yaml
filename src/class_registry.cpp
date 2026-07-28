@@ -2,6 +2,7 @@
 
 #include <godot_cpp/classes/resource.hpp>
 #include <godot_cpp/classes/script.hpp>
+#include <godot_cpp/classes/time.hpp>
 #include <godot_cpp/variant/utility_functions.hpp>
 
 using namespace godot;
@@ -88,9 +89,28 @@ void YAMLClassRegistry::register_class(Ref<Script> p_class, const Variant &p_ser
 	}
 	registry_mutex->unlock();
 
-#ifdef GODOT_YAML_DEBUG
-	UtilityFunctions::print(vformat("Registered class %s with YAML", class_name));
-#endif
+//#ifdef GODOT_YAML_DEBUG
+#define TICKS_MS 1000
+#define TICKS_SECOND (TICKS_MS * 1000)
+#define TICKS_MINUTE (TICKS_SECOND * 60)
+#define TICKS_HOUR (TICKS_MINUTE * 60)
+	uint64_t ticks_usec = Time::get_singleton()->get_ticks_usec();
+
+	uint64_t ticks_hour = UtilityFunctions::floori(ticks_usec / TICKS_HOUR);
+	ticks_usec -= ticks_hour * TICKS_HOUR;
+
+	uint64_t ticks_minute = UtilityFunctions::floori(ticks_usec / TICKS_MINUTE);
+	ticks_usec -= ticks_minute * TICKS_MINUTE;
+
+	uint64_t ticks_second = UtilityFunctions::floori(ticks_usec / TICKS_SECOND);
+	ticks_usec -= ticks_second * TICKS_SECOND;
+
+	uint64_t ticks_ms = UtilityFunctions::floori(ticks_usec / TICKS_MS);
+	ticks_usec -= ticks_ms * TICKS_MS;
+
+	String timestamp = vformat("%d:%02d:%02d:%03d", ticks_hour, ticks_minute, ticks_second, ticks_ms);
+	UtilityFunctions::print(vformat("%s YAML.register_class(%s)", timestamp, class_name));
+	//#endif
 }
 
 void YAMLClassRegistry::unregister_class(Ref<Script> p_class) {
