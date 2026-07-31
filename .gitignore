@@ -24,3 +24,6 @@ src/gen/doc_data.gen.cpp
 # Build configs
 project/android/
 project/export_presets.cfg
+project/*.so
+project/*.pck
+project/*.x86_64
