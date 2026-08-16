@@ -1,4 +1,4 @@
-!ruby:object/MyCustomClass
+!ruby:object/YAMLExampleCustomClass
 string_val: alternate tag
 int_val: 42
 float_val: 1.61803398875

@@ -1,4 +1,4 @@
-class_name MyCustomClass extends Node
+class_name YAMLExampleCustomResource extends YAMLResource
 
 @export var string_val: String
 @export var int_val: int
@@ -16,7 +16,7 @@ func hello():
 
 static func deserialize(data: Variant):
 	if typeof(data) != TYPE_DICTIONARY:
-		return YAMLResult.error("Deserializing MyCustomClass expects Dictionary, received %s" % [type_string(typeof(data))])
+		return YAMLResult.error("Deserializing YAMLExampleCustomResource expects Dictionary, received %s" % [type_string(typeof(data))])
 
 	var dict: Dictionary = data
 
@@ -34,7 +34,7 @@ static func deserialize(data: Variant):
 	var float_val: float = dict.get("float_val")
 	var color_val: Color = dict.get("color_val")
 
-	return MyCustomClass.new(
+	return YAMLExampleCustomResource.new(
 		string_val,
 		int_val,
 		float_val,
@@ -50,4 +50,4 @@ func serialize() -> Dictionary:
 	}
 
 func _to_string() -> String:
-	return "MyCustomClass(%s)" % string_val
+	return "YAMLExampleCustomResource(%s)" % string_val

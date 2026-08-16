@@ -6,7 +6,7 @@ func _init() -> void:
 func test_default_security() -> void:
 	# Default security should block Script and GDExtension
 	var yaml_text := """
-dangerous: !Resource 'res://addons/yaml/examples/classes/my_custom_class.gd'
+dangerous: !Resource 'res://addons/yaml/examples/classes/yaml_example_custom_class.gd'
 """
 	var result := YAML.parse(yaml_text)
 	expect(result.has_error(), "Default security should block Script resources")
@@ -78,7 +78,7 @@ func test_clear_type_restrictions() -> void:
 	security.clear_type_restrictions() # This removes default blocks on Script and GDExtension
 
 	var script_yaml := """
-script: !Resource 'res://addons/yaml/examples/classes/my_custom_class.gd'
+script: !Resource 'res://addons/yaml/examples/classes/yaml_example_custom_class.gd'
 """
 	var result := YAML.parse(script_yaml, security)
 	expect(not result.has_error(), "Should allow Script resources after clearing restrictions")
@@ -90,7 +90,7 @@ func test_reset_security() -> void:
 	security.reset() # Should revert to default security
 
 	var script_yaml := """
-script: !Resource 'res://addons/yaml/examples/assets/my_custom_class.gd'
+script: !Resource 'res://addons/yaml/examples/assets/yaml_example_custom_class.gd'
 """
 	var result := YAML.parse(script_yaml, security)
 	expect(result.has_error(), "Should block Script resources after reset")
