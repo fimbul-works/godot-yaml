@@ -113,7 +113,7 @@ public:
 		}
 
 #ifdef GODOT_YAML_DEBUG
-		UtilityFunctions::print_verbose(vformat("YAML: Clearing class registry with %d classes", class_registry.size()));
+		UtilityFunctions::print_verbose(vformat("YAML: Clearing class registry with %s classes", class_registry.size()));
 #endif
 
 		class_registry.clear();
