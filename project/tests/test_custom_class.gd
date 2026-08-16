@@ -38,6 +38,10 @@ func test_custom_node_class() -> void:
 		print_rich("\n[b]MyCustomClass Parse Result:[/b]\n%s" % obj)
 		obj.hello()
 
+	if obj != null:
+		obj.free()
+	object.free()
+
 func test_custom_tag() -> void:
 	var yaml_text = """
 !ruby:object/MyCustomClass
@@ -55,6 +59,9 @@ color_val: !Color 000000
 	if LOG_VERBOSE:
 		print_rich("\n[b]ruby:object/MyCustomClass Parse Result:[/b]\n%s" % obj)
 		obj.hello()
+
+	if obj != null:
+		obj.free()
 
 func test_custom_class_errors() -> void:
 	var yaml_text = """
@@ -86,8 +93,13 @@ func test_custom_string_class() -> void:
 
 	var parse_result := YAML.parse(text)
 	expect(!parse_result.has_error(), parse_result.get_error())
+	
+	var parsed_obj = parse_result.get_data()
+	if parsed_obj != null:
+		parsed_obj.free()
+	object.free()
 
-func test_custom_resource() -> void:	# Custom (Resource) class
+func test_custom_resource() -> void: # Custom (Resource) class
 	var resource = MyCustomResource.new("I am resource", 42, 69.69)
 
 	var str_result := YAML.stringify(resource)

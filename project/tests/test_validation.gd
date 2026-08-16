@@ -38,7 +38,7 @@ func _enter_tree() -> void:
 				"minLength": 3,
 				"x-yaml-tag": "ValidationTestParent"
 			},
-			"child": { "$ref": "http://example.com/child.json" }
+			"child": {"$ref": "http://example.com/child.json"}
 		},
 		"required": ["title", "child"]
 	}, true)
@@ -422,6 +422,9 @@ child: !ValidationTestChild
 		expect(parent.child is ValidationTestChild, "Child should be ValidationTestChild instance")
 		expect_equal(parent.child.name, "Alice", "Child name should match")
 		expect_equal(parent.child.age, 25, "Child age should match")
+		if parent.child != null:
+			parent.child.free()
+		parent.free()
 
 func test_nested_custom_class_validation_invalid_child() -> void:
 	# Invalid: child age exceeds maximum
@@ -446,6 +449,12 @@ child: !ValidationTestChild
 			break
 
 	expect(has_age_error, "Should have maximum validation error for child age")
+
+	var parent = result.get_data()
+	if parent != null:
+		if "child" in parent and parent.child != null:
+			parent.child.free()
+		parent.free()
 
 func test_nested_custom_class_validation_missing_required() -> void:
 	# Missing required child.name field
@@ -473,10 +482,16 @@ child: !ValidationTestChild
 
 	expect(has_required_error, "Should have required field validation error for child")
 
+	var parent = result.get_data()
+	if parent != null:
+		if "child" in parent and parent.child != null:
+			parent.child.free()
+		parent.free()
+
 func test_reported_issue_20() -> void:
 	var file := FileAccess.open("res://tests/data/schema_test.yaml", FileAccess.READ)
 	var yaml_text := file.get_as_text()
-	var yaml_dict  = YAML.parse(yaml_text).get_data()
+	var yaml_dict = YAML.parse(yaml_text).get_data()
 	file.close()
 
 	print("DICT: ", yaml_dict)
@@ -487,7 +502,7 @@ func test_reported_issue_20() -> void:
 
 	print("SCHEMA: ", schema.get_schema_definition())
 
-	var result  = schema.validate(yaml_dict)
+	var result = schema.validate(yaml_dict)
 	print("Schema validation:")
 	print(result.get_errors())
 
