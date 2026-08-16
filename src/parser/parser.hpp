@@ -19,6 +19,7 @@
 
 #include <ryml.hpp>
 
+#include <csetjmp>
 #include <memory>
 #include <optional>
 #include <stack>
@@ -118,6 +119,11 @@ private:
 	bool owns_yaml_paths; // Whether this parser owns the set
 
 	/**
+	 * @brief Jump buffer for error handling.
+	 */
+	std::jmp_buf jmp_env;
+
+	/**
 	 * @brief Callback for error handling during parsing.
 	 *
 	 * @param msg Error message
@@ -126,6 +132,14 @@ private:
 	 * @param user_data User data pointer (typically the ryml::Parser instance)
 	 */
 	static void error_callback(const char *msg, size_t len, ryml::Location loc, void *user_data);
+
+	/**
+	 * @brief Fails parsing with an error message.
+	 *
+	 * @param error_msg The error message
+	 * @param loc Location in the source document
+	 */
+	void fail(const String &error_msg, ryml::Location loc = {}) const;
 
 	/**
 	 * @brief Processes a YAML node and converts it to a Godot Variant.

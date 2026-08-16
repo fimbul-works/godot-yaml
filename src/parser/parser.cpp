@@ -60,14 +60,18 @@ void YAML::Parser::error_callback(const char *msg, size_t len, ryml::Location lo
 	}
 
 	auto *parser = static_cast<Parser *>(user_data);
-	if (!parser) {
-		throw YAMLException(from_ryml_str(error_msg), loc);
+	if (parser) {
+		parser->current_result = YAMLResult::error(from_ryml_str(error_msg), loc.line, loc.col);
+		std::longjmp(parser->jmp_env, 1);
 	}
 
-	parser->current_result = YAMLResult::error(from_ryml_str(error_msg), loc.line, loc.col);
+	// Fallback if parser is null
+	throw YAMLException(from_ryml_str(error_msg), loc);
+}
 
-	// Error handler MUST throw!
-	throw YAMLException(parser->current_result->get_error_message(), loc);
+void YAML::Parser::fail(const String &error_msg, ryml::Location loc) const {
+	auto *self = const_cast<Parser *>(this);
+	self->current_result = YAMLResult::error(error_msg, loc.line, loc.col);
 }
 
 Ref<YAMLResult> YAML::Parser::parse(const String &input, const YAMLSecurity::View &p_security_view, const bool p_detect_style) {
@@ -76,6 +80,10 @@ Ref<YAMLResult> YAML::Parser::parse(const String &input, const YAMLSecurity::Vie
 		security_view = p_security_view;
 		style = YAML::create_style();
 		detect_style = p_detect_style;
+
+		if (setjmp(jmp_env) != 0) {
+			return current_result;
+		}
 
 		ryml::parse_in_arena(ryml_parser.get(), input.utf8().get_data(), &tree);
 
@@ -135,6 +143,10 @@ Ref<YAMLResult> YAML::Parser::parse_and_validate(const String &input, const Vari
 		style = YAML::create_style();
 		detect_style = p_detect_style;
 
+		if (setjmp(jmp_env) != 0) {
+			return current_result;
+		}
+
 		// Parse YAML text
 		ryml::parse_in_arena(ryml_parser.get(), input.utf8().get_data(), &tree);
 
@@ -187,11 +199,19 @@ Array YAML::Parser::parse_locations_for_editor(const String &input) {
 }
 
 Variant YAML::Parser::process_node(const ryml::ConstNodeRef &node) const {
+	if (current_result->has_error()) {
+		return Variant();
+	}
+
 	// First check for tagged values
 	auto tagged = try_parse_tagged_value(node);
 
 	if (tagged) {
 		return *tagged;
+	}
+
+	if (current_result->has_error()) {
+		return Variant();
 	}
 
 	return process_common(node);
@@ -655,7 +675,13 @@ std::optional<Variant> YAML::Parser::try_parse_tagged_value(const ryml::ConstNod
 
 	YAMLVariantConverter *converter = get_converter_for_tag(tag);
 	if (converter) {
-		return converter->decode(node, context.get());
+		try {
+			return converter->decode(node, context.get());
+		} catch (const YAMLException &e) {
+			fail(e.what(), e.get_location());
+		} catch (const std::exception &e) {
+			fail(e.what(), node.location(*ryml_parser));
+		}
 	}
 
 	if (YAMLClassRegistry::get_singleton().has_class(tag)) {
@@ -674,7 +700,8 @@ std::optional<Variant> YAML::Parser::try_parse_tagged_value(const ryml::ConstNod
 				Ref<YAMLResult> yaml_result = result;
 
 				if (yaml_result->has_error()) {
-					throw YAMLException(yaml_result->get_error_message(), node.location(*ryml_parser));
+					fail(yaml_result->get_error_message(), node.location(*ryml_parser));
+					return Variant();
 				}
 
 				return yaml_result->get_data();
@@ -706,18 +733,21 @@ Variant YAML::Parser::parse_object_or_resource(const ryml::ConstNodeRef &node, c
 			return load_resource(path, node);
 		}
 
-		throw YAMLException(vformat("Invalid resource path '%s' for class %s", path, class_name), node.location(*ryml_parser));
+		fail(vformat("Invalid resource path '%s' for class %s", path, class_name), node.location(*ryml_parser));
+		return Variant();
 	}
 
 	// Otherwise, treat it as an inline object/resource definition
 	if (!node.is_map()) {
-		throw YAMLException(vformat("Invalid node format for class %s - expected dictionary", class_name), node.location(*ryml_parser));
+		fail(vformat("Invalid node format for class %s - expected dictionary", class_name), node.location(*ryml_parser));
+		return Variant();
 	}
 
 	// Instantiate the object
 	Object *obj = ClassDB::instantiate(class_name);
 	if (!obj) {
-		throw YAMLException(vformat("Failed to instantiate class: %s", class_name), node.location(*ryml_parser));
+		fail(vformat("Failed to instantiate class: %s", class_name), node.location(*ryml_parser));
+		return Variant();
 	}
 
 	// Process the object's properties
@@ -737,11 +767,13 @@ Variant YAML::Parser::parse_object_or_resource(const ryml::ConstNodeRef &node, c
 Variant YAML::Parser::load_resource(const String &path, const ryml::ConstNodeRef &node) const {
 	if (path.ends_with(".yaml") || path.ends_with(".yml")) {
 		if (!security_view.is_path_allowed(path)) {
-			throw YAMLException(vformat("Resource path not allowed: %s", path), node.location(*ryml_parser));
+			fail(vformat("Resource path not allowed: %s", path), node.location(*ryml_parser));
+			return Variant();
 		}
 
 		if (loading_yaml_paths->find(path) != loading_yaml_paths->end()) {
-			throw YAMLException(vformat("Cyclical YAML reference detected: %s", path), node.location(*ryml_parser));
+			fail(vformat("Cyclical YAML reference detected: %s", path), node.location(*ryml_parser));
+			return Variant();
 		}
 
 		loading_yaml_paths->insert(path);
@@ -778,8 +810,9 @@ Variant YAML::Parser::load_resource(const String &path, const ryml::ConstNodeRef
 		loading_yaml_paths->erase(path);
 
 		if (result->has_error()) {
-			throw YAMLException(vformat("Failed to load YAML resource: %s - %s", path, result->get_error()),
+			fail(vformat("Failed to load YAML resource: %s - %s", path, result->get_error()),
 					node.location(*ryml_parser));
+			return Variant();
 		}
 
 		return result->get_data();
@@ -787,20 +820,24 @@ Variant YAML::Parser::load_resource(const String &path, const ryml::ConstNodeRef
 
 	ResourceLoader *loader = ResourceLoader::get_singleton();
 	if (!loader) {
-		throw YAMLException("ResourceLoader singleton not available");
+		fail("ResourceLoader singleton not available", node.location(*ryml_parser));
+		return Variant();
 	}
 
 	if (!security_view.is_path_allowed(path)) {
-		throw YAMLException(vformat("Resource path not allowed: %s", path), node.location(*ryml_parser));
+		fail(vformat("Resource path not allowed: %s", path), node.location(*ryml_parser));
+		return Variant();
 	}
 
 	if (!loader->exists(path)) {
-		throw YAMLException(vformat("Resource file not found: %s", path), node.location(*ryml_parser));
+		fail(vformat("Resource file not found: %s", path), node.location(*ryml_parser));
+		return Variant();
 	}
 
 	Ref<Resource> resource = loader->load(path);
 	if (!resource.is_valid()) {
-		throw YAMLException(vformat("Failed to load resource from path: %s", path), node.location(*ryml_parser));
+		fail(vformat("Failed to load resource from path: %s", path), node.location(*ryml_parser));
+		return Variant();
 	}
 
 	String class_name = resource->get_class();
@@ -811,7 +848,8 @@ Variant YAML::Parser::load_resource(const String &path, const ryml::ConstNodeRef
 	}
 
 	if (!security_view.is_resource_allowed(path, class_name)) {
-		throw YAMLException(vformat("Resource type %s not allowed from path %s", class_name, path), node.location(*ryml_parser));
+		fail(vformat("Resource type %s not allowed from path %s", class_name, path), node.location(*ryml_parser));
+		return Variant();
 	}
 
 	return resource;
