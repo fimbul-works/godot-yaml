@@ -59,7 +59,6 @@ public:
 	 */
 	static void destroy_singleton() {
 		if (singleton) {
-			singleton->clear();
 			delete singleton;
 			singleton = nullptr;
 		}
@@ -91,6 +90,13 @@ public:
 	bool has_class(const String &class_name);
 
 	/**
+	 * @brief Gets a list of all registered class names.
+	 *
+	 * @return PackedStringArray A list of class names
+	 */
+	PackedStringArray get_registered_classes();
+
+	/**
 	 * @brief Gets the registration information for a class.
 	 *
 	 * @param class_name The name of the class
@@ -105,6 +111,11 @@ public:
 		if (registry_mutex.is_valid()) {
 			registry_mutex->lock();
 		}
+
+#ifdef GODOT_YAML_DEBUG
+		UtilityFunctions::print_verbose(vformat("YAML: Clearing class registry with %d classes", class_registry.size()));
+#endif
+
 		class_registry.clear();
 		if (registry_mutex.is_valid()) {
 			registry_mutex->unlock();

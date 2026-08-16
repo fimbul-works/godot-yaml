@@ -96,8 +96,7 @@ void YAMLClassRegistry::register_class(Ref<Script> p_class, const Variant &p_ser
 	registry_mutex->unlock();
 
 #ifdef GODOT_YAML_DEBUG
-	String timestamp = timestamp_str();
-	UtilityFunctions::print(vformat("%s YAML.register_class(%s)", timestamp, class_name));
+	UtilityFunctions::print_verbose(vformat("YAML: Registering class %s", class_name));
 #endif
 }
 
@@ -127,7 +126,7 @@ void YAMLClassRegistry::unregister_class(Ref<Script> p_class) {
 	registry_mutex->unlock();
 
 #ifdef GODOT_YAML_DEBUG
-	UtilityFunctions::print(vformat("Unregistered class %s from YAML", class_name));
+	UtilityFunctions::print_verbose(vformat("YAML: Unregistered class %s", class_name));
 #endif
 }
 
@@ -136,6 +135,16 @@ bool YAMLClassRegistry::has_class(const String &tag_name) {
 	bool result = class_registry.find(tag_name) != class_registry.end();
 	registry_mutex->unlock();
 	return result;
+}
+
+PackedStringArray YAMLClassRegistry::get_registered_classes() {
+	registry_mutex->lock();
+	PackedStringArray id_list;
+	for (const auto &[id, info] : class_registry) {
+		id_list.append(id);
+	}
+	registry_mutex->unlock();
+	return id_list;
 }
 
 YAMLClassRegistry::ClassInfo YAMLClassRegistry::get_class_info(const String &tag_name) {
