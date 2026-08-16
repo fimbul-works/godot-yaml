@@ -1,14 +1,14 @@
 [gd_scene load_steps=11 format=3 uid="uid://dg83uost53orh"]
 
 [ext_resource type="PackedScene" uid="uid://bkdh3qj8xqsnh" path="res://addons/TestKit/test_runner.tscn" id="1_xjx5v"]
-[ext_resource type="Script" path="res://tests/test_basic_usage.gd" id="2_fpqcv"]
-[ext_resource type="Script" path="res://tests/test_error_handling.gd" id="3_tgxph"]
-[ext_resource type="Script" path="res://tests/test_multi_document.gd" id="4_heaum"]
-[ext_resource type="Script" path="res://tests/test_custom_class.gd" id="5_devjv"]
-[ext_resource type="Script" path="res://tests/test_style_system.gd" id="6_w75lx"]
-[ext_resource type="Script" path="res://tests/test_resource_referencing.gd" id="7_0v8bi"]
-[ext_resource type="Script" path="res://tests/test_security.gd" id="8_h8dua"]
-[ext_resource type="Script" path="res://tests/test_validation.gd" id="9_rp7fv"]
+[ext_resource type="Script" uid="uid://bg7pywnqwdbsc" path="res://tests/test_basic_usage.gd" id="2_fpqcv"]
+[ext_resource type="Script" uid="uid://ssv3om0biq5q" path="res://tests/test_error_handling.gd" id="3_tgxph"]
+[ext_resource type="Script" uid="uid://dnbx83slpao4k" path="res://tests/test_multi_document.gd" id="4_heaum"]
+[ext_resource type="Script" uid="uid://dh1npeclgirkw" path="res://tests/test_custom_class.gd" id="5_devjv"]
+[ext_resource type="Script" uid="uid://df4qiikdt71fm" path="res://tests/test_style_system.gd" id="6_w75lx"]
+[ext_resource type="Script" uid="uid://bn4sklnxykbqq" path="res://tests/test_resource_referencing.gd" id="7_0v8bi"]
+[ext_resource type="Script" uid="uid://b5v2wea2crh1d" path="res://tests/test_security.gd" id="8_h8dua"]
+[ext_resource type="Script" uid="uid://dlr3uwqui70lx" path="res://tests/test_validation.gd" id="9_rp7fv"]
 
 [sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_ehht4"]
 
