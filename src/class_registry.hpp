@@ -48,8 +48,10 @@ public:
 	 * @brief Singleton instance
 	 */
 	static YAMLClassRegistry &get_singleton() {
-		static YAMLClassRegistry instance;
-		return instance;
+		if (!singleton) {
+			singleton = new YAMLClassRegistry();
+		}
+		return *singleton;
 	}
 
 	/**
@@ -106,6 +108,7 @@ public:
 		class_registry.clear();
 		if (registry_mutex.is_valid()) {
 			registry_mutex->unlock();
+			registry_mutex.unref();
 		}
 	}
 
