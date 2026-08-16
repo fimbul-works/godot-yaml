@@ -6,7 +6,8 @@ A high-performance YAML parsing and serialization plugin for Godot 4.3, powered 
 
 ## Version History
 
-- **2.2.0** (Current) - Upgraded GDSchema to 2.0.0 for JSON validation draft 2020-12 spec, and various bug fixes
+- **2.2.1** (Current) - Upgraded GDSchema to 2.0.1, and fixed multiple memory leaks
+- **2.2.0** - Upgraded GDSchema to 2.0.0 for JSON validation draft 2020-12 spec, and various bug fixes
 - **2.1.2** - Added support for Android (arm64, x86_64) platforms thanks to @Nemo1166, and fixed some bugs
 - **2.1.1** - Empty strings are stringified with quotes
 - **2.1.0** - When passing custom tag to `YAML.schema_register(class, serialize_method, deserialize_static, custom_tag)` use the custom tag when stringifying
