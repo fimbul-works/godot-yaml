@@ -18,6 +18,7 @@
 #include <godot_cpp/classes/resource.hpp>
 #include <ryml.hpp>
 
+#include <csetjmp>
 #include <memory>
 #include <mutex>
 
@@ -83,6 +84,16 @@ private:
 	 * @brief Current emission state.
 	 */
 	Ref<YAMLResult> current_result;
+
+	/**
+	 * @brief Current nesting depth.
+	 */
+	int depth = 0;
+
+	/**
+	 * @brief Jump buffer for error handling.
+	 */
+	std::jmp_buf jmp_env;
 
 	/**
 	 * @brief Error callback for ryml.

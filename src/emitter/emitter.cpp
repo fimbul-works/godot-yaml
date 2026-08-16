@@ -38,21 +38,20 @@ void YAML::Emitter::error_callback(const char *msg, size_t len, ryml::Location l
 		error_msg = error_msg.sub(strip_error_prefix.len);
 	}
 
-	// Get first line of error message
+	// Only return the first line, which has the relevent error message
 	size_t newline_pos = error_msg.find('\n');
 	if (newline_pos != ryml::substr::npos) {
 		error_msg = error_msg.sub(0, newline_pos);
 	}
 
 	auto *emitter = static_cast<Emitter *>(user_data);
-	if (!emitter) {
-		throw YAMLException(from_ryml_str(error_msg));
+	if (emitter) {
+		emitter->current_result = YAMLResult::error(from_ryml_str(error_msg), loc.line, loc.col);
+		std::longjmp(emitter->jmp_env, 1);
 	}
 
-	emitter->current_result = YAMLResult::error(from_ryml_str(error_msg), loc.line, loc.col);
-
-	// Error handler MUST throw!
-	throw YAMLException(emitter->current_result->get_error_message());
+	// Fallback
+	throw YAMLException(from_ryml_str(error_msg));
 }
 
 ryml::csubstr YAML::Emitter::store_string(const String &str) {
@@ -72,6 +71,11 @@ YAMLVariantConverter *YAML::Emitter::get_converter_for_tag(const String &tag) co
 Ref<YAMLResult> YAML::Emitter::emit(const Variant &input, const YAMLStyle::View &style) {
 	try {
 		current_result = YAMLResult::success(Variant());
+		depth = 0;
+
+		if (setjmp(jmp_env) != 0) {
+			return current_result;
+		}
 
 		emit_value(tree.rootref(), input, style);
 
@@ -91,81 +95,71 @@ Ref<YAMLResult> YAML::Emitter::emit(const Variant &input, const YAMLStyle::View 
 }
 
 void YAML::Emitter::emit_value(ryml::NodeRef node, const Variant &value, const YAMLStyle::View &style) {
-	static int depth = 0;
 	depth++;
+	check_depth(depth);
 
-	if (!style.get_custom_tag().is_empty()) {
-		String tag = style.get_custom_tag();
-		if (!tag.is_empty()) {
-			node.set_val_tag(string_pool.store(vformat("!%s", style.get_custom_tag())));
-		}
-	}
+	switch (value.get_type()) {
+		case Variant::NIL:
+			emit_nil(node);
+			break;
 
-	try {
-		check_depth(depth);
+		case Variant::BOOL:
+			emit_bool(node, value);
+			break;
 
-		switch (value.get_type()) {
-			case Variant::NIL:
+		case Variant::INT:
+		case Variant::FLOAT:
+			emit_number(node, value, style);
+			break;
+
+		case Variant::STRING:
+			emit_string(node, value, style);
+			break;
+
+		case Variant::ARRAY:
+			emit_array(node, value, style);
+			break;
+
+		case Variant::DICTIONARY:
+			emit_dictionary(node, value, style);
+			break;
+
+		case Variant::OBJECT: {
+			Object *obj = value.operator Object *();
+			if (obj) {
+				emit_object(node, obj, style);
+			} else {
 				emit_nil(node);
-				break;
-
-			case Variant::BOOL:
-				emit_bool(node, value);
-				break;
-
-			case Variant::INT:
-			case Variant::FLOAT:
-				emit_number(node, value, style);
-				break;
-
-			case Variant::STRING:
-				emit_string(node, value, style);
-				break;
-
-			case Variant::ARRAY:
-				emit_array(node, value, style);
-				break;
-
-			case Variant::DICTIONARY:
-				emit_dictionary(node, value, style);
-				break;
-
-			case Variant::OBJECT: {
-				Object *obj = value.operator Object *();
-				if (obj) {
-					emit_object(node, obj, style);
-				} else {
-					emit_nil(node);
-				}
-				break;
 			}
-
-			default: {
-				YAMLVariantConverter *converter = get_converter_for_type(value.get_type());
-				if (converter) {
-					node.set_val_tag(converter->get_full_tag());
-					converter->encode(node, value, style);
-				} else {
-					String type_name = type_str(value);
-					String error = vformat("Cannot serialize type: %s", type_name);
-					current_result = YAMLResult::error(error);
-					throw YAMLException(error);
-				}
-				break;
-			}
+			break;
 		}
-	} catch (...) {
-		depth--;
-		throw;
+
+		default: {
+			YAMLVariantConverter *converter = get_converter_for_type(value.get_type());
+			if (converter) {
+				converter->encode(node, value, style);
+				node.set_val_tag(converter->get_full_tag());
+			} else {
+				String type_name = type_str(value);
+				String error = vformat("Cannot serialize type: %s", type_name);
+				current_result = YAMLResult::error(error);
+				std::longjmp(jmp_env, 1);
+			}
+			break;
+		}
 	}
 
 	depth--;
 
 	// Add custom tags last
-	if (node.has_val() && !node.has_val_tag() && style.is_valid() && style.get_custom_settings().has("tag")) {
-		String tag = style.get_custom_settings()["tag"];
-		if (!tag.is_empty()) {
-			node.set_val_tag(store_string("!" + tag));
+	if ((node.has_val() || node.is_container()) && !node.has_val_tag() && style.is_valid()) {
+		if (!style.get_custom_tag().is_empty()) {
+			node.set_val_tag(string_pool.store(vformat("!%s", style.get_custom_tag())));
+		} else if (style.get_custom_settings().has("tag")) {
+			String tag = style.get_custom_settings()["tag"];
+			if (!tag.is_empty()) {
+				node.set_val_tag(store_string("!" + tag));
+			}
 		}
 	}
 }
@@ -299,8 +293,8 @@ void YAML::Emitter::emit_object(ryml::NodeRef &node, Object *obj, const YAMLStyl
 				const StringName serialize = class_info.serialize_method;
 				Variant data = obj->call(serialize);
 				if (data) {
-					node.set_val_tag(store_string("!" + tag));
 					emit_value(node, data, style);
+					node.set_val_tag(store_string("!" + tag));
 					return;
 				}
 			}
@@ -316,7 +310,7 @@ void YAML::Emitter::emit_object(ryml::NodeRef &node, Object *obj, const YAMLStyl
 	// FIXME: Handle Object types
 	String error = vformat("Cannot stringify Object of type: %s", class_name);
 	current_result = YAMLResult::error(error);
-	throw YAMLException(error);
+	std::longjmp(jmp_env, 1);
 }
 
 void YAML::Emitter::emit_resource(ryml::NodeRef &node, const Resource *res, const YAMLStyle::View &style) {
@@ -326,23 +320,23 @@ void YAML::Emitter::emit_resource(ryml::NodeRef &node, const Resource *res, cons
 	if (path.is_empty()) {
 		String error = "Cannot serialize Resource without path";
 		current_result = YAMLResult::error(error);
-		throw YAMLException(error);
+		std::longjmp(jmp_env, 1);
 	}
 
 	if (is_local || path.to_lower().contains("::")) {
 		String error = "Cannot serialize local Resource";
 		current_result = YAMLResult::error(error);
-		throw YAMLException(error);
+		std::longjmp(jmp_env, 1);
 	}
 
-	node.set_val_tag("!Resource");
 	emit_string(node, path, YAMLStyle::View()); // Use default string style
+	node.set_val_tag("!Resource");
 }
 
 void YAML::Emitter::check_depth(int current_depth) {
 	if (current_depth > MAX_DEPTH) {
 		String error = vformat("Maximum nesting depth exceeded (%d). Possible circular reference?", MAX_DEPTH);
 		current_result = YAMLResult::error(error);
-		throw YAMLException(error);
+		std::longjmp(jmp_env, 1);
 	}
 }
