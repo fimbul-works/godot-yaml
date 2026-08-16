@@ -53,6 +53,17 @@ public:
 	}
 
 	/**
+	 * @brief Destroys the singleton instance and clears the registry.
+	 */
+	static void destroy_singleton() {
+		if (singleton) {
+			singleton->clear();
+			delete singleton;
+			singleton = nullptr;
+		}
+	}
+
+	/**
 	 * @brief Registers a custom class for YAML serialization.
 	 *
 	 * @param p_class The script resource representing the class
@@ -85,7 +96,22 @@ public:
 	 */
 	ClassInfo get_class_info(const String &class_name);
 
+	/**
+	 * @brief Clears all registered classes from the registry.
+	 */
+	void clear() {
+		if (registry_mutex.is_valid()) {
+			registry_mutex->lock();
+		}
+		class_registry.clear();
+		if (registry_mutex.is_valid()) {
+			registry_mutex->unlock();
+		}
+	}
+
 private:
+	static YAMLClassRegistry *singleton;
+
 	/**
 	 * @brief Private constructor for singleton pattern.
 	 */
@@ -94,7 +120,7 @@ private:
 	/**
 	 * @brief Private destructor for singleton pattern.
 	 */
-	~YAMLClassRegistry() { registry_mutex.unref(); }
+	~YAMLClassRegistry() { clear(); }
 
 	YAMLClassRegistry(YAMLClassRegistry const &); // Don't Implement
 	void operator=(YAMLClassRegistry const &); // Don't implement

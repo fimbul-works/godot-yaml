@@ -1,10 +1,14 @@
 #include "register_types.hpp"
 
+#include "../class_registry.hpp"
 #include "../parser/security.hpp"
 #include "../result.hpp"
 #include "../style/style.hpp"
 #include "../yaml.hpp"
+
+#include <rule_factory/rule_factory.hpp>
 #include <schema.hpp>
+#include <schema_registry.hpp>
 #include <validation_result.hpp>
 
 #include <gdextension_interface.h>
@@ -17,6 +21,11 @@ void initialize_yaml_module(ModuleInitializationLevel p_level) {
 	if (p_level != MODULE_INITIALIZATION_LEVEL_SCENE) {
 		return;
 	}
+
+	// Ensure singletons are initialized before registering classes
+	YAMLClassRegistry::get_singleton();
+	SchemaRegistry::get_singleton();
+	RuleFactory::get_singleton();
 
 	if (!ClassDB::class_exists("YAMLResult")) {
 		GDREGISTER_CLASS(YAMLResult);
@@ -52,7 +61,11 @@ void uninitialize_yaml_module(ModuleInitializationLevel p_level) {
 		return;
 	}
 
+	// Cleanup singletons
 	YAMLSecurity::cleanup_default_instance();
+	YAMLClassRegistry::destroy_singleton();
+	SchemaRegistry::destroy_singleton();
+	RuleFactory::destroy_singleton();
 }
 
 } // namespace godot
