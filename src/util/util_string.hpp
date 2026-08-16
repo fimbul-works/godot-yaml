@@ -8,10 +8,9 @@
  */
 #pragma once
 
-#include <godot_cpp/classes/reg_ex.hpp>
-#include <godot_cpp/classes/reg_ex_match.hpp>
-#include <godot_cpp/templates/hash_set.hpp>
 #include <godot_cpp/variant/string.hpp>
+#include <godot_cpp/variant/variant.hpp>
+#include <regex>
 #include <ryml.hpp>
 #include <ryml_std.hpp>
 
@@ -64,13 +63,6 @@ inline bool needs_block_style(const ryml::csubstr &str) {
  * @return bool True if the string should be quoted
  */
 inline bool needs_quotes(const String &value) {
-	static Ref<RegEx> special_reg_ex = [] {
-		Ref<RegEx> r;
-		r.instantiate();
-		r->compile("[{}\\[\\],&:\\*?|\\-<>=!%@\\/]");
-		return r;
-	}();
-
 	if (value.is_empty()) {
 		return true;
 	}
@@ -82,41 +74,54 @@ inline bool needs_quotes(const String &value) {
 	String lower = value.to_lower();
 
 	// YAML reserved plain scalars
-	static const HashSet<String> &reserved = []() -> const HashSet<String> & {
-		static HashSet<String> set;
-		set.insert("null");
-		set.insert("~");
-		set.insert("true");
-		set.insert("false");
-		set.insert("y");
-		set.insert("n");
-		set.insert("yes");
-		set.insert("no");
-		set.insert(".inf");
-		set.insert("-.inf");
-		set.insert("+.inf");
-		set.insert(".nan");
-		return set;
-	}();
-
-	if (reserved.has(lower)) {
-		return true;
-	}
-
-	// Looks numeric? Then quote it.
-	// Matches integers, floats, scientific, hex, octal, binary, or leading zeros.
-	static Ref<RegEx> numeric_re = [] {
-		Ref<RegEx> r;
-		r.instantiate();
-		r->compile("^(?:[-+]?\\d+(?:\\.\\d+)?(?:e[-+]?\\d+)?|0x[0-9a-f]+|0o[0-7]+|0b[01]+|0\\d+)$");
-		return r;
-	}();
-	if (numeric_re->search(lower).is_valid()) {
+	if (lower == "null" || lower == "~" ||
+			lower == "true" || lower == "false" ||
+			lower == "y" || lower == "n" ||
+			lower == "yes" || lower == "no" ||
+			lower == ".inf" || lower == "-.inf" || lower == "+.inf" || lower == ".nan") {
 		return true;
 	}
 
 	// YAML special syntax characters
-	return special_reg_ex->search(value).is_valid();
+	const char32_t *chars = value.ptr();
+	int64_t len = value.length();
+	for (int64_t i = 0; i < len; i++) {
+		char32_t c = chars[i];
+		switch (c) {
+			case '{':
+			case '}':
+			case '[':
+			case ']':
+			case ',':
+			case '&':
+			case ':':
+			case '*':
+			case '?':
+			case '|':
+			case '-':
+			case '<':
+			case '>':
+			case '=':
+			case '!':
+			case '%':
+			case '@':
+			case '/':
+			case '\\':
+				return true;
+			default:
+				break;
+		}
+	}
+
+	// Looks numeric? Then quote it.
+	// Matches integers, floats, scientific, hex, octal, binary, or leading zeros.
+	static const std::regex numeric_re("^(?:[-+]?\\d+(?:\\.\\d+)?(?:e[-+]?\\d+)?|0x[0-9a-f]+|0o[0-7]+|0b[01]+|0\\d+)$");
+	CharString utf8 = lower.utf8();
+	if (std::regex_match(utf8.get_data(), numeric_re)) {
+		return true;
+	}
+
+	return false;
 }
 
 /**
