@@ -1,6 +1,7 @@
 #include "parser_context.hpp"
 
 #include <godot_cpp/classes/reg_ex.hpp>
+#include <godot_cpp/classes/reg_ex_match.hpp>
 #include <godot_cpp/classes/resource.hpp>
 #include <godot_cpp/classes/resource_loader.hpp>
 #include <godot_cpp/variant/utility_functions.hpp>
