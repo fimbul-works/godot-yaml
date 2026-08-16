@@ -65,6 +65,9 @@ def setup_build_env(base_env):
 
     # ========== UNIX-LIKE ==========
     else:
+        if 'CXXFLAGS' in env and isinstance(env['CXXFLAGS'], list):
+            env['CXXFLAGS'] = [f for f in env['CXXFLAGS'] if f != '-fno-exceptions']
+        env.Append(CXXFLAGS=['-fexceptions'])
         env.Append(CCFLAGS=['-fexceptions'])
 
         if platform == 'macos':
@@ -171,6 +174,8 @@ def build_rapidyaml(env, variant_dir):
             '-DANDROID_STL=c++_shared',
             '-DCMAKE_SYSTEM_NAME=Android'
         ])
+    else:
+        cmake_command.append('-DCMAKE_CXX_FLAGS=-fexceptions')
 
     # Prepare environment for subprocess to include SCons-detected paths/compilers
     sub_env = os.environ.copy()
