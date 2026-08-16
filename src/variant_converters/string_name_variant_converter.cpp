@@ -7,7 +7,8 @@ void YAMLStringNameVariantConverter::encode(ryml::NodeRef &node, const Variant &
 	const String str = v.operator String();
 
 	style.apply_string_style(node);
-	node << to_ryml_str(str);
+	const CharString utf8 = str.utf8();
+	node << c4::csubstr(utf8.get_data(), utf8.length());
 }
 
 Variant YAMLStringNameVariantConverter::decode(const ryml::ConstNodeRef &node, YAMLParserContext *context) const {

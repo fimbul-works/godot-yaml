@@ -46,7 +46,8 @@ void YAMLPackedStringArrayVariantConverter::encode(ryml::NodeRef &node, const Va
 			child |= ryml::VAL_DQUO;
 		}
 
-		child << to_ryml_str(str);
+		const CharString utf8 = str.utf8();
+		child << c4::csubstr(utf8.get_data(), utf8.length());
 	}
 }
 

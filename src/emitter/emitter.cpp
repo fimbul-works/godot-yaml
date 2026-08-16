@@ -234,7 +234,8 @@ void YAML::Emitter::emit_string(ryml::NodeRef &node, const String &value, const 
 		}
 	}
 
-	node << to_ryml_str(value);
+	const CharString utf8 = value.utf8();
+	node << c4::csubstr(utf8.get_data(), utf8.length());
 }
 
 void YAML::Emitter::emit_array(ryml::NodeRef &node, const Array &array, const YAMLStyle::View &style) {

@@ -18,20 +18,6 @@
 namespace godot {
 
 /**
- * @brief Converts a Godot String to ryml string format.
- *
- * @param str The Godot String to convert
- * @return ryml::csubstr A constant substring view of the UTF-8 string data
- */
-inline ryml::csubstr to_ryml_str(const String &str) {
-	if (str.is_empty()) {
-		return ryml::csubstr{};
-	}
-	const CharString &utf8 = str.utf8();
-	return ryml::csubstr(utf8.get_data(), utf8.length());
-}
-
-/**
  * @brief Converts a ryml string to a Godot String.
  *
  * @param str The ryml substring to convert

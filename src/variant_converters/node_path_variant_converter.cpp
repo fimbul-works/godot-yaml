@@ -9,7 +9,8 @@ void YAMLNodePathVariantConverter::encode(ryml::NodeRef &node, const Variant &v,
 	const NodePath path = v.operator NodePath();
 
 	style.apply_string_style(node);
-	node << to_ryml_str(String(path));
+	const CharString utf8 = String(path).utf8();
+	node << c4::csubstr(utf8.get_data(), utf8.length());
 }
 
 Variant YAMLNodePathVariantConverter::decode(const ryml::ConstNodeRef &node, YAMLParserContext *context) const {
