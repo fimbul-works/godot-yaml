@@ -17,6 +17,10 @@ Ref<YAMLResult> YAML::SyntaxValidator::validate(const String &input) {
 	try {
 		current_result = YAMLResult::success(Variant());
 
+		if (setjmp(jmp_env) != 0) {
+			return current_result;
+		}
+
 		ryml::parse_in_arena(ryml_parser.get(), input.utf8().get_data(), &tree);
 
 		return current_result;
@@ -45,11 +49,10 @@ void YAML::SyntaxValidator::error_callback(const char *msg, size_t len, ryml::Lo
 	}
 
 	auto *validator = static_cast<SyntaxValidator *>(user_data);
-	if (!validator) {
-		throw YAMLException(from_ryml_str(error_msg));
+	if (validator) {
+		validator->current_result = YAMLResult::error(from_ryml_str(error_msg), loc.line, loc.col);
+		std::longjmp(validator->jmp_env, 1);
 	}
 
-	validator->current_result = YAMLResult::error(from_ryml_str(error_msg), loc.line, loc.col);
-
-	throw YAMLException(validator->current_result->get_error_message(), loc);
+	throw YAMLException(from_ryml_str(error_msg), loc);
 }

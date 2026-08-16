@@ -14,6 +14,7 @@
 
 #include <ryml.hpp>
 
+#include <csetjmp>
 #include <memory>
 
 namespace godot {
@@ -84,6 +85,7 @@ private:
 	 * @param user_data User data pointer (typically the Validator instance)
 	 */
 	static void error_callback(const char *msg, size_t len, ryml::Location loc, void *user_data);
+	std::jmp_buf jmp_env;
 };
 
 } // namespace godot
