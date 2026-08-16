@@ -7,6 +7,8 @@
 
 using namespace godot;
 
+YAMLClassRegistry *YAMLClassRegistry::singleton = nullptr;
+
 void YAMLClassRegistry::register_class(Ref<Script> p_class, const Variant &p_serialize, const Variant &p_deserialize, const Variant &p_tag) {
 	const StringName class_name = get_script_class(p_class);
 	if (class_name.is_empty()) {
