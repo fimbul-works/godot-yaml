@@ -81,7 +81,7 @@ def setup_build_env(base_env):
         if is_debug:
             env.Append(CCFLAGS=['-O0', '-g'])
         else:
-            env.Append(CCFLAGS=['-O3', '-ffast-math'])
+            env.Append(CCFLAGS=['-O3'])
             env.Append(CPPDEFINES=['NDEBUG'])
 
         # Architecture

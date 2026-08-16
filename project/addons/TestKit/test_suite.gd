@@ -1,4 +1,5 @@
 class_name TestSuite extends Node2D
+
 ## TestSuite is part of TestKit, and offers testing facilities for Godot 4.
 ## It uses Node2D's visibility to enable easy on-off toggling of test suites.
 ##

@@ -29,6 +29,9 @@ func _ready() -> void:
 	run_button.pressed.connect(_on_run_tests_pressed)
 	_setup_ui()
 
+	if get_tree() is TestKitCLI:
+		return
+
 	if run_on_launch or is_headless:
 		_on_run_tests_pressed()
 

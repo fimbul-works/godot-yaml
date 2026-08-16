@@ -118,7 +118,9 @@ func _run_suite_tests(test_class: TestSuite) -> void:
 		progress_updated.emit(_completed_test_methods, _total_test_methods)
 
 		# Allow processing
-		await Engine.get_main_loop().process_frame
+		var main_loop := Engine.get_main_loop()
+		if main_loop:
+			await main_loop.process_frame
 
 	# Calculate suite results
 	var passed_tests := test_class.get_passed_tests()

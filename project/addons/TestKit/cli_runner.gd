@@ -4,12 +4,13 @@ class_name TestKitCLI extends SceneTree
 
 var exit_code := 0
 var verbose := false
+var _instantiated_scenes: Array[Node] = []
 
 func _init() -> void:
-	var args = _parse_arguments()
+	call_deferred("_run")
 
-	print("Args:")
-	print(args)
+func _run() -> void:
+	var args = _parse_arguments()
 
 	if not args.has("path"):
 		printerr("Usage: godot --headless --script res://addons/TestKit/cli_runner.gd -- --path <path> [--verbose]")
@@ -31,6 +32,7 @@ func _init() -> void:
 			return
 		var instance = scene.instantiate()
 		root.add_child(instance)
+		_instantiated_scenes.append(instance)
 		test_suites = _find_test_suites(instance)
 	elif DirAccess.dir_exists_absolute(test_path):
 		# Load all test scenes from directory
@@ -45,15 +47,31 @@ func _init() -> void:
 		quit(1)
 		return
 
-	# Run tests
-	await _run_tests(test_suites)
+	var runner := TestRunner.new()
+
+	# Connect signals for progress tracking
+	runner.test_suite_started.connect(_on_suite_started)
+	runner.test_method_started.connect(_on_method_started)
+	runner.test_method_completed.connect(_on_method_completed)
+	runner.test_suite_completed.connect(_on_suite_completed)
+	runner.all_tests_completed.connect(_on_all_completed)
+
+	# Run the tests
+	await runner.run_tests(test_suites)
+
+	# Clean up instantiated scenes to prevent leaks at exit
+	for instance in _instantiated_scenes:
+		if is_instance_valid(instance):
+			root.remove_child(instance)
+			instance.free()
+	_instantiated_scenes.clear()
+
+	# Exit with appropriate code
 	quit(exit_code)
 
 func _parse_arguments() -> Dictionary:
 	var result := {}
-	var cmd_args := OS.get_cmdline_args()
-
-	printerr("ARGS:", cmd_args)
+	var cmd_args := OS.get_cmdline_args() + OS.get_cmdline_user_args()
 
 	# Find the -- separator
 	var start_idx := 0
@@ -111,29 +129,13 @@ func _load_tests_from_directory(dir_path: String) -> Array[TestSuite]:
 			if scene:
 				var instance = scene.instantiate()
 				root.add_child(instance)
+				_instantiated_scenes.append(instance)
 				suites.append_array(_find_test_suites(instance))
 
 		file_name = dir.get_next()
 
 	dir.list_dir_end()
 	return suites
-
-func _run_tests(test_suites: Array[TestSuite]) -> void:
-	var runner := TestRunner.new()
-
-	# Connect signals for progress tracking
-	runner.test_suite_started.connect(_on_suite_started)
-	runner.test_method_started.connect(_on_method_started)
-	runner.test_method_completed.connect(_on_method_completed)
-	runner.test_suite_completed.connect(_on_suite_completed)
-	runner.all_tests_completed.connect(_on_all_completed)
-
-	# Run the tests
-	await runner.run_tests(test_suites)
-
-	# Exit with appropriate code
-	print("Exiting...")
-	quit(exit_code)
 
 func _on_suite_started(test_class: TestSuite) -> void:
 	print("\n%s %s" % [test_class.icon if test_class.icon else "📋", test_class.name])
