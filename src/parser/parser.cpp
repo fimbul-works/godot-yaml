@@ -98,12 +98,21 @@ Ref<YAMLResult> YAML::Parser::parse(const String &input, const YAMLSecurity::Vie
 				// Handle multi-document parsing
 				Array documents;
 				for (const auto &child : tree.rootref().children()) {
-					documents.push_back(process_node(child));
+					Variant doc = process_node(child);
+					if (current_result->has_error()) {
+						break;
+					}
+					documents.push_back(doc);
 				}
-				current_result = YAMLResult::multi_document_success(documents);
+				if (!current_result->has_error()) {
+					current_result = YAMLResult::multi_document_success(documents);
+				}
 			} else {
 				// Single document result
-				current_result = YAMLResult::success(process_node(tree.rootref()), style);
+				Variant data = process_node(tree.rootref());
+				if (!current_result->has_error()) {
+					current_result = YAMLResult::success(data, style);
+				}
 			}
 		}
 
