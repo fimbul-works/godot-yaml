@@ -25,6 +25,7 @@ void YAMLClassRegistry::register_class(Ref<Script> p_class, const Variant &p_ser
 			p_deserialize.get_type() == Variant::STRING || p_deserialize.get_type() == Variant::STRING_NAME
 			? p_deserialize
 			: "deserialize";
+
 	if (!p_class->has_method(deserialize)) {
 		ERR_PRINT(vformat("Static method '%s' not found in class %s", deserialize, class_name));
 		return;
@@ -45,13 +46,16 @@ void YAMLClassRegistry::register_class(Ref<Script> p_class, const Variant &p_ser
 		// For Resource types
 		Ref<Resource> res;
 		res.instantiate();
-		res->set_script(p_class);
 
-		if (!res->has_method(serialize)) {
+		// Attach script
+		res->set_script(p_class);
+		bool has_method = res->has_method(serialize);
+		res->set_script(Variant());
+
+		if (!has_method) {
 			ERR_PRINT(vformat("Method '%s' not found in resource class %s", serialize, class_name));
 			return;
 		}
-		// Ref will clean up automatically when it goes out of scope
 	} else {
 		// For non-Resource types
 		Object *instance = ClassDB::instantiate(base_type);
@@ -60,17 +64,17 @@ void YAMLClassRegistry::register_class(Ref<Script> p_class, const Variant &p_ser
 			return;
 		}
 
-		// Attach the script
+		// Attach script
 		instance->set_script(p_class);
+		bool has_method = instance->has_method(serialize);
+		instance->set_script(Variant());
 
-		if (!instance->has_method(serialize)) {
+		memdelete(instance);
+
+		if (!has_method) {
 			ERR_PRINT(vformat("Method '%s' not found in class %s", serialize, class_name));
-			memdelete(instance);
 			return;
 		}
-
-		// Clean up memory
-		memdelete(instance);
 	}
 
 	// Create the class info
@@ -84,6 +88,7 @@ void YAMLClassRegistry::register_class(Ref<Script> p_class, const Variant &p_ser
 	// Add to registry with thread safety
 	registry_mutex->lock();
 	class_registry[class_name] = info;
+
 	// Add the tag also
 	if (class_name != tag && tag.length()) {
 		class_registry[tag] = info;
@@ -102,21 +107,22 @@ void YAMLClassRegistry::unregister_class(Ref<Script> p_class) {
 		return;
 	}
 
-	// Prevent duplicates
-	if (!has_class(class_name)) {
+	// Remove from registry with thread safety
+	registry_mutex->lock();
+	auto it = class_registry.find(class_name);
+	if (it == class_registry.end()) {
+		registry_mutex->unlock();
 #ifdef GODOT_YAML_DEBUG
 		ERR_PRINT(vformat("Class %s is not registered with YAML", class_name));
 #endif
 		return;
 	}
 
-	// Remove from registry with thread safety
-	registry_mutex->lock();
-	auto class_info = get_class_info(class_name);
-	class_registry.erase(class_name);
+	String tag = it->second.tag;
+	class_registry.erase(it);
 	// Erase tag also
-	if (class_info.tag != class_name && class_info.tag.length()) {
-		class_registry.erase(class_info.tag);
+	if (tag != class_name && !tag.is_empty()) {
+		class_registry.erase(tag);
 	}
 	registry_mutex->unlock();
 
