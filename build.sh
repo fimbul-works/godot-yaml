@@ -1,2 +1,3 @@
-scons debug_symbols=yes target=template_debug
-scons target=template_release
+#!/bin/bash
+scons -j4 target=template_debug debug_symbols=yes
+scons -j4 target=template_release
