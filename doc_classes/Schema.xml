@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="Schema" inherits="RefCounted" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
-		Validates data against JSON Schema Draft-7 schemas.
+		Validates data against JSON Schema Draft 2020-12 and Draft-07 specifications.
 	</brief_description>
 	<description>
-		Validates Godot [Variant] data structures against [url=https://json-schema.org/]JSON Schema Draft-7[/url] specifications. JSON Schema is an industry-standard vocabulary for describing and validating JSON data structures, commonly used for configuration validation, API contracts, and data integrity checks.
-		This class automatically handles all JSON Schema Draft-7 validation keywords including type checking, numeric constraints, string patterns, array validation, object properties, and logical composition. It supports schema references ([code]$ref[/code]), external schema registration, and custom validation rules.
-		Schemas are represented as tree structures that can be navigated programmatically, making it ideal for building editors with auto-complete capabilities. All schemas are compiled lazily with thread-safe caching for optimal performance.
+		Validates Godot [Variant] data structures against [url=https://json-schema.org/]JSON Schema Draft 2020-12 and Draft-07[/url] specifications. JSON Schema is an industry-standard vocabulary for describing and validating JSON and structured data, commonly used for configuration validation, save-game integrity, API contracts, and editor tooling.
+		This class automatically handles all core JSON Schema validation keywords including type checking, numeric constraints, string patterns, array items and tuples ([code]prefixItems[/code]), object properties, dependent schemas, unevaluated keywords ([code]unevaluatedProperties[/code], [code]unevaluatedItems[/code]), and logical composition. It supports schema references ([code]$ref[/code]), dynamic references ([code]$dynamicAnchor[/code], [code]$dynamicRef[/code]), external schema registration, and format validation.
+		Schemas are represented as tree structures that can be navigated programmatically, making it ideal for building editors with auto-complete and inspection capabilities. All schemas are compiled lazily with thread-safe caching for optimal performance.
 		[b]Note:[/b] Schemas with a [code]$id[/code] field are automatically registered globally when built with [method build_schema], allowing them to be referenced by other schemas.
 	</description>
 	<tutorials>
@@ -16,9 +16,11 @@
 			<return type="Schema" />
 			<param index="0" name="schema_dict" type="Dictionary" />
 			<param index="1" name="validate_against_meta" type="bool" default="false" />
+			<param index="2" name="assert_format" type="bool" default="false" />
 			<description>
 				Builds and compiles a Schema from a dictionary representation. Returns a [Schema] object ready for validation.
-				If [param validate_against_meta] is [code]true[/code], the Schema will be validated against the JSON Schema Draft-7 meta-schema before compilation. This catches schema definition errors but adds overhead.
+				If [param validate_against_meta] is [code]true[/code], the Schema definition will be validated against the official JSON Schema Draft 2020-12 meta-schema before compilation. This catches schema definition syntax errors but adds initial compilation overhead.
+				If [param assert_format] is [code]true[/code], the [code]format[/code] keyword will be enforced as a validation assertion (which fails validation on invalid formats), even under Draft 2020-12 where format is an annotation by default.
 				Schemas with a [code]$id[/code] field are automatically registered globally, allowing other schemas to reference them via [code]$ref[/code].
 				[codeblock]
 				# Simple type validation
@@ -28,7 +30,7 @@
 				    "maxLength": 50
 				})
 
-				# Object Schema with properties
+				# Object Schema with properties and format
 				var user_schema = Schema.build_schema({
 				    "type": "object",
 				    "properties": {
@@ -57,6 +59,18 @@
 				        "address": {"$ref": "http://example.com/address.json"}
 				    }
 				})
+				[/codeblock]
+			</description>
+		</method>
+		<method name="clear_registry" qualifiers="static">
+			<return type="void" />
+			<param index="0" name="preserve_metaschemas" type="bool" default="true" />
+			<description>
+				Clears registered schemas and compiled rule caches from the global schema registry.
+				If [param preserve_metaschemas] is [code]true[/code] (default), default built-in meta-schemas (such as Draft 2020-12 and Draft-07 meta-schemas) remain registered while all user schemas are removed. If [code]false[/code], all schemas including meta-schemas are cleared.
+				[codeblock]
+				# Clear all user-registered schemas and rule caches
+				Schema.clear_registry()
 				[/codeblock]
 			</description>
 		</method>
@@ -189,6 +203,32 @@
 				[/codeblock]
 			</description>
 		</method>
+		<method name="get_custom_metadata" qualifiers="const">
+			<return type="Variant" />
+			<param index="0" name="key" type="String" />
+			<description>
+				Returns the custom application metadata stored under [param key] on this schema node, or [code]null[/code] if the key does not exist.
+				[codeblock]
+				var schema = Schema.build_schema({"type": "string"})
+				schema.set_custom_metadata("ui_hint", "multiline_text")
+				print(schema.get_custom_metadata("ui_hint")) # "multiline_text"
+				[/codeblock]
+			</description>
+		</method>
+		<method name="get_id" qualifiers="const">
+			<return type="StringName" />
+			<description>
+				Returns the Schema's [code]$id[/code] if defined, or an empty string otherwise.
+				[codeblock]
+				var schema = Schema.build_schema({
+				    "$id": "http://example.com/user.json",
+				    "type": "object"
+				})
+
+				print(Schema.get_id()) # "http://example.com/user.json"
+				[/codeblock]
+			</description>
+		</method>
 		<method name="get_item_count" qualifiers="const">
 			<return type="int" />
 			<description>
@@ -205,20 +245,6 @@
 				})
 
 				print(schema.get_item_count())  # 3
-				[/codeblock]
-			</description>
-		</method>
-		<method name="get_id" qualifiers="const">
-			<return type="StringName" />
-			<description>
-				Returns the Schema's [code]$id[/code] if defined, or an empty string otherwise.
-				[codeblock]
-				var schema = Schema.build_schema({
-				    "$id": "http://example.com/user.json",
-				    "type": "object"
-				})
-
-				print(Schema.get_id()) # "http://example.com/user.json"
 				[/codeblock]
 			</description>
 		</method>
@@ -398,6 +424,17 @@
 				[/codeblock]
 			</description>
 		</method>
+		<method name="has_custom_metadata" qualifiers="const">
+			<return type="bool" />
+			<param index="0" name="key" type="String" />
+			<description>
+				Returns [code]true[/code] if custom application metadata exists on this schema node for the given [param key].
+				[codeblock]
+				if schema.has_custom_metadata("editor_icon"):
+				    display_icon(schema.get_custom_metadata("editor_icon"))
+				[/codeblock]
+			</description>
+		</method>
 		<method name="is_array" qualifiers="const">
 			<return type="bool" />
 			<description>
@@ -409,6 +446,18 @@
 				})
 				print(schema.is_array())  # true
 				[/codeblock]
+			</description>
+		</method>
+		<method name="is_assert_format" qualifiers="const">
+			<return type="bool" />
+			<description>
+				Returns [code]true[/code] if [code]format[/code] keywords are enforced as validation assertions for this schema (or inherited from its root schema). If [code]false[/code], [code]format[/code] is treated as an informational annotation only (the default under JSON Schema Draft 2020-12).
+			</description>
+		</method>
+		<method name="is_default_format_assertion" qualifiers="static">
+			<return type="bool" />
+			<description>
+				Returns [code]true[/code] if format assertion is globally enabled by default for all schemas via [method set_default_format_assertion]. Default is [code]false[/code].
 			</description>
 		</method>
 		<method name="is_object" qualifiers="const">
@@ -492,9 +541,11 @@
 			<return type="Schema" />
 			<param index="0" name="json_string" type="String" />
 			<param index="1" name="validate_against_meta" type="bool" default="false" />
+			<param index="2" name="assert_format" type="bool" default="false" />
 			<description>
 				Parses a JSON string and builds a Schema from it. Returns a [Schema] object ready for validation, or [code]null[/code] if the JSON is invalid.
-				This is a convenience method that combines JSON parsing with [method build_schema]. If [param validate_against_meta] is [code]true[/code], the Schema will be validated against the JSON Schema Draft-7 meta-schema.
+				This is a convenience method that combines JSON parsing with [method build_schema]. If [param validate_against_meta] is [code]true[/code], the Schema will be validated against the JSON Schema Draft 2020-12 meta-schema.
+				If [param assert_format] is [code]true[/code], format keywords are enforced as validation assertions.
 				Schemas with a [code]$id[/code] field are automatically registered globally.
 				[codeblock]
 				var json_text = """
@@ -532,9 +583,11 @@
 			<return type="Schema" />
 			<param index="0" name="path" type="String" />
 			<param index="1" name="validate_against_meta" type="bool" default="false" />
+			<param index="2" name="assert_format" type="bool" default="false" />
 			<description>
 				Loads a JSON Schema from a file and builds it. Returns a [Schema] object ready for validation, or [code]null[/code] if the file cannot be read or the JSON is invalid.
-				This is a convenience method for loading external schema files. If [param validate_against_meta] is [code]true[/code], the Schema will be validated against the JSON Schema Draft-7 meta-schema.
+				This is a convenience method for loading external schema files. If [param validate_against_meta] is [code]true[/code], the Schema will be validated against the JSON Schema Draft 2020-12 meta-schema.
+				If [param assert_format] is [code]true[/code], format keywords are enforced as validation assertions.
 				Schemas with a [code]$id[/code] field are automatically registered globally, making this useful for loading reusable schema definitions.
 				[codeblock]
 				# Load a user validation Schema
@@ -609,6 +662,46 @@
 				        "item": {"$ref": "my-custom-schema"}
 				    }
 				})
+				[/codeblock]
+			</description>
+		</method>
+		<method name="set_assert_format">
+			<return type="void" />
+			<param index="0" name="enabled" type="bool" />
+			<description>
+				Sets whether [code]format[/code] keywords are enforced as validation assertions for this schema.
+				When [param enabled] is [code]true[/code], values that fail format validation (such as [code]"email"[/code], [code]"uri"[/code], [code]"date-time"[/code], [code]"uuid"[/code], etc.) produce validation errors. When [code]false[/code], formats act as annotations only.
+				[codeblock]
+				var schema = Schema.build_schema({
+				    "$schema": "https://json-schema.org/draft/2020-12/schema",
+				    "type": "string",
+				    "format": "email"
+				})
+				schema.set_assert_format(true)
+				[/codeblock]
+			</description>
+		</method>
+		<method name="set_custom_metadata">
+			<return type="void" />
+			<param index="0" name="key" type="String" />
+			<param index="1" name="value" type="Variant" />
+			<description>
+				Attaches custom application-defined metadata to this schema node. Useful for storing editor hints, UI widgets, or serialization options alongside the schema structure.
+				[codeblock]
+				var schema = Schema.build_schema({"type": "integer", "minimum": 0, "maximum": 100})
+				schema.set_custom_metadata("widget", "slider")
+				[/codeblock]
+			</description>
+		</method>
+		<method name="set_default_format_assertion" qualifiers="static">
+			<return type="void" />
+			<param index="0" name="enabled" type="bool" />
+			<description>
+				Configures the global default format validation behavior across all schemas.
+				When set to [code]true[/code], all schemas will enforce [code]format[/code] keywords as assertions, including Draft 2020-12 schemas. When set to [code]false[/code] (default), Draft 2020-12 schemas treat format as an annotation unless individually configured with [param assert_format] or [method set_assert_format].
+				[codeblock]
+				# Globally enable strict format validation
+				Schema.set_default_format_assertion(true)
 				[/codeblock]
 			</description>
 		</method>

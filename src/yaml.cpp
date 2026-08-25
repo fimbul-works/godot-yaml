@@ -43,7 +43,7 @@ void YAML::_bind_methods() {
 
 	ClassDB::bind_static_method("YAML", D_METHOD("try_save_file", "data", "path", "style"), &YAML::try_save_file, DEFVAL(nullptr));
 
-	ClassDB::bind_static_method("YAML", D_METHOD("register_class", "script_class", "serialize_method", "deserialize_method"), &YAML::register_class, DEFVAL("serialize"), DEFVAL("deserialize"), DEFVAL(nullptr));
+	ClassDB::bind_static_method("YAML", D_METHOD("register_class", "script_class", "serialize_method", "deserialize_method", "custom_tag"), &YAML::register_class, DEFVAL(String("serialize")), DEFVAL(String("deserialize")), DEFVAL(nullptr));
 	ClassDB::bind_static_method("YAML", D_METHOD("unregister_class", "script_class"), &YAML::unregister_class);
 	ClassDB::bind_static_method("YAML", D_METHOD("has_registered_class", "script_class"), &YAML::has_registered_class);
 
