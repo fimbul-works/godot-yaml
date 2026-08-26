@@ -27,3 +27,7 @@ project/export_presets.cfg
 project/*.so
 project/*.pck
 project/*.x86_64
+
+# Build scripts
+build.sh
+format.sh
