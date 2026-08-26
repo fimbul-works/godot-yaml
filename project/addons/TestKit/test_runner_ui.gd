@@ -58,38 +58,55 @@ func _populate_test_suites(test_classes: Array[TestSuite]) -> void:
 	test_suites.clear()
 
 	for test_class in test_classes:
-		if !test_class.visible or (test_class.owner and !test_class.owner.visible):
+		if test_class.has_method("is_suite_visible"):
+			if not test_class.is_suite_visible():
+				continue
+		elif test_class is TestSuite and not test_class.is_visible_in_tree():
+			continue
+		elif !test_class.visible or (test_class.owner and !test_class.owner.visible):
 			continue
 
 		var test_methods = test_runner.find_test_methods(test_class)
 		if test_methods.is_empty():
 			continue
 
+		var suite_name: String = test_class.get_suite_display_name() if test_class.has_method("get_suite_display_name") else test_class.name
+		if test_suites.has(suite_name):
+			suite_name = "%s (%d)" % [suite_name, test_class.get_instance_id()]
+		test_class.set_meta("suite_key", suite_name)
+
 		# Create suite button
-		var suite_button = _create_suite_button(test_class, test_methods)
+		var suite_button = _create_suite_button(test_class, test_methods, suite_name)
 		test_suites_list.add_child(suite_button)
 
 		# Store suite data
-		test_suites[test_class.name] = {
+		test_suites[suite_name] = {
 			"test_class": test_class,
 			"test_methods": test_methods,
 			"button": suite_button,
 			"status": "pending"
 		}
 
-func _create_suite_button(test_class: TestSuite, test_methods: Array) -> Button:
+func _format_suite_button_text(icon: String, suite_name: String, passed: int, total: int) -> String:
+	return "%s %s\n(%d/%d passing)" % [icon, suite_name, passed, total]
+
+func _create_suite_button(test_class: TestSuite, test_methods: Array, suite_name: String) -> Button:
 	var button = Button.new()
 	button.alignment = HORIZONTAL_ALIGNMENT_LEFT
-	button.custom_minimum_size.y = 40
+	button.custom_minimum_size.y = 48
+	button.clip_text = true
+	button.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 
 	var icon_text = test_class.icon if test_class.icon.length() > 0 else "📁"
+	var passed_count = test_class.get_passed_tests()
 	var method_count = test_methods.size()
 
-	button.text = "%s %s (%d tests)" % [icon_text, test_class.name, method_count]
+	button.text = _format_suite_button_text(icon_text, suite_name, passed_count, method_count)
 	button.add_theme_color_override("font_color", COLOR_PENDING)
 
 	# Connect button press
-	button.pressed.connect(_on_suite_selected.bind(test_class.name))
+	button.pressed.connect(_on_suite_selected.bind(suite_name))
 
 	return button
 
@@ -121,6 +138,8 @@ func _display_suite_details(suite_data: Dictionary) -> void:
 	header.custom_minimum_size.y = 60
 	header.fit_content = true
 	header.bbcode_enabled = true
+	header.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	header.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 
 	var icon_text = test_class.icon if test_class.icon.length() > 0 else "📁"
 	header.text = "[font_size=20][b]%s %s[/b][/font_size]\n[i]%d test methods[/i]" % [
@@ -141,14 +160,18 @@ func _display_suite_details(suite_data: Dictionary) -> void:
 func _create_test_method_item(test_class: TestSuite, method_name: String) -> Control:
 	var container := VBoxContainer.new()
 	container.custom_minimum_size.y = 30
+	container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 
 	# Method header
 	var method_header := HBoxContainer.new()
+	method_header.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 
 	# Method name
 	var method_label := Label.new()
 	method_label.text = "⏳ %s()" % method_name
 	method_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	method_label.clip_text = true
+	method_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	method_header.add_child(method_label)
 
 	container.add_child(method_header)
@@ -156,6 +179,7 @@ func _create_test_method_item(test_class: TestSuite, method_name: String) -> Con
 	# Error container (initially hidden)
 	var error_container := VBoxContainer.new()
 	error_container.visible = false
+	error_container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	error_container.add_theme_color_override("font_color", COLOR_FAIL)
 	container.add_child(error_container)
 
@@ -173,6 +197,7 @@ func _create_test_method_item(test_class: TestSuite, method_name: String) -> Con
 func _on_run_tests_pressed() -> void:
 	run_button.disabled = true
 	run_button.text = "Running Tests..."
+	summary_label.text = "[b]Running tests...[/b]"
 
 	# Reset all UI elements
 	_reset_ui_state()
@@ -201,21 +226,23 @@ func _on_run_tests_pressed() -> void:
 	if is_headless:
 		var exit_code := 0
 		for suite_name in test_suites:
-			var suite = test_suites[suite_name]
-			if not suite is TestSuite:
-				continue
+			var suite_data = test_suites[suite_name]
+			var suite: TestSuite = suite_data.test_class
 			var results = suite.get_test_results()
-			if !results.passed:
-				exit_code = 1
+			for method_name in results:
+				if not results[method_name].passed:
+					exit_code = 1
+					break
 		get_tree().quit(exit_code)
 
 func _reset_ui_state() -> void:
 	progress_bar.value = 0
+	summary_label.text = "[b]Running tests...[/b]"
 
 	for suite_name in test_suites:
 		var suite_data = test_suites[suite_name]
-		suite_data.button.add_theme_color_override("font_color", COLOR_PENDING)
 		suite_data.status = "pending"
+		_update_suite_button(suite_name)
 
 func _update_method_display_from_results(container: Control, test_class: TestSuite, method_name: String) -> void:
 	# Check if this test has already been run
@@ -257,16 +284,17 @@ func _update_method_status(test_class: TestSuite, method_name: String, status: S
 						_display_method_errors(error_container, errors)
 				break
 
-func _update_suite_status(suite_name: String, status: String) -> void:
+func _update_suite_button(suite_name: String) -> void:
 	if suite_name not in test_suites:
 		return
 
 	var suite_data = test_suites[suite_name]
-	suite_data.status = status
-
-	var button = suite_data.button
+	var test_class: TestSuite = suite_data.test_class
+	var button: Button = suite_data.button
+	var status: String = suite_data.status
+	var icon_text = test_class.icon if test_class.icon.length() > 0 else "📁"
 	var color = COLOR_PENDING
-	var icon = "📁"
+	var icon = icon_text
 
 	match status:
 		"running":
@@ -279,11 +307,18 @@ func _update_suite_status(suite_name: String, status: String) -> void:
 			color = COLOR_FAIL
 			icon = "❌"
 
-	# Update button text and color
-	var test_methods = suite_data.test_methods
-	var method_count = test_methods.size()
-	button.text = "%s %s (%d tests)" % [icon, suite_name, method_count]
+	var passed_count = test_class.get_passed_tests()
+	var method_count = suite_data.test_methods.size()
+	button.text = _format_suite_button_text(icon, suite_name, passed_count, method_count)
 	button.add_theme_color_override("font_color", color)
+
+func _update_suite_status(suite_name: String, status: String) -> void:
+	if suite_name not in test_suites:
+		return
+
+	var suite_data = test_suites[suite_name]
+	suite_data.status = status
+	_update_suite_button(suite_name)
 
 func _display_method_errors(error_container: VBoxContainer, errors: Array) -> void:
 	# Clear existing errors
@@ -298,6 +333,8 @@ func _display_method_errors(error_container: VBoxContainer, errors: Array) -> vo
 		var error_label = RichTextLabel.new()
 		error_label.bbcode_enabled = true
 		error_label.fit_content = true
+		error_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		error_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		error_label.custom_minimum_size.y = 20
 
 		# Format error message
@@ -356,6 +393,7 @@ func _update_final_summary(final_results: Array) -> void:
 func _on_tests_started(total_tests: int) -> void:
 	progress_bar.max_value = total_tests
 	progress_bar.value = 0
+	summary_label.text = "[b]Running tests...[/b]"
 
 func _on_test_method_started(test_class: TestSuite, method_name: String) -> void:
 	_update_method_status(test_class, method_name, "running")
@@ -366,12 +404,17 @@ func _on_test_method_completed(test_class: TestSuite, method_name: String, resul
 	else:
 		_update_method_status(test_class, method_name, "failed", result.errors)
 
+	var suite_key: String = test_class.get_meta("suite_key", test_class.get_suite_display_name() if test_class.has_method("get_suite_display_name") else test_class.name)
+	_update_suite_button(suite_key)
+
 func _on_test_suite_started(test_class: TestSuite) -> void:
-	_update_suite_status(test_class.name, "running")
+	var suite_key: String = test_class.get_meta("suite_key", test_class.get_suite_display_name() if test_class.has_method("get_suite_display_name") else test_class.name)
+	_update_suite_status(suite_key, "running")
 
 func _on_test_suite_completed(test_class: TestSuite, results: Dictionary) -> void:
+	var suite_key: String = test_class.get_meta("suite_key", test_class.get_suite_display_name() if test_class.has_method("get_suite_display_name") else test_class.name)
 	var status = "passed" if results.all_passed else "failed"
-	_update_suite_status(test_class.name, status)
+	_update_suite_status(suite_key, status)
 
 func _on_all_tests_completed(final_results: Array) -> void:
 	_update_final_summary(final_results)

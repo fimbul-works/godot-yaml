@@ -34,6 +34,22 @@ func _run() -> void:
 		root.add_child(instance)
 		_instantiated_scenes.append(instance)
 		test_suites = _find_test_suites(instance)
+	elif test_path.ends_with(".gd"):
+		var script = load(test_path)
+		if not script:
+			printerr("Failed to load test script: ", test_path)
+			quit(1)
+			return
+		var instance = script.new()
+		if instance is TestSuite:
+			root.add_child(instance)
+			_instantiated_scenes.append(instance)
+			test_suites = _find_test_suites(instance)
+		else:
+			printerr("Script does not extend TestSuite: ", test_path)
+			instance.free()
+			quit(1)
+			return
 	elif DirAccess.dir_exists_absolute(test_path):
 		# Load all test scenes from directory
 		test_suites = _load_tests_from_directory(test_path)
@@ -103,7 +119,10 @@ func _parse_arguments() -> Dictionary:
 func _find_test_suites(node: Node) -> Array[TestSuite]:
 	var suites: Array[TestSuite] = []
 
-	if node is TestSuite and node.visible:
+	if node is TestSuite and not node.visible:
+		return suites
+
+	if node is TestSuite:
 		suites.append(node)
 
 	for child in node.get_children():
@@ -138,31 +157,46 @@ func _load_tests_from_directory(dir_path: String) -> Array[TestSuite]:
 	return suites
 
 func _on_suite_started(test_class: TestSuite) -> void:
-	print("\n%s %s" % [test_class.icon if test_class.icon else "📋", test_class.name])
+	var display_name: String = test_class.get_suite_display_name() if test_class.has_method("get_suite_display_name") else test_class.name
+	var suite_text := "\n%s %s" % [test_class.icon if test_class.icon else "📋", display_name]
+	print_verbose(suite_text)
+	if verbose:
+		print(suite_text)
 
 func _on_method_started(test_class: TestSuite, method_name: String) -> void:
+	print_verbose("  Running %s..." % method_name)
 	if verbose:
 		print("  Running %s..." % method_name)
 
 func _on_method_completed(test_class: TestSuite, method_name: String, result: Dictionary) -> void:
 	if result.passed:
+		print_verbose("  ✅ %s" % method_name)
 		if verbose:
 			print("  ✅ %s" % method_name)
 	else:
-		print("  ❌ %s" % method_name)
+		var display_name: String = test_class.get_suite_display_name() if test_class.has_method("get_suite_display_name") else test_class.name
+		if verbose:
+			print("  ❌ %s" % method_name)
+		else:
+			print("\n❌ %s > %s" % [display_name, method_name])
 		for error in result.errors:
 			print("     %s" % error)
 		exit_code = 1
 
 func _on_suite_completed(test_class: TestSuite, results: Dictionary) -> void:
 	var status := "✅" if results.all_passed else "❌"
-	print("  %s %d/%d tests passed (%d/%d expectations)" % [
+	var suite_summary := "  %s %d/%d tests passed (%d/%d expectations)" % [
 		status,
 		results.passed,
 		results.total,
 		results.passed_expectations,
 		results.total_expectations
-	])
+	]
+	print_verbose(suite_summary)
+	if verbose:
+		print(suite_summary)
+	elif not results.all_passed:
+		print(suite_summary)
 
 func _on_all_completed(final_results: Array) -> void:
 	var total_passed := 0

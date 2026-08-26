@@ -46,6 +46,10 @@ var icon := ""
 var _current_method := ""
 # Track test results within this class
 var _test_results := {}
+# Dynamic tests registered via add_test()
+var _dynamic_tests := {}
+# Ensure before_all only runs once
+var _before_all_executed := false
 
 ## Children should override
 # Run before each test
@@ -63,9 +67,79 @@ func after_each() -> void:
 func before_all() -> void:
 	pass
 
+## Add a dynamic test case
+## - [param test_name]: Name of the test
+## - [param test_callable]: Callable to execute. Can take 0 arguments or 1 argument receiving this TestSuite instance.
+func add_test(test_name: String, test_callable: Callable) -> void:
+	if test_name.is_empty():
+		push_error("Cannot add dynamic test with an empty name in suite '%s'" % name)
+		return
+
+	if has_method(test_name) or _dynamic_tests.has(test_name):
+		push_error("Test '%s' already exists in suite '%s'" % [test_name, name])
+		return
+
+	_dynamic_tests[test_name] = test_callable
+
+## Clear all registered dynamic tests
+func clear_dynamic_tests() -> void:
+	_dynamic_tests.clear()
+
+## Get all test names (both static test_* methods and dynamic tests) matching FILTER_PATTERNS
+func get_test_names() -> PackedStringArray:
+	var test_names: PackedStringArray = []
+	for method in get_method_list():
+		if method.name.begins_with("test_"):
+			if _matches_filter(method.name):
+				test_names.append(method.name)
+	for dyn_name in _dynamic_tests.keys():
+		if _matches_filter(dyn_name):
+			test_names.append(dyn_name)
+	return test_names
+
+func _matches_filter(test_name: String) -> bool:
+	if FILTER_PATTERNS.is_empty():
+		return true
+	for pattern in FILTER_PATTERNS:
+		if test_name.contains(pattern):
+			return true
+	return false
+
+## Execute a test by name (static method or dynamic callable)
+func run_test(test_name: String) -> void:
+	_start_test(test_name)
+	if _dynamic_tests.has(test_name):
+		var callable: Callable = _dynamic_tests[test_name]
+		await callable.call(self)
+	elif has_method(test_name):
+		await call(test_name)
+	else:
+		push_error("Test '%s' not found in suite '%s'" % [test_name, name])
+	_end_test()
+
+## Get formatted display name reflecting hierarchy if nested
+func get_suite_display_name() -> String:
+	var parent_node := get_parent()
+	if parent_node != null and (parent_node is TestSuite or (parent_node.name != "root" and parent_node.name != "Tests" and parent_node.name != "TestRunnerUI")):
+		return "%s > %s" % [parent_node.name, name]
+	return name
+
+## Check if this suite and all ancestor nodes are visible
+func is_suite_visible() -> bool:
+	if is_inside_tree():
+		return is_visible_in_tree()
+	var curr: Node = self
+	while curr != null:
+		if curr is TestSuite and not curr.visible:
+			return false
+		curr = curr.get_parent()
+	return true
+
 # Called when a test begins
 func _start_test(method_name: String) -> void:
-	before_all()
+	if not _before_all_executed:
+		before_all()
+		_before_all_executed = true
 	before_each()
 	_current_method = method_name
 	_test_results[method_name] = {
@@ -104,6 +178,8 @@ func expect(condition: bool, message := "") -> bool:
 
 			if LOG_VERBOSE:
 				push_error("✗ %s" % error_msg)
+			else:
+				print_verbose("✗ %s" % error_msg)
 
 			result.passed = false
 			result.errors.append(error_msg)
@@ -176,6 +252,8 @@ func expect_equal(actual: Variant, expected: Variant, message := "") -> bool:
 
 			if LOG_VERBOSE:
 				print_rich("✗ %s" % error_msg)
+			else:
+				print_verbose("✗ %s" % error_msg)
 
 			result.passed = false
 			result.errors.append(error_msg)
@@ -212,6 +290,8 @@ func expect_not_equal(actual, expected, message := "") -> bool:
 			var error_msg := "Values should not match"
 			if LOG_VERBOSE:
 				print_rich("[color=red]✗ %s[/color]" % error_msg)
+			else:
+				print_verbose("✗ %s" % error_msg)
 
 			result.passed = false
 			result.errors.append(error_msg)
